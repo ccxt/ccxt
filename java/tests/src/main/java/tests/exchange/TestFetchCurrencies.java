@@ -36,7 +36,7 @@ public class TestFetchCurrencies extends BaseTest {
         {
             Object values = Helpers.objectValues(currencies);
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values);
-            Object currenciesLength = ((List<?>)values).size();
+            Integer currenciesLength = ((List<?>)values).size();
             // ensure exchange returns enough length of currencies
             Boolean skipAmount = (Helpers.inOp(skippedProperties, "amountOfCurrencies"));
             Assert(Boolean.TRUE.equals(skipAmount) || Helpers.isGreaterThan(currenciesLength, 5), ((((exchange.id + " ") + method) + " must return at least several currencies, but it returned ") + String.valueOf(currenciesLength)));

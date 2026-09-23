@@ -71,7 +71,7 @@ public class TestCurrency extends BaseTest {
         // check if empty networks should be skipped
         Object networks = exchange.safeDict(entry, "networks", new HashMap<String, Object>() {{}});
         List<Object> networkKeys = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
-        Object networkKeysLength = ((List<?>)networkKeys).size();
+        Integer networkKeysLength = ((List<?>)networkKeys).size();
         if (java.util.Objects.equals(networkKeysLength, 0) && (Helpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
         {
             return;

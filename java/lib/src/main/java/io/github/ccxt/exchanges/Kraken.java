@@ -710,12 +710,11 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             ((List<Object>)promises).add(this.publicGetAssetPairs(parameters));
             if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
@@ -793,7 +792,7 @@ public class Kraken extends KrakenApi
                 List<Object> makerFees = (List<Object>) this.safeList(market, "fees_maker", new ArrayList<Object>(Arrays.asList()));
                 List<Object> firstMakerFee = (List<Object>) this.safeList(makerFees, 0, new ArrayList<Object>(Arrays.asList()));
                 String firstMakerFeeRate = this.safeString(firstMakerFee, 1);
-                Object maker = null;
+                Double maker = null;
                 if (!java.util.Objects.equals(firstMakerFeeRate, null))
                 {
                     maker = this.parseNumber(Precise.stringDiv(firstMakerFeeRate, "100"));
@@ -801,15 +800,15 @@ public class Kraken extends KrakenApi
                 List<Object> takerFees = (List<Object>) this.safeList(market, "fees", new ArrayList<Object>(Arrays.asList()));
                 List<Object> firstTakerFee = (List<Object>) this.safeList(takerFees, 0, new ArrayList<Object>(Arrays.asList()));
                 String firstTakerFeeRate = this.safeString(firstTakerFee, 1);
-                Object taker = null;
+                Double taker = null;
                 if (!java.util.Objects.equals(firstTakerFeeRate, null))
                 {
                     taker = this.parseNumber(Precise.stringDiv(firstTakerFeeRate, "100"));
                 }
                 List<Object> leverageBuy = (List<Object>) this.safeList(market, "leverage_buy", new ArrayList<Object>(Arrays.asList()));
-                Object leverageBuyLength = ((List<?>)leverageBuy).size();
-                Object precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, "pair_decimals")));
-                Object precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals")));
+                Integer leverageBuyLength = ((List<?>)leverageBuy).size();
+                Double precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, "pair_decimals")));
+                Double precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals")));
                 Boolean spot = true;
                 // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
                 if (java.util.Objects.equals(base, null))
@@ -833,12 +832,12 @@ public class Kraken extends KrakenApi
                 String status = this.safeString(market, "status");
                 Boolean isActive = java.util.Objects.equals(status, "online");
                 Object symbol = ((Helpers.isTrue((!Boolean.TRUE.equals(isSynthetic))))) ? (((base + "/") + quote)) : id;
-    final Object finalBase = base;
-                final Object finalSpot = spot;
+    final String finalBase = base;
+                final Boolean finalSpot = spot;
                 final Object finalLeverageBuyLength = leverageBuyLength;
-                final Object finalTaker = taker;
-                final Object finalMaker = maker;
-                final Object finalPrecisionAmount = precisionAmount;
+                final Double finalTaker = taker;
+                final Double finalMaker = maker;
+                final Double finalPrecisionAmount = precisionAmount;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "wsId", Kraken.this.safeString(market, "wsname") );
@@ -898,6 +897,18 @@ public class Kraken extends KrakenApi
         });
 
     }
+    /**
+     * @method
+     * @name kraken#fetchMarkets
+     * @description retrieves data on all markets for kraken
+     * @see https://docs.kraken.com/api-reference/market-data/get-tradable-asset-pairs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -907,12 +918,11 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetSystemStatus(parameters)).join();
             //
             // {
@@ -922,7 +932,7 @@ public class Kraken extends KrakenApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
             String statusRaw = this.safeString(result, "status");
-            final Object finalStatusRaw = statusRaw;
+            final String finalStatusRaw = statusRaw;
             return new HashMap<String, Object>() {{
                 put( "status", (((java.util.Objects.equals(finalStatusRaw, "online")))) ? "ok" : "maintenance" );
                 put( "updated", null );
@@ -933,6 +943,18 @@ public class Kraken extends KrakenApi
         }).thenApply(Status::new);
 
     }
+    /**
+     * @method
+     * @name kraken#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://docs.kraken.com/api-reference/market-data/get-system-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    {
+        return this.fetchStatus(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -942,12 +964,11 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetAssets(parameters)).join();
             //
             //     {
@@ -1009,6 +1030,18 @@ public class Kraken extends KrakenApi
         });
 
     }
+    /**
+     * @method
+     * @name kraken#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.kraken.com/api-reference/market-data/get-asset-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseCurrency(Object rawCurrency)
     {
@@ -1060,8 +1093,8 @@ public class Kraken extends KrakenApi
         }
         Boolean isFiat = ((String)code).indexOf(".HOLD") >= 0;
         rawCurrency = this.omit(rawCurrency, "_coin_id");
-        final Object finalId = id;
-        final Object finalCode = code;
+        final String finalId = id;
+        final String finalCode = code;
         final Object finalRawCurrency = rawCurrency;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
@@ -1088,9 +1121,8 @@ public class Kraken extends KrakenApi
         }}));
     }
 
-    public String safeCurrencyCode(String currencyId, Object... optionalArgs)
+    public String safeCurrencyCode(String currencyId, Map<String, Object> currency)
     {
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (java.util.Objects.equals(currencyId, null))
         {
             return (String) currencyId;
@@ -1098,12 +1130,16 @@ public class Kraken extends KrakenApi
         if (((String)currencyId).indexOf(".") > 0)
         {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
-            Object parts = new ArrayList<Object>(Arrays.asList(((String)currencyId).split(java.util.regex.Pattern.quote("."))));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)currencyId).split(java.util.regex.Pattern.quote("."))));
             String firstPart = this.safeString(parts, 0);
             String secondPart = this.safeString(parts, 1);
             return ((super.safeCurrencyCode(firstPart, currency) + ".") + secondPart);
         }
-        return super.safeCurrencyCode((String) (currencyId), currency);
+        return super.safeCurrencyCode(currencyId, currency);
+    }
+    public String safeCurrencyCode(String currencyId, Object... optionalArgs)
+    {
+        return this.safeCurrencyCode(currencyId, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1115,12 +1151,11 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1165,6 +1200,19 @@ public class Kraken extends KrakenApi
         }).thenApply(TradingFeeInterface::new);
 
     }
+    /**
+     * @method
+     * @name kraken#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://docs.kraken.com/api-reference/account-data/get-trade-volume
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTradingFee(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Map<String, Object> parseTradingFee(Map<String, Object> response, Object market)
     {
@@ -1182,15 +1230,16 @@ public class Kraken extends KrakenApi
         }};
     }
 
-    public Object parseOrderBookBidAsk(Object bidask, Object... optionalArgs)
+    public Object parseOrderBookBidAsk(Object bidask, Object priceKey, Object amountKey, Object countOrIdKey)
     {
-        Object priceKey = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : 0;
-        Object amountKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : 1;
-        Object countOrIdKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2;
         Double price = this.safeNumber(bidask, priceKey);
         Double amount = this.safeNumber(bidask, amountKey);
         Long timestamp = this.safeInteger(bidask, 2);
         return new ArrayList<Object>(Arrays.asList(price, amount, timestamp));
+    }
+    public Object parseOrderBookBidAsk(Object bidask, Object... optionalArgs)
+    {
+        return this.parseOrderBookBidAsk(bidask, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : 0, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : 1, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2);
     }
 
     /**
@@ -1203,13 +1252,11 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1256,8 +1303,22 @@ public class Kraken extends KrakenApi
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name kraken#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.kraken.com/api-reference/market-data/get-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1272,7 +1333,6 @@ public class Kraken extends KrakenApi
         //         "o":"2571.56000"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String symbol = this.safeSymbol(null, market);
         List<Object> v = (List<Object>) this.safeList(ticker, "v", new ArrayList<Object>(Arrays.asList()));
         String baseVolume = this.safeString(v, 1);
@@ -1308,6 +1368,10 @@ public class Kraken extends KrakenApi
             put( "info", ticker );
         }}, market);
     }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1318,13 +1382,11 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1353,13 +1415,26 @@ public class Kraken extends KrakenApi
             {
                 Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
-                Object symbol = ((Map<String, Object>)market).get("symbol");
+                String symbol = (String) ((Map<String, Object>)market).get("symbol");
                 Object ticker = (tickers == null || id == null ? null : tickers.get(id));
                 ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
 
+    }
+    /**
+     * @method
+     * @name kraken#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.kraken.com/api-reference/market-data/get-ticker-information
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1371,12 +1446,11 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1392,8 +1466,21 @@ public class Kraken extends KrakenApi
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name kraken#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.kraken.com/api-reference/market-data/get-ticker-information
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     [
@@ -1407,8 +1494,11 @@ public class Kraken extends KrakenApi
         //         5
         //     ]
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 6)));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1424,22 +1514,20 @@ public class Kraken extends KrakenApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit, Map<String, Object> parameters2)
     {
-
+        final Long since3 = since2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Long since = since3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            Object paginate = false;
+            Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1487,6 +1575,23 @@ public class Kraken extends KrakenApi
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name kraken#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.kraken.com/api-reference/market-data/get-ohlc-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     public String parseLedgerEntryType(String type)
     {
@@ -1500,7 +1605,7 @@ public class Kraken extends KrakenApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         //
         //     {
@@ -1517,7 +1622,6 @@ public class Kraken extends KrakenApi
         //         ...
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(item, "id");
         String direction = null;
         Object account = null;
@@ -1526,7 +1630,7 @@ public class Kraken extends KrakenApi
         String type = this.parseLedgerEntryType(this.safeString(item, "type"));
         String currencyId = this.safeString(item, "asset");
         String code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
+        currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
         String amount = this.safeString(item, "amount");
         if (Precise.stringLt(amount, "0"))
         {
@@ -1537,8 +1641,8 @@ public class Kraken extends KrakenApi
             direction = "in";
         }
         Long timestamp = this.safeIntegerProduct(item, "time", 1000);
-        final Object finalDirection = direction;
-        final Object finalAmount = amount;
+        final String finalDirection = direction;
+        final String finalAmount = amount;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", id );
@@ -1560,6 +1664,10 @@ public class Kraken extends KrakenApi
             }} );
         }}, currency);
     }
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    {
+        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1574,25 +1682,25 @@ public class Kraken extends KrakenApi
      * @param {int} [params.end] timestamp in seconds of the latest ledger entry
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code2, Long since2, Long limit, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String code = code3;
+            Long since = since3;
+            Map<String, Object> parameters = parameters3;
             // https://www.kraken.com/features/api#get-ledgers-info
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object currency = null;
+            Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = (Map<String, Object>) this.currency((String) (code));
                 ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1602,7 +1710,7 @@ public class Kraken extends KrakenApi
             String until = this.safeString2(parameters, "until", "till");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
                 String untilDivided = Precise.stringDiv(until, "1000");
                 ((Map<String, Object>)request).put("end", this.parseToInt(Precise.stringAdd(untilDivided, "1")));
             }
@@ -1631,15 +1739,30 @@ public class Kraken extends KrakenApi
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name kraken#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://docs.kraken.com/api-reference/account-data/get-ledgers-info
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @param {int} [params.end] timestamp in seconds of the latest ledger entry
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    {
+        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> fetchLedgerEntriesByIds(Object ids2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchLedgerEntriesByIds(Object ids2, String code, Map<String, Object> parameters)
     {
         final Object ids3 = ids2;
         return BaseExchange.supplyAsync(() -> {
             Object ids = ids3;
             // https://www.kraken.com/features/api#query-ledgers
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1673,21 +1796,27 @@ public class Kraken extends KrakenApi
         });
 
     }
+    public CompletableFuture<Object> fetchLedgerEntriesByIds(Object ids, Object... optionalArgs)
+    {
+        return this.fetchLedgerEntriesByIds(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<LedgerEntry> fetchLedgerEntry(String id, Object... optionalArgs)
+    public CompletableFuture<LedgerEntry> fetchLedgerEntry(String id, String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object items = (this.fetchLedgerEntriesByIds(new ArrayList<Object>(Arrays.asList(id)), code, parameters)).join();
             return (items == null || 0 >= ((List<?>)items).size() ? null : ((List<?>)items).get(0));
         }).thenApply(LedgerEntry::new);
 
     }
+    public CompletableFuture<LedgerEntry> fetchLedgerEntry(String id, Object... optionalArgs)
+    {
+        return this.fetchLedgerEntry(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -1751,7 +1880,6 @@ public class Kraken extends KrakenApi
         //         "timestamp": "2025-05-27T11:24:03.847761Z"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object timestamp = null;
         String datetime = null;
         String side = null;
@@ -1760,7 +1888,7 @@ public class Kraken extends KrakenApi
         String amount = null;
         Object id = null;
         String orderId = null;
-        Object fee = null;
+        Map<String, Object> fee = null;
         Object symbol = null;
         if ((trade instanceof List))
         {
@@ -1769,7 +1897,7 @@ public class Kraken extends KrakenApi
             type = (((java.util.Objects.equals((trade == null || 4 >= ((List<?>)trade).size() ? null : ((List<?>)trade).get(4)), "l")))) ? "limit" : "market";
             price = this.safeString(trade, 0);
             amount = this.safeString(trade, 1);
-            Object tradeLength = ((List<?>)trade).size();
+            Integer tradeLength = ((List<?>)trade).size();
             if (Helpers.isGreaterThan(tradeLength, 6))
             {
                 id = this.safeString(trade, 6); // artificially added as per #1794
@@ -1783,11 +1911,11 @@ public class Kraken extends KrakenApi
             Object foundMarket = this.findMarketByAltnameOrId(marketId);
             if (!java.util.Objects.equals(foundMarket, null))
             {
-                market = foundMarket;
+                market = (Map<String, Object>) (foundMarket);
             } else if (!java.util.Objects.equals(marketId, null))
             {
                 // delisted market ids go here
-                market = this.getDelistedMarketById(marketId);
+                market = (Map<String, Object>) (this.getDelistedMarketById(marketId));
             }
             orderId = this.safeString(trade, "ordertxid");
             id = this.safeString2(trade, "id", "postxid");
@@ -1838,16 +1966,16 @@ public class Kraken extends KrakenApi
             timestamp = this.parse8601(datetime);
         }
         final Object finalId = id;
-        final Object finalOrderId = orderId;
+        final String finalOrderId = orderId;
         final Object finalTimestamp = timestamp;
-        final Object finalDatetime = datetime;
+        final String finalDatetime = datetime;
         final Object finalSymbol = symbol;
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalPrice = price;
-        final Object finalAmount = amount;
-        final Object finalFee = fee;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalPrice = price;
+        final String finalAmount = amount;
+        final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "order", finalOrderId );
@@ -1864,6 +1992,10 @@ public class Kraken extends KrakenApi
             put( "fee", finalFee );
         }}), market);
     }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1876,20 +2008,19 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since2, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Long since = since3;
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object id = ((Map<String, Object>)market).get("id");
+            String id = (String) ((Map<String, Object>)market).get("id");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", id );
             }};
@@ -1918,7 +2049,7 @@ public class Kraken extends KrakenApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object trades = this.safeValue(result, id);
             // trades is a sorted array: last (most recent trade) goes last
-            Object length = Helpers.getArrayLength(trades);
+            Integer length = Helpers.getArrayLength(trades);
             if (Helpers.isLessThanOrEqual(length, 0))
             {
                 return new ArrayList<Object>(Arrays.asList());
@@ -1930,6 +2061,21 @@ public class Kraken extends KrakenApi
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name kraken#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.kraken.com/api-reference/market-data/get-recent-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseBalance(Object response)
@@ -1946,7 +2092,7 @@ public class Kraken extends KrakenApi
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("used", this.safeString(balance, "hold_trade"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
@@ -1965,12 +2111,11 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1995,7 +2140,47 @@ public class Kraken extends KrakenApi
         }).thenApply(Balances::new);
 
     }
+    /**
+     * @method
+     * @name kraken#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.kraken.com/api-reference/account-data/get-extended-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name kraken#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @see https://docs.kraken.com/api-reference/trading/add-order
+     * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            // only buy orders are supported by the endpoint
+            Map<String, Object> req = new HashMap<String, Object>() {{
+                put( "cost", cost );
+            }};
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+        }).thenApply(Order::new);
+
+    }
     /**
      * @method
      * @name kraken#createMarketOrderWithCost
@@ -2009,21 +2194,7 @@ public class Kraken extends KrakenApi
      */
     public CompletableFuture<Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            // only buy orders are supported by the endpoint
-            Map<String, Object> req = new HashMap<String, Object>() {{
-                put( "cost", cost );
-            }};
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
-
+        return this.createMarketOrderWithCost(symbol, side, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2036,12 +2207,11 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2049,6 +2219,20 @@ public class Kraken extends KrakenApi
             return (this.createMarketOrderWithCost(symbol, (Object)("buy"), (Object)(cost), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name kraken#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol, side and cost
+     * @see https://docs.kraken.com/api-reference/trading/add-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    {
+        return this.createMarketBuyOrderWithCost(symbol, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2074,13 +2258,11 @@ public class Kraken extends KrakenApi
      * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2114,6 +2296,33 @@ public class Kraken extends KrakenApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name kraken#createOrder
+     * @description create a trade order
+     * @see https://docs.kraken.com/api-reference/trading/add-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {bool} [params.reduceOnly] *margin only* indicates if this order is to reduce the size of a position
+     * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
+     * @param {string} [params.trailingAmount] *margin only* the quote amount to trail away from the current market price
+     * @param {string} [params.trailingPercent] *margin only* the percent to trail away from the current market price
+     * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
+     * @param {string} [params.trailingLimitPercent] *margin only* the percent away from the trailingAmount
+     * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
+     * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2124,12 +2333,11 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
+    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2137,7 +2345,7 @@ public class Kraken extends KrakenApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             Object orderSymbols = new ArrayList<Object>(Arrays.asList());
             String symbol = null;
-            Object market = null;
+            Map<String, Object> market = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
@@ -2152,7 +2360,7 @@ public class Kraken extends KrakenApi
                         throw new BadRequest((this.id + " createOrders() requires all orders to have the same symbol")) ;
                     }
                 }
-                market = this.market(marketId);
+                market = (Map<String, Object>) this.market(marketId);
                 ((List<Object>)orderSymbols).add(marketId);
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -2170,8 +2378,8 @@ public class Kraken extends KrakenApi
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
             Object response = null;
-            final Object finalMarket = market;
-            Object request = new HashMap<String, Object>() {{
+            final Map<String, Object> finalMarket = market;
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
                 put( "pair", Kraken.this.safeString(finalMarket, "id") );
             }};
@@ -2202,6 +2410,19 @@ public class Kraken extends KrakenApi
             return this.parseOrders(this.safeList(result, "orders"));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name kraken#createOrders
+     * @description create a list of trade orders
+     * @see https://docs.kraken.com/api-reference/trading/add-order-batch
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
+    {
+        return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object findMarketByAltnameOrId(Object id)
@@ -2242,12 +2463,12 @@ public class Kraken extends KrakenApi
             quoteIdStart = 4;
             quoteIdEnd = 7;
         }
-        Object baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
-        Object quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
-        String base = this.safeCurrencyCode((String) (baseId));
-        String quote = this.safeCurrencyCode((String) (quoteId));
-        Object symbol = ((base + "/") + quote);
-        final Object finalBase = base;
+        String baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
+        String quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String symbol = ((base + "/") + quote);
+        final String finalBase = base;
         market = new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "base", finalBase );
@@ -2287,7 +2508,7 @@ public class Kraken extends KrakenApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -2387,7 +2608,6 @@ public class Kraken extends KrakenApi
         //         "oflags": "fciq"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Boolean isUsingCost = (Boolean) this.safeBool(order, "usingCost", false);
         order = this.omit(order, "usingCost");
         Map<String, Object> description = (Map<String, Object>) this.safeDict(order, "descr", new HashMap<String, Object>() {{}});
@@ -2401,7 +2621,7 @@ public class Kraken extends KrakenApi
             orderDescription = this.safeString(order, "descr");
         }
         String side = null;
-        Object rawType = null;
+        String rawType = null;
         String marketId = null;
         Object price = null;
         String amount = null;
@@ -2409,7 +2629,7 @@ public class Kraken extends KrakenApi
         String triggerPrice = null;
         if (!java.util.Objects.equals(orderDescription, null))
         {
-            Object parts = new ArrayList<Object>(Arrays.asList(((String)orderDescription).split(java.util.regex.Pattern.quote(" "))));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)orderDescription).split(java.util.regex.Pattern.quote(" "))));
             side = this.safeString(parts, 0);
             if (!java.util.Objects.equals(isUsingCost, true))
             {
@@ -2444,16 +2664,16 @@ public class Kraken extends KrakenApi
         Object symbol = null;
         if (!java.util.Objects.equals(foundMarket, null))
         {
-            market = foundMarket;
+            market = (Map<String, Object>) (foundMarket);
         } else if (!java.util.Objects.equals(marketId, null))
         {
             // delisted market ids go here
-            market = this.getDelistedMarketById(marketId);
+            market = (Map<String, Object>) (this.getDelistedMarketById(marketId));
         }
         Object timestamp = this.safeTimestamp(order, "opentm");
         amount = this.safeString(order, "vol", amount);
         String filled = this.safeString(order, "vol_exec");
-        Object fee = null;
+        Map<String, Object> fee = null;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, "price", price);
@@ -2505,7 +2725,7 @@ public class Kraken extends KrakenApi
             Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
             if ((rawTrade instanceof String))
             {
-final Object finalId = id;
+final String finalId = id;
                 final Object finalSymbol = symbol;
                                 ((List<Object>)trades).add(this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "id", rawTrade );
@@ -2526,11 +2746,11 @@ final Object finalId = id;
         // while spaced strings from "order" sentence (when other fields not available)
         if (!java.util.Objects.equals(rawType, null))
         {
-            if (Helpers.isTrue(((String)rawType).startsWith("take-profit")))
+            if (Helpers.isTrue(rawType.startsWith(((String)"take-profit"))))
             {
                 takeProfitPrice = this.safeString(description, "price");
                 price = this.omitZero(this.safeString(description, "price2"));
-            } else if (Helpers.isTrue(((String)rawType).startsWith("stop-loss")))
+            } else if (Helpers.isTrue(rawType.startsWith(((String)"stop-loss"))))
             {
                 stopLossPrice = this.safeString(description, "price");
                 price = this.omitZero(this.safeString(description, "price2"));
@@ -2542,7 +2762,7 @@ final Object finalId = id;
                 stopLossPrice = triggerPrice;
             }
         }
-        String typeParsed = this.parseOrderType((String) (rawType));
+        String typeParsed = this.parseOrderType(rawType);
         // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
@@ -2555,19 +2775,19 @@ final Object finalId = id;
         {
             isPostOnly = null;
         }
-        final Object finalId_2 = id;
+        final String finalId_2 = id;
         final Object finalOrder = order;
         final Object finalSymbol_2 = symbol;
-        final Object finalTypeParsed = typeParsed;
-        final Object finalIsPostOnly = isPostOnly;
-        final Object finalSide = side;
+        final String finalTypeParsed = typeParsed;
+        final Boolean finalIsPostOnly = isPostOnly;
+        final String finalSide = side;
         final Object finalPrice = price;
-        final Object finalTriggerPrice = triggerPrice;
-        final Object finalTakeProfitPrice = takeProfitPrice;
-        final Object finalStopLossPrice = stopLossPrice;
-        final Object finalCost = cost;
-        final Object finalAmount = amount;
-        final Object finalFee = fee;
+        final String finalTriggerPrice = triggerPrice;
+        final String finalTakeProfitPrice = takeProfitPrice;
+        final String finalStopLossPrice = stopLossPrice;
+        final String finalCost = cost;
+        final String finalAmount = amount;
+        final Map<String, Object> finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId_2 );
             put( "clientOrderId", clientOrderId );
@@ -2596,13 +2816,15 @@ final Object finalId = id;
             put( "trades", trades );
         }}), market);
     }
-
-    public Object orderRequest(Object method, String symbol, String type, Map<String, Object> request, Object amount, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
-        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+    }
+
+    public Object orderRequest(Object method, String symbol, String type, Map<String, Object> request, Object amount, Object price, Map<String, Object> parameters)
+    {
         String clientOrderId = this.safeString(parameters, "clientOrderId");
-        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))));
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             ((Map<String, Object>)request).put("cl_ord_id", clientOrderId);
@@ -2622,7 +2844,7 @@ final Object finalId = id;
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
         String cost = this.safeString(parameters, "cost");
         String flags = this.safeString(parameters, "oflags");
-        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "oflags")));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "oflags"))));
         Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (Helpers.isGreaterThan(((String)flags).indexOf("viqc"), -1)); // volume in quote currency
         if (Boolean.TRUE.equals(isMarketOrder) && (!java.util.Objects.equals(cost, null) || Boolean.TRUE.equals(isViqcOrder)))
         {
@@ -2633,13 +2855,13 @@ final Object finalId = id;
             {
                 ((Map<String, Object>)request).put("volume", this.costToPrecision(symbol, cost));
             }
-            Object extendedOflags = (((!java.util.Objects.equals(flags, null)))) ? (flags + ",viqc") : "viqc";
+            String extendedOflags = (((!java.util.Objects.equals(flags, null)))) ? (flags + ",viqc") : "viqc";
             ((Map<String, Object>)request).put("oflags", extendedOflags);
         } else if (Boolean.TRUE.equals(isLimitOrder) && !Boolean.TRUE.equals(isTrailingAmountOrder) && !Boolean.TRUE.equals(isTrailingPercentOrder))
         {
             ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
-        Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
         if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
         {
             if (Boolean.TRUE.equals(isStopLossTriggerOrder))
@@ -2669,14 +2891,14 @@ final Object finalId = id;
             }
         } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder))
         {
-            Object trailingPercentString = null;
+            String trailingPercentString = null;
             if (!java.util.Objects.equals(trailingPercent, null))
             {
                 trailingPercentString = ((Helpers.isTrue((((String)trailingPercent).endsWith(((String)"%")))))) ? (("+" + trailingPercent)) : ((("+" + trailingPercent) + "%"));
             }
             String trailingAmountString = (((!java.util.Objects.equals(trailingAmount, null)))) ? ("+" + trailingAmount) : null; // must use + for this
             String offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
-            Object trailingLimitAmountString = (((!java.util.Objects.equals(trailingLimitAmount, null)))) ? (offset + this.numberToString(trailingLimitAmount)) : null;
+            String trailingLimitAmountString = (((!java.util.Objects.equals(trailingLimitAmount, null)))) ? (offset + this.numberToString(trailingLimitAmount)) : null;
             String trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
             ((Map<String, Object>)request).put("trigger", trailingActivationPriceType);
             if (Boolean.TRUE.equals(isLimitOrder) || (!java.util.Objects.equals(trailingLimitAmount, null)) || (!java.util.Objects.equals(trailingLimitPercent, null)))
@@ -2684,7 +2906,7 @@ final Object finalId = id;
                 ((Map<String, Object>)request).put("ordertype", "trailing-stop-limit");
                 if (!java.util.Objects.equals(trailingLimitPercent, null))
                 {
-                    Object trailingLimitPercentString = ((Helpers.isTrue((((String)trailingLimitPercent).endsWith(((String)"%")))))) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
+                    String trailingLimitPercentString = ((Helpers.isTrue((((String)trailingLimitPercent).endsWith(((String)"%")))))) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
                     ((Map<String, Object>)request).put("price", trailingPercentString);
                     ((Map<String, Object>)request).put("price2", trailingLimitPercentString);
                 } else if (!java.util.Objects.equals(trailingLimitAmount, null))
@@ -2740,18 +2962,22 @@ final Object finalId = id;
         Boolean postOnly = null;
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarket, false, parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-        parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
         if (java.util.Objects.equals(postOnly, true))
         {
-            Object extendedPostFlags = (((!java.util.Objects.equals(flags, null)))) ? (flags + ",post") : "post";
+            String extendedPostFlags = (((!java.util.Objects.equals(flags, null)))) ? (flags + ",post") : "post";
             ((Map<String, Object>)request).put("oflags", extendedPostFlags);
         }
         if ((!java.util.Objects.equals(flags, null)) && !(request.containsKey("oflags")))
         {
             ((Map<String, Object>)request).put("oflags", flags);
         }
-        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset")));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"))));
         return new ArrayList<Object>(Arrays.asList(request, parameters));
+    }
+    public Object orderRequest(Object method, String symbol, String type, Map<String, Object> request, Object amount, Object... optionalArgs)
+    {
+        return this.orderRequest(method, symbol, type, request, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2777,14 +3003,17 @@ final Object finalId = id;
      * @param {string} [params.clientOrderId] the orders client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type2, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type2, Object side, Object amount2, Object price2, Map<String, Object> parameters2)
     {
         final Object type3 = type2;
+        final Object amount3 = amount2;
+        final Object price3 = price2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
-            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object amount = amount3;
+            Object price = price3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2849,6 +3078,33 @@ final Object finalId = id;
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name kraken#editOrder
+     * @description edit a trade order
+     * @see https://docs.kraken.com/api-reference/trading/amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+     * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+     * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+     * @param {string} [params.trailingLimitAmount] the quote amount away from the trailingAmount
+     * @param {string} [params.trailingLimitPercent] the percent away from the trailingAmount
+     * @param {string} [params.offset] '+' or '-' whether you want the trailingLimitAmount value to be positive or negative
+     * @param {boolean} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    {
+        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2860,13 +3116,11 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id2, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id2, String symbol, Map<String, Object> parameters)
     {
         final Object id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2932,6 +3186,20 @@ final Object finalId = id;
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name kraken#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.kraken.com/api-reference/account-data/query-orders-info
+     * @param {string} id order id
+     * @param {string} symbol not used by kraken fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2945,15 +3213,11 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
             Object orderTrades = this.safeValue(parameters, "trades");
             List<Object> tradeIds = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(orderTrades, null))
@@ -2983,8 +3247,8 @@ final Object finalId = id;
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOrderTrades", new HashMap<String, Object>() {{}});
             Long batchSize = this.safeInteger(options, "batchSize", 20);
-            Object numTradeIds = ((List<?>)tradeIds).size();
-            Object numBatches = this.parseToInt(Helpers.divide(numTradeIds, batchSize));
+            Integer numTradeIds = ((List<?>)tradeIds).size();
+            Object numBatches = this.parseToInt((((double) numTradeIds) / ((double) batchSize)));
             numBatches = this.sum(numBatches, 1);
             Object result = new ArrayList<Object>(Arrays.asList());
             for (var j = 0; Helpers.isLessThan(j, numBatches); j++)
@@ -3037,6 +3301,22 @@ final Object finalId = id;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name kraken#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://docs.kraken.com/api-reference/account-data/query-trades-info
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    {
+        return this.fetchOrderTrades(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3048,13 +3328,11 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrdersByIds(Object ids, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOrdersByIds(Object ids, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3079,6 +3357,20 @@ final Object finalId = id;
         });
 
     }
+    /**
+     * @method
+     * @name kraken#fetchOrdersByIds
+     * @description fetch orders by the list of order id
+     * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
+     * @param {string[]} [ids] list of order id
+     * @param {string} [symbol] unified ccxt market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Object> fetchOrdersByIds(Object ids, Object... optionalArgs)
+    {
+        return this.fetchOrdersByIds(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3093,15 +3385,15 @@ final Object finalId = id;
      * @param {int} [params.end] timestamp in seconds of the latest trade entry
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Long since = since3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3114,7 +3406,7 @@ final Object finalId = id;
             String until = this.safeString2(parameters, "until", "till");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
                 String untilDivided = Precise.stringDiv(until, "1000");
                 ((Map<String, Object>)request).put("end", this.parseToInt(Precise.stringAdd(untilDivided, "1")));
             }
@@ -3154,15 +3446,32 @@ final Object finalId = id;
             {
                 Helpers.addElementToObject(Helpers.GetValue(trades, (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i))), "id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
             }
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = (Map<String, Object>) this.market(symbol);
             }
             List<Object> tradesList = this.toArray(trades);
             return this.parseTrades(tradesList, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name kraken#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.kraken.com/api-reference/account-data/get-trades-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade entry
+     * @param {int} [params.end] timestamp in seconds of the latest trade entry
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3177,20 +3486,18 @@ final Object finalId = id;
      * @param {int} [params.userref] the orders user reference id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object response = null;
             Object requestId = this.safeValue(parameters, "userref", id); // string or integer
-            parameters = this.omit(parameters, "userref");
+            parameters = (Map<String, Object>) this.omit(parameters, "userref");
             Object request = new HashMap<String, Object>() {{
                 put( "txid", requestId );
             }};
@@ -3198,7 +3505,7 @@ final Object finalId = id;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("cl_ord_id", clientOrderId);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "cl_ord_id")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "cl_ord_id")));
                 request = this.omit(request, "txid");
             }
             try
@@ -3222,6 +3529,22 @@ final Object finalId = id;
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name kraken#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.kraken.com/api-reference/trading/cancel-order
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3233,13 +3556,11 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orders", ids );
             }};
@@ -3258,6 +3579,20 @@ final Object finalId = id;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name kraken#cancelOrders
+     * @description cancel multiple orders
+     * @see https://docs.kraken.com/api-reference/trading/cancel-order-batch
+     * @param {string[]} ids open orders transaction ID (txid) or user reference (userref)
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3268,13 +3603,11 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3294,6 +3627,19 @@ final Object finalId = id;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name kraken#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
+     * @param {string} [symbol] unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3304,12 +3650,11 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout2, Object... optionalArgs)
+    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout2, Map<String, Object> parameters)
     {
         final Object timeout3 = timeout2;
         return BaseExchange.supplyAsync(() -> {
             Object timeout = timeout3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(timeout, null))
             {
                 throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
@@ -3344,6 +3689,19 @@ final Object finalId = id;
         });
 
     }
+    /**
+     * @method
+     * @name kraken#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders-after-x
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
+    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
+    {
+        return this.cancelAllOrdersAfter(timeout, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3358,15 +3716,15 @@ final Object finalId = id;
      * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since2, Long limit, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Long since = since3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3380,13 +3738,13 @@ final Object finalId = id;
             if (!java.util.Objects.equals(userref, null))
             {
                 ((Map<String, Object>)request).put("userref", userref);
-                parameters = this.omit(parameters, "userref");
+                parameters = (Map<String, Object>) this.omit(parameters, "userref");
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("cl_ord_id", clientOrderId);
-                parameters = this.omit(parameters, "clientOrderId");
+                parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
             }
             Map<String, Object> response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
             //
@@ -3426,10 +3784,10 @@ final Object finalId = id;
             //         }
             //     }
             //
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = (Map<String, Object>) this.market(symbol);
             }
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> open = (Map<String, Object>) this.safeDict(result, "open", new HashMap<String, Object>() {{}});
@@ -3447,6 +3805,23 @@ final Object finalId = id;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name kraken#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.kraken.com/api-reference/account-data/get-open-orders
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3462,20 +3837,20 @@ final Object finalId = id;
      * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol2, Long since2, Long limit, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Long since = since3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start", this.parseToInt(Helpers.divide(since, 1000)));
@@ -3493,7 +3868,7 @@ final Object finalId = id;
                 parameters = this.omit(parameters, "clientOrderId");
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
-            request = ((List<Object>) requestparametersVariable).get(0);
+            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privatePostClosedOrders(this.extend(request, parameters))).join();
             //
@@ -3535,10 +3910,10 @@ final Object finalId = id;
             //         }
             //     }
             //
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = (Map<String, Object>) this.market(symbol);
             }
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> closed = (Map<String, Object>) this.safeDict(result, "closed", new HashMap<String, Object>() {{}});
@@ -3555,6 +3930,24 @@ final Object finalId = id;
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name kraken#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public String parseTransactionStatus(String status)
@@ -3577,7 +3970,7 @@ final Object finalId = id;
         return this.safeString(withdrawMethods, network, network);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits
@@ -3639,7 +4032,6 @@ final Object finalId = id;
         //         "refid": "AGBSO6T-UFMTTQ-I7KGS6"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(transaction, "refid");
         String txid = this.safeString(transaction, "txid");
         Object timestamp = this.safeTimestamp(transaction, "time");
@@ -3665,8 +4057,8 @@ final Object finalId = id;
                 feeCost = 0;
             }
         }
-        final Object finalStatus = status;
-        final Object finalType = type;
+        final String finalStatus = status;
+        final String finalType = type;
         final Object finalFeeCost = feeCost;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3694,12 +4086,13 @@ final Object finalId = id;
             }} );
         }};
     }
-
-    public Object parseTransactionsByType(Object type, Object transactions, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
-        Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-        Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+    }
+
+    public Object parseTransactionsByType(Object type, Object transactions, String code, Long since, Long limit)
+    {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(transactions); i++)
         {
@@ -3709,6 +4102,10 @@ final Object finalId = id;
             ((List<Object>)result).add(transaction);
         }
         return this.filterByCurrencySinceLimit(result, code, since, limit);
+    }
+    public Object parseTransactionsByType(Object type, Object transactions, Object... optionalArgs)
+    {
+        return this.parseTransactionsByType(type, transactions, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null));
     }
 
     /**
@@ -3724,16 +4121,16 @@ final Object finalId = id;
      * @param {int} [params.end] timestamp in seconds of the latest transaction entry
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since2, Long limit, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String code = code3;
+            Long since = since3;
+            Map<String, Object> parameters = parameters3;
             // https://www.kraken.com/en-us/help/api#deposit-status
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3746,13 +4143,13 @@ final Object finalId = id;
             }
             if (!java.util.Objects.equals(since, null))
             {
-                Object sinceString = this.numberToString(since);
+                String sinceString = this.numberToString(since);
                 ((Map<String, Object>)request).put("start", Precise.stringDiv(sinceString, "1000"));
             }
             String until = this.safeString2(parameters, "until", "till");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
                 String untilDivided = Precise.stringDiv(until, "1000");
                 ((Map<String, Object>)request).put("end", Precise.stringAdd(untilDivided, "1"));
             }
@@ -3775,6 +4172,23 @@ final Object finalId = id;
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name kraken#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-deposits
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest transaction entry
+     * @param {int} [params.end] timestamp in seconds of the latest transaction entry
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    {
+        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3784,13 +4198,12 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // https://www.kraken.com/en-us/features/api#get-server-time
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetTime(parameters)).join();
             //
             //    {
@@ -3805,6 +4218,18 @@ final Object finalId = id;
             return this.safeTimestamp(result, "unixtime");
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
+    }
+    /**
+     * @method
+     * @name kraken#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.kraken.com/api-reference/market-data/get-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    {
+        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3821,22 +4246,22 @@ final Object finalId = id;
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since2, Long limit, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String code = code3;
+            Long since = since3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            Object paginate = false;
+            Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3851,7 +4276,7 @@ final Object finalId = id;
             }
             if (!java.util.Objects.equals(since, null))
             {
-                Object sinceString = this.numberToString(since);
+                String sinceString = this.numberToString(since);
                 ((Map<String, Object>)request).put("start", Precise.stringDiv(sinceString, "1000"));
             }
             String until = this.safeString2(parameters, "until", "till");
@@ -3913,12 +4338,30 @@ final Object finalId = id;
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name kraken#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-withdrawals
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest transaction entry
+     * @param {int} [params.end] timestamp in seconds of the latest transaction entry
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    {
+        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     public Object addPaginationCursorToResult(Object result)
     {
         String cursor = this.safeString(result, "next_cursor");
         Object data = this.safeValue(result, "withdrawals");
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (!java.util.Objects.equals(cursor, null) && Helpers.isGreaterThan(dataLength, 0))
         {
             Object last = Helpers.GetValue(data, Helpers.subtract(dataLength, 1));
@@ -3937,18 +4380,30 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "new", "true" );
             }};
             return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
         }).thenApply(DepositAddress::new);
 
+    }
+    /**
+     * @method
+     * @name kraken#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
+    {
+        return this.createDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3960,12 +4415,11 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} of deposit methods
      */
-    public CompletableFuture<Object> fetchDepositMethods(Object code, Object... optionalArgs)
+    public CompletableFuture<Object> fetchDepositMethods(Object code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4002,6 +4456,19 @@ final Object finalId = id;
         });
 
     }
+    /**
+     * @method
+     * @name kraken#fetchDepositMethods
+     * @description fetch deposit methods for a currency associated with this account
+     * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} of deposit methods
+     */
+    public CompletableFuture<Object> fetchDepositMethods(Object code, Object... optionalArgs)
+    {
+        return this.fetchDepositMethods(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -4012,12 +4479,13 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code2, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code2, Map<String, Object> parameters2)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object code = code3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            String code = code3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4026,7 +4494,7 @@ final Object finalId = id;
             String network = this.safeStringUpper(parameters, "network");
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
-            parameters = this.omit(parameters, "network");
+            parameters = (Map<String, Object>) this.omit(parameters, "network");
             if ((java.util.Objects.equals(code, "USDT")) && (java.util.Objects.equals(network, "TRC20")))
             {
                 code = ((code + "-") + network);
@@ -4063,7 +4531,7 @@ final Object finalId = id;
                     depositMethod = this.safeString(firstDepositMethod, "method");
                 }
             }
-            final Object finalDepositMethod = depositMethod;
+            final String finalDepositMethod = depositMethod;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "method", finalDepositMethod );
@@ -4087,8 +4555,21 @@ final Object finalId = id;
         }).thenApply(DepositAddress::new);
 
     }
+    /**
+     * @method
+     * @name kraken#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    {
+        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -4096,11 +4577,10 @@ final Object finalId = id;
         //         "expiretm":"0"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String address = this.safeString(depositAddress, "address");
         String tag = this.safeString(depositAddress, "tag");
-        currency = this.safeCurrency((String) (null), currency);
-        Object code = ((Map<String, Object>)currency).get("code");
+        currency = (Map<String, Object>) (this.safeCurrency((String) (null), currency));
+        String code = (String) ((Map<String, Object>)currency).get("code");
         this.checkAddress(address);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -4109,6 +4589,10 @@ final Object finalId = id;
             put( "address", address );
             put( "tag", tag );
         }};
+    }
+    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    {
+        return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -4123,13 +4607,15 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address2, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address2, String tag2, Map<String, Object> parameters2)
     {
-        final Object address3 = address2;
+        final String address3 = address2;
+        final String tag3 = tag2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object address = address3;
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            String address = address3;
+            Object tag = tag3;
+            Object parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
@@ -4162,6 +4648,22 @@ final Object finalId = id;
         }).thenApply(Transaction::new);
 
     }
+    /**
+     * @method
+     * @name kraken#withdraw
+     * @description make a withdrawal
+     * @see https://docs.kraken.com/api-reference/funding/withdraw-funds
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
+    {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -4172,13 +4674,11 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4240,8 +4740,21 @@ final Object finalId = id;
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name kraken#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
+     * @param {string[]} [symbols] not used by fetchPositions ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //             {
@@ -4256,7 +4769,6 @@ final Object finalId = id;
         //                 "margin": "14.24900"
         //             }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "pair");
         String rawSide = this.safeString(position, "type");
         String side = (((java.util.Objects.equals(rawSide, "buy")))) ? "long" : "short";
@@ -4291,6 +4803,10 @@ final Object finalId = id;
             put( "takeProfitPrice", null );
         }}));
     }
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public String parseAccountType(Object account)
     {
@@ -4312,15 +4828,28 @@ final Object finalId = id;
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> transferOut(String code, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            return (this.transfer(code, (Object)(amount), (Object)("spot"), (Object)("swap"), (Object)(parameters))).join();
+            return (this.transfer(code, (Object)(amount), "spot", "swap", (Object)(parameters))).join();
         });
 
+    }
+    /**
+     * @method
+     * @name kraken#transferOut
+     * @description transfer from spot wallet to futures wallet
+     * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
+     * @param {str} code Unified currency code
+     * @param {float} amount Size of the transfer
+     * @param {dict} [params] Exchange specific parameters
+     * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
+    {
+        return this.transferOut(code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4335,12 +4864,11 @@ final Object finalId = id;
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4348,7 +4876,7 @@ final Object finalId = id;
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String fromAccountParsed = this.parseAccountType(fromAccount);
             String toAccountParsed = this.parseAccountType(toAccount);
-            final Object finalFromAccountParsed = fromAccountParsed;
+            final String finalFromAccountParsed = fromAccountParsed;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", Kraken.this.currencyToPrecision((String) (code), amount) );
                 put( "from", finalFromAccountParsed );
@@ -4378,8 +4906,24 @@ final Object finalId = id;
         }).thenApply(TransferEntry::new);
 
     }
+    /**
+     * @method
+     * @name kraken#transfer
+     * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
+     * @description transfers currencies between sub-accounts (only spot->swap direction is supported)
+     * @param {string} code Unified currency code
+     * @param {float} amount Size of the transfer
+     * @param {string} fromAccount 'spot' or 'Spot Wallet'
+     * @param {string} toAccount 'swap' or 'Futures Wallet'
+     * @param {object} [params] Exchange specific parameters
+     * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
+    {
+        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -4392,7 +4936,6 @@ final Object finalId = id;
         //        }
         //    }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> result = (Map<String, Object>) this.safeDict(transfer, "result", new HashMap<String, Object>() {{}});
         String refid = this.safeString(result, "refid");
         return new HashMap<String, Object>() {{
@@ -4407,14 +4950,13 @@ final Object finalId = id;
             put( "status", "sucess" );
         }};
     }
-
-    public Object sign(Object path, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
+        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
+    }
+
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    {
         Object url = Helpers.add((((("/" + this.version) + "/") + api) + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
@@ -4426,7 +4968,7 @@ final Object finalId = id;
         } else if (java.util.Objects.equals(api, "private"))
         {
             String price = this.safeString(parameters, "price");
-            Object isTriggerPercent = false;
+            Boolean isTriggerPercent = false;
             if (!java.util.Objects.equals(price, null))
             {
                 isTriggerPercent = ((Helpers.isTrue((((String)price).endsWith(((String)"%")))))) ? true : false;
@@ -4434,27 +4976,25 @@ final Object finalId = id;
             Boolean isCancelOrderBatch = (java.util.Objects.equals(path, "CancelOrderBatch"));
             Boolean isBatchOrder = (java.util.Objects.equals(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             if (Boolean.TRUE.equals(isCancelOrderBatch) || Boolean.TRUE.equals(isTriggerPercent) || Boolean.TRUE.equals(isBatchOrder))
             {
-                final Object finalNonce = nonce;
-                body = this.json(this.extend(new HashMap<String, Object>() {{
-                    put( "nonce", finalNonce );
-                }}, parameters));
+                body = (String) (this.json(this.extend(new HashMap<String, Object>() {{
+                    put( "nonce", nonce );
+                }}, parameters)));
             } else
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-                final Object finalNonce_2 = nonce;
-                body = this.urlencodeNested(this.extend(new HashMap<String, Object>() {{
-                    put( "nonce", finalNonce_2 );
-                }}, parameters));
+                body = (String) (this.urlencodeNested(this.extend(new HashMap<String, Object>() {{
+                    put( "nonce", nonce );
+                }}, parameters)));
             }
-            Object auth = this.encode(Helpers.add(nonce, body));
+            Object auth = this.encode((nonce + body));
             Object hash = this.hash(auth, sha256(), "binary");
             Object binary = this.encode(url);
             Object binhash = this.binaryConcat(binary, hash);
             Object secret = this.base64ToBinary(this.secret);
-            Object signature = this.hmac(binhash, secret, sha512(), "base64");
+            String signature = (String) this.hmac(binhash, secret, sha512(), "base64");
             headers = new HashMap<String, Object>() {{
                 put( "API-Key", Kraken.this.apiKey );
                 put( "API-Sign", signature );
@@ -4472,7 +5012,7 @@ final Object finalId = id;
         }
         url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), url);
         final Object finalUrl = url;
-        final Object finalBody = body;
+        final String finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{
             put( "url", finalUrl );
@@ -4480,6 +5020,10 @@ final Object finalId = id;
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object nonce()
@@ -4504,7 +5048,7 @@ final Object finalId = id;
                 String message = ((this.id + " ") + body);
                 if (Helpers.inOp(response, "error"))
                 {
-                    Object numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
+                    Integer numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
                     if (Helpers.isGreaterThan(numErrors, 0))
                     {
                         for (var i = 0; i < Helpers.getArrayLength(Helpers.GetValue(response, "error")); i++)

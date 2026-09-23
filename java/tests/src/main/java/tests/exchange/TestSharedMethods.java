@@ -63,7 +63,7 @@ public class TestSharedMethods extends BaseTest {
         Boolean formatIsEmptyArray = false;
         if ((formatKeyVal instanceof List))
         {
-            Object formatLen = ((List<?>)formatKeyVal).size();
+            Integer formatLen = ((List<?>)formatKeyVal).size();
             formatIsEmptyArray = (java.util.Objects.equals(formatLen, 0));
         }
         Boolean same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && (Helpers.isTrue(exchange.isDictionary(formatKeyVal)) || Boolean.TRUE.equals(formatIsEmptyArray));
@@ -212,7 +212,7 @@ public class TestSharedMethods extends BaseTest {
                 {
                     Assert(false, (("datetime is not parseable: " + dt) + logText));
                 }
-                Object diff = Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
+                Double diff = (Double) Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
                 if (Helpers.isGreaterThanOrEqual(diff, 500))
                 {
                     Object dtParsedString = exchange.iso8601(dtParsed);
@@ -737,7 +737,7 @@ public class TestSharedMethods extends BaseTest {
         Boolean isEmptyArrayResponse = false;
         if ((response instanceof List))
         {
-            Object responseLength = ((List<?>)response).size();
+            Integer responseLength = ((List<?>)response).size();
             isEmptyArrayResponse = (java.util.Objects.equals(responseLength, 0));
         }
         String hintText = "";
@@ -834,7 +834,7 @@ public class TestSharedMethods extends BaseTest {
                 }
                 if (!java.util.Objects.equals(ohlcv, null))
                 {
-                    Object ohlcvLength = Helpers.getArrayLength(ohlcv);
+                    Integer ohlcvLength = Helpers.getArrayLength(ohlcv);
                     if (Helpers.isLessThanOrEqual(ohlcvLength, 1))
                     {
                         // if only 1 day of listing, then allow it

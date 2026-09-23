@@ -638,12 +638,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetPing(parameters)).join();
             //
             //     {
@@ -651,7 +650,7 @@ public class Ndax extends NdaxApi
             //     }
             //
             String message = this.safeString(response, "msg");
-            final Object finalMessage = message;
+            final String finalMessage = message;
             return new HashMap<String, Object>() {{
                 put( "status", (((java.util.Objects.equals(finalMessage, "PONG")))) ? "ok" : "error" );
                 put( "updated", null );
@@ -662,6 +661,18 @@ public class Ndax extends NdaxApi
         }).thenApply(Status::new);
 
     }
+    /**
+     * @method
+     * @name ndax#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://apidoc.ndax.io/#ping
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    {
+        return this.fetchStatus(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -671,12 +682,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    public CompletableFuture<Object> signIn(Object... optionalArgs)
+    public CompletableFuture<Object> signIn(Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.login, null) || java.util.Objects.equals(this.password, null))
             {
@@ -728,6 +738,18 @@ public class Ndax extends NdaxApi
         });
 
     }
+    /**
+     * @method
+     * @name ndax#signIn
+     * @description sign in, must be called prior to using other authenticated methods
+     * @see https://apidoc.ndax.io/#authenticate2fa
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns response from exchange
+     */
+    public CompletableFuture<Object> signIn(Object... optionalArgs)
+    {
+        return this.signIn(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @method
@@ -737,12 +759,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -771,6 +792,18 @@ public class Ndax extends NdaxApi
         });
 
     }
+    /**
+     * @method
+     * @name ndax#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://apidoc.ndax.io/#getproducts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseCurrency(Object rawCurrency)
     {
@@ -783,7 +816,7 @@ public class Ndax extends NdaxApi
             // such currency is just a blanket entry
             type = "other";
         }
-        final Object finalType = type;
+        final String finalType = type;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", Ndax.this.safeString(rawCurrency, "ProductFullName") );
@@ -818,12 +851,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -879,6 +911,18 @@ public class Ndax extends NdaxApi
         });
 
     }
+    /**
+     * @method
+     * @name ndax#fetchMarkets
+     * @description retrieves data on all markets for ndax
+     * @see https://apidoc.ndax.io/#getinstruments
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseMarket(Object market)
     {
@@ -891,9 +935,9 @@ public class Ndax extends NdaxApi
         String sessionStatus = this.safeString(market, "SessionStatus");
         Boolean isDisable = (Boolean) this.safeBool(market, "IsDisable");
         Boolean sessionRunning = (java.util.Objects.equals(sessionStatus, "Running"));
-        final Object finalBase = base;
-        final Object finalSessionRunning = sessionRunning;
-        final Object finalIsDisable = isDisable;
+        final String finalBase = base;
+        final Boolean finalSessionRunning = sessionRunning;
+        final Boolean finalIsDisable = isDisable;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", ((finalBase + "/") + quote) );
@@ -945,14 +989,8 @@ public class Ndax extends NdaxApi
         }});
     }
 
-    public Object parseOrderBook(Object orderbook, Object symbol, Object... optionalArgs)
+    public Object parseOrderBook(Object orderbook, Object symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
     {
-        Object timestamp = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object bidsKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "bids";
-        Object asksKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : "asks";
-        Object priceKey = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : 6;
-        Object amountKey = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : 8;
-        Object countOrIdKey = optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : 2;
         Object nonce = null;
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -967,13 +1005,13 @@ public class Ndax extends NdaxApi
             Object level = Helpers.GetValue(orderbook, i);
             if (java.util.Objects.equals(timestamp, null))
             {
-                timestamp = this.safeInteger(level, 2);
+                timestamp = Helpers.toLongOrNull(this.safeInteger(level, 2));
             } else
             {
                 Long newTimestamp = this.safeInteger(level, 2);
                 if (!java.util.Objects.equals(newTimestamp, null))
                 {
-                    timestamp = Helpers.mathMax(timestamp, newTimestamp);
+                    timestamp = Helpers.toLongOrNull(Helpers.mathMax(timestamp, newTimestamp));
                 }
             }
             if (java.util.Objects.equals(nonce, null))
@@ -999,6 +1037,10 @@ public class Ndax extends NdaxApi
         ((Map<String, Object>)result).put("nonce", nonce);
         return result;
     }
+    public Object parseOrderBook(Object orderbook, Object symbol, Object... optionalArgs)
+    {
+        return this.parseOrderBook(orderbook, symbol, Helpers.getArgLong(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "bids", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : "asks", optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : 6, optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : 8, optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : 2);
+    }
 
     /**
      * @method
@@ -1010,13 +1052,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1057,8 +1097,22 @@ public class Ndax extends NdaxApi
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name ndax#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://apidoc.ndax.io/#getl2snapshot
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker
@@ -1106,14 +1160,13 @@ public class Ndax extends NdaxApi
         //         "lowest_price_24h":73700.01
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(ticker, "TimeStamp");
         String marketId = this.safeString(ticker, "InstrumentId");
         if (java.util.Objects.equals(marketId, null))
         {
             marketId = this.safeString(ticker, "trading_pairs");
         }
-        market = this.safeMarket(marketId, market, "_");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market, "_"));
         String symbol = this.safeSymbol(marketId, market);
         String last = this.safeString2(ticker, "LastTradedPx", "last_price");
         String percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
@@ -1144,6 +1197,10 @@ public class Ndax extends NdaxApi
             put( "info", ticker );
         }}, market);
     }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1154,13 +1211,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1187,6 +1242,19 @@ public class Ndax extends NdaxApi
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name ndax#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://apidoc.ndax.io/#cmc-summary
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1197,12 +1265,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1248,8 +1315,21 @@ public class Ndax extends NdaxApi
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name ndax#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://apidoc.ndax.io/#getlevel1
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     [
@@ -1264,8 +1344,11 @@ public class Ndax extends NdaxApi
         //         1              // 8 InstrumentId
         //     ]
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1280,15 +1363,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Long since = since3;
+            Long limit = limit3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1337,8 +1418,24 @@ public class Ndax extends NdaxApi
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name ndax#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://apidoc.ndax.io/#gettickerhistory
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -1448,11 +1545,10 @@ public class Ndax extends NdaxApi
         //         "OMSId":1
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String priceString = null;
         String amountString = null;
         String costString = null;
-        Object timestamp = null;
+        Long timestamp = null;
         String id = null;
         String marketId = null;
         Object side = null;
@@ -1493,7 +1589,7 @@ public class Ndax extends NdaxApi
             {
                 String feeCurrencyId = this.safeString(trade, "FeeProductId");
                 String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-                final Object finalFeeCostString = feeCostString;
+                final String finalFeeCostString = feeCostString;
                 fee = new HashMap<String, Object>() {{
                     put( "cost", finalFeeCostString );
                     put( "currency", feeCurrencyCode );
@@ -1501,16 +1597,16 @@ public class Ndax extends NdaxApi
             }
         }
         String symbol = this.safeSymbol(marketId, market);
-        final Object finalId = id;
-        final Object finalTimestamp = timestamp;
-        final Object finalOrderId = orderId;
+        final String finalId = id;
+        final Long finalTimestamp = timestamp;
+        final String finalOrderId = orderId;
         final Object finalType = type;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalPriceString = priceString;
-        final Object finalAmountString = amountString;
-        final Object finalCostString = costString;
-        final Object finalFee = fee;
+        final String finalPriceString = priceString;
+        final String finalAmountString = amountString;
+        final String finalCostString = costString;
+        final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalId );
@@ -1527,6 +1623,10 @@ public class Ndax extends NdaxApi
             put( "fee", finalFee );
         }}), market);
     }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1538,14 +1638,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Long limit = limit3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1572,6 +1669,20 @@ public class Ndax extends NdaxApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name ndax#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1581,12 +1692,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
+    public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if ((java.util.Objects.equals(this.login, null)) || (java.util.Objects.equals(this.login, "")))
             {
                 throw new AuthenticationError((this.id + " fetchAccounts() requires exchange.login email credential")) ;
@@ -1617,6 +1727,18 @@ public class Ndax extends NdaxApi
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name ndax#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://apidoc.ndax.io/#getuseraccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+     */
+    public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
+    {
+        return this.fetchAccounts(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseBalance(Object response)
     {
@@ -1632,7 +1754,7 @@ public class Ndax extends NdaxApi
             if ((!java.util.Objects.equals(currencyId, null)) && (!java.util.Objects.equals(this.currencies_by_id, null)) && (((Map<?, ?>)this.currencies_by_id).containsKey(currencyId)))
             {
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "Amount"));
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "Hold"));
                 if (!java.util.Objects.equals(code, null))
@@ -1652,12 +1774,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1670,8 +1791,8 @@ public class Ndax extends NdaxApi
             {
                 accountId = this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id"));
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            final Object finalAccountId = accountId;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            final Long finalAccountId = accountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", finalAccountId );
@@ -1712,6 +1833,18 @@ public class Ndax extends NdaxApi
         }).thenApply(Balances::new);
 
     }
+    /**
+     * @method
+     * @name ndax#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidoc.ndax.io/#getaccountpositions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseLedgerEntryType(Object type)
     {
@@ -1733,7 +1866,7 @@ public class Ndax extends NdaxApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         //
         //     {
@@ -1751,9 +1884,8 @@ public class Ndax extends NdaxApi
         //         "TimeStamp": 1607532331591
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(item, "ProductId");
-        currency = this.safeCurrency(currencyId, currency);
+        currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
         String credit = this.safeString(item, "CR");
         String debit = this.safeString(item, "DR");
         String amount = null;
@@ -1777,10 +1909,10 @@ public class Ndax extends NdaxApi
             before = Precise.stringMax("0", Precise.stringSub(after, amount));
         }
         Long timestamp = this.safeInteger(item, "TimeStamp");
-        final Object finalDirection = direction;
-        final Object finalCurrency = currency;
-        final Object finalAmount = amount;
-        final Object finalBefore = before;
+        final String finalDirection = direction;
+        final Map<String, Object> finalCurrency = currency;
+        final String finalAmount = amount;
+        final String finalBefore = before;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", Ndax.this.safeString(item, "TransactionId") );
@@ -1799,6 +1931,10 @@ public class Ndax extends NdaxApi
             put( "fee", null );
         }}, currency);
     }
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    {
+        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1811,15 +1947,15 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String code = code3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1828,7 +1964,7 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
@@ -1856,14 +1992,29 @@ public class Ndax extends NdaxApi
             //         },
             //     ]
             //
-            Object currency = null;
+            Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = (Map<String, Object>) this.currency((String) (code));
             }
             return this.parseLedger(response, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name ndax#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://apidoc.ndax.io/#getaccounttransactions
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    {
+        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public String parseOrderStatus(String status)
@@ -1883,7 +2034,7 @@ public class Ndax extends NdaxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -1952,7 +2103,6 @@ public class Ndax extends NdaxApi
         //         "OMSId":1
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(order, "ReceiveTime");
         String marketId = this.safeString(order, "Instrument");
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -1979,6 +2129,10 @@ public class Ndax extends NdaxApi
             put( "trades", null );
         }}), market);
     }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1995,15 +2149,17 @@ public class Ndax extends NdaxApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final Object type3 = type2;
         final Object side3 = side2;
+        final Object price3 = price2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object price = price3;
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2025,7 +2181,7 @@ public class Ndax extends NdaxApi
                     orderType = 4;
                 }
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice")));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             Object amountString = this.amountToPrecision(symbol, amount);
@@ -2070,6 +2226,25 @@ public class Ndax extends NdaxApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name ndax#createOrder
+     * @description create a trade order
+     * @see https://apidoc.ndax.io/#sendorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2085,14 +2260,15 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side2, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final Object side3 = side2;
+        final Object price3 = price2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object side = side3;
-            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object price = price3;
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2102,7 +2278,7 @@ public class Ndax extends NdaxApi
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId")));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             Object amountString = this.amountToPrecision(symbol, amount);
@@ -2144,6 +2320,24 @@ public class Ndax extends NdaxApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name ndax#editOrder
+     * @description cancels an open order and places a new order
+     * @see https://apidoc.ndax.io/#cancelreplaceorder
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    {
+        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2156,15 +2350,17 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2173,15 +2369,15 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
             }};
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("InstrumentId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2240,6 +2436,21 @@ public class Ndax extends NdaxApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name ndax#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://apidoc.ndax.io/#gettradeshistory
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2250,13 +2461,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2265,7 +2476,7 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
@@ -2290,7 +2501,74 @@ public class Ndax extends NdaxApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name ndax#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://apidoc.ndax.io/#cancelallorders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name ndax#cancelOrder
+     * @description cancels an open order
+     * @see https://apidoc.ndax.io/#cancelorder
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters2)
+    {
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
+        return BaseExchange.supplyAsync(() -> {
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
+            Long omsId = this.safeInteger(this.options, "omsId", 1);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            (this.loadAccounts()).join();
+            // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
+            // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+            // params = this.omit (params, [ 'accountId', 'AccountId' ]);
+            Map<String, Object> market = null;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                market = (Map<String, Object>) this.market(symbol);
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "omsId", omsId );
+            }};
+            Long clientOrderId = (Long) this.safeInteger2(parameters, "clientOrderId", "ClOrderId");
+            if (!java.util.Objects.equals(clientOrderId, null))
+            {
+                ((Map<String, Object>)request).put("ClOrderId", clientOrderId);
+            } else
+            {
+                ((Map<String, Object>)request).put("OrderId", Helpers.parseInt(id));
+            }
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "ClOrderId")));
+            Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
+            final Long finalClientOrderId = clientOrderId;
+            return this.extend(order, new HashMap<String, Object>() {{
+                put( "id", id );
+                put( "clientOrderId", finalClientOrderId );
+            }});
+        }).thenApply(Order::new);
+
+    }
     /**
      * @method
      * @name ndax#cancelOrder
@@ -2304,46 +2582,7 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            (this.loadAccounts()).join();
-            // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
-            // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
-            // params = this.omit (params, [ 'accountId', 'AccountId' ]);
-            Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-            }};
-            Long clientOrderId = (Long) this.safeInteger2(parameters, "clientOrderId", "ClOrderId");
-            if (!java.util.Objects.equals(clientOrderId, null))
-            {
-                ((Map<String, Object>)request).put("ClOrderId", clientOrderId);
-            } else
-            {
-                ((Map<String, Object>)request).put("OrderId", Helpers.parseInt(id));
-            }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "ClOrderId")));
-            Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
-            final Object finalClientOrderId = clientOrderId;
-            return this.extend(order, new HashMap<String, Object>() {{
-                put( "id", id );
-                put( "clientOrderId", finalClientOrderId );
-            }});
-        }).thenApply(Order::new);
-
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2357,15 +2596,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2374,11 +2611,11 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Object market = null;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = (Map<String, Object>) this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -2439,6 +2676,21 @@ public class Ndax extends NdaxApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name ndax#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://apidoc.ndax.io/#getopenorders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2451,15 +2703,17 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2468,15 +2722,15 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
             }};
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("InstrumentId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2542,6 +2796,21 @@ public class Ndax extends NdaxApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name ndax#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://apidoc.ndax.io/#getorderhistory
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    {
+        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2553,13 +2822,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2568,11 +2837,11 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Object market = null;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = (Map<String, Object>) this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -2632,6 +2901,20 @@ public class Ndax extends NdaxApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name ndax#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://apidoc.ndax.io/#getorderstatus
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2645,15 +2928,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2663,10 +2942,10 @@ public class Ndax extends NdaxApi
             // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
             // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
             // params = this.omit (params, [ 'accountId', 'AccountId' ]);
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = (Map<String, Object>) this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "OMSId", Ndax.this.parseToInt(omsId) );
@@ -2723,11 +3002,27 @@ public class Ndax extends NdaxApi
             //         },
             //     ]
             //
-            Map<String, Object> grouped = this.groupBy(response, "ChangeReason");
+            Map<String,Object> grouped = this.groupBy(response, "ChangeReason");
             List<Object> trades = (List<Object>) this.safeList(grouped, "Trade", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name ndax#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://apidoc.ndax.io/#getorderhistorybyorderid
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    {
+        return this.fetchOrderTrades(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2738,12 +3033,11 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2752,7 +3046,7 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -2777,8 +3071,20 @@ public class Ndax extends NdaxApi
         }).thenApply(DepositAddress::new);
 
     }
+    /**
+     * @method
+     * @name ndax#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    {
+        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
     {
         //
         // fetchDepositAddress, createDepositAddress
@@ -2794,12 +3100,11 @@ public class Ndax extends NdaxApi
         //         "DepositInfo":"[\"r3e95RwVsLH7yCbnMfyh7SA8FdwUJCB4S2?memo=241452010\"]"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
         Object depositInfo = Helpers.parseJson(depositInfoString);
-        Object depositInfoLength = Helpers.getArrayLength(depositInfo);
+        Integer depositInfoLength = Helpers.getArrayLength(depositInfo);
         String lastString = this.safeString(depositInfo, Helpers.subtract(depositInfoLength, 1), "");
-        Object parts = new ArrayList<Object>(Arrays.asList(((String)lastString).split(java.util.regex.Pattern.quote("?memo="))));
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)lastString).split(java.util.regex.Pattern.quote("?memo="))));
         String address = this.safeString(parts, 0);
         String tag = this.safeString(parts, 1);
         Object code = null;
@@ -2817,7 +3122,31 @@ public class Ndax extends NdaxApi
             put( "tag", tag );
         }};
     }
+    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    {
+        return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
+    /**
+     * @method
+     * @name ndax#createDepositAddress
+     * @description create a currency deposit address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "GenerateNewKey", true );
+            }};
+            return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
+        }).thenApply(DepositAddress::new);
+
+    }
     /**
      * @method
      * @name ndax#createDepositAddress
@@ -2828,16 +3157,7 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "GenerateNewKey", true );
-            }};
-            return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(DepositAddress::new);
-
+        return this.createDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2851,15 +3171,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String code = code3;
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2868,11 +3186,11 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Object currency = null;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = (Map<String, Object>) this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -2915,6 +3233,21 @@ public class Ndax extends NdaxApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name ndax#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://apidoc.ndax.io/#getdeposits
+     * @param {string} code unified currency code
+     * @param {int} [since] not used by ndax fetchDeposits
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    {
+        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2927,15 +3260,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String code = code3;
+            Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2944,11 +3275,11 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Object currency = null;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = (Map<String, Object>) this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -2983,11 +3314,24 @@ public class Ndax extends NdaxApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
-
-    public Object parseTransactionStatusByType(Object... optionalArgs)
+    /**
+     * @method
+     * @name ndax#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://apidoc.ndax.io/#getwithdraws
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
-        Object status = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object type = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object parseTransactionStatusByType(String status, String type)
+    {
         Map<String, Object> statusesByType = new HashMap<String, Object>() {{
             put( "deposit", new HashMap<String, Object>() {{
                 put( "New", "pending" );
@@ -3039,8 +3383,12 @@ public class Ndax extends NdaxApi
         }
         return this.safeString(statuses, status, status);
     }
+    public Object parseTransactionStatusByType(Object... optionalArgs)
+    {
+        return this.parseTransactionStatusByType(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null));
+    }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits
@@ -3092,7 +3440,6 @@ public class Ndax extends NdaxApi
         //         "NotionalProductId": 0
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = null;
         String currencyId = this.safeString(transaction, "ProductId");
         String code = this.safeCurrencyCode(currencyId, currency);
@@ -3110,7 +3457,7 @@ public class Ndax extends NdaxApi
         Long updated = this.safeInteger(transaction, "LastUpdateTimeStamp");
         if (!java.util.Objects.equals(templateForm, null))
         {
-            updated = this.safeInteger(templateForm, "LastUpdated", updated);
+            updated = (Long) this.safeInteger(templateForm, "LastUpdated", updated);
         }
         String address = this.safeString2(templateForm, "ExternalAddress", "ToAddress");
         Long timestamp = this.safeInteger(templateForm, "TimeSubmitted");
@@ -3119,17 +3466,17 @@ public class Ndax extends NdaxApi
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
             }};
         }
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalTemplateForm = templateForm;
-        final Object finalType = type;
-        final Object finalUpdated = updated;
-        final Object finalFee = fee;
+        final String finalType = type;
+        final Long finalUpdated = updated;
+        final Map<String, Object> finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", finalId );
@@ -3153,6 +3500,10 @@ public class Ndax extends NdaxApi
             put( "network", null );
         }};
     }
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    {
+        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3165,13 +3516,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag2, Map<String, Object> parameters2)
     {
-
+        final String tag3 = tag2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object tag = tag3;
+            Object parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
@@ -3221,7 +3572,7 @@ public class Ndax extends NdaxApi
                 throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template type for ") + ((Map<String, Object>)currency).get("code"))) ;
             }
             String templateName = this.safeString(firstTemplateType, "TemplateName");
-            final Object finalFirstTemplateType = firstTemplateType;
+            final Map<String, Object> finalFirstTemplateType = firstTemplateType;
             Map<String, Object> withdrawTemplateRequest = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
@@ -3269,19 +3620,29 @@ public class Ndax extends NdaxApi
         }).thenApply(Transaction::new);
 
     }
+    /**
+     * @method
+     * @name ndax#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
+    {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     public Object nonce()
     {
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(api, "public"))
@@ -3289,7 +3650,7 @@ public class Ndax extends NdaxApi
             if (java.util.Objects.equals(path, "Authenticate"))
             {
                 String auth = ((this.login + ":") + this.password);
-                Object auth64 = this.stringToBase64(auth);
+                String auth64 = this.stringToBase64(auth);
                 headers = new HashMap<String, Object>() {{
                     put( "Authorization", ("Basic " + auth64) );
                 }};
@@ -3298,7 +3659,7 @@ public class Ndax extends NdaxApi
                 String pending2faToken = this.safeString(this.options, "pending2faToken");
                 if (!java.util.Objects.equals(pending2faToken, null))
                 {
-                    final Object finalPending2faToken = pending2faToken;
+                    final String finalPending2faToken = pending2faToken;
                     headers = new HashMap<String, Object>() {{
                         put( "Pending2FaToken", finalPending2faToken );
                     }};
@@ -3315,10 +3676,10 @@ public class Ndax extends NdaxApi
             String sessionToken = this.safeString(this.options, "sessionToken");
             if (java.util.Objects.equals(sessionToken, null))
             {
-                Object nonce = String.valueOf(this.nonce());
-                Object auth = Helpers.add(Helpers.add(nonce, this.uid), this.apiKey);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                final Object finalNonce = nonce;
+                String nonce = String.valueOf(this.nonce());
+                String auth = ((nonce + this.uid) + this.apiKey);
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                final String finalNonce = nonce;
                 headers = new HashMap<String, Object>() {{
                     put( "Nonce", finalNonce );
                     put( "APIKey", Ndax.this.apiKey );
@@ -3327,7 +3688,7 @@ public class Ndax extends NdaxApi
                 }};
             } else
             {
-                final Object finalSessionToken = sessionToken;
+                final String finalSessionToken = sessionToken;
                 headers = new HashMap<String, Object>() {{
                     put( "APToken", finalSessionToken );
                 }};
@@ -3335,7 +3696,7 @@ public class Ndax extends NdaxApi
             if (java.util.Objects.equals(method, "POST"))
             {
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
-                body = this.json(query);
+                body = (String) (this.json(query));
             } else
             {
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
@@ -3346,7 +3707,7 @@ public class Ndax extends NdaxApi
         }
         final Object finalUrl = url;
         final Object finalMethod = method;
-        final Object finalBody = body;
+        final String finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{
             put( "url", finalUrl );
@@ -3354,6 +3715,10 @@ public class Ndax extends NdaxApi
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

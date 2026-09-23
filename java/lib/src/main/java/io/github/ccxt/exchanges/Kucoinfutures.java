@@ -64,13 +64,11 @@ public class Kucoinfutures extends KucoinfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchBidsAsks(Object symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "futuresPublicGetAllTickers" );
             }};
@@ -78,6 +76,18 @@ public class Kucoinfutures extends KucoinfuturesApi
             return (this.fetchTickers((Object)(symbols), (Object)(extendedRequest))).join();
         }).thenApply(Tickers::new);
 
+    }
+    /**
+     * @method
+     * @name kucoinfutures#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
+    {
+        return this.fetchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -91,12 +101,11 @@ public class Kucoinfutures extends KucoinfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount2, Map<String, Object> parameters)
     {
-        final Object toAccount3 = toAccount2;
+        final String toAccount3 = toAccount2;
         return BaseExchange.supplyAsync(() -> {
-            Object toAccount = toAccount3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            String toAccount = toAccount3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -122,7 +131,7 @@ public class Kucoinfutures extends KucoinfuturesApi
                 throw new BadRequest((this.id + " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            final Object finalToAccount = toAccount;
+            final String finalToAccount = toAccount;
             return this.extend(this.parseTransfer(data, currency), new HashMap<String, Object>() {{
                 put( "amount", Kucoinfutures.this.parseNumber(amountToPrecision) );
                 put( "fromAccount", fromAccount );
@@ -130,6 +139,21 @@ public class Kucoinfutures extends KucoinfuturesApi
             }});
         }).thenApply(TransferEntry::new);
 
+    }
+    /**
+     * @method
+     * @name kucoinfutures#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
+    {
+        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public String parseTransferType(String transferType)

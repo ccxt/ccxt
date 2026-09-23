@@ -21,7 +21,7 @@ public class TestFetchLedgerEntry extends BaseTest {
 
         String method = "fetchLedgerEntry";
         Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{code})).join();
-        Object length = ((List<?>)items).size();
+        Integer length = ((List<?>)items).size();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         if (Helpers.isGreaterThan(length, 0))
         {

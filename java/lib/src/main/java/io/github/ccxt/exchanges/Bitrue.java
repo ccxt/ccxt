@@ -777,12 +777,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.spotV1PublicGetPing(parameters)).join();
             //
             // empty means working status.
@@ -790,7 +789,7 @@ public class Bitrue extends BitrueApi
             //     {}
             //
             List<Object> keys = new ArrayList<Object>(response.keySet());
-            Object keysLength = ((List<?>)keys).size();
+            Integer keysLength = ((List<?>)keys).size();
             String formattedStatus = (((Helpers.isGreaterThan(keysLength, 0)))) ? "maintenance" : "ok";
             return new HashMap<String, Object>() {{
                 put( "status", formattedStatus );
@@ -802,6 +801,18 @@ public class Bitrue extends BitrueApi
         }).thenApply(Status::new);
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    {
+        return this.fetchStatus(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -811,12 +822,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.spotV1PublicGetTime(parameters)).join();
             //
             //     {
@@ -827,6 +837,18 @@ public class Bitrue extends BitrueApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    {
+        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -835,12 +857,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.spotV1PublicGetExchangeInfo(parameters)).join();
             //
             //     {
@@ -892,6 +913,17 @@ public class Bitrue extends BitrueApi
             return this.parseCurrencies(coins);
         });
 
+    }
+    /**
+     * @method
+     * @name bitrue#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseCurrency(Object rawCurrency)
@@ -959,12 +991,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> promisesRaw = new ArrayList<Object>(Arrays.asList());
             Object types = null;
             List<Object> defaultTypes = new ArrayList<Object>(Arrays.asList("spot", "linear", "inverse"));
@@ -1073,6 +1104,20 @@ public class Bitrue extends BitrueApi
         });
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchMarkets
+     * @description retrieves data on all markets for bitrue
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+     * @see https://www.bitrue.com/api-docs#current-open-contract
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseMarket(Object market)
     {
@@ -1095,10 +1140,10 @@ public class Bitrue extends BitrueApi
         String baseId = this.safeString(market, "baseAsset");
         String quoteId = this.safeString(market, "quoteAsset");
         String settleId = null;
-        Object settle = null;
+        String settle = null;
         if (Boolean.TRUE.equals(isContract))
         {
-            Object symbolSplit = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
+            List<Object> symbolSplit = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
             baseId = this.safeString(symbolSplit, 1);
             quoteId = this.safeString(symbolSplit, 2);
             if (java.util.Objects.equals(isLinear, true))
@@ -1112,13 +1157,13 @@ public class Bitrue extends BitrueApi
         }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         if (!java.util.Objects.equals(settle, null))
         {
             symbol = (symbol + (":" + settle));
         }
         List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
+        Map<String,Object> filtersByType = this.indexBy(filters, "filterType");
         String status = this.safeString(market, "status");
         Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
         Map<String, Object> amountFilter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
@@ -1138,18 +1183,18 @@ public class Bitrue extends BitrueApi
             minCost = this.safeNumber(market, "minOrderMoney");
         }
         Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalBaseId = baseId;
-        final Object finalQuoteId = quoteId;
-        final Object finalSettleId = settleId;
-        final Object finalType = type;
-        final Object finalStatus = status;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalBaseId = baseId;
+        final String finalQuoteId = quoteId;
+        final String finalSettleId = settleId;
+        final String finalType = type;
+        final String finalStatus = status;
         final Object finalIsLinear = isLinear;
         final Object finalIsInverse = isInverse;
-        final Object finalMaxQuantity = maxQuantity;
-        final Object finalMinCost = minCost;
+        final Double finalMaxQuantity = maxQuantity;
+        final Double finalMinCost = minCost;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "lowercaseId", lowercaseId );
@@ -1260,7 +1305,7 @@ public class Bitrue extends BitrueApi
             Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString2(balance, "asset", "marginCoin");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString2(balance, "free", "accountNormal"));
             ((Map<String, Object>)account).put("used", this.safeString2(balance, "locked", "accountLock"));
             if (!java.util.Objects.equals(code, null))
@@ -1285,12 +1330,11 @@ public class Bitrue extends BitrueApi
      * @param {string} [params.subType] 'linear', 'inverse'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1325,6 +1369,22 @@ public class Bitrue extends BitrueApi
         }).thenApply(Balances::new);
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
+     * @see https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'future', 'delivery', 'spot', 'swap'
+     * @param {string} [params.subType] 'linear', 'inverse'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1338,13 +1398,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1360,7 +1418,7 @@ public class Bitrue extends BitrueApi
                 {
                     if (Helpers.isGreaterThan(limit, 100))
                     {
-                        limit = 100;
+                        limit = 100L;
                     }
                     ((Map<String, Object>)request).put("limit", limit); // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
                 }
@@ -1380,7 +1438,7 @@ public class Bitrue extends BitrueApi
                 {
                     if (Helpers.isGreaterThan(limit, 1000))
                     {
-                        limit = 1000;
+                        limit = 1000L;
                     }
                     ((Map<String, Object>)request).put("limit", limit); // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
                 }
@@ -1421,8 +1479,24 @@ public class Bitrue extends BitrueApi
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
+     * @see https://www.bitrue.com/api-docs#order-book
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchBidsAsks
@@ -1459,7 +1533,6 @@ public class Bitrue extends BitrueApi
         //         "count": 0
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String symbol = this.safeSymbol(null, market);
         String last = this.safeString2(ticker, "lastPrice", "last");
         Long timestamp = this.safeInteger(ticker, "time");
@@ -1471,7 +1544,7 @@ public class Bitrue extends BitrueApi
         {
             percentage = this.safeString(ticker, "priceChangePercent");
         }
-        final Object finalPercentage = percentage;
+        final String finalPercentage = percentage;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1495,6 +1568,10 @@ public class Bitrue extends BitrueApi
             put( "info", ticker );
         }}, market);
     }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1507,12 +1584,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1586,6 +1662,21 @@ public class Bitrue extends BitrueApi
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+     * @see https://www.bitrue.com/api-docs#ticker
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1601,15 +1692,13 @@ public class Bitrue extends BitrueApi
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1651,7 +1740,7 @@ public class Bitrue extends BitrueApi
                 Long until = this.safeInteger(parameters, "until");
                 if (!java.util.Objects.equals(until, null))
                 {
-                    parameters = this.omit(parameters, "until");
+                    parameters = (Map<String, Object>) this.omit(parameters, "until");
                     ((Map<String, Object>)request).put("fromIdx", until);
                 }
                 response = (this.spotV1PublicGetMarketKline(this.extend(request, parameters))).join();
@@ -1696,8 +1785,26 @@ public class Bitrue extends BitrueApi
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#kline-data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#kline-candlestick-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         // spot
@@ -1723,13 +1830,16 @@ public class Bitrue extends BitrueApi
         //         "open": "35349.4"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object timestamp = this.safeTimestamp(ohlcv, "i");
         if (java.util.Objects.equals(timestamp, null))
         {
             timestamp = this.safeInteger(ohlcv, "idx");
         }
         return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber2(ohlcv, "o", "open"), this.safeNumber2(ohlcv, "h", "high"), this.safeNumber2(ohlcv, "l", "low"), this.safeNumber2(ohlcv, "c", "close"), this.safeNumber2(ohlcv, "v", "vol")));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1743,13 +1853,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchBidsAsks(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1810,6 +1918,21 @@ public class Bitrue extends BitrueApi
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
+     * @see https://www.bitrue.com/api-docs#ticker
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
+    {
+        return this.fetchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1822,20 +1945,20 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
     {
-
+        final Object symbols3 = symbols2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
             Object response = new ArrayList<Object>(Arrays.asList());
-            Object data = new ArrayList<Object>(Arrays.asList());
+            List<Object> data = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object type = null;
             if (!java.util.Objects.equals(symbols, null))
@@ -1924,8 +2047,23 @@ public class Bitrue extends BitrueApi
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+     * @see https://www.bitrue.com/api-docs#ticker
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -1975,7 +2113,6 @@ public class Bitrue extends BitrueApi
         //         "ctime":1678426306000
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = (Long) this.safeInteger2(trade, "ctime", "time");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
@@ -1994,7 +2131,7 @@ public class Bitrue extends BitrueApi
         {
             side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell"; // this is a true side
         }
-        Object fee = null;
+        Map<String, Object> fee = null;
         if (((Map<?, ?>)trade).containsKey("commission"))
         {
             fee = new HashMap<String, Object>() {{
@@ -2008,9 +2145,9 @@ public class Bitrue extends BitrueApi
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalFee = fee;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -2027,6 +2164,10 @@ public class Bitrue extends BitrueApi
             put( "fee", finalFee );
         }}), market);
     }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -2039,14 +2180,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2085,6 +2223,21 @@ public class Bitrue extends BitrueApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     public String parseOrderStatus(String status)
     {
@@ -2102,7 +2255,7 @@ public class Bitrue extends BitrueApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder - spot
@@ -2158,13 +2311,12 @@ public class Bitrue extends BitrueApi
         //         "clientOrderId":4949299210
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String status = this.parseOrderStatus(this.safeString2(order, "status", "orderStatus"));
         String marketId = this.safeString(order, "symbol");
         String symbol = this.safeSymbol(marketId, market);
         String filled = this.safeString(order, "executedQty");
-        Object timestamp = null;
-        Object lastTradeTimestamp = null;
+        Long timestamp = null;
+        Long lastTradeTimestamp = null;
         if (((Map<?, ?>)order).containsKey("time"))
         {
             timestamp = this.safeInteger(order, "time");
@@ -2202,12 +2354,12 @@ public class Bitrue extends BitrueApi
         {
             type = "limit";
         }
-        Object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "stopPrice")));
-        final Object finalTimestamp = timestamp;
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
-        final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalStatus = status;
+        Double triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "stopPrice")));
+        final Long finalTimestamp = timestamp;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
+        final String finalType = type;
+        final String finalTimeInForce = timeInForce;
+        final String finalStatus = status;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -2232,6 +2384,10 @@ public class Bitrue extends BitrueApi
             put( "trades", fills );
         }}), market);
     }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -2244,12 +2400,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2263,6 +2418,21 @@ public class Bitrue extends BitrueApi
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name bitrue#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    {
+        return this.createMarketBuyOrderWithCost(symbol, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2289,13 +2459,15 @@ public class Bitrue extends BitrueApi
      * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final Object side3 = side2;
+        final Object price3 = price2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object side = side3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object price = price3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2303,9 +2475,9 @@ public class Bitrue extends BitrueApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object response = null;
             Object data = new HashMap<String, Object>() {{}};
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             final Object finalSide = side;
-            final Object finalUppercaseType = uppercaseType;
+            final String finalUppercaseType = uppercaseType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", ((String)((String)finalSide)).toUpperCase() );
                 put( "type", finalUppercaseType );
@@ -2334,9 +2506,9 @@ public class Bitrue extends BitrueApi
                     ((Map<String, Object>)request).put("type", "IOC");
                 }
                 ((Map<String, Object>)request).put("contractName", ((Map<String, Object>)market).get("id"));
-                Object createMarketBuyOrderRequiresPrice = true;
+                Boolean createMarketBuyOrderRequiresPrice = true;
                 List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
+                createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
                 parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")) && Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
@@ -2347,8 +2519,8 @@ public class Bitrue extends BitrueApi
                         throw new InvalidOrder((this.id + " createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String quoteAmount = Precise.stringMul(amountString, priceString);
                         String requestAmount = (((!java.util.Objects.equals(cost, null)))) ? cost : quoteAmount;
                         ((Map<String, Object>)request).put("amount", this.costToPrecision(symbol, requestAmount));
@@ -2360,7 +2532,7 @@ public class Bitrue extends BitrueApi
                     ((Map<String, Object>)request).put("volume", this.parseToNumeric(amount));
                 }
                 ((Map<String, Object>)request).put("positionType", 1);
-                Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+                Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
                 ((Map<String, Object>)request).put("open", (((java.util.Objects.equals(reduceOnly, true)))) ? "CLOSE" : "OPEN");
                 String leverage = this.safeString(parameters, "leverage", "1");
                 ((Map<String, Object>)request).put("leverage", this.parseToNumeric(leverage));
@@ -2425,6 +2597,34 @@ public class Bitrue extends BitrueApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name bitrue#createOrder
+     * @description create a trade order
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#new-order-trade
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#new-order-trade-hmac-sha256
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
+     * @param {decimal} [params.leverage] in future order, the leverage value of the order should consistent with the user contract configuration, default is 1
+     * @param {string} [params.timeInForce] 'fok', 'ioc' or 'po'
+     * @param {bool} [params.postOnly] default false
+     * @param {bool} [params.reduceOnly] default false
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {decimal} [params.icebergQty]
+     * @param {long} [params.recvWindow]
+     * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2437,13 +2637,13 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
@@ -2454,7 +2654,7 @@ public class Bitrue extends BitrueApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Object response = null;
             Object data = new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2539,6 +2739,21 @@ public class Bitrue extends BitrueApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#query-order-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#query-order-user_data-hmac-sha256
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2551,15 +2766,15 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchClosedOrders() requires a symbol argument")) ;
@@ -2611,6 +2826,21 @@ public class Bitrue extends BitrueApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#all-orders-user_data
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2624,15 +2854,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
@@ -2715,6 +2941,22 @@ public class Bitrue extends BitrueApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#current-open-orders-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#cancel-all-open-orders-trade-hmac-sha256
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2728,13 +2970,13 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
@@ -2745,7 +2987,7 @@ public class Bitrue extends BitrueApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Object response = null;
             Object data = new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2806,6 +3048,22 @@ public class Bitrue extends BitrueApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name bitrue#cancelOrder
+     * @description cancels an open order
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
+     * @see https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2818,13 +3076,11 @@ public class Bitrue extends BitrueApi
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2862,6 +3118,21 @@ public class Bitrue extends BitrueApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitrue#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+     * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2875,15 +3146,15 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2904,7 +3175,7 @@ public class Bitrue extends BitrueApi
             {
                 if (Helpers.isGreaterThan(limit, 1000))
                 {
-                    limit = 1000;
+                    limit = 1000L;
                 }
                 ((Map<String, Object>)request).put("limit", limit);
             }
@@ -2977,6 +3248,22 @@ public class Bitrue extends BitrueApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#account-trade-list-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#account-trade-list-user_data-hmac-sha256
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2989,15 +3276,15 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since2, Long limit2, Map<String, Object> parameters)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String code = code3;
+            Long since = since3;
+            Long limit = limit3;
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDeposits() requires a code argument")) ;
@@ -3061,6 +3348,21 @@ public class Bitrue extends BitrueApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    {
+        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3073,15 +3375,15 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since2, Long limit2, Map<String, Object> parameters)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String code = code3;
+            Long since = since3;
+            Long limit = limit3;
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchWithdrawals() requires a code argument")) ;
@@ -3132,10 +3434,24 @@ public class Bitrue extends BitrueApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
-
-    public String parseTransactionStatusByType(String status, Object... optionalArgs)
+    /**
+     * @method
+     * @name bitrue#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
-        Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
+
+    public String parseTransactionStatusByType(String status, String type)
+    {
         Map<String, Object> statusesByType = new HashMap<String, Object>() {{
             put( "deposit", new HashMap<String, Object>() {{
                 put( "0", "pending" );
@@ -3150,8 +3466,12 @@ public class Bitrue extends BitrueApi
         Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
+    public String parseTransactionStatusByType(String status, Object... optionalArgs)
+    {
+        return this.parseTransactionStatusByType(status, Helpers.getArgString(optionalArgs, 0, null));
+    }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits
@@ -3213,7 +3533,6 @@ public class Bitrue extends BitrueApi
         //         "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString2(transaction, "id", "withdrawId");
         String tagType = this.safeString(transaction, "tagType");
         String addressTo = this.safeString(transaction, "addressTo");
@@ -3224,13 +3543,13 @@ public class Bitrue extends BitrueApi
         {
             if (!java.util.Objects.equals(addressTo, null))
             {
-                Object parts = new ArrayList<Object>(Arrays.asList(((String)addressTo).split(java.util.regex.Pattern.quote("_"))));
+                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)addressTo).split(java.util.regex.Pattern.quote("_"))));
                 addressTo = this.safeString(parts, 0);
                 tagTo = this.safeString(parts, 1);
             }
             if (!java.util.Objects.equals(addressFrom, null))
             {
-                Object parts = new ArrayList<Object>(Arrays.asList(((String)addressFrom).split(java.util.regex.Pattern.quote("_"))));
+                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)addressFrom).split(java.util.regex.Pattern.quote("_"))));
                 addressFrom = this.safeString(parts, 0);
                 tagFrom = this.safeString(parts, 1);
             }
@@ -3247,7 +3566,7 @@ public class Bitrue extends BitrueApi
         String currencyId = this.safeString2(transaction, "symbol", "coin");
         if (!java.util.Objects.equals(currencyId, null))
         {
-            Object parts = new ArrayList<Object>(Arrays.asList(((String)currencyId).split(java.util.regex.Pattern.quote("_"))));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)currencyId).split(java.util.regex.Pattern.quote("_"))));
             currencyId = this.safeString(parts, 0);
             String networkId = this.safeString(parts, 1);
             if (!java.util.Objects.equals(networkId, null))
@@ -3257,21 +3576,21 @@ public class Bitrue extends BitrueApi
         }
         String code = this.safeCurrencyCode(currencyId, currency);
         Double feeCost = this.safeNumber(transaction, "fee");
-        Object fee = null;
+        Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
             }};
         }
         final Object finalNetwork = network;
-        final Object finalAddressTo = addressTo;
-        final Object finalAddressFrom = addressFrom;
-        final Object finalTagTo = tagTo;
-        final Object finalTagFrom = tagFrom;
-        final Object finalFee = fee;
+        final String finalAddressTo = addressTo;
+        final String finalAddressFrom = addressFrom;
+        final String finalTagTo = tagTo;
+        final String finalTagFrom = tagFrom;
+        final Map<String, Object> finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", id );
@@ -3295,6 +3614,10 @@ public class Bitrue extends BitrueApi
             put( "fee", finalFee );
         }};
     }
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    {
+        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3308,13 +3631,13 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag2, Map<String, Object> parameters2)
     {
-
+        final String tag3 = tag2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object tag = tag3;
+            Object parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
@@ -3362,8 +3685,24 @@ public class Bitrue extends BitrueApi
         }).thenApply(Transaction::new);
 
     }
+    /**
+     * @method
+     * @name bitrue#withdraw
+     * @description make a withdrawal
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
+    {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
+    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         //   {
@@ -3373,9 +3712,8 @@ public class Bitrue extends BitrueApi
         //       "chainDetail": [ [Object] ]
         //   }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> chainDetails = (List<Object>) this.safeList(fee, "chainDetail", new ArrayList<Object>(Arrays.asList()));
-        Object chainDetailLength = ((List<?>)chainDetails).size();
+        Integer chainDetailLength = ((List<?>)chainDetails).size();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new HashMap<String, Object>() {{
@@ -3418,7 +3756,35 @@ public class Bitrue extends BitrueApi
         }
         return result;
     }
+    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
+    {
+        return this.parseDepositWithdrawFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
+    /**
+     * @method
+     * @name bitrue#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> response = (this.spotV1PublicGetExchangeInfo(parameters)).join();
+            List<Object> coins = (List<Object>) this.safeList(response, "coins");
+            return this.parseDepositWithdrawFees(coins, codes, "coin");
+        }).thenApply(DepositWithdrawFees::new);
+
+    }
     /**
      * @method
      * @name bitrue#fetchDepositWithdrawFees
@@ -3430,23 +3796,10 @@ public class Bitrue extends BitrueApi
      */
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            Map<String, Object> response = (this.spotV1PublicGetExchangeInfo(parameters)).join();
-            List<Object> coins = (List<Object>) this.safeList(response, "coins");
-            return this.parseDepositWithdrawFees(coins, codes, "coin");
-        }).thenApply(DepositWithdrawFees::new);
-
+        return this.fetchDepositWithdrawFees(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
         //     fetchTransfers
@@ -3463,19 +3816,18 @@ public class Bitrue extends BitrueApi
         //
         //     {}
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String transferType = this.safeString(transfer, "transferType");
         String fromAccount = null;
         String toAccount = null;
         if (!java.util.Objects.equals(transferType, null))
         {
-            Object accountSplit = new ArrayList<Object>(Arrays.asList(((String)transferType).split(java.util.regex.Pattern.quote("_to_"))));
+            List<Object> accountSplit = new ArrayList<Object>(Arrays.asList(((String)transferType).split(java.util.regex.Pattern.quote("_to_"))));
             fromAccount = this.safeString(accountSplit, 0);
             toAccount = this.safeString(accountSplit, 1);
         }
         Long timestamp = this.safeInteger(transfer, "ctime");
-        final Object finalFromAccount = fromAccount;
-        final Object finalToAccount = toAccount;
+        final String finalFromAccount = fromAccount;
+        final String finalToAccount = toAccount;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
@@ -3487,6 +3839,10 @@ public class Bitrue extends BitrueApi
             put( "toAccount", finalToAccount );
             put( "status", "ok" );
         }};
+    }
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    {
+        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3503,15 +3859,17 @@ public class Bitrue extends BitrueApi
      * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
      * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String code = code3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3520,10 +3878,10 @@ public class Bitrue extends BitrueApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "transferType", type );
             }};
-            Object currency = null;
+            Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = (Map<String, Object>) this.currency((String) (code));
                 ((Map<String, Object>)request).put("coinSymbol", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -3534,14 +3892,14 @@ public class Bitrue extends BitrueApi
             {
                 if (Helpers.isGreaterThan(limit, 200))
                 {
-                    limit = 200;
+                    limit = 200L;
                 }
                 ((Map<String, Object>)request).put("limit", limit);
             }
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, "until");
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 ((Map<String, Object>)request).put("endTime", until);
             }
             Map<String, Object> response = (this.fapiV2PrivateGetFuturesTransferHistory(this.extend(request, parameters))).join();
@@ -3563,6 +3921,24 @@ public class Bitrue extends BitrueApi
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitrue#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
+     * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+     */
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
+    {
+        return this.fetchTransfers(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3577,12 +3953,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3591,7 +3966,7 @@ public class Bitrue extends BitrueApi
             Map<String, Object> accountTypes = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
-            final Object finalFromId = fromId;
+            final String finalFromId = fromId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coinSymbol", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Bitrue.this.currencyToPrecision((String) (code), amount) );
@@ -3610,6 +3985,23 @@ public class Bitrue extends BitrueApi
         }).thenApply(TransferEntry::new);
 
     }
+    /**
+     * @method
+     * @name bitrue#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
+    {
+        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3622,13 +4014,13 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage2, Object... optionalArgs)
+    public CompletableFuture<Object> setLeverage(Object leverage2, String symbol2, Map<String, Object> parameters)
     {
         final Object leverage3 = leverage2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object leverage = leverage3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -3663,8 +4055,23 @@ public class Bitrue extends BitrueApi
         });
 
     }
+    /**
+     * @method
+     * @name bitrue#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    {
+        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         //
         // setMargin
@@ -3675,7 +4082,6 @@ public class Bitrue extends BitrueApi
         //         "data": null
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", Bitrue.this.safeString(market, "symbol") );
@@ -3689,6 +4095,10 @@ public class Bitrue extends BitrueApi
             put( "datetime", null );
         }};
     }
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    {
+        return this.parseMarginModification(data, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3701,12 +4111,11 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Object... optionalArgs)
+    public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3739,14 +4148,28 @@ public class Bitrue extends BitrueApi
         }).thenApply(MarginModification::new);
 
     }
-
-    public Object sign(Object path, Object... optionalArgs)
+    /**
+     * @method
+     * @name bitrue#setMargin
+     * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+     * @see https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+     * @param {string} symbol unified market symbol of the market to set margin in
+     * @param {float} amount the amount to set the margin to
+     * @param {object} [params] parameters specific to the exchange API endpoint
+     * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+     */
+    public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Object... optionalArgs)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
+        return this.setMargin(symbol, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> parameters)
+    {
+        return this.setMargin(symbol, amount, (Object) (parameters));
+    }
+
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    {
         String type = this.safeString(api, 0);
         String version = this.safeString(api, 1);
         String access = this.safeString(api, 2);
@@ -3766,12 +4189,12 @@ public class Bitrue extends BitrueApi
             Long recvWindow = this.safeInteger(this.options, "recvWindow", 5000);
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "open"))
             {
-                Object query = this.urlencode(this.extend(new HashMap<String, Object>() {{
+                String query = this.urlencode(this.extend(new HashMap<String, Object>() {{
                     put( "timestamp", Bitrue.this.nonce() );
                     put( "recvWindow", recvWindow );
                 }}, parameters));
-                Object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256());
-                query = Helpers.add(query, Helpers.add(("&" + "signature="), signature));
+                String signature = (String) this.hmac(this.encode(query), this.encode(this.secret), sha256());
+                query = (query + (("&" + "signature=") + signature));
                 headers = new HashMap<String, Object>() {{
                     put( "X-MBX-APIKEY", Bitrue.this.apiKey );
                 }};
@@ -3785,8 +4208,8 @@ public class Bitrue extends BitrueApi
                 }
             } else
             {
-                Object timestamp = String.valueOf(this.nonce());
-                Object signPath = null;
+                String timestamp = String.valueOf(this.nonce());
+                String signPath = null;
                 if (java.util.Objects.equals(type, "fapi"))
                 {
                     signPath = "/fapi";
@@ -3795,17 +4218,17 @@ public class Bitrue extends BitrueApi
                     signPath = "/dapi";
                 }
                 signPath = Helpers.add((((signPath + "/") + version) + "/"), path);
-                Object signMessage = Helpers.add(Helpers.add(timestamp, method), signPath);
+                Object signMessage = ((timestamp + method) + signPath);
                 if (java.util.Objects.equals(method, "GET"))
                 {
                     List<Object> keys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());
-                    Object keysLength = ((List<?>)keys).size();
+                    Integer keysLength = ((List<?>)keys).size();
                     if (Helpers.isGreaterThan(keysLength, 0))
                     {
                         signMessage = (signMessage + ("?" + this.urlencode(parameters)));
                     }
-                    Object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
-                    final Object finalTimestamp = timestamp;
+                    String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
+                    final String finalTimestamp = timestamp;
                     headers = new HashMap<String, Object>() {{
                         put( "X-CH-APIKEY", Bitrue.this.apiKey );
                         put( "X-CH-SIGN", signature );
@@ -3817,10 +4240,10 @@ public class Bitrue extends BitrueApi
                     Object query = this.extend(new HashMap<String, Object>() {{
                         put( "recvWindow", recvWindow );
                     }}, parameters);
-                    body = this.json(query);
+                    body = (String) (this.json(query));
                     signMessage = Helpers.add(signMessage, body);
-                    Object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
-                    final Object finalTimestamp_2 = timestamp;
+                    String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
+                    final String finalTimestamp_2 = timestamp;
                     headers = new HashMap<String, Object>() {{
                         put( "Content-Type", "application/json" );
                         put( "X-CH-APIKEY", Bitrue.this.apiKey );
@@ -3838,7 +4261,7 @@ public class Bitrue extends BitrueApi
         }
         final Object finalUrl = url;
         final Object finalMethod = method;
-        final Object finalBody = body;
+        final String finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{
             put( "url", finalUrl );
@@ -3846,6 +4269,10 @@ public class Bitrue extends BitrueApi
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -3933,9 +4360,8 @@ public class Bitrue extends BitrueApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
     {
-        Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         if ((Helpers.inOp(config, "noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
             return Helpers.GetValue(config, "noSymbol");
@@ -3953,5 +4379,9 @@ public class Bitrue extends BitrueApi
             }
         }
         return this.safeNumber(config, "cost", 1);
+    }
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
+    {
+        return this.calculateRateLimiterCost(api, method, path, parameters, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 }

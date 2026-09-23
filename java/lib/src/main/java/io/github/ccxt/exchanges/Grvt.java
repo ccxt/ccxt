@@ -770,7 +770,7 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    public CompletableFuture<Object> signIn(Object... optionalArgs)
+    public CompletableFuture<Object> signIn(Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -781,7 +781,6 @@ public class Grvt extends GrvtApi
             // } else {
             //     await this.signInWithApiKey (params);
             // }
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.privateKey, null) || java.util.Objects.equals(this.privateKey, ""))
             {
                 throw new PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
@@ -793,13 +792,24 @@ public class Grvt extends GrvtApi
         });
 
     }
+    /**
+     * @method
+     * @name grvt#signIn
+     * @description sign in, must be called prior to using other authenticated methods
+     * @see https://api-docs.grvt.io/#authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns response from exchange
+     */
+    public CompletableFuture<Object> signIn(Object... optionalArgs)
+    {
+        return this.signIn(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
 
-    public CompletableFuture<Object> signInWithApiKey(Object... optionalArgs)
+    public CompletableFuture<Object> signInWithApiKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Long now = this.milliseconds();
             // expires in 24 hours as CS suggested
             Long expires = this.safeInteger(this.options, "signInExpiration", 0);
@@ -823,13 +833,16 @@ public class Grvt extends GrvtApi
         });
 
     }
+    public CompletableFuture<Object> signInWithApiKey(Object... optionalArgs)
+    {
+        return this.signInWithApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> signInWithPrivateKey(Object... optionalArgs)
+    public CompletableFuture<Object> signInWithPrivateKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             Long now = this.milliseconds();
             // expires in 24 hours as CS suggested
@@ -857,13 +870,16 @@ public class Grvt extends GrvtApi
         });
 
     }
+    public CompletableFuture<Object> signInWithPrivateKey(Object... optionalArgs)
+    {
+        return this.signInWithPrivateKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> initializeClient(Object... optionalArgs)
+    public CompletableFuture<Object> initializeClient(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
             if (!java.util.Objects.equals(builderFee, true))
             {
@@ -886,7 +902,7 @@ public class Grvt extends GrvtApi
             //
             Object currentBuilders = ((List<Object>)results).get(0);
             List<Object> approvedBuilder = (List<Object>) this.safeList(currentBuilders, "results", new ArrayList<Object>(Arrays.asList()));
-            Object length = ((List<?>)approvedBuilder).size();
+            Integer length = ((List<?>)approvedBuilder).size();
             Boolean found = false;
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
@@ -939,6 +955,10 @@ public class Grvt extends GrvtApi
         });
 
     }
+    public CompletableFuture<Object> initializeClient(Object... optionalArgs)
+    {
+        return this.initializeClient(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -948,12 +968,11 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object marketsPromise = this.publicMarketPostFullV1AllInstruments(parameters);
             //
             //    {
@@ -993,6 +1012,18 @@ public class Grvt extends GrvtApi
         });
 
     }
+    /**
+     * @method
+     * @name grvt#fetchMarkets
+     * @description retrieves data on all markets
+     * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseMarket(Object market)
     {
@@ -1027,7 +1058,7 @@ public class Grvt extends GrvtApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = ((((base + "/") + quote) + ":") + settle);
+        String symbol = ((((base + "/") + quote) + ":") + settle);
         String type = null;
         String typeRaw = this.safeString(market, "kind");
         if (java.util.Objects.equals(typeRaw, "PERPETUAL"))
@@ -1038,9 +1069,9 @@ public class Grvt extends GrvtApi
         Boolean isSwap = (java.util.Objects.equals(type, "swap"));
         Boolean isFuture = (java.util.Objects.equals(type, "future"));
         Boolean isContract = Boolean.TRUE.equals(isSwap) || Boolean.TRUE.equals(isFuture);
-        final Object finalBase = base;
-        final Object finalType = type;
-        final Object finalIsSwap = isSwap;
+        final String finalBase = base;
+        final String finalType = type;
+        final Boolean finalIsSwap = isSwap;
         return new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", symbol );
@@ -1102,12 +1133,11 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "", "" );
             }}; // workaround for php [] empty arr
@@ -1127,6 +1157,18 @@ public class Grvt extends GrvtApi
             return this.parseCurrencies(responseResult);
         });
 
+    }
+    /**
+     * @method
+     * @name grvt#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://api-docs.grvt.io/market_data_api/#get-currency-response
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseCurrency(Object rawCurrency)
@@ -1180,12 +1222,11 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1232,8 +1273,21 @@ public class Grvt extends GrvtApi
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name grvt#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.grvt.io/market_data_api/#ticker_1
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //  {
@@ -1265,7 +1319,6 @@ public class Grvt extends GrvtApi
         //            "next_funding_time": "1764777600000000000"
         //        }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "instrument");
         Long timestamp = this.safeIntegerProduct(ticker, "event_time", 0.000001);
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -1292,6 +1345,10 @@ public class Grvt extends GrvtApi
             put( "previousClose", null );
         }});
     }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1304,13 +1361,11 @@ public class Grvt extends GrvtApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1320,7 +1375,7 @@ public class Grvt extends GrvtApi
             }};
             if (java.util.Objects.equals(limit, null))
             {
-                limit = 100;
+                limit = 100L;
             }
             if (Helpers.isLessThanOrEqual(limit, 500))
             {
@@ -1350,6 +1405,21 @@ public class Grvt extends GrvtApi
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name grvt#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.grvt.io/market_data_api/#orderbook-levels
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.loc] crypto location, default: us
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1363,14 +1433,15 @@ public class Grvt extends GrvtApi
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1416,8 +1487,24 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name grvt#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-docs.grvt.io/market_data_api/#trade_1
+     * @param {string} symbol unified symbol of the market
+     * @param {int} [since] timestamp in ms of the earliest item to fetch
+     * @param {int} [limit] the maximum amount of items to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -1463,9 +1550,8 @@ public class Grvt extends GrvtApi
         //                "sub_account_id": "2147050003876484",
         //            }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "instrument");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Long timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
         String takerOrMaker = null;
         Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer");
@@ -1481,22 +1567,22 @@ public class Grvt extends GrvtApi
             takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
             side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         }
-        Object fee = null;
+        Map<String, Object> fee = null;
         String feeString = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeString, null))
         {
-            final Object finalFeeString = feeString;
-            final Object finalMarket = market;
+            final String finalFeeString = feeString;
+            final Map<String, Object> finalMarket = market;
             fee = new HashMap<String, Object>() {{
                 put( "cost", Grvt.this.parseNumber(finalFeeString) );
                 put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
                 put( "rate", Grvt.this.safeNumber(trade, "fee_rate") );
             }};
         }
-        final Object finalMarket_2 = market;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalFee = fee;
+        final Map<String, Object> finalMarket_2 = market;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Grvt.this.safeString(trade, "trade_id") );
@@ -1511,6 +1597,10 @@ public class Grvt extends GrvtApi
             put( "fee", finalFee );
             put( "order", Grvt.this.safeString(trade, "order_id") );
         }}), market);
+    }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1527,23 +1617,23 @@ public class Grvt extends GrvtApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
             Integer maxLimit = 1000;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            Object paginate = false;
+            Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1597,8 +1687,26 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name grvt#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.grvt.io/market_data_api/#candlestick_1
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest item to fetch
+     * @param {int} [limit] the maximum amount of items to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //            {
@@ -1614,8 +1722,11 @@ public class Grvt extends GrvtApi
         //                "instrument": "BTC_USDT_Perp"
         //            }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeIntegerProduct(ohlcv, "open_time", 0.000001), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume_b")));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1631,15 +1742,17 @@ public class Grvt extends GrvtApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -1648,9 +1761,9 @@ public class Grvt extends GrvtApi
             {
                 (this.loadMarkets()).join();
             }
-            Object paginate = false;
+            Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1693,8 +1806,25 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name grvt#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://api-docs.grvt.io/market_data_api/#funding-rate
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest item
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    {
+        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseFundingRateHistory(Object rawItem, Object... optionalArgs)
+    public Object parseFundingRateHistory(Object rawItem, Map<String, Object> market)
     {
         //
         //            {
@@ -1706,7 +1836,6 @@ public class Grvt extends GrvtApi
         //                "funding_interval_hours": "0"
         //            },
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(rawItem, "instrument");
         Long ts = this.safeIntegerProduct(rawItem, "funding_time", 0.000001);
         // the api documents funding_rate in percentage points, and a unified
@@ -1719,6 +1848,10 @@ public class Grvt extends GrvtApi
             put( "timestamp", ts );
             put( "datetime", Grvt.this.iso8601(ts) );
         }};
+    }
+    public Object parseFundingRateHistory(Object rawItem, Object... optionalArgs)
+    {
+        return this.parseFundingRateHistory(rawItem, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String getSubAccountId(Map<String, Object> parameters)
@@ -1742,12 +1875,11 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
@@ -1785,6 +1917,18 @@ public class Grvt extends GrvtApi
             return this.parseBalance(result);
         }).thenApply(Balances::new);
 
+    }
+    /**
+     * @method
+     * @name grvt#fetchBalance
+     * @description query for account info
+     * @see https://api-docs.grvt.io/trading_api/#sub-account-summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseBalance(Object response)
@@ -1828,7 +1972,7 @@ public class Grvt extends GrvtApi
             Object balance = (spotBalances == null || i < 0 || i >= spotBalances.size() ? null : spotBalances.get(i));
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             ((Map<String, Object>)account).put("free", availableBalance); // todo: revise after API team clarification
             if (!java.util.Objects.equals(code, null))
@@ -1851,21 +1995,23 @@ public class Grvt extends GrvtApi
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String code = code3;
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Object request = new HashMap<String, Object>() {{}};
-            Object currency = null;
+            Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = (Map<String, Object>) this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)currency).get("code"))));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1910,6 +2056,22 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name grvt#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://api-docs.grvt.io/trading_api/#transfer
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest item
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    {
+        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1923,24 +2085,26 @@ public class Grvt extends GrvtApi
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String code = code3;
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Object request = new HashMap<String, Object>() {{}};
-            Object currency = null;
+            Map<String, Object> currency = null;
             if (java.util.Objects.equals(code, null))
             {
                 ((Map<String, Object>)request).put("currency", null);
             } else
             {
-                currency = this.currency((String) (code));
+                currency = (Map<String, Object>) this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)currency).get("code"))));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1994,15 +2158,28 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name grvt#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest item
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    {
+        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> internalFetchTransfers(Map<String, Object> req, Object... optionalArgs)
+    public CompletableFuture<Object> internalFetchTransfers(Map<String, Object> req, Map<String, Object> currency, Long since, Long limit)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Map<String, Object> response = (this.privateTradingPostFullV1TransferHistory(req)).join();
             //
             //    {
@@ -2039,8 +2216,12 @@ public class Grvt extends GrvtApi
         });
 
     }
+    public CompletableFuture<Object> internalFetchTransfers(Map<String, Object> req, Object... optionalArgs)
+    {
+        return this.internalFetchTransfers(req, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null));
+    }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits
@@ -2110,7 +2291,6 @@ public class Grvt extends GrvtApi
         //        }
         //    }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object direction = null;
         String txId = null;
         Object networkCode = null;
@@ -2137,11 +2317,11 @@ public class Grvt extends GrvtApi
             }
         }
         Object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
-        final Object finalTxId = txId;
+        final String finalTxId = txId;
         final Object finalDirection = direction;
         final Object finalNetworkCode = networkCode;
-        final Object finalAddressFrom = addressFrom;
-        final Object finalAddressTo = addressTo;
+        final String finalAddressFrom = addressFrom;
+        final String finalAddressTo = addressTo;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", null );
@@ -2164,6 +2344,10 @@ public class Grvt extends GrvtApi
             put( "fee", null );
         }};
     }
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    {
+        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -2177,15 +2361,17 @@ public class Grvt extends GrvtApi
      * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String code = code3;
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTransfers() requires a code argument")) ;
@@ -2194,9 +2380,9 @@ public class Grvt extends GrvtApi
             Object request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Integer maxLimit = 1000;
-            Object paginate = false;
+            Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2250,10 +2436,25 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
-
-    public Object filterTransfersByType(Object transfers, Object transferType, Object... optionalArgs)
+    /**
+     * @method
+     * @name grvt#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api-docs.grvt.io/trading_api/#transfer-history
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] whether to paginate the results (default false)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
     {
-        Object onlyMainAccount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
+        return this.fetchTransfers(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object filterTransfersByType(Object transfers, Object transferType, Object onlyMainAccount)
+    {
         List<Object> matchedResults = new ArrayList<Object>(Arrays.asList());
         List<Object> nonMatchedResults = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(transfers); i++)
@@ -2275,6 +2476,10 @@ public class Grvt extends GrvtApi
         }
         return new ArrayList<Object>(Arrays.asList(matchedResults, nonMatchedResults));
     }
+    public Object filterTransfersByType(Object transfers, Object transferType, Object... optionalArgs)
+    {
+        return this.filterTransfersByType(transfers, transferType, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true);
+    }
 
     /**
      * @method
@@ -2288,14 +2493,15 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount2, String toAccount2, Map<String, Object> parameters2)
     {
-        final Object fromAccount3 = fromAccount2;
-        final Object toAccount3 = toAccount2;
+        final String fromAccount3 = fromAccount2;
+        final String toAccount3 = toAccount2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
@@ -2358,8 +2564,24 @@ public class Grvt extends GrvtApi
         }).thenApply(TransferEntry::new);
 
     }
+    /**
+     * @method
+     * @name grvt#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://api-docs.grvt.io/trading_api/#transfer_1
+     * @param {string} code unified currency codeåå
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
+    {
+        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -2393,7 +2615,6 @@ public class Grvt extends GrvtApi
         //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
         //            }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(transfer, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeIntegerProduct(transfer, "event_time", 0.000001);
@@ -2408,6 +2629,10 @@ public class Grvt extends GrvtApi
             put( "toAccount", Grvt.this.safeString(transfer, "to_sub_account_id") );
             put( "status", null );
         }};
+    }
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    {
+        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public CompletableFuture<Object> loadAccountInfos()
@@ -2462,7 +2687,7 @@ public class Grvt extends GrvtApi
             if (Boolean.TRUE.equals(accountIsUndefined))
             {
                 List<Object> subAccountIds = (List<Object>) this.safeList((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
-                Object length = ((List<?>)subAccountIds).size();
+                Integer length = ((List<?>)subAccountIds).size();
                 if (Helpers.isLessThan(length, 1))
                 {
                     throw new ArgumentsRequired((this.id + " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")) ;
@@ -2492,13 +2717,11 @@ public class Grvt extends GrvtApi
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             this.checkAddress(address);
             (this.loadMarketsAndSignIn()).join();
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
@@ -2512,7 +2735,7 @@ public class Grvt extends GrvtApi
             }};
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
-            var query = ((List<Object>) networkCodequeryVariable).get(1);
+            Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
             Object networkId = this.networkCodeToId((String) (networkCode), code);
             if (java.util.Objects.equals(networkId, null))
             {
@@ -2532,6 +2755,23 @@ public class Grvt extends GrvtApi
             return this.parseTransaction((Map<String, Object>) (result), currency);
         }).thenApply(Transaction::new);
 
+    }
+    /**
+     * @method
+     * @name grvt#withdraw
+     * @description make a withdrawal
+     * @see https://api-docs.grvt.io/trading_api/#withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.network the network to withdraw on (mandatory)
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
+    {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2554,15 +2794,17 @@ public class Grvt extends GrvtApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final Object type3 = type2;
         final Object side3 = side2;
+        final Object price3 = price2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object price = price3;
+            Object parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> orderLeg = new HashMap<String, Object>() {{
@@ -2586,7 +2828,7 @@ public class Grvt extends GrvtApi
             {
                 throw new InvalidOrder((this.id + " createOrder(): order side must be either \"buy\" or \"sell\"")) ;
             }
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (java.util.Objects.equals(clientOrderId, null))
             {
                 clientOrderId = Helpers.add((String.valueOf(this.nonce()) + "000"), String.valueOf(this.requestId()));
@@ -2595,7 +2837,7 @@ public class Grvt extends GrvtApi
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
             String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
             Boolean isReduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
-            final Object finalClientOrderId = clientOrderId;
+            final String finalClientOrderId = clientOrderId;
             Map<String, Object> orderRequest = new HashMap<String, Object>() {{
                 put( "sub_account_id", subAccountId );
                 put( "time_in_force", null );
@@ -2639,11 +2881,11 @@ public class Grvt extends GrvtApi
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly", "timeInForce")));
             // Trigger & SL & TP
-            Object triggerPrice = null;
+            String triggerPrice = null;
             Object stopLossPrice = null;
             Object takeProfitPrice = null;
             List<Object> triggerPricestopLossPricetakeProfitPriceparametersVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, parameters);
-            triggerPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(0);
+            triggerPrice = (String) ((List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(0);
             stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(1);
             takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(2);
             parameters = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(3);
@@ -2690,7 +2932,7 @@ public class Grvt extends GrvtApi
                 }
                 // trigger by
                 String triggerPriceType = this.safeStringUpper(parameters, "triggerPriceType", "LAST");
-                final Object finalSelectedType = selectedType;
+                final String finalSelectedType = selectedType;
                 final Object finalSelectedPrice = selectedPrice;
                 final Object finalParameters = parameters;
                 Helpers.addElementToObject(orderRequest.get("metadata"), "trigger", new HashMap<String, Object>() {{
@@ -2782,6 +3024,30 @@ public class Grvt extends GrvtApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name grvt#createOrder
+     * @description create a trade order
+     * @see https://api-docs.grvt.io/trading_api/#create-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
+     * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
+     * @param {bool} [params.postOnly] true or false
+     * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     public Object convertToBigIntCustom(Object x)
     {
@@ -2799,13 +3065,13 @@ public class Grvt extends GrvtApi
             Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(leg, "instrument"));
             Object bigInt10 = this.convertToBigIntCustom("10");
             Object precisionValue = this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "base"));
-            Object precisionValueStr = String.valueOf(precisionValue);
+            String precisionValueStr = String.valueOf(precisionValue);
             Object sizeMultiplier = Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
             Object size = Helpers.GetValue(leg, "size");
             List<Object> sizeParts = (List<Object>) Helpers.split(size, ".");
             String sizeDec = this.safeString(sizeParts, 1, "");
             Object sizeDecLength = (((long) sizeDec.length()) + 0L); // php tr
-            Object sizeDecLengthStr = String.valueOf(sizeDecLength);
+            String sizeDecLengthStr = String.valueOf(sizeDecLength);
             Object sizeInteger = Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace(((String)size), ".", "")), sizeMultiplier), (Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(sizeDecLengthStr))))));
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
                 put( "assetID", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instrument_hash") );
@@ -2819,7 +3085,7 @@ public class Grvt extends GrvtApi
                 List<Object> limitParts = (List<Object>) Helpers.split(price, ".");
                 String limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = (((long) limitDec.length()) + 0L); // php tr
-                Object limitDecLengthStr = String.valueOf(limitDecLength);
+                String limitDecLengthStr = String.valueOf(limitDecLength);
                 Object powerNum = (((java.util.Objects.equals(limitDecLengthStr, "0")))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 Object priceInteger = (Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace(((String)price), ".", "")), this.convertToBigIntCustom(priceMultiplier)), (Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(powerNum))))));
                 ((Map<String, Object>)legOrder).put("limitPrice", this.parseToInt(priceInteger));
@@ -2860,19 +3126,21 @@ public class Grvt extends GrvtApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
-            Object paginate = false;
+            Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2882,10 +3150,10 @@ public class Grvt extends GrvtApi
             Object request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (finalParameters)) );
             }};
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("base", new ArrayList<Object>(Arrays.asList()));
                 ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
                 ((Map<String, Object>)request).put("quote", new ArrayList<Object>(Arrays.asList()));
@@ -2939,6 +3207,23 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name grvt#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api-docs.grvt.io/trading_api/#fill-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest item
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2949,13 +3234,11 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
@@ -3008,8 +3291,21 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name grvt#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-docs.grvt.io/trading_api/#positions-request
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //            {
@@ -3032,7 +3328,6 @@ public class Grvt extends GrvtApi
         //                "cumulative_realized_funding_payment": "0.033862"
         //            }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "instrument");
         Long timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         String sizeRaw = this.safeString(position, "size");
@@ -3068,6 +3363,10 @@ public class Grvt extends GrvtApi
             put( "takeProfitPrice", null );
         }}));
     }
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3078,13 +3377,11 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public CompletableFuture<Leverages> fetchLeverages(Object... optionalArgs)
+    public CompletableFuture<Leverages> fetchLeverages(Object symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
@@ -3106,6 +3403,19 @@ public class Grvt extends GrvtApi
         }).thenApply(Leverages::new);
 
     }
+    /**
+     * @method
+     * @name grvt#fetchLeverages
+     * @description fetch the set leverage for all contract markets
+     * @see https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    public CompletableFuture<Leverages> fetchLeverages(Object... optionalArgs)
+    {
+        return this.fetchLeverages(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3117,13 +3427,11 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -3145,8 +3453,22 @@ public class Grvt extends GrvtApi
         });
 
     }
+    /**
+     * @method
+     * @name grvt#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://api-docs.grvt.io/trading_api/#set-initial-leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    {
+        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         //
         // setLeverage
@@ -3165,7 +3487,6 @@ public class Grvt extends GrvtApi
         //         "margin_type": "CROSS"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(leverage, "instrument");
         Double leverageValue = this.safeNumber(leverage, "leverage");
         String marginType = this.safeStringLower(leverage, "margin_type");
@@ -3177,6 +3498,10 @@ public class Grvt extends GrvtApi
             put( "shortLeverage", leverageValue );
         }};
     }
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
+    {
+        return this.parseLeverage(leverage, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3187,13 +3512,11 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public CompletableFuture<MarginModes> fetchMarginModes(Object... optionalArgs)
+    public CompletableFuture<MarginModes> fetchMarginModes(Object symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
@@ -3215,8 +3538,21 @@ public class Grvt extends GrvtApi
         }).thenApply(MarginModes::new);
 
     }
+    /**
+     * @method
+     * @name grvt#fetchMarginModes
+     * @description fetches margin mode of the user
+     * @see https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public CompletableFuture<MarginModes> fetchMarginModes(Object... optionalArgs)
+    {
+        return this.fetchMarginModes(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
+    public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
         //
         // fetchMarginModes
@@ -3229,13 +3565,16 @@ public class Grvt extends GrvtApi
         //                "margin_type": "CROSS"
         //            },
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(marginMode, "symbol");
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", Grvt.this.safeSymbol(marketId, market) );
             put( "marginMode", Grvt.this.safeStringLower(marginMode, "margin_type") );
         }};
+    }
+    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
+    {
+        return this.parseMarginMode(marginMode, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3251,19 +3590,21 @@ public class Grvt extends GrvtApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
-            Object paginate = false;
+            Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3273,10 +3614,10 @@ public class Grvt extends GrvtApi
             Object request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (finalParameters)) );
             }};
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("base", new ArrayList<Object>(Arrays.asList()));
                 ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
                 ((Map<String, Object>)request).put("quote", new ArrayList<Object>(Arrays.asList()));
@@ -3315,8 +3656,25 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name grvt#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://api-docs.grvt.io/trading_api/#funding-payment-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest item
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
+    {
+        return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Object income, Map<String, Object> market)
     {
         //
         //            {
@@ -3328,7 +3686,6 @@ public class Grvt extends GrvtApi
         //                "tx_id": "66625184"
         //            }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(income, "instrument");
         String currencyId = this.safeString(income, "currency");
         Long timestamp = this.safeIntegerProduct(income, "event_time", 0.000001);
@@ -3341,6 +3698,10 @@ public class Grvt extends GrvtApi
             put( "id", Grvt.this.safeString(income, "tx_id") );
             put( "amount", Grvt.this.safeNumber(income, "amount") );
         }};
+    }
+    public Object parseIncome(Object income, Object... optionalArgs)
+    {
+        return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3355,24 +3716,26 @@ public class Grvt extends GrvtApi
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
             Object request = new HashMap<String, Object>() {{
                 put( "sub_account_id", subAccountId );
             }};
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("base", new ArrayList<Object>(Arrays.asList()));
                 ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
                 ((Map<String, Object>)request).put("quote", new ArrayList<Object>(Arrays.asList()));
@@ -3457,6 +3820,22 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name grvt#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://api-docs.grvt.io/trading_api/#order-history
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest item
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    {
+        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3469,15 +3848,11 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
@@ -3548,6 +3923,21 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name grvt#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api-docs.grvt.io/trading_api/#open-orders
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3560,13 +3950,11 @@ public class Grvt extends GrvtApi
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3575,7 +3963,7 @@ public class Grvt extends GrvtApi
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                parameters = this.omit(parameters, "clientOrderId", "client_order_id");
+                parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId", "client_order_id");
                 ((Map<String, Object>)request).put("client_order_id", clientOrderId);
             } else
             {
@@ -3645,8 +4033,23 @@ public class Grvt extends GrvtApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name grvt#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api-docs.grvt.io/trading_api/#get-order
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchOrder, createOrder
@@ -3714,7 +4117,6 @@ public class Grvt extends GrvtApi
         //        "ack": true
         //    }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (((Map<?, ?>)order).containsKey("ack"))
         {
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -3743,7 +4145,7 @@ public class Grvt extends GrvtApi
         if (!java.util.Objects.equals(firstLeg, null))
         {
             String marketId = this.safeString(firstLeg, "instrument");
-            market = this.safeMarket(marketId, market);
+            market = (Map<String, Object>) (this.safeMarket(marketId, market));
             size = this.safeString(firstLeg, "size");
             Boolean isBuyingAsset = (java.util.Objects.equals(this.safeBool(firstLeg, "is_buying_asset"), true));
             side = ((Boolean.TRUE.equals(isBuyingAsset))) ? "buy" : "sell";
@@ -3753,15 +4155,15 @@ public class Grvt extends GrvtApi
         }
         Long timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        Object legsLength = ((List<?>)legs).size();
-        final Object finalLegsLength = legsLength;
-        final Object finalMarket = market;
-        final Object finalIsPostOnly = isPostOnly;
-        final Object finalSide = side;
-        final Object finalPrice = price;
-        final Object finalAvgPrice = avgPrice;
-        final Object finalSize = size;
-        final Object finalFilled = filled;
+        Integer legsLength = ((List<?>)legs).size();
+        final Integer finalLegsLength = legsLength;
+        final Map<String, Object> finalMarket = market;
+        final Boolean finalIsPostOnly = isPostOnly;
+        final String finalSide = side;
+        final String finalPrice = price;
+        final String finalAvgPrice = avgPrice;
+        final String finalSize = size;
+        final String finalFilled = filled;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "isMultiLeg", (Helpers.isGreaterThan(finalLegsLength, 1)) );
             put( "id", Grvt.this.safeString(order, "order_id") );
@@ -3788,6 +4190,10 @@ public class Grvt extends GrvtApi
             put( "reduceOnly", isReduceOnly );
             put( "info", order );
         }}), market);
+    }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseTimeInForce(String type)
@@ -3835,13 +4241,11 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
@@ -3867,6 +4271,19 @@ public class Grvt extends GrvtApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name grvt#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3879,13 +4296,11 @@ public class Grvt extends GrvtApi
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             String subAccoubntId = this.getSubAccountId((Map<String, Object>) (parameters));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3894,7 +4309,7 @@ public class Grvt extends GrvtApi
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                parameters = this.omit(parameters, "clientOrderId");
+                parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
                 ((Map<String, Object>)request).put("client_order_id", clientOrderId);
             } else
             {
@@ -3912,6 +4327,21 @@ public class Grvt extends GrvtApi
             return this.parseOrder(result);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name grvt#cancelOrder
+     * @description cancels an open order
+     * @see https://api-docs.grvt.io/trading_api/#cancel-order
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object eipDomainData()
@@ -3932,10 +4362,8 @@ public class Grvt extends GrvtApi
         return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
 
-    public Object createSignedRequest(Object request, Object structureType, Object... optionalArgs)
+    public Object createSignedRequest(Object request, Object structureType, Object currencyObj, String signerAddress)
     {
-        Object currencyObj = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object signerAddress = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object messageData = null;
         if (java.util.Objects.equals(structureType, "EIP712_TRANSFER_TYPE"))
         {
@@ -4008,6 +4436,10 @@ public class Grvt extends GrvtApi
         Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(Helpers.add("0x", privateKeyWithoutZero)) : signerAddress);
         return request;
     }
+    public Object createSignedRequest(Object request, Object structureType, Object... optionalArgs)
+    {
+        return this.createSignedRequest(request, structureType, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgString(optionalArgs, 1, null));
+    }
 
     public Object formatSignatureRS(Object value)
     {
@@ -4035,10 +4467,8 @@ public class Grvt extends GrvtApi
         }};
     }
 
-    public Object handleUntilOptionString(Object key, Map<String, Object> request, Object... optionalArgs)
+    public Object handleUntilOptionString(Object key, Map<String, Object> request, Object parameters, Object multiplier)
     {
-        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object multiplier = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : 1;
         Long until = (Long) this.safeInteger2(parameters, "until", "till");
         if (!java.util.Objects.equals(until, null))
         {
@@ -4046,6 +4476,10 @@ public class Grvt extends GrvtApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
         }
         return new ArrayList<Object>(Arrays.asList(request, parameters));
+    }
+    public Object handleUntilOptionString(Object key, Map<String, Object> request, Object... optionalArgs)
+    {
+        return this.handleUntilOptionString(key, request, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : 1);
     }
 
     public Object requestId()
@@ -4055,16 +4489,11 @@ public class Grvt extends GrvtApi
         return requestId;
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), path);
-        Object queryString = "";
+        String queryString = "";
         if (java.util.Objects.equals(method, "GET"))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
@@ -4082,22 +4511,22 @@ public class Grvt extends GrvtApi
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
             List<Object> paramsKeys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());
-            Object paramsKeysLength = ((List<?>)paramsKeys).size();
+            Integer paramsKeysLength = ((List<?>)paramsKeys).size();
             if (java.util.Objects.equals(paramsKeysLength, 0))
             {
                 body = "{}";
             } else
             {
-                body = this.json(parameters);
+                body = (String) (this.json(parameters));
             }
         }
-        Object isPrivate = ((String)api).startsWith("private");
+        Boolean isPrivate = ((String)api).startsWith("private");
         if (java.util.Objects.equals(isPrivate, true))
         {
             this.checkRequiredCredentials();
             if (!java.util.Objects.equals(queryString, ""))
             {
-                path = Helpers.add(Helpers.add(path, "?"), queryString);
+                path = (Helpers.add(path, "?") + queryString);
             }
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
@@ -4119,7 +4548,7 @@ public class Grvt extends GrvtApi
         }
         final Object finalUrl = url;
         final Object finalMethod = method;
-        final Object finalBody = body;
+        final String finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{
             put( "url", finalUrl );
@@ -4127,6 +4556,10 @@ public class Grvt extends GrvtApi
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

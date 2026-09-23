@@ -64,7 +64,7 @@ public class TestFetchTickers extends BaseTest {
             } catch(Exception ex)
             {
                 Object ohlcv = null;
-                Object tickerSymbol = ((Map<String, Object>)ticker).get("symbol");
+                String tickerSymbol = (String) ((Map<String, Object>)ticker).get("symbol");
                 if ((!java.util.Objects.equals(tickerSymbol, null)) && Helpers.isTrue(TestSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)))
                 {
                     ohlcv = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{tickerSymbol, "1d", null, 5})).join();
@@ -85,8 +85,8 @@ public class TestFetchTickers extends BaseTest {
             // ensure all "active" symbols have tickers
             //
             Object nonInactiveMarkets = TestSharedMethods.getActiveMarkets(exchange);
-            Object notInactiveSymbolsLength = Helpers.getArrayLength(nonInactiveMarkets);
-            Object obtainedTickersLength = ((List<?>)tickersValues).size();
+            Integer notInactiveSymbolsLength = Helpers.getArrayLength(nonInactiveMarkets);
+            Integer obtainedTickersLength = ((List<?>)tickersValues).size();
             Double minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
             Assert(Helpers.isGreaterThanOrEqual(obtainedTickersLength, Helpers.multiply(notInactiveSymbolsLength, minRatio)), (Helpers.add((((((exchange.id + " ") + "fetchTickers") + " must return tickers for all active markets. but returned: ") + String.valueOf(obtainedTickersLength)) + " tickers, "), String.valueOf(notInactiveSymbolsLength)) + " active markets"));
             //
@@ -97,7 +97,7 @@ public class TestFetchTickers extends BaseTest {
             {
                 return;
             }
-            Object allMarketsLength = ((List<?>)new ArrayList<Object>(((Map<String, Object>)allMarkets).keySet())).size();
+            Integer allMarketsLength = ((List<?>)new ArrayList<Object>(((Map<String, Object>)allMarkets).keySet())).size();
             Assert(Helpers.isLessThanOrEqual(obtainedTickersLength, allMarketsLength), (((((((exchange.id + " ") + "fetchTickers") + " must return <= than all markets, but returned: ") + String.valueOf(obtainedTickersLength)) + " tickers, ") + String.valueOf(allMarketsLength)) + " markets"));
         }
     }

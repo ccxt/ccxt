@@ -110,22 +110,20 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCVWs(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCVWs(String symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Long since = since3;
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "fetchOHLCVWs");
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> watchOHLCVOptions = (Map<String, Object>) this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(watchOHLCVOptions, "timeframes", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(timeframes, timeframe, timeframe);
@@ -144,11 +142,27 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 ((Map<String, Object>)message).put("size", limit);
             }
-            Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String,Object> request = this.deepExtend(message, parameters);
             Object requestId = this.requestId();
             return (this.watch(url, messageHash, request, requestId, request)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name lbank#fetchOHLCVWs
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCVWs(String symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCVWs(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -163,15 +177,11 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object timeframe, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -182,14 +192,14 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(watchOHLCVOptions, "timeframes", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(timeframes, timeframe, timeframe);
             String messageHash = ((("ohlcv:" + ((Map<String, Object>)market).get("symbol")) + ":") + timeframeId);
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "kbar" );
                 put( "kbar", timeframeId );
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
-            Map<String, Object> request = this.deepExtend(subscribe, parameters);
+            Map<String,Object> request = this.deepExtend(subscribe, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
@@ -198,6 +208,22 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name lbank#watchOHLCV
+     * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    {
+        return this.watchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOHLCV(Client client, Map<String, Object> message)
@@ -265,7 +291,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             String timeframeId = this.safeString(message, "kbar");
             Object timeframe = this.findTimeframe(timeframeId, timeframes);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -283,7 +309,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")));
             Object timeframe = this.findTimeframe(timeframeId, timeframes);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -305,30 +331,42 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTickerWs(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTickerWs(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "fetchTickerWs");
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("fetchTicker:" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "action", "request" );
                 put( "request", "tick" );
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String,Object> request = this.deepExtend(message, parameters);
             Object requestId = this.requestId();
             return (this.watch(url, messageHash, request, requestId, request)).join();
         }).thenApply(Ticker::new);
 
+    }
+    /**
+     * @method
+     * @name lbank#fetchTickerWs
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTickerWs(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTickerWs(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -340,29 +378,41 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "watchTicker");
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "tick" );
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String,Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
         }).thenApply(Ticker::new);
 
+    }
+    /**
+     * @method
+     * @name lbank#watchTicker
+     * @see https://www.lbank.com/en-US/docs/index.html#market
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
+    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.watchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -399,7 +449,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         client.resolve(parsedTicker, messageHash);
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -422,7 +472,6 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //         "TS":"2019-07-01T11:33:55.188"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "pair");
         String symbol = this.safeSymbol(marketId, market);
         String datetime = this.safeString(ticker, "TS");
@@ -450,7 +499,52 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             put( "info", ticker );
         }}, market);
     }
+    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseWsTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
+    /**
+     * @method
+     * @name lbank#fetchTradesWs
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTradesWs(String symbol, Long since, Long limit2, Map<String, Object> parameters)
+    {
+        final Long limit3 = limit2;
+        return BaseExchange.supplyAsync(() -> {
+            Long limit = limit3;
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            this.checkContractMarket((Map<String, Object>) (market), "fetchTradesWs");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String messageHash = ("fetchTrades:" + ((Map<String, Object>)market).get("symbol"));
+            if (java.util.Objects.equals(limit, null))
+            {
+                limit = 10L;
+            }
+            final Long finalLimit = limit;
+            Map<String, Object> message = new HashMap<String, Object>() {{
+                put( "action", "request" );
+                put( "request", "trade" );
+                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "size", finalLimit );
+            }};
+            Map<String,Object> request = this.deepExtend(message, parameters);
+            Object requestId = this.requestId();
+            return (this.watch(url, messageHash, request, requestId, request)).join();
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+
+    }
     /**
      * @method
      * @name lbank#fetchTradesWs
@@ -464,36 +558,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
      */
     public CompletableFuture<List<Trade>> fetchTradesWs(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            this.checkContractMarket((Map<String, Object>) (market), "fetchTradesWs");
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            String messageHash = ("fetchTrades:" + ((Map<String, Object>)market).get("symbol"));
-            if (java.util.Objects.equals(limit, null))
-            {
-                limit = 10;
-            }
-            final Object finalLimit = limit;
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "action", "request" );
-                put( "request", "trade" );
-                put( "pair", ((Map<String, Object>)market).get("id") );
-                put( "size", finalLimit );
-            }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
-            Object requestId = this.requestId();
-            return (this.watch(url, messageHash, request, requestId, request)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
-
+        return this.fetchTradesWs(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -507,33 +572,45 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "watchTrades");
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("trades:" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "trade" );
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String,Object> request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, request)).join();
             List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name lbank#watchTrades
+     * @see https://www.lbank.com/en-US/docs/index.html#trade-record
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTrades(Client client, Map<String, Object> message)
@@ -567,7 +644,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -589,7 +666,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // request
@@ -603,7 +680,6 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, 0);
         String datetime = (((!java.util.Objects.equals(timestamp, null)))) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
         if (java.util.Objects.equals(timestamp, null))
@@ -611,7 +687,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             timestamp = this.parse8601(datetime);
         }
         String rawSide = this.safeString2(trade, "direction", 3);
-        Object parts = new ArrayList<Object>(Arrays.asList(((String)rawSide).split(java.util.regex.Pattern.quote("_"))));
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)rawSide).split(java.util.regex.Pattern.quote("_"))));
         String firstPart = this.safeString(parts, 0);
         String secondPart = this.safeString(parts, 1);
         String side = firstPart;
@@ -620,8 +696,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             side = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalSide = side;
+        final Long finalTimestamp = timestamp;
+        final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "timestamp", finalTimestamp );
             put( "datetime", datetime );
@@ -638,6 +714,10 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             put( "info", trade );
         }}), market);
     }
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -650,21 +730,17 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> watchOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object key = (this.authenticate(parameters)).join();
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = null;
             Object pair = "all";
             if (java.util.Objects.equals(symbol, null))
@@ -684,11 +760,26 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 put( "subscribeKey", key );
                 put( "pair", finalPair );
             }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String,Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, request)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name lbank#watchOrders
+     * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders
+     * @description get the list of trades associated with the user
+     * @param {string} [symbol] unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    {
+        return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrders(Client client, Map<String, Object> message)
@@ -731,7 +822,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         client.resolve(myOrders, messageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -774,10 +865,9 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //         "TS": "2024-01-19T23:05:18.548"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> orderUpdate = (Map<String, Object>) this.safeDict(order, "orderUpdate", new HashMap<String, Object>() {{}});
         String rawType = this.safeString(orderUpdate, "type", "");
-        Object typeParts = new ArrayList<Object>(Arrays.asList(((String)rawType).split(java.util.regex.Pattern.quote("_"))));
+        List<Object> typeParts = new ArrayList<Object>(Arrays.asList(((String)rawType).split(java.util.regex.Pattern.quote("_"))));
         String side = this.safeString(typeParts, 0);
         String exchangeType = this.safeString(typeParts, 1);
         String type = null;
@@ -795,9 +885,9 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             cost = orderAmount;
         }
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalCost = cost;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalCost = cost;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Lbank.this.safeString(orderUpdate, "uuid") );
@@ -821,6 +911,10 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             put( "trades", null );
         }}), market);
     }
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    {
+        return this.parseWsOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public String parseWsOrderStatus(String status)
     {
@@ -842,28 +936,39 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object key = (this.authenticate(parameters)).join();
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = "balance";
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "assetUpdate" );
                 put( "subscribeKey", key );
             }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String,Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
         }).thenApply(Balances::new);
 
+    }
+    /**
+     * @method
+     * @name lbank#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.lbank.com/docs/index.html#update-subscribed-asset
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
+    {
+        return this.watchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public void handleBalance(Client client, Map<String, Object> message)
@@ -891,7 +996,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         Helpers.addElementToObject(this.balance, "datetime", datetime);
         String currencyId = this.safeString(data, "assetCode");
         String code = this.safeCurrencyCode((String) (currencyId));
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("free", this.safeString(data, "free"));
         ((Map<String, Object>)account).put("used", this.safeString(data, "freeze"));
         ((Map<String, Object>)account).put("total", this.safeString(data, "asset"));
@@ -913,37 +1018,49 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
-    public CompletableFuture<OrderBook> fetchOrderBookWs(String symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBookWs(String symbol, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "fetchOrderBookWs");
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("fetchOrderbook:" + ((Map<String, Object>)market).get("symbol"));
             if (java.util.Objects.equals(limit, null))
             {
-                limit = 100;
+                limit = 100L;
             }
-            final Object finalLimit = limit;
+            final Long finalLimit = limit;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "action", "request" );
                 put( "request", "depth" );
                 put( "depth", finalLimit );
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
-            Map<String, Object> request = this.deepExtend(subscribe, parameters);
+            Map<String,Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name lbank#fetchOrderBookWs
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int|undefined} limit the maximum amount of order book entries to return
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     */
+    public CompletableFuture<OrderBook> fetchOrderBookWs(String symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBookWs(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -956,38 +1073,52 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "watchOrderBook");
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
-            parameters = this.omit(parameters, "aggregation");
+            parameters = (Map<String, Object>) this.omit(parameters, "aggregation");
             if (java.util.Objects.equals(limit, null))
             {
-                limit = 100;
+                limit = 100L;
             }
-            final Object finalLimit = limit;
+            final Long finalLimit = limit;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "depth" );
                 put( "depth", finalLimit );
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
-            Map<String, Object> request = this.deepExtend(subscribe, parameters);
+            Map<String,Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name lbank#watchOrderBook
+     * @see https://www.lbank.com/en-US/docs/index.html#market-depth
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int|undefined} limit the maximum amount of order book entries to return
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    {
+        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -1138,7 +1269,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         }
     }
 
-    public CompletableFuture<Object> authenticate(Object... optionalArgs)
+    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1148,9 +1279,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             // subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
             // overwritten. the flight lives in client.futures of this exchange's own ws client under
             // a key that is not a messageHash, and settles via client.resolve / client.reject only
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Client client = this.client(url);
             Long now = this.milliseconds();
             String messageHash = "authenticateFlight";
@@ -1185,7 +1315,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                     Long expires = this.safeInteger(authenticated, "expires", 0);
                     if (Helpers.isLessThan(expires, now))
                     {
-                        final Object finalAuthenticated = authenticated;
+                        final Map<String, Object> finalAuthenticated = authenticated;
                         Map<String, Object> request = new HashMap<String, Object>() {{
                             put( "subscribeKey", ((Map<String, Object>)finalAuthenticated).get("key") );
                         }};
@@ -1216,5 +1346,9 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             return Helpers.GetValue(((Map)client.subscriptions).get("authenticated"), "key");
         });
 
+    }
+    public CompletableFuture<Object> authenticate(Object... optionalArgs)
+    {
+        return this.authenticate(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 }
