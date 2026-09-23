@@ -555,7 +555,7 @@ public static Object callDynamically(Object obj, Object methodName, Object[] arg
     try {
         m.setAccessible(true);
 
-        Object[] invokeArgs = adaptForVarArgs(m, args);
+        Object[] invokeArgs = m.isVarArgs() ? adaptForVarArgs(m, args) : padArgs(m, args);
         coerceArgs(m, invokeArgs);
 
         return m.invoke(obj, invokeArgs);
@@ -563,6 +563,19 @@ public static Object callDynamically(Object obj, Object methodName, Object[] arg
     } catch (Exception e) {
         throw new RuntimeException(e);
     }
+}
+
+// omitted trailing arguments of a fixed-arity method: null (TS `undefined`), except a
+// params bag, which takes the TS default `{}`
+private static Object[] padArgs(Method m, Object[] args) {
+    int n = m.getParameterCount();
+    if (args.length == n) return args;
+    Object[] out = java.util.Arrays.copyOf(args, n);
+    Class<?>[] ptypes = m.getParameterTypes();
+    for (int i = args.length; i < n; i++) {
+        if (ptypes[i] == Map.class) out[i] = new HashMap<String, Object>();
+    }
+    return out;
 }
 
 /**
@@ -597,6 +610,14 @@ private static void coerceArgs(Method m, Object[] args) {
                 if (expected == Long.class) args[i] = Long.parseLong(s);
                 else args[i] = Double.parseDouble(s);
             } catch (NumberFormatException ignored) {}
+        }
+        // a String slot takes the value's string form (the getArgString conversion)
+        if (expected == String.class && !(args[i] instanceof String)) {
+            args[i] = toStringArg(args[i]);
+        }
+        // a symbol list given as an array
+        else if (expected == List.class && args[i] instanceof Object[] arr) {
+            args[i] = new ArrayList<>(java.util.Arrays.asList(arr));
         }
     }
 }
@@ -706,39 +727,38 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
 
     // --------- helpers ---------
 
+    // Every generated method has ONE signature: resolve by name, child class first. Among
+    // same-named methods (hand-written helpers, typed override bridges, surface defaults)
+    // prefer the fewest parameters that still take every argument, trailing ones padded.
     private static Method findMethod(Class<?> cls, String name, int argCount) {
-        // Search child-first (normal Java resolution order) but collect candidates.
-        // Prefer varargs methods over non-varargs when both match — varargs methods
-        // are the untyped transpiled methods (Object... params, CompletableFuture returns)
-        // while non-varargs are typed overloads (String/Long/Map params, sync returns)
-        // that don't work with callDynamically's Object[] args.
-        Method nonVarArgsMatch = null;
-
-        Class<?> cur = cls;
-        while (cur != null) {
+        Method best = null;
+        for (Class<?> cur = cls; cur != null && best == null; cur = cur.getSuperclass()) {
             for (Method m : cur.getDeclaredMethods()) {
-                if (!m.getName().equals(name)) continue;
-
-                // Varargs method that can accept this arg count: return immediately
-                if (m.isVarArgs() && argCount >= m.getParameterCount() - 1) {
-                    return m;
-                }
-
-                // Exact arg count match: save as fallback (typed overload)
-                if (m.getParameterCount() == argCount && nonVarArgsMatch == null) {
-                    nonVarArgsMatch = m;
+                if (!m.getName().equals(name) || m.isBridge() || m.isSynthetic()) continue;
+                int n = m.getParameterCount();
+                boolean fits = m.isVarArgs() ? argCount >= n - 1 : n >= argCount;
+                if (!fits) continue;
+                if (best == null || n < best.getParameterCount()
+                        || (n == best.getParameterCount() && isLooser(m, best))) {
+                    best = m;
                 }
             }
-            cur = cur.getSuperclass();
         }
-
-        if (nonVarArgsMatch != null) return nonVarArgsMatch;
-
-        // last resort: first by name
+        if (best != null) return best;
+        // interface default methods and public inherited members
         for (Method m : cls.getMethods()) {
-            if (m.getName().equals(name)) return m;
+            if (m.getName().equals(name) && (m.isVarArgs() || m.getParameterCount() >= argCount)) return m;
         }
         throw new RuntimeException("Method not found: " + name + " with " + argCount + " args on " + cls.getName());
+    }
+
+    // of two same-arity overloads (a typed core and its override bridge), the one declaring
+    // more Object slots accepts every argument the other does
+    private static boolean isLooser(Method a, Method b) {
+        int objectsA = 0, objectsB = 0;
+        for (Class<?> t : a.getParameterTypes()) if (t == Object.class) objectsA++;
+        for (Class<?> t : b.getParameterTypes()) if (t == Object.class) objectsB++;
+        return objectsA > objectsB;
     }
 
     private static Long toLong(Object o) {

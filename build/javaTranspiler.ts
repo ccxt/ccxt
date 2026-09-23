@@ -20,7 +20,6 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, javaVenueAsyncReturnTable } from './java-local-types.js';
-import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
 
@@ -51,18 +50,6 @@ function overwriteFileAndFolder(path: string, content: string) {
         content = applyJavaImports(content);
     }
     overwriteFile(path, content);
-}
-
-// Zero-arg `this.fetchBalance()` (or `this.fetchBalance(null)`) on a whitelisted
-// name would bind TypedSurface's fixed-arity default and return a typed value
-// (JLS 15.12.2 phase 1 beats varargs); `new Object[0]` binds only the varargs core.
-const WHITELISTED_ZERO_ARG_CALL_RE = new RegExp(
-    '\\bthis\\.(' + [...ZERO_REQUIRED_TYPED_WHITELIST].join('|') + ')\\(\\s*(?:null\\s*)?\\)',
-    'g',
-);
-
-function routeWhitelistedInternalCallsToVarargs(javaSource: string): string {
-    return javaSource.replace(WHITELISTED_ZERO_ARG_CALL_RE, 'this.$1(new Object[0])');
 }
 
 // Split a comma-separated argument list, respecting nested () [] {} and
@@ -3880,21 +3867,6 @@ class NewTranspiler {
                 this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length)
                     ? match : `${prefix}(String)Helpers.add(`);
 
-        // ── Typed-wrapper overload collision: fetchBalance / fetchPositions ──
-        // The typed-wrapper exchange classes (e.g. exchanges/Hashkey.java) define
-        //     Balances fetchBalance(Map<String, Object> params)
-        //     List<Position> fetchPositions(List<String> symbols, Map<String, Object> params)
-        // which Java's overload resolution prefers over the inherited async
-        //     CompletableFuture<Object> fetchBalance(Object... optionalArgs)
-        // when the WS code calls `this.fetchBalance(new HashMap<>(){{...}})`. The
-        // typed return is not a CompletableFuture, so the trailing `.join()`
-        // fails to compile. Cast the HashMap to Object so the varargs overload
-        // wins and the call returns a CompletableFuture<Object>.
-        content = content.replace(/this\.fetchBalance\(new java\.util\.HashMap/gm,
-            'this.fetchBalance((Object) new java.util.HashMap');
-        content = content.replace(/this\.fetchPositions\((null|[a-zA-Z_]\w*),\s*new java\.util\.HashMap/gm,
-            'this.fetchPositions($1, (Object) new java.util.HashMap');
-
         // ── Pattern 5: ArrayCache .hashmap access ──
         // Only match local variables, not this.xxx
         content = content.replace(/(?<!this\.)(?<![\w.])([a-z]\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap');
@@ -4788,7 +4760,6 @@ class NewTranspiler {
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
-        javaSource = routeWhitelistedInternalCallsToVarargs(javaSource)
         javaSource = this.redirectToAsyncOnJoin(javaSource, prediction)
         javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest')))
 
@@ -5075,7 +5046,7 @@ class NewTranspiler {
      * returns the typed value and has no `.join()`. Casting cannot fix it: an
      * `(Object)` at an SS-05 String position leaves no applicable method. So every
      * call to a typed-surface name is late-bound through Helpers.callDynamically,
-     * whose findMethod prefers the untyped varargs core over typed overloads.
+     * whose findMethod resolves the single core by name and pads omitted arguments.
      */
     lateBindTypedSurfaceCalls(content: string): string {
         const typedNames = new Set<string>();
