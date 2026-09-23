@@ -8,6 +8,35 @@
     ],
     "options": {},
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer from the funding to the trading account",
+                "method": "transfer",
+                "url": "https://api.umx.com/api/v1/asset/transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "funding",
+                    "trading"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"fromAccountType\":\"funding\",\"toAccountType\":\"trading\"}"
+            },
+            {
+                "description": "transfer from the trading to the funding account",
+                "method": "transfer",
+                "url": "https://api.umx.com/api/v1/asset/transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "trading",
+                    "funding",
+                    {
+                        "clientTransferId": "test transfer from trading to funding"
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"fromAccountType\":\"trading\",\"toAccountType\":\"funding\",\"clientTransferId\":\"test transfer from trading to funding\"}"
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "funding account balance",

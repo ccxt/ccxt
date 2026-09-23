@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -100,7 +100,7 @@ export default class umx extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -387,6 +387,15 @@ export default class umx extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot',
+                'accountsByType': {
+                    'funding': 'funding',
+                    'trading': 'trading',
+                    'spot': 'trading',
+                    'margin': 'trading',
+                    'swap': 'trading',
+                    'future': 'trading',
+                    'option': 'trading',
+                },
                 'recvWindow': 5000, // X-ACCESS-RECV-WINDOW, the exchange default
                 'timeDifference': 0, // the difference between the system clock and the exchange server clock, set it with loadTimeDifference ()
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
@@ -2027,6 +2036,69 @@ export default class umx extends Exchange {
             }
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name umx#transfer
+     * @description transfer currency internally between the accounts of the same user
+     * @see https://www.umx.com/docs/coin-apis/funding-account/transfer/internal-transfer-application
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from, "funding" or "trading", every market type maps onto the shared trading account
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientTransferId] a client supplied id for the transfer
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const amountString = this.currencyToPrecision (code, amount);
+        const request: Dict = {
+            'currency': currency['id'],
+            'amount': amountString,
+            'fromAccountType': fromId,
+            'toAccountType': toId,
+        };
+        const response = await this.privatePostV1AssetTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": true,
+        //         "msg": "Success",
+        //         "ts": "1790195059978",
+        //         "traceId": "20756a85d29b38fdd2565cb9ae3493db"
+        //     }
+        //
+        // the answer carries no transfer id and echoes nothing back, the venue only assigns ids
+        // in the transfer history, so everything but the status is filled from the request
+        const transferEntry = this.parseTransfer (response, currency);
+        transferEntry['amount'] = this.parseNumber (amountString);
+        transferEntry['fromAccount'] = fromAccount;
+        transferEntry['toAccount'] = toAccount;
+        return transferEntry;
+    }
+
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        // the transfer endpoint answers the bare envelope whose data member is a boolean
+        const timestamp = this.safeInteger (transfer, 'ts');
+        const success = this.safeBool (transfer, 'data', false);
+        const status = (success) ? 'ok' : 'failed';
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': status,
+        } as TransferEntry;
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {

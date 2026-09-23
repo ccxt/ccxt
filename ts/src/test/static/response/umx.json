@@ -8,6 +8,79 @@
     ],
     "options": {},
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer from the funding to the trading account",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "funding",
+                    "trading"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": true,
+                    "msg": "Success",
+                    "ts": "1790196622607",
+                    "traceId": "9784f93b893baaa00083cbd9b1e9e0ea"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "data": true,
+                        "msg": "Success",
+                        "ts": "1790196622607",
+                        "traceId": "9784f93b893baaa00083cbd9b1e9e0ea"
+                    },
+                    "id": null,
+                    "timestamp": 1790196622607,
+                    "datetime": "2026-09-23T20:50:22.607Z",
+                    "currency": "USDT",
+                    "amount": 5,
+                    "fromAccount": "funding",
+                    "toAccount": "trading",
+                    "status": "ok"
+                }
+            },
+            {
+                "description": "transfer from the trading to the funding account",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "trading",
+                    "funding",
+                    {
+                        "clientTransferId": "test transfer from trading to funding"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": true,
+                    "msg": "Success",
+                    "ts": "1790196610973",
+                    "traceId": "4cc3f9096b8e29316957f8bc134852ad"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "data": true,
+                        "msg": "Success",
+                        "ts": "1790196610973",
+                        "traceId": "4cc3f9096b8e29316957f8bc134852ad"
+                    },
+                    "id": null,
+                    "timestamp": 1790196610973,
+                    "datetime": "2026-09-23T20:50:10.973Z",
+                    "currency": "USDT",
+                    "amount": 5,
+                    "fromAccount": "trading",
+                    "toAccount": "funding",
+                    "status": "ok"
+                }
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "funding account balance",
