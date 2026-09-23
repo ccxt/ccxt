@@ -94,7 +94,7 @@ func (this *Foxbit) Describe() any {
 			"www": "https://app.foxbit.com.br",
 			"doc": []any{"https://docs.foxbit.com.br"},
 		},
-		"precisionMode": DECIMAL_PLACES,
+		"precisionMode": TICK_SIZE,
 		"exceptions": map[string]any{
 			"exact": map[string]any{
 				"400":  BadRequest,
@@ -435,7 +435,6 @@ func (this *Foxbit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Foxbit) ParseCurrency(rawCurrency any) any {
-	var precision *int64 = this.SafeInteger(rawCurrency, "precision")
 	var currencyId *string = this.SafeString(rawCurrency, "symbol")
 	var name *string = this.SafeString(rawCurrency, "name")
 	var code *string = this.SafeCurrencyCode(currencyId)
@@ -466,7 +465,7 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 				"deposit":   isDepositEnabled,
 				"withdraw":  isWithdrawEnabled,
 				"active":    true,
-				"precision": precision,
+				"precision": nil,
 				"fee":       this.SafeNumber(networkWithdrawInfo, "fee"),
 				"limits": map[string]any{
 					"amount": map[string]any{
@@ -495,7 +494,7 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 		"deposit":   this.SafeBool(depositInfo, "enabled", false),
 		"withdraw":  this.SafeBool(withdrawInfo, "enabled", false),
 		"fee":       this.SafeNumber(withdrawInfo, "fee"),
-		"precision": precision,
+		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision"))),
 		"limits": map[string]any{
 			"amount": map[string]any{
 				"min": nil,
@@ -1100,9 +1099,9 @@ func (this *Foxbit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes88515 := (<-this.FetchOrdersByStatusAsync("ACTIVE", symbol, since, limit, params))
-	PanicOnError(retRes88515)
-	ch <- retRes88515
+	retRes88415 := (<-this.FetchOrdersByStatusAsync("ACTIVE", symbol, since, limit, params))
+	PanicOnError(retRes88415)
+	ch <- retRes88415
 	return nil
 }
 
@@ -1134,9 +1133,9 @@ func (this *Foxbit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes90015 := (<-this.FetchOrdersByStatusAsync("FILLED", symbol, since, limit, params))
-	PanicOnError(retRes90015)
-	ch <- retRes90015
+	retRes89915 := (<-this.FetchOrdersByStatusAsync("FILLED", symbol, since, limit, params))
+	PanicOnError(retRes89915)
+	ch <- retRes89915
 	return nil
 }
 func (this *Foxbit) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan any {
@@ -1156,9 +1155,9 @@ func (this *Foxbit) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes90415 := (<-this.FetchOrdersByStatusAsync("CANCELED", symbol, since, limit, params))
-	PanicOnError(retRes90415)
-	ch <- retRes90415
+	retRes90315 := (<-this.FetchOrdersByStatusAsync("CANCELED", symbol, since, limit, params))
+	PanicOnError(retRes90315)
+	ch <- retRes90315
 	return nil
 }
 func (this *Foxbit) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-chan any {
@@ -2246,9 +2245,8 @@ func (this *Foxbit) ParseMarket(market any) any {
 		"tierBased":      false,
 		"feeSide":        "get",
 		"precision": map[string]any{
-			"price":  this.SafeInteger(quoteAssets, "precision"),
-			"amount": this.SafeInteger(baseAssets, "precision"),
-			"cost":   this.SafeInteger(quoteAssets, "precision"),
+			"price":  this.SafeNumber(market, "price_increment"),
+			"amount": this.SafeNumber(market, "quantity_increment"),
 		},
 		"limits": map[string]any{
 			"amount": map[string]any{

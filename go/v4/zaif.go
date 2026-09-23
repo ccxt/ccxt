@@ -944,6 +944,12 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["currency_pair"] = GetValue(market, "id")
 	}
+	if since != nil {
+		request["since"] = this.ParseToInt(Divide(since, 1000))
+	}
+	if limit != nil {
+		request["count"] = mathMin(limit, 1000)
+	}
 
 	response := (<-this.PrivatePostTradeHistory(this.Extend(request, params)))
 	PanicOnError(response)

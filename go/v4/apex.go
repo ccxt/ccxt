@@ -1033,6 +1033,7 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	if limit == nil {
 		limit = 200 // default is 200 when requested with `since`
 	}
+	limit = mathMin(limit, 200)                 // fix maxcap
 	AddElementToObject(request, "limit", limit) // max 200, default 200
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params, 0.001)
 	request = GetValue(requestparamsVariable, 0)

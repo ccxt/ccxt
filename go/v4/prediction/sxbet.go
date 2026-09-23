@@ -214,7 +214,7 @@ func (this *Sxbet) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var rest any = this.Omit(params, []any{"limit"})
 	var userLimit *int64 = this.SafeInteger(params, "limit")
@@ -254,7 +254,7 @@ func (this *Sxbet) FetchRawMarketsPagedAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) fetchRawMarketsPagedBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	extra := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var extra map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = extra
 	userLimit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = userLimit
@@ -492,7 +492,7 @@ func (this *Sxbet) FetchEventsAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.RequireEventQuery(params)
 	var eventId *string = this.SafeString2(params, "eventId", "slug")
@@ -628,7 +628,7 @@ func (this *Sxbet) FetchEventAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Sxbet) fetchEventBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	rawMarkets := (<-this.FetchRawMarketsPagedAsync(this.Extend(map[string]any{
@@ -700,7 +700,7 @@ func (this *Sxbet) ParseEvent(fixtureId any, rawMarkets any) any {
 	var earliestGameTime any = nil
 	var teamOneName any = nil
 	var teamTwoName any = nil
-	var leagueLabel any = nil
+	var leagueLabel *string = nil
 	var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
 		var raw any = ccxt.GetValue(rawMarkets, i)
@@ -715,7 +715,7 @@ func (this *Sxbet) ParseEvent(fixtureId any, rawMarkets any) any {
 		if ccxt.IsEqual(teamOneName, nil) {
 			teamOneName = this.SafeString(raw, "teamOneName")
 			teamTwoName = this.SafeString(raw, "teamTwoName")
-			leagueLabel = ccxt.DerefScalar(this.SafeString(raw, "leagueLabel"))
+			leagueLabel = this.SafeString(raw, "leagueLabel")
 		}
 		var gameTime *string = this.SafeString(raw, "gameTime")
 		// skip the zero sentinel for "no scheduled game time" so it can't become the epoch
@@ -954,13 +954,11 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 	var deployed *bool = this.SafeBool(proxy, "deployed", false)
 	if deployed == nil || *deployed != true {
 
-		retRes78912 := (<-this.SxbetPrivatePostUserDeployProxy())
-		ccxt.PanicOnError(retRes78912)
+		ccxt.PanicOnError((<-this.SxbetPrivatePostUserDeployProxy()))
 		// deployment is asynchronous - poll until the proxy exists
 		for i := 0; i < 30; i++ {
 
-			retRes79216 := (<-this.Sleep(2000))
-			ccxt.PanicOnError(retRes79216)
+			ccxt.PanicOnError((<-this.Sleep(2000)))
 
 			state := (<-this.FetchSxbetProxyAsync())
 			ccxt.PanicOnError(state)
@@ -1104,8 +1102,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 	_ = params
 	this.CheckRequiredCredentials()
 
-	retRes8828 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes8828)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	if (!ccxt.IsEqual(typeVar, "limit")) && (!ccxt.IsEqual(typeVar, "market")) {
 		panic(ccxt.InvalidOrder(ccxt.Add(this.Id+" createOrder() type must be 'limit' or 'market', got ", typeVar)))
@@ -1136,7 +1133,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 		return !isOutcomeOne
 	}()
 	var priceStr *string = this.NumberToString(price)
-	var probability any = func() any {
+	var probability *string = func() *string {
 		if isBuy {
 			return priceStr
 		}
@@ -1159,7 +1156,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 	// before padStart - see the transpiler notes
 	var saltHexRaw string = this.IntToBase16(this.ParseToInt(saltNumber))
 	var saltHexPadded string = ccxt.PadStart(saltHexRaw, 64, "0")
-	var saltHex any = "0x" + saltHexPadded
+	var saltHex string = "0x" + saltHexPadded
 	var defaultExpirySeconds *int64 = this.SafeInteger(this.Options, "defaultOrderExpirySeconds", 86400)
 	var expiry *int64 = this.SafeInteger(params, "expiry", this.Sum(this.Seconds(), defaultExpirySeconds))
 	var defaultTif string = func() string {
@@ -1260,7 +1257,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 	var status *string = this.SafeStringUpper(first, "status")
 	if status != nil && *status == "FAILED" {
 		var reason *string = this.SafeString(first, "reason", "FAILED")
-		var feedback any = this.Id + " createOrder() rejected: " + *reason
+		var feedback string = this.Id + " createOrder() rejected: " + *reason
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], reason, feedback)
 		panic(ccxt.InvalidOrder(feedback))
 	}
@@ -1341,11 +1338,16 @@ func (this *Sxbet) ParseSxbetCancelResponse(response any) any {
 	var result []any = []any{}
 	// by-id cancels report 'cancelled'; the /all and /event paths submit asynchronously and
 	// report 'cancelledSubmitted' instead - treat both like cancelled
-	var cancelled any = this.SafeList2(data, "cancelled", "cancelledSubmitted", []any{})
-	var cancelledLength int = ccxt.GetArrayLength(cancelled)
+	var cancelled []any = ccxt.SafeList2Typed(data, "cancelled", "cancelledSubmitted")
+	var cancelledLength int = len(cancelled)
 	for i := 0; i < cancelledLength; i++ {
 		result = append(result, this.SafePredictionOrder(map[string]any{
-			"id":     this.SafeString(ccxt.GetValue(cancelled, i), "orderId"),
+			"id": this.SafeString(func() any {
+				if i >= 0 && i < len(cancelled) {
+					return ccxt.DerefScalar(cancelled[i])
+				}
+				return nil
+			}(), "orderId"),
 			"status": "canceled",
 			"info":   response,
 		}))
@@ -1400,9 +1402,9 @@ func (this *Sxbet) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Sxbet) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	var request map[string]any = map[string]any{
@@ -1437,9 +1439,9 @@ func (this *Sxbet) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any {
 func (this *Sxbet) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	var idsLength int = ccxt.GetArrayLength(ids)
@@ -1495,9 +1497,9 @@ func (this *Sxbet) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	var eventId *string = this.SafeString2(params, "eventId", "sportXeventId")
@@ -1689,14 +1691,13 @@ func (this *Sxbet) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
 	var outcomeObj any = nil
 	if outcome != nil {
 
-		retRes132112 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes132112)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		outcomeObj = this.Outcome(outcome)
 		request["marketHash"] = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "marketHash")
 	}
@@ -1738,7 +1739,7 @@ func (this *Sxbet) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	retRes134615 := (<-this.FetchOpenOrdersAsync(outcome, since, limit, params))
@@ -1767,7 +1768,7 @@ func (this *Sxbet) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	if ccxt.IsEqual(id, nil) {
@@ -1776,8 +1777,7 @@ func (this *Sxbet) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var outcomeObj any = nil
 	if outcome != nil {
 
-		retRes136612 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes136612)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		outcomeObj = this.Outcome(outcome)
 	}
 	var request map[string]any = map[string]any{
@@ -1816,14 +1816,13 @@ func (this *Sxbet) fetchTradesBody(ch chan any, outcome any, optionalArgs ...any
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if ccxt.IsEqual(outcome, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTrades() requires an outcome argument - the venue requires the trades listing to be scoped"))
 	}
 
-	retRes13918 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes13918)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var request map[string]any = map[string]any{
 		"marketHash": this.SafeString(ccxt.GetValue(outcomeObj, "info"), "marketHash"),
@@ -1879,15 +1878,14 @@ func (this *Sxbet) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	var request map[string]any = map[string]any{}
 	var outcomeObj any = nil
 	if outcome != nil {
 
-		retRes142712 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes142712)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		outcomeObj = this.Outcome(outcome)
 	}
 	if since != nil {
@@ -1914,7 +1912,7 @@ func (this *Sxbet) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}()))
 	}
 	trades = this.SortBy(trades, "timestamp")
-	var sym any = func() any {
+	var sym *string = func() *string {
 		if !ccxt.IsEqual(outcomeObj, nil) {
 			return this.SafeString(outcomeObj, "outcome")
 		}
@@ -2019,7 +2017,7 @@ func (this *Sxbet) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	obv3 := (<-this.LoadSxObv3MetadataAsync())
@@ -2089,7 +2087,7 @@ func (this *Sxbet) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcomes
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	// copy to a plain list so the transpilers and the strict null checks see one shape
@@ -2103,8 +2101,7 @@ func (this *Sxbet) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var wantedMarkets map[string]any = map[string]any{}
 	if outcomesLength > 0 {
 
-		retRes157312 := (<-this.LoadOutcomesAsync(outcomesList))
-		ccxt.PanicOnError(retRes157312)
+		ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomesList)))
 		for i := 0; i < outcomesLength; i++ {
 			var outcomeObj any = this.Outcome(ccxt.GetValue(outcomesList, i))
 			var hash *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "marketHash", "")
@@ -2238,7 +2235,7 @@ func (this *Sxbet) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	var request map[string]any = map[string]any{
@@ -2247,8 +2244,7 @@ func (this *Sxbet) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 	var wantedOutcomeId any = nil
 	if outcome != nil {
 
-		retRes166712 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes166712)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		var outcomeObj any = this.Outcome(outcome)
 		request["marketHash"] = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "marketHash", "")
 		wantedOutcomeId = this.SafeString(outcomeObj, "outcomeId")
@@ -2422,11 +2418,10 @@ func (this *Sxbet) FetchTickerAsync(outcome any, optionalArgs ...any) <-chan any
 func (this *Sxbet) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes17908 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes17908)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var marketHash *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "marketHash")
 	// the book snapshot is public and carries the same top of book - the batched best-odds
@@ -2458,7 +2453,7 @@ func (this *Sxbet) FetchSxbetBestOddsAsync(marketHashes any, optionalArgs ...any
 func (this *Sxbet) fetchSxbetBestOddsBody(ch chan any, marketHashes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
 		"marketHashes": ccxt.Join(marketHashes, ","),
@@ -2516,7 +2511,7 @@ func (this *Sxbet) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcomes
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list"))
@@ -2527,8 +2522,7 @@ func (this *Sxbet) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var seenHashes map[string]any = map[string]any{}
 	for i := 0; i < outcomesLength; i++ {
 
-		retRes185612 := (<-this.LoadOutcomeAsync(ccxt.GetValue(outcomesList, i)))
-		ccxt.PanicOnError(retRes185612)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(ccxt.GetValue(outcomesList, i))))
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomesList, i))
 		var marketHash *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "marketHash", "")
 		if this.SafeBool(seenHashes, marketHash) == nil {
@@ -2726,11 +2720,10 @@ func (this *Sxbet) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes20058 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes20058)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var marketHash *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "marketHash")
 	var outcomeId *string = this.SafeString(outcomeObj, "outcomeId")
@@ -2944,8 +2937,7 @@ func (this *Sxbet) pongBody(ch chan any, client any, optionalArgs ...any) any {
 	message := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = message
 
-	retRes21588 := (<-client.(ccxt.ClientInterface).SendAsync("{}"))
-	ccxt.PanicOnError(retRes21588)
+	ccxt.PanicOnError((<-client.(ccxt.ClientInterface).SendAsync("{}")))
 	return nil
 }
 func (this *Sxbet) SubscribeSxbetChannelAsync(messageHash any, channel any) <-chan any {
@@ -2959,8 +2951,7 @@ func (this *Sxbet) subscribeSxbetChannelBody(ch chan any, messageHash any, chann
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 	// finish the connect handshake first so the subscribe frame follows the connect reply
 
-	retRes21648 := (<-this.ConnectSxbetCentrifugoAsync(url))
-	ccxt.PanicOnError(retRes21648)
+	ccxt.PanicOnError((<-this.ConnectSxbetCentrifugoAsync(url)))
 	var requestId any = this.RequestId(url)
 	this.RegisterSxbetWsRequest(requestId, messageHash, channel)
 	var subscribeMsg map[string]any = map[string]any{
@@ -2982,7 +2973,7 @@ func (this *Sxbet) HandleMessage(client any, message any) {
 		var lines []string = ccxt.Split(message, "\n")
 		var linesLength int = len(lines)
 		for i := 0; i < linesLength; i++ {
-			var line any = ccxt.GetValue(lines, i)
+			var line string = lines[i]
 			if ccxt.GetLength(line) > 0 {
 				var parsed any = ccxt.JsonParse(line)
 				this.HandleCentrifugoFrame(client, parsed)
@@ -3103,13 +3094,12 @@ func (this *Sxbet) WatchOrderBookAsync(outcome any, optionalArgs ...any) <-chan 
 func (this *Sxbet) watchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes22838 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes22838)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var sym *string = this.SafeString(outcomeObj, "outcome")
 	var marketHash *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "marketHash")
@@ -3117,8 +3107,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan any, outcome any, optionalArgs ...
 	var messageHash any = ccxt.Add("orderbook::", sym)
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 
-	retRes22908 := (<-this.ConnectSxbetCentrifugoAsync(url))
-	ccxt.PanicOnError(retRes22908)
+	ccxt.PanicOnError((<-this.ConnectSxbetCentrifugoAsync(url)))
 	var client any = this.Client(url)
 	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channel), nil)
 	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, sym), nil) {
@@ -3188,7 +3177,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) any {
 	var timestamp int64 = this.Milliseconds()
 	var watchedSymsLength int = len(watchedSyms)
 	for i := 0; i < watchedSymsLength; i++ {
-		var sym any = ccxt.GetValue(watchedSyms, i)
+		var sym string = watchedSyms[i]
 		if this.SafeString(watchedBooks, sym) != marketHash && (this.SafeString(watchedBooks, sym) == nil || marketHash == nil || *this.SafeString(watchedBooks, sym) != *marketHash) {
 			continue
 		}
@@ -3250,11 +3239,10 @@ func (this *Sxbet) WatchTickerAsync(outcome any, optionalArgs ...any) <-chan any
 func (this *Sxbet) watchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes24058 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes24058)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var sym *string = this.SafeString(outcomeObj, "outcome")
 	var marketHash *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "marketHash")
@@ -3266,8 +3254,7 @@ func (this *Sxbet) watchTickerBody(ch chan any, outcome any, optionalArgs ...any
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "wsWatchedTickers"), sym, marketHash)
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 
-	retRes24168 := (<-this.ConnectSxbetCentrifugoAsync(url))
-	ccxt.PanicOnError(retRes24168)
+	ccxt.PanicOnError((<-this.ConnectSxbetCentrifugoAsync(url)))
 	var client any = this.Client(url)
 	var channel string = "best_odds_v3:global"
 	var hydrated bool = false
@@ -3334,7 +3321,7 @@ func (this *Sxbet) HandleTicker(client any, rows any) {
 		}
 		var watchedSymsLength int = len(watchedSyms)
 		for j := 0; j < watchedSymsLength; j++ {
-			var sym any = ccxt.GetValue(watchedSyms, j)
+			var sym string = watchedSyms[j]
 			if this.SafeString(watchedTickers, sym) != marketHash && (this.SafeString(watchedTickers, sym) == nil || marketHash == nil || *this.SafeString(watchedTickers, sym) != *marketHash) {
 				continue
 			}
@@ -3369,11 +3356,10 @@ func (this *Sxbet) watchTradesBody(ch chan any, outcome any, optionalArgs ...any
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes24938 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes24938)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var sym *string = this.SafeString(outcomeObj, "outcome")
 	var messageHash any = ccxt.Add("trades::", sym)
@@ -3486,7 +3472,7 @@ func (this *Sxbet) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if ccxt.IsEqual(this.WalletAddress, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a walletAddress"))
@@ -3494,8 +3480,7 @@ func (this *Sxbet) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "myTrades"
 	if outcome != nil {
 
-		retRes258612 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes258612)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		var outcomeObj any = this.Outcome(outcome)
 		var sym *string = this.SafeString(outcomeObj, "outcome")
 		messageHash = ccxt.Add("myTrades::", sym)
@@ -3556,7 +3541,7 @@ func (this *Sxbet) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if ccxt.IsEqual(this.WalletAddress, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a walletAddress"))
@@ -3564,8 +3549,7 @@ func (this *Sxbet) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "orders"
 	if outcome != nil {
 
-		retRes263612 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes263612)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		var outcomeObj any = this.Outcome(outcome)
 		var sym *string = this.SafeString(outcomeObj, "outcome")
 		messageHash = ccxt.Add("orders::", sym)
@@ -3645,7 +3629,7 @@ func (this *Sxbet) HandleErrors(code any, reason any, url any, method any, heade
 func (this *Sxbet) Sign(path any, optionalArgs ...any) any {
 	api := ccxt.GetArg(optionalArgs, 0, "sxbet")
 	_ = api
-	method := ccxt.GetArg(optionalArgs, 1, "GET")
+	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -3687,8 +3671,8 @@ func (this *Sxbet) Sign(path any, optionalArgs ...any) any {
 	}
 	// DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
 	// /orders-v3/all and /orders-v3/event - take query parameters, like every GET
-	var sendAsQuery bool = (ccxt.IsEqual(method, "GET"))
-	if ccxt.IsEqual(method, "DELETE") {
+	var sendAsQuery bool = (method == "GET")
+	if method == "DELETE" {
 		var hasOrdersList bool = (ccxt.InOp(query, "orders"))
 		sendAsQuery = !hasOrdersList
 	}

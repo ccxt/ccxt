@@ -5254,9 +5254,9 @@ func (this *Okx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
-	var isTrigger bool = (!IsEqual(trigger, nil)) && (trigger != false)
+	var isTrigger bool = (trigger != nil && *trigger == true)
 	if isTrigger || (trailing != nil && *trailing == true) {
 
 		var orderInner []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{id}, symbol, params))))
@@ -5325,7 +5325,6 @@ func (this *Okx) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any {
 func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	// TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5344,9 +5343,9 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 	var method any = this.SafeString(params, "method", defaultMethod)
 	var clientOrderIds any = this.ParseIds(this.SafeValue2(params, "clOrdId", "clientOrderId"))
 	var algoIds any = this.ParseIds(this.SafeValue(params, "algoId"))
-	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
-	var isTrigger bool = (!IsEqual(trigger, nil)) && (trigger != false)
+	var isTrigger bool = (trigger != nil && *trigger == true)
 	if isTrigger || (trailing != nil && *trailing == true) {
 		method = "privatePostTradeCancelAlgos"
 	}
@@ -5361,7 +5360,7 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 			}
 		}
 		for i := 0; i < GetArrayLength(ids); i++ {
-			if (trailing != nil && *trailing == true) || (!IsEqual(trigger, nil)) {
+			if (trailing != nil && *trailing == true) || isTrigger {
 				request = append(request, map[string]any{
 					"algoId": GetValue(ids, i),
 					"instId": market["id"],
@@ -5375,7 +5374,7 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 		}
 	} else {
 		for i := 0; i < GetArrayLength(clientOrderIds); i++ {
-			if (trailing != nil && *trailing == true) || (!IsEqual(trigger, nil)) {
+			if (trailing != nil && *trailing == true) || isTrigger {
 				request = append(request, map[string]any{
 					"instId":      market["id"],
 					"algoClOrdId": GetValue(clientOrderIds, i),
@@ -5936,8 +5935,8 @@ func (this *Okx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	var options map[string]any = SafeMapTyped(this.Options, "fetchOrder")
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrder")
 	var method any = this.SafeString(params, "method", defaultMethod)
-	var trigger any = this.SafeValue2(params, "stop", "trigger")
-	var isTrigger bool = (!IsEqual(trigger, nil)) && (trigger != false)
+	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
+	var isTrigger bool = (trigger != nil && *trigger == true)
 	if isTrigger {
 		method = "privateGetTradeOrderAlgo"
 		if clientOrderId != nil {
@@ -6110,8 +6109,8 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes457319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params, maxLimit))))
-		ch <- retRes457319
+		var retRes457219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params, maxLimit))))
+		ch <- retRes457219
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -6128,9 +6127,9 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrdersPending")
 	var method any = this.SafeString(params, "method", defaultMethod)
 	var ordType *string = this.SafeString(params, "ordType")
-	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
-	var isTrigger bool = (!IsEqual(trigger, nil)) && (trigger != false)
+	var isTrigger bool = (trigger != nil && *trigger == true)
 	if (trailing != nil && *trailing == true) || isTrigger || ((ordType != nil) && (func() bool {
 		if ordType == nil {
 			return false
@@ -6142,7 +6141,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if trailing != nil && *trailing == true {
 		request["ordType"] = "move_order_stop"
-	} else if (!IsEqual(trigger, nil)) && (ordType == nil) {
+	} else if isTrigger && (ordType == nil) {
 		request["ordType"] = "trigger"
 	}
 	var query any = this.Omit(params, []any{"method", "stop", "trigger", "trailing"})
@@ -6315,9 +6314,9 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
 	var method any = this.SafeString(params, "method", defaultMethod)
 	var ordType *string = this.SafeString(params, "ordType")
-	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
-	var isTrigger bool = (!IsEqual(trigger, nil)) && (trigger != false)
+	var isTrigger bool = (trigger != nil && *trigger == true)
 	if trailing != nil && *trailing == true {
 		method = "privateGetTradeOrdersAlgoHistory"
 		request["ordType"] = "move_order_stop"
@@ -6512,8 +6511,8 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes493119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params, maxLimit))))
-		ch <- retRes493119
+		var retRes493019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params, maxLimit))))
+		ch <- retRes493019
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -6720,8 +6719,8 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes511219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
-		ch <- retRes511219
+		var retRes511119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
+		ch <- retRes511119
 		return nil
 	}
 	var request any = map[string]any{}
@@ -6809,9 +6808,9 @@ func (this *Okx) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 		"ordId": id,
 	}
 
-	retRes518715 := (<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes518715)
-	ch <- retRes518715
+	retRes518615 := (<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes518615)
+	ch <- retRes518615
 	return nil
 }
 
@@ -6857,8 +6856,8 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes521319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))))
-		ch <- retRes521319
+		var retRes521219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))))
+		ch <- retRes521219
 		return nil
 	}
 	var options map[string]any = SafeMapTyped(this.Options, "fetchLedger")
@@ -7399,9 +7398,9 @@ func (this *Okx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		retRes566919 := (<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))
-		PanicOnError(retRes566919)
-		ch <- retRes566919
+		retRes566819 := (<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))
+		PanicOnError(retRes566819)
+		ch <- retRes566819
 		return nil
 	}
 	var request any = map[string]any{}
@@ -7549,9 +7548,9 @@ func (this *Okx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		retRes578119 := (<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))
-		PanicOnError(retRes578119)
-		ch <- retRes578119
+		retRes578019 := (<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))
+		PanicOnError(retRes578019)
+		ch <- retRes578019
 		return nil
 	}
 	var request any = map[string]any{}
@@ -8151,9 +8150,9 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalAr
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes629915 := (<-this.FetchPositionsAsync([]any{symbol}, params))
-	PanicOnError(retRes629915)
-	ch <- retRes629915
+	retRes629815 := (<-this.FetchPositionsAsync([]any{symbol}, params))
+	PanicOnError(retRes629815)
+	ch <- retRes629815
 	return nil
 }
 func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
@@ -8819,9 +8818,9 @@ func (this *Okx) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes688215 := (<-this.FetchFundingRateAsync(symbol, params))
-	PanicOnError(retRes688215)
-	ch <- retRes688215
+	retRes688115 := (<-this.FetchFundingRateAsync(symbol, params))
+	PanicOnError(retRes688115)
+	ch <- retRes688115
 	return nil
 }
 
@@ -9781,9 +9780,9 @@ func (this *Okx) reduceMarginBody(ch chan any, symbol any, amount any, optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes767915 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
-	PanicOnError(retRes767915)
-	ch <- retRes767915
+	retRes767815 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
+	PanicOnError(retRes767815)
+	ch <- retRes767815
 	return nil
 }
 
@@ -9808,9 +9807,9 @@ func (this *Okx) addMarginBody(ch chan any, symbol any, amount any, optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes769315 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
-	PanicOnError(retRes769315)
-	ch <- retRes769315
+	retRes769215 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
+	PanicOnError(retRes769215)
+	ch <- retRes769215
 	return nil
 }
 

@@ -74,7 +74,7 @@ func (this *Bitget) Describe() any {
 			"fetchCrossBorrowRate":                 true,
 			"fetchCrossBorrowRates":                false,
 			"fetchCurrencies":                      true,
-			"fetchDeposit":                         false,
+			"fetchDeposit":                         true,
 			"fetchDepositAddress":                  true,
 			"fetchDepositAddresses":                false,
 			"fetchDepositAddressesByNetwork":       false,
@@ -132,7 +132,7 @@ func (this *Bitget) Describe() any {
 			"fetchTransfer":                        false,
 			"fetchTransfers":                       true,
 			"fetchWithdrawAddresses":               false,
-			"fetchWithdrawal":                      false,
+			"fetchWithdrawal":                      true,
 			"fetchWithdrawals":                     true,
 			"reduceMargin":                         true,
 			"repayCrossMargin":                     true,
@@ -4891,6 +4891,39 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 /**
  * @method
+ * @name bitget#fetchDeposit
+ * @description fetch data on a currency deposit via the deposit id, looks back 30 days for uta accounts and 90 days otherwise
+ * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-deposit-records
+ * @param {string} id deposit id
+ * @param {string} [code] unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Bitget) FetchDepositAsync(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchDepositBody(ch, id, optionalArgs...)
+	return ch
+}
+func (this *Bitget) fetchDepositBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"orderId": id,
+	}
+
+	var deposits []any = ListTyped(PanicOnError((<-this.FetchDepositsAsync(code, nil, nil, this.Extend(request, params)))))
+
+	ch <- this.SafeDict(deposits, 0, map[string]any{})
+	return nil
+}
+
+/**
+ * @method
  * @name bitget#withdraw
  * @description make a withdrawal
  * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -5030,13 +5063,13 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if paginate {
 		if uta == true {
 
-			var retRes321523 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", nil, since, limit, params, "orderId", "cursor", nil, 100))))
-			ch <- retRes321523
+			var retRes323423 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", nil, since, limit, params, "orderId", "cursor", nil, 100))))
+			ch <- retRes323423
 			return nil
 		}
 
-		var retRes321719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", nil, since, limit, params, "idLessThan", "idLessThan", nil, 100))))
-		ch <- retRes321719
+		var retRes323619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", nil, since, limit, params, "idLessThan", "idLessThan", nil, 100))))
+		ch <- retRes323619
 		return nil
 	}
 	var currency any = nil
@@ -5131,6 +5164,39 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransactions(rawTransactions, currency, since, limit)
 	return nil
 }
+
+/**
+ * @method
+ * @name bitget#fetchWithdrawal
+ * @description fetch data on a currency withdrawal via the withdrawal id, looks back 30 days for uta accounts and 90 days otherwise
+ * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-withdrawal-records
+ * @param {string} id withdrawal id
+ * @param {string} [code] unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Bitget) FetchWithdrawalAsync(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalBody(ch, id, optionalArgs...)
+	return ch
+}
+func (this *Bitget) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"orderId": id,
+	}
+
+	var withdrawals []any = ListTyped(PanicOnError((<-this.FetchWithdrawalsAsync(code, nil, nil, this.Extend(request, params)))))
+
+	ch <- this.SafeDict(withdrawals, 0, map[string]any{})
+	return nil
+}
 func (this *Bitget) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	// fetchDeposits
@@ -5173,7 +5239,7 @@ func (this *Bitget) ParseTransaction(transaction any, optionalArgs ...any) any {
 	// fetchDeposits & fetchWithdrawals uta rows use the same fields, except
 	//
 	//     {
-	//         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+	//         "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
 	//         "createdTime": "1787913850359",
 	//         "updatedTime": "1787913880178"
 	//     }
@@ -6238,8 +6304,8 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes425019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "idLessThan", "idLessThan"))))
-		ch <- retRes425019
+		var retRes428819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "idLessThan", "idLessThan"))))
+		ch <- retRes428819
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -6786,9 +6852,9 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 			return maxLimitForRecentEndpoint
 		}()
 
-		retRes468419 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, limitForPagination))
-		PanicOnError(retRes468419)
-		ch <- retRes468419
+		retRes472219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, limitForPagination))
+		PanicOnError(retRes472219)
+		ch <- retRes472219
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -7711,9 +7777,9 @@ func (this *Bitget) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 		"createMarketBuyOrderRequiresPrice": false,
 	}
 
-	retRes554715 := (<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
-	PanicOnError(retRes554715)
-	ch <- retRes554715
+	retRes558515 := (<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
+	PanicOnError(retRes558515)
+	ch <- retRes558515
 	return nil
 }
 
@@ -8394,9 +8460,9 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	params = GetValue(utaparamsVariable, 1)
 	if uta == true {
 
-		retRes610519 := (<-this.CreateUtaOrdersAsync(orders, params))
-		PanicOnError(retRes610519)
-		ch <- retRes610519
+		retRes614319 := (<-this.CreateUtaOrdersAsync(orders, params))
+		PanicOnError(retRes614319)
+		ch <- retRes614319
 		return nil
 	}
 	var ordersRequests []any = []any{}
@@ -9076,9 +9142,9 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	params = GetValue(utaparamsVariable, 1)
 	if uta == true {
 
-		retRes665819 := (<-this.CancelUtaOrdersAsync(ids, symbol, params))
-		PanicOnError(retRes665819)
-		ch <- retRes665819
+		retRes669619 := (<-this.CancelUtaOrdersAsync(ids, symbol, params))
+		PanicOnError(retRes669619)
+		ch <- retRes669619
 		return nil
 	}
 	var marginMode any = nil
@@ -9578,8 +9644,8 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			cursorSent = "idLessThan"
 		}
 
-		var retRes709019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, params, cursorReceived, cursorSent))))
-		ch <- retRes709019
+		var retRes712819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, params, cursorReceived, cursorSent))))
+		ch <- retRes712819
 		return nil
 	}
 	var response any = nil
@@ -10100,9 +10166,9 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	params = GetValue(utaparamsVariable, 1)
 	if uta == true {
 
-		retRes752419 := (<-this.FetchUtaCanceledAndClosedOrdersAsync(symbol, since, limit, params))
-		PanicOnError(retRes752419)
-		ch <- retRes752419
+		retRes756219 := (<-this.FetchUtaCanceledAndClosedOrdersAsync(symbol, since, limit, params))
+		PanicOnError(retRes756219)
+		ch <- retRes756219
 		return nil
 	}
 	if this.Markets == nil {
@@ -10137,8 +10203,8 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 			cursorReceived = "endId"
 		}
 
-		var retRes755019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, cursorReceived, "idLessThan"))))
-		ch <- retRes755019
+		var retRes758819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, cursorReceived, "idLessThan"))))
+		ch <- retRes758819
 		return nil
 	}
 	var response any = nil
@@ -10467,8 +10533,8 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes783219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, "cursor", "cursor"))))
-		ch <- retRes783219
+		var retRes787019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, "cursor", "cursor"))))
+		ch <- retRes787019
 		return nil
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
@@ -10653,8 +10719,8 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 				})
 			}
 
-			var retRes798023 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "id", "cursor", nil, 100))))
-			ch <- retRes798023
+			var retRes801823 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "id", "cursor", nil, 100))))
+			ch <- retRes801823
 			return nil
 		}
 		var cursorReceived any = nil
@@ -10670,8 +10736,8 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 			})
 		}
 
-		var retRes799019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, cursorReceived, "idLessThan"))))
-		ch <- retRes799019
+		var retRes802819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, cursorReceived, "idLessThan"))))
+		ch <- retRes802819
 		return nil
 	}
 	var currency any = nil
@@ -11173,8 +11239,8 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			cursorSent = "idLessThan"
 		}
 
-		var retRes848819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, cursorReceived, cursorSent))))
-		ch <- retRes848819
+		var retRes852619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, cursorReceived, cursorSent))))
+		ch <- retRes852619
 		return nil
 	}
 	var response any = nil
@@ -11534,8 +11600,8 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes879219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchPositions", nil, nil, nil, params, "endId", "idLessThan"))))
-		ch <- retRes879219
+		var retRes883019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchPositions", nil, nil, nil, params, "endId", "idLessThan"))))
+		ch <- retRes883019
 		return nil
 	}
 	var method any = nil
@@ -12030,9 +12096,9 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		params = GetValue(paginateparamsVariable, 1)
 		if paginate {
 
-			retRes924623 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "pageNo", 100))
-			PanicOnError(retRes924623)
-			ch <- retRes924623
+			retRes928423 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "pageNo", 100))
+			PanicOnError(retRes928423)
+			ch <- retRes928423
 			return nil
 		}
 		if limit != nil {
@@ -12291,9 +12357,9 @@ func (this *Bitget) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) 
 		"method": "publicMixGetV2MixMarketCurrentFundRate",
 	}, params)
 
-	retRes948215 := (<-this.FetchFundingRatesAsync(symbols, params))
-	PanicOnError(retRes948215)
-	ch <- retRes948215
+	retRes952015 := (<-this.FetchFundingRatesAsync(symbols, params))
+	PanicOnError(retRes952015)
+	ch <- retRes952015
 	return nil
 }
 func (this *Bitget) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -12435,13 +12501,13 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	if paginate {
 		if uta == true {
 
-			var retRes960123 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "cursor", "cursor"))))
-			ch <- retRes960123
+			var retRes963923 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "cursor", "cursor"))))
+			ch <- retRes963923
 			return nil
 		}
 
-		var retRes960319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "endId", "idLessThan"))))
-		ch <- retRes960319
+		var retRes964119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "endId", "idLessThan"))))
+		ch <- retRes964119
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -12659,9 +12725,9 @@ func (this *Bitget) reduceMarginBody(ch chan any, symbol any, amount any, option
 		panic(ArgumentsRequired(this.Id + " reduceMargin() requires a holdSide parameter, either long or short"))
 	}
 
-	retRes981815 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
-	PanicOnError(retRes981815)
-	ch <- retRes981815
+	retRes985615 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
+	PanicOnError(retRes985615)
+	ch <- retRes985615
 	return nil
 }
 
@@ -12690,9 +12756,9 @@ func (this *Bitget) addMarginBody(ch chan any, symbol any, amount any, optionalA
 		panic(ArgumentsRequired(this.Id + " addMargin() requires a holdSide parameter, either long or short"))
 	}
 
-	retRes983615 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
-	PanicOnError(retRes983615)
-	ch <- retRes983615
+	retRes987415 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
+	PanicOnError(retRes987415)
+	ch <- retRes987415
 	return nil
 }
 
@@ -13771,8 +13837,8 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes1070719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, params, "minId", "idLessThan"))))
-		ch <- retRes1070719
+		var retRes1074519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, params, "minId", "idLessThan"))))
+		ch <- retRes1074519
 		return nil
 	}
 	var market any = nil
@@ -14236,8 +14302,8 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes1110219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchBorrowInterest", symbol, since, limit, params, "minId", "idLessThan"))))
-		ch <- retRes1110219
+		var retRes1114019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchBorrowInterest", symbol, since, limit, params, "minId", "idLessThan"))))
+		ch <- retRes1114019
 		return nil
 	}
 	var market any = nil
@@ -15425,6 +15491,31 @@ func (this *Bitget) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
 
 /**
  * @method
+ * @name bitget#fetchDeposit
+ * @description fetch data on a currency deposit via the deposit id, looks back 30 days for uta accounts and 90 days otherwise
+ * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-deposit-records
+ * @param {string} id deposit id
+ * @param {string} [code] unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Bitget) FetchDeposit(id string, options ...FetchDepositOptions) (Transaction, error) {
+
+	opts := FetchDepositOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.FetchDepositAsync(id, opts.Code, opts.Params)
+	if IsError(res) {
+		return Transaction{}, CreateReturnError(res)
+	}
+	return NewTransaction(res), nil
+}
+
+/**
+ * @method
  * @name bitget#withdraw
  * @description make a withdrawal
  * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -15480,6 +15571,31 @@ func (this *Bitget) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 		return nil, CreateReturnError(res)
 	}
 	return NewTransactionArray(res), nil
+}
+
+/**
+ * @method
+ * @name bitget#fetchWithdrawal
+ * @description fetch data on a currency withdrawal via the withdrawal id, looks back 30 days for uta accounts and 90 days otherwise
+ * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-withdrawal-records
+ * @param {string} id withdrawal id
+ * @param {string} [code] unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Bitget) FetchWithdrawal(id string, options ...FetchWithdrawalOptions) (Transaction, error) {
+
+	opts := FetchWithdrawalOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.FetchWithdrawalAsync(id, opts.Code, opts.Params)
+	if IsError(res) {
+		return Transaction{}, CreateReturnError(res)
+	}
+	return NewTransaction(res), nil
 }
 
 /**
