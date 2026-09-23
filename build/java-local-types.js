@@ -454,6 +454,12 @@ const LOCAL_THIS_RETURN_TYPES = {
     // `defaultArg: 2` marks the entry whose box is Boolean|null ONLY when the call's own
     // default argument is absent or a boolean literal — see the section-7 header.
     'safeBool': { type: 'Boolean', cast: '(Boolean)', defaultArg: 2, safeBool: true },
+    // `safeBool2(a, k1, k2[, default])` / `safeBoolN(a, keys[, default])` are the same box
+    // (BaseExchange.safeBool2/safeBoolN return `value instanceof Boolean ? value : defaultValue`,
+    // with `defaultValue = optionalArgs.length > 0 ? optionalArgs[0] : null`), the default
+    // merely sits at a different fixed index — the same default-argument guard proves both
+    'safeBool2': { type: 'Boolean', cast: '(Boolean)', defaultArg: 3, safeBool: true },
+    'safeBoolN': { type: 'Boolean', cast: '(Boolean)', defaultArg: 2, safeBool: true },
     // JAVA-RE-6 string/crypto/url helpers — see the section-4 header. `plain` entries are
     // declared String in Java; `cast` entries are declared Object but String-or-null on
     // every audited path. The classifier (classifyStringHelperCall) applies the
@@ -557,7 +563,9 @@ const STRUCTURE_THIS_RETURN_TYPES = {
 // of them (safeDict is deliberately NOT in STRUCTURE_THIS_RETURN_TYPES, whose reassignment hook
 // casts without the default guard).
 const JAVA_SAFE_DICT_TYPE = 'java.util.Map<String, Object>';
-const SAFE_DICT_ACCESSORS = new Set ([ 'safeDict' ]);
+// name -> index of the optional default argument in the call (a call with a default has
+// one argument more). safeDict2's default sits at index 3, safeDictN's at 2.
+const SAFE_DICT_ACCESSORS = new Map ([ [ 'safeDict', 2 ], [ 'safeDict2', 3 ], [ 'safeDictN', 2 ] ]);
 
 // the third argument, when present, must be an empty object literal — the only default that
 // prints a Map
@@ -567,14 +575,15 @@ function safeDictDefaultIsEmptyMap (node) {
 }
 
 function safeDictLocalType (printer, initializer, name) {
-    if (!SAFE_DICT_ACCESSORS.has (name)) {
+    const defaultArg = SAFE_DICT_ACCESSORS.get (name);
+    if (defaultArg === undefined) {
         return undefined;
     }
     const args = initializer.arguments;
-    if (args === undefined || args.length < 2 || args.length > 3) {
+    if (args === undefined || args.length < defaultArg || args.length > defaultArg + 1) {
         return undefined;
     }
-    if (args.length === 3 && !safeDictDefaultIsEmptyMap (args[2])) {
+    if (args.length === defaultArg + 1 && !safeDictDefaultIsEmptyMap (args[defaultArg])) {
         return undefined;
     }
     if (!resolvesToMethodNamed (printer, initializer, name)) {
@@ -1327,6 +1336,11 @@ function awaitedThisCallType (node) {
 const JAVA_ARRAY_TYPE = 'java.util.List<Object>';
 const JAVA_ARRAY_CAST = '(java.util.List<Object>)';
 
+// the printer's native list print (ast-transpiler javaTranspiler#javaNativeSplitCall,
+// ARRAY_OPENING_TOKEN): statically a `java.util.ArrayList<Object>`, i.e. already assignable
+// to java.util.List<Object> — the declaration needs NO checkcast on this shape
+const JAVA_ARRAY_NATIVE_OPENING = 'new java.util.ArrayList<Object>(java.util.Arrays.asList(';
+
 // ===== 4. locals fed by string/array METHOD calls and Math builtins =====
 //
 // The base printCallExpression rewrites (the Java overrides are printSplitCall /
@@ -1400,17 +1414,30 @@ const MATH_LOCAL_ENTRIES = {
 
 // `x.length` (PropertyAccess, no call): ((String)x).length() when the checker types the
 // receiver as a string, else Helpers.getArrayLength(x) — an int on both paths
-const LENGTH_LOCAL_ENTRY = { type: 'Integer', prefixes: [ 'Helpers.getArrayLength(', '((String)' ] };
+// ast-transpiler printJavaLength also emits `((java.util.List<?>)x).size()` (its List branch);
+// List.size() returns a primitive int on every path, so the local is an Integer box. The `match`
+// regex is REQUIRED — a bare `((List<?>)` prefix would also accept `((List<?>)x).get(i)` /
+// `.isEmpty()` / `.indexOf(..)`, which are NOT ints.
+const LENGTH_LOCAL_ENTRY = {
+    type: 'Integer',
+    prefixes: [ 'Helpers.getArrayLength(', '((String)' ],
+    match: /^\(\(List<\?>\)[^;]*\)\.size\(\)/,
+};
 
 // the printed initializer must be the shape the entry's type was derived from: a fixed
 // prefix list (`Helpers.split(`, `((String)`, ...) or a regex for the rewrites whose
 // print starts with the receiver's own text (`x.includes(y)` -> `<receiver>.contains(y)`)
 function printedValueMatches (info, printedValue) {
     if (info.prefixes !== undefined) {
-        return info.prefixes.some ((prefix) => printedValue.startsWith (prefix));
+        if (info.prefixes.some ((prefix) => printedValue.startsWith (prefix))) {
+            return true;
+        }
     }
     if (info.match !== undefined) {
         return info.match.test (printedValue);
+    }
+    if (info.prefixes !== undefined) {
+        return false; // a prefix list was given and missed, no regex fallback -> refuse
     }
     return printedValue.startsWith ('this.');
 }
@@ -1787,7 +1814,14 @@ function receiverMethodLocalType (initializer) {
 // null), so its locals keep the Object declaration.
 const JAVA_LIST_PRODUCER_LOCAL_TYPES = {
     'objectKeys': { type: JAVA_ARRAY_TYPE, valuePrefixes: ['Helpers.objectKeys(', 'new java.util.ArrayList<Object>('] },
-    'split': { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST, valuePrefix: 'Helpers.split(' },
+    // `x.split(sep)` prints EITHER `Helpers.split(x, sep)` (the helper is declared Object ->
+    // the narrowed declaration needs the checkcast) OR the printer's native list print
+    // `new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)x).split(
+    // java.util.regex.Pattern.quote(sep))))` (a plain-string receiver + a literal separator —
+    // ast-transpiler javaNativeSplitCall) -> already a List<Object>, cast-free
+    'split': { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST,
+               castFreePrefixes: [ JAVA_ARRAY_NATIVE_OPENING ],
+               valuePrefixes: [ 'Helpers.split(', JAVA_ARRAY_NATIVE_OPENING ] },
 };
 
 // the proven Java type of a local initialised from a list-producing call, or undefined
@@ -4266,7 +4300,12 @@ export function installJavaLocalTypes (transpiler) {
         // cast to the condition, not to the conditional expression (javac then rejects it)
         const needsParens = info.cast !== undefined && /^\(.*\)\s*\?/.test (value);
         const castValue = needsParens ? '(' + value + ')' : value;
-        const cast = info.cast === undefined ? '' : info.cast + ' ';
+        // a shape whose printed value ALREADY carries the declared type (the native list print)
+        // takes no checkcast: `(java.util.List<Object>) new java.util.ArrayList<Object>(...)` is
+        // legal but redundant, and redundant-cast audits flag it
+        const castFree = info.castFreePrefixes !== undefined
+            && info.castFreePrefixes.some ((prefix) => value.startsWith (prefix));
+        const cast = (info.cast === undefined || castFree) ? '' : info.cast + ' ';
         return printed.slice (0, at) + `${iden}${info.type} ${printer.printNode (declaration.name)} = ${cast}${castValue}`;
     };
     // `x = this.safeSymbol(...)` etc. on a narrowed local: an Object-declared accessor
