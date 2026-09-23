@@ -156,6 +156,11 @@ export function typeCoreReturns(source: string, table: Map<string, MethodInfo>):
         for (let j = i + 1; j < lines.length; j++) {
             if (lines[j] === close) break;
             const trimmed = lines[j].trim();
+            // an `Object...` front returns its typed core's future unchanged
+            if (trimmed.startsWith(`return this.${name}(`)) {
+                converted = true;
+                break;
+            }
             if (lines[j].startsWith(supplyIndent) && lines[j].length === supplyIndent.length + trimmed.length
                 && isAsyncLambdaClose(trimmed) && trimmed.endsWith(');')) {
                 // `});` -> `}).thenApply(f);`  /  `}, EXECUTOR);` -> `}, EXECUTOR).thenApply(f);`
