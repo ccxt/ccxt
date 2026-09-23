@@ -4831,6 +4831,61 @@ function installCcxtGoEndpointConsumers (goTranspiler) {
     goTranspiler.__ccxtGoEndpointConsumersInstalled = true;
 }
 
+// `const x = await Promise.all ([...])`: promiseAll sends a fresh non-nil `[]any` or a panic string
+function ccxtGoPromiseAllUseIsSafe (n) {
+    const parent = n.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    switch (parent.kind) {
+    case ts.SyntaxKind.ElementAccessExpression:
+        return (parent.expression === n) && !((parent.parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.parent.left === parent));
+    case ts.SyntaxKind.PropertyAccessExpression:
+        return (parent.expression === n) && (parent.name?.escapedText === 'length');
+    case ts.SyntaxKind.CallExpression:
+        return (parent.expression !== n);
+    default:
+        return false;
+    }
+}
+
+// the receives the per-method table cannot key: Promise.all, and ws order books read only via .limit ()
+function ccxtGoAwaitSpecialReceive (goTranspiler, awaitNode, text) {
+    const declaration = ccxtGoAsyncReceiveDeclaration (awaitNode);
+    if ((declaration === undefined) || (declaration.name?.kind !== ts.SyntaxKind.Identifier)
+        || (typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function')) {
+        return undefined;
+    }
+    const call = awaitNode.expression;
+    const callee = call?.expression;
+    if ((call?.kind !== ts.SyntaxKind.CallExpression) || (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression)) {
+        return undefined;
+    }
+    if (/^\(\s*<-\s*(?:ccxt\.)?[pP]romiseAll\s*\(/.test (text) && (callee.expression?.escapedText === 'Promise')
+        && (callee.name?.escapedText === 'all') && (call.arguments?.[0]?.kind === ts.SyntaxKind.ArrayLiteralExpression
+            || call.arguments?.[0]?.kind === ts.SyntaxKind.Identifier)) {
+        if (goTranspiler.goDeclaredLocalTypeIfSafe (declaration, '[]any', ccxtGoPromiseAllUseIsSafe) === undefined) {
+            return undefined;
+        }
+        return { goType: '[]any', wrap: (recv) => 'ListTyped(PanicOnError(' + recv.trim () + '))' };
+    }
+    if (goSourceIsWsTree (awaitNode) && /^\(\s*<-\s*this\.\w+\s*\(/.test (text) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
+        && typeNameIsUsable (goTranspiler, awaitNode, 'OrderBookInterface')) {
+        // every read is `x.limit ()`, which the ws pass already prints as x.(OrderBookInterface).Limit ()
+        const onlyLimit = (n) => (n.parent?.kind === ts.SyntaxKind.PropertyAccessExpression) && (n.parent.expression === n)
+            && (n.parent.name?.escapedText === 'limit') && (n.parent.parent?.kind === ts.SyntaxKind.CallExpression)
+            && (n.parent.parent.expression === n.parent) && (n.parent.parent.arguments.length === 0);
+        if (!/^orderbooks?$/.test (String (declaration.name.escapedText))) {
+            return undefined;
+        }
+        if (goTranspiler.goDeclaredLocalTypeIfSafe (declaration, 'OrderBookInterface', onlyLimit) === undefined) {
+            return undefined;
+        }
+        return { goType: 'OrderBookInterface', wrap: (recv) => 'PanicOnError(' + recv.trim () + ').(OrderBookInterface)' };
+    }
+    return undefined;
+}
+
 // The hook the printer consults for all three await shapes.  Fail closed: undefined keeps the
 // boxed `x := (<-...)` + `PanicOnError(x)` emission byte-for-byte.
 export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitializer) {
@@ -4838,6 +4893,10 @@ export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitial
         return undefined;
     }
     const text = (printedInitializer ?? '').replace (/\s+/g, ' ').trim ();
+    const special = ccxtGoAwaitSpecialReceive (goTranspiler, awaitNode, text);
+    if (special !== undefined) {
+        return special;
+    }
     const printed = CCXT_GO_ASYNC_RECV_CALL.exec (text);
     if (printed === null) {
         return undefined;                       // not a plain `<-this.<Method>(` receive
