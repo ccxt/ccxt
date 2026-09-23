@@ -768,6 +768,12 @@ class zaif extends Exchange {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
+        if ($since !== null) {
+            $request['since'] = $this->parse_to_int($since / 1000);
+        }
+        if ($limit !== null) {
+            $request['count'] = min($limit, 1000);
+        }
         $response = Async\await($this->privatePostTradeHistory($this->extend($request, $params)));
         $data = $this->safe_dict($response, 'return', array());
         return $this->parse_orders($data, $market, $since, $limit);
