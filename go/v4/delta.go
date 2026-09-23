@@ -538,8 +538,7 @@ func (this *Delta) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetSettings(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetSettings(params)).Raw))
 	// full response sample under `fetchStatus`
 	var result map[string]any = SafeMapTyped(response, "result")
 
@@ -565,7 +564,7 @@ func (this *Delta) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetSettings(params))
+	response := (<-this.PublicGetSettings(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -659,8 +658,7 @@ func (this *Delta) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetAssets(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAssets(params)).Raw))
 	//
 	//    {
 	//        "result": [
@@ -841,8 +839,7 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetProducts(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProducts(params)).Raw))
 	//
 	//     {
 	//         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
@@ -1351,8 +1348,7 @@ func (this *Delta) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
 	//
 	// spot
 	//
@@ -1508,8 +1504,7 @@ func (this *Delta) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetTickers(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
 	//
 	// spot
 	//
@@ -1696,8 +1691,7 @@ func (this *Delta) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		request["depth"] = limit
 	}
 
-	response := (<-this.PublicGetL2orderbookSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetL2orderbookSymbol(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result":{
@@ -1855,8 +1849,7 @@ func (this *Delta) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTradesSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradesSymbol(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result":[
@@ -1972,8 +1965,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	params = MapTyped(this.Omit(params, []any{"price", "until"}))
 
-	response := (<-this.PublicGetHistoryCandles(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetHistoryCandles(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success":true,
@@ -2039,7 +2031,7 @@ func (this *Delta) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 
-	response := (<-this.PrivateGetWalletBalances(params))
+	response := (<-this.PrivateGetWalletBalances(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -2093,8 +2085,7 @@ func (this *Delta) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 		"product_id": market["numericId"],
 	}
 
-	response := (<-this.PrivateGetPositions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPositions(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result":{
@@ -2135,8 +2126,7 @@ func (this *Delta) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 
-	response := (<-this.PrivateGetPositionsMargined(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPositionsMargined(params)).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -2424,8 +2414,7 @@ func (this *Delta) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		params = MapTyped(this.Omit(params, "reduceOnly"))
 	}
 
-	response := (<-this.PrivatePostOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result":{
@@ -2514,8 +2503,7 @@ func (this *Delta) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
 	}
 
-	response := (<-this.PrivatePutOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePutOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -2572,8 +2560,7 @@ func (this *Delta) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"product_id": market["numericId"],
 	}
 
-	response := (<-this.PrivateDeleteOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result":{
@@ -2646,7 +2633,7 @@ func (this *Delta) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
 	}
-	var response any = this.PrivateDeleteOrdersAll(this.Extend(request, params))
+	var response any = EndpointRaw(this.PrivateDeleteOrdersAll(this.Extend(request, params)))
 
 	//
 	//     {
@@ -2697,12 +2684,12 @@ func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	if clientOrderId != nil {
 		request["client_oid"] = clientOrderId
 
-		response = (<-this.PrivateGetOrdersClientOrderIdClientOid(this.Extend(request, params)))
+		response = (<-this.PrivateGetOrdersClientOrderIdClientOid(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["order_id"] = id
 
-		response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params)))
+		response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -2835,11 +2822,11 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method any, optionalAr
 	var response any = nil
 	if IsEqual(method, "privateGetOrders") {
 
-		response = (<-this.PrivateGetOrders(this.Extend(request, params)))
+		response = (<-this.PrivateGetOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "privateGetOrdersHistory") {
 
-		response = (<-this.PrivateGetOrdersHistory(this.Extend(request, params)))
+		response = (<-this.PrivateGetOrdersHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -2913,8 +2900,7 @@ func (this *Delta) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["page_size"] = limit
 	}
 
-	response := (<-this.PrivateGetFills(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "meta":{
@@ -3005,8 +2991,7 @@ func (this *Delta) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["page_size"] = limit
 	}
 
-	response := (<-this.PrivateGetWalletTransactions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWalletTransactions(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
@@ -3140,8 +3125,7 @@ func (this *Delta) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		params = MapTyped(this.Omit(params, "network"))
 	}
 
-	response := (<-this.PrivateGetDepositsAddress(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDepositsAddress(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "success": true,
@@ -3224,8 +3208,7 @@ func (this *Delta) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": {
@@ -3305,8 +3288,7 @@ func (this *Delta) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		"contract_types": "perpetual_futures",
 	}
 
-	response := (<-this.PublicGetTickers(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": [
@@ -3505,8 +3487,7 @@ func (this *Delta) modifyMarginHelperBody(ch chan any, symbol any, amount any, t
 		"delta_margin": amount,
 	}
 
-	response := (<-this.PrivatePostPositionsChangeMargin(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostPositionsChangeMargin(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": {
@@ -3603,8 +3584,7 @@ func (this *Delta) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": {
@@ -3754,8 +3734,7 @@ func (this *Delta) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 		"product_id": market["numericId"],
 	}
 
-	response := (<-this.PrivateGetProductsProductIdOrdersLeverage(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetProductsProductIdOrdersLeverage(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": {
@@ -3821,7 +3800,7 @@ func (this *Delta) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 		"leverage":   leverage,
 	}
 
-	retRes319615 := (<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params)))
+	retRes319615 := (<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params))).Raw
 	PanicOnError(retRes319615)
 	//
 	//     {
@@ -3878,8 +3857,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 		request["page_size"] = limit
 	}
 
-	response := (<-this.PublicGetProducts(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProducts(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": [
@@ -4048,8 +4026,7 @@ func (this *Delta) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any)
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": {
@@ -4213,8 +4190,7 @@ func (this *Delta) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 		"close_all_isolated":  true,
 	}
 
-	response := (<-this.PrivatePostPositionsCloseAll(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostPositionsCloseAll(this.Extend(request, params))).Raw))
 	//
 	// {"result":{},"success":true}
 	//
@@ -4250,8 +4226,7 @@ func (this *Delta) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 		market = this.Market(symbol)
 	}
 
-	response := (<-this.PrivateGetProfile(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetProfile(params)).Raw))
 	//
 	//     {
 	//         "result": {
@@ -4364,7 +4339,7 @@ func (this *Delta) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 		"margin_mode": marginMode,
 	}
 
-	retRes364715 := (<-this.PrivatePutUsersMarginMode(this.Extend(request, params)))
+	retRes364715 := (<-this.PrivatePutUsersMarginMode(this.Extend(request, params))).Raw
 	PanicOnError(retRes364715)
 	ch <- retRes364715
 	return nil
@@ -4396,8 +4371,7 @@ func (this *Delta) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any)
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": {
@@ -4559,8 +4533,7 @@ func (this *Delta) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 
-	response := (<-this.PrivateGetPositionsMargined(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPositionsMargined(params)).Raw))
 	//
 	//     {
 	//         "result":

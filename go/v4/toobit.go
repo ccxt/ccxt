@@ -760,7 +760,7 @@ func (this *Toobit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.CommonGetApiV1Ping(params))
+	response := (<-this.CommonGetApiV1Ping(params)).Raw
 	PanicOnError(response)
 
 	ch <- map[string]any{
@@ -792,8 +792,7 @@ func (this *Toobit) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.CommonGetApiV1Time(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.CommonGetApiV1Time(params)).Raw))
 
 	//
 	//     {
@@ -823,7 +822,7 @@ func (this *Toobit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.CommonGetApiV1ExchangeInfo(params))
+	response := (<-this.CommonGetApiV1ExchangeInfo(params)).Raw
 	PanicOnError(response)
 	this.Options.Store("exchangeInfo", response) // we store it in options for later use in fetchMarkets
 	//
@@ -1060,7 +1059,7 @@ func (this *Toobit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		this.Options.Store("exchangeInfo", nil) // reset it to avoid using old cached data
 	} else {
 
-		response = (<-this.CommonGetApiV1ExchangeInfo(params))
+		response = (<-this.CommonGetApiV1ExchangeInfo(params)).Raw
 		PanicOnError(response)
 	}
 	//
@@ -1335,7 +1334,7 @@ func (this *Toobit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		request["limit"] = limit
 	}
 
-	response := (<-this.CommonGetQuoteV1Depth(this.Extend(request, params)))
+	response := (<-this.CommonGetQuoteV1Depth(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//    {
@@ -1408,7 +1407,7 @@ func (this *Toobit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	response := (<-this.CommonGetQuoteV1Trades(this.Extend(request, params)))
+	response := (<-this.CommonGetQuoteV1Trades(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1589,15 +1588,15 @@ func (this *Toobit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params = GetValue(endpointparamsVariable, 1)
 	if IsEqual(endpoint, "index") {
 
-		response = (<-this.CommonGetQuoteV1IndexKlines(this.Extend(request, params)))
+		response = (<-this.CommonGetQuoteV1IndexKlines(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(endpoint, "mark") {
 
-		response = (<-this.CommonGetQuoteV1MarkPriceKlines(this.Extend(request, params)))
+		response = (<-this.CommonGetQuoteV1MarkPriceKlines(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.CommonGetQuoteV1Klines(this.Extend(request, params)))
+		response = (<-this.CommonGetQuoteV1Klines(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var candles any = []any{}
@@ -1660,11 +1659,11 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(typeVar, "spot") {
 
-		response = (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, params)))
+		response = (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, params)))
+		response = (<-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1759,7 +1758,7 @@ func (this *Toobit) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	response := (<-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params)))
+	response := (<-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1824,7 +1823,7 @@ func (this *Toobit) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	response := (<-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params)))
+	response := (<-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1908,7 +1907,7 @@ func (this *Toobit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		}
 	}
 
-	response := (<-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params)))
+	response := (<-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2006,7 +2005,7 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	response := (<-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, params)))
+	response := (<-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2065,11 +2064,11 @@ func (this *Toobit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(marketTypeparamsVariable, 1)
 	if this.InArray(marketType, []any{"swap", "future"}) {
 
-		response = (<-this.PrivateGetApiV1FuturesBalance())
+		response = (<-this.PrivateGetApiV1FuturesBalance()).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetApiV1Account())
+		response = (<-this.PrivateGetApiV1Account()).Raw
 		PanicOnError(response)
 	}
 
@@ -3010,7 +3009,7 @@ func (this *Toobit) transferBody(ch chan any, code any, amount any, fromAccount 
 		"toAccountType":   toId,
 	}
 
-	response := (<-this.PrivatePostApiV1SubAccountTransfer(this.Extend(request, params)))
+	response := (<-this.PrivatePostApiV1SubAccountTransfer(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3099,11 +3098,11 @@ func (this *Toobit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(marketType, "spot") {
 
-		response = (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, params)))
+		response = (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(request, params)))
+		response = (<-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -3210,7 +3209,7 @@ func (this *Toobit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 			"symbol": GetValue(market, "id"),
 		}
 
-		response = (<-this.PrivateGetApiV1FuturesCommissionRate(this.Extend(request, params)))
+		response = (<-this.PrivateGetApiV1FuturesCommissionRate(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -3344,11 +3343,11 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan any, typeVar an
 	var response any = []any{}
 	if IsEqual(typeVar, "deposits") {
 
-		response = (<-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, params)))
+		response = (<-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "withdrawals") {
 
-		response = (<-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(request, params)))
+		response = (<-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -3492,7 +3491,7 @@ func (this *Toobit) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 	request["chainType"] = this.NetworkCodeToId(networkCode, code)
 
-	response := (<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsOmitted)))
+	response := (<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
 
 	//
@@ -3572,7 +3571,7 @@ func (this *Toobit) withdrawBody(ch chan any, code any, amount any, address any,
 		request["addressExt"] = tag
 	}
 
-	response := (<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, params)))
+	response := (<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3627,7 +3626,7 @@ func (this *Toobit) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		"marginType": marginMode,
 	}
 
-	response := (<-this.PrivatePostApiV1FuturesMarginType(this.Extend(request, params)))
+	response := (<-this.PrivatePostApiV1FuturesMarginType(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3672,7 +3671,7 @@ func (this *Toobit) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		"leverage": leverage,
 	}
 
-	response := (<-this.PrivatePostApiV1FuturesLeverage(this.Extend(request, params)))
+	response := (<-this.PrivatePostApiV1FuturesLeverage(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3710,8 +3709,7 @@ func (this *Toobit) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))).Raw))
 	//
 	// [
 	//     {

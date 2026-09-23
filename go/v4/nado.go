@@ -408,11 +408,11 @@ func (this *Nado) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var response any = nil
 	if isTriggerOrder {
 
-		response = (<-this.TriggerPrivatePostExecute(request))
+		response = (<-this.TriggerPrivatePostExecute(request)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.GatewayPrivatePostExecute(request))
+		response = (<-this.GatewayPrivatePostExecute(request)).Raw
 		PanicOnError(response)
 	}
 
@@ -632,7 +632,7 @@ func (this *Nado) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	request := (<-this.EditOrderRequestAsync(id, symbol, typeVar, side, amount, price, params))
 	PanicOnError(request)
 
-	response := (<-this.GatewayPrivatePostExecute(request))
+	response := (<-this.GatewayPrivatePostExecute(request)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -846,11 +846,11 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if trigger != nil && *trigger == true {
 
-		response = (<-this.TriggerPrivatePostExecute(request))
+		response = (<-this.TriggerPrivatePostExecute(request)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.GatewayPrivatePostExecute(request))
+		response = (<-this.GatewayPrivatePostExecute(request)).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -978,11 +978,11 @@ func (this *Nado) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	var response any = nil
 	if trigger != nil && *trigger == true {
 
-		response = (<-this.TriggerPrivatePostExecute(request))
+		response = (<-this.TriggerPrivatePostExecute(request)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.GatewayPrivatePostExecute(request))
+		response = (<-this.GatewayPrivatePostExecute(request)).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -1113,8 +1113,7 @@ func (this *Nado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		"digest":     id,
 	}
 
-	response := (<-this.GatewayPublicGetQuery(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.GatewayPublicGetQuery(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status": "success",
@@ -1210,8 +1209,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var signature any = this.SignFetchTriggerOrders(tx, chainId, endpointAddress)
 	request["signature"] = signature
 
-	response := (<-this.TriggerPrivatePostQuery(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.TriggerPrivatePostQuery(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "status": "success",
@@ -1308,8 +1306,7 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"product_id": this.ParseToInt(market["id"]),
 	}
 
-	response := (<-this.GatewayPublicGetQuery(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.GatewayPublicGetQuery(this.Extend(request, params))).Raw))
 	//
 	// single product
 	//
@@ -1417,8 +1414,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		"orders": ordersRequest,
 	}
 
-	response := (<-this.ArchivePost(this.DeepExtend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ArchivePost(this.DeepExtend(request, params))).Raw))
 	//
 	//     {
 	//         "orders": [
@@ -1590,8 +1586,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"matches": matchesRequest,
 	}
 
-	response := (<-this.ArchivePost(this.DeepExtend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ArchivePost(this.DeepExtend(request, params))).Raw))
 	//
 	//     {
 	//         "matches": [
@@ -1673,8 +1668,7 @@ func (this *Nado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"subaccount": this.CreateSubaccount(this.WalletAddress, subaccount),
 	}
 
-	response := (<-this.GatewayPublicGetQuery(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.GatewayPublicGetQuery(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status": "success",
@@ -1822,8 +1816,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 		"events": eventsRequest,
 	}
 
-	response := (<-this.ArchivePost(this.DeepExtend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ArchivePost(this.DeepExtend(request, params))).Raw))
 	//
 	//     {
 	//         "events": [
@@ -1928,8 +1921,7 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"subaccount": this.CreateSubaccount(this.WalletAddress, subaccount),
 	}
 
-	response := (<-this.GatewayPublicGetQuery(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.GatewayPublicGetQuery(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status": "success",
@@ -2019,8 +2011,7 @@ func (this *Nado) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 		"type": "time",
 	}
 
-	response := (<-this.GatewayPublicGetEdgeQuery(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.GatewayPublicGetEdgeQuery(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -2056,7 +2047,7 @@ func (this *Nado) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"type": "status",
 	}
 
-	response := (<-this.GatewayPublicGetQuery(this.Extend(request, params)))
+	response := (<-this.GatewayPublicGetQuery(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2102,9 +2093,9 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var symbolsRequest any = this.GatewayPublicGetSymbols(params)
-	var pairsRequest any = this.GatewayV2PublicGetPairs(params)
-	var assetsRequest any = this.GatewayV2PublicGetAssets(params)
+	var symbolsRequest any = EndpointRaw(this.GatewayPublicGetSymbols(params))
+	var pairsRequest any = EndpointRaw(this.GatewayV2PublicGetPairs(params))
+	var assetsRequest any = EndpointRaw(this.GatewayV2PublicGetAssets(params))
 
 	responses := (<-promiseAll([]any{symbolsRequest, pairsRequest, assetsRequest}))
 	PanicOnError(responses)
@@ -2314,8 +2305,7 @@ func (this *Nado) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.GatewayV2PublicGetAssets(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.GatewayV2PublicGetAssets(params)).Raw))
 	var result map[string]any = map[string]any{}
 	var assets []any = this.ToArray(response)
 	for i := 0; i < len(assets); i++ {
@@ -2373,8 +2363,7 @@ func (this *Nado) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.ArchiveV2PublicGetTickers(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ArchiveV2PublicGetTickers(params)).Raw))
 	//
 	//     {
 	//         "BTC-PERP_USDT0": {
@@ -2457,8 +2446,7 @@ func (this *Nado) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var tickerId *string = this.SafeString(market["info"], "ticker_id")
 
-	response := (<-this.ArchiveV2PublicGetContracts(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ArchiveV2PublicGetContracts(params)).Raw))
 	//
 	//     {
 	//         "BTC-PERP_USDT0": {
@@ -2545,8 +2533,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		},
 	}
 
-	response := (<-this.ArchivePost(this.DeepExtend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ArchivePost(this.DeepExtend(request, params))).Raw))
 	//
 	//     {
 	//         "interest_payments": [],
@@ -2606,7 +2593,7 @@ func (this *Nado) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols, "swap", true)
 
-	response := (<-this.ArchiveV2PublicGetContracts(params))
+	response := (<-this.ArchiveV2PublicGetContracts(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2670,8 +2657,7 @@ func (this *Nado) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var tickerId *string = this.SafeString(market["info"], "ticker_id")
 
-	response := (<-this.ArchiveV2PublicGetContracts(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ArchiveV2PublicGetContracts(params)).Raw))
 	//
 	//     {
 	//         "BTC-PERP_USDT0": {
@@ -2727,7 +2713,7 @@ func (this *Nado) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols, "swap", true)
 
-	response := (<-this.ArchiveV2PublicGetContracts(params))
+	response := (<-this.ArchiveV2PublicGetContracts(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2799,7 +2785,7 @@ func (this *Nado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		}(),
 	}
 
-	response := (<-this.GatewayV2PublicGetOrderbook(this.Extend(request, params)))
+	response := (<-this.GatewayV2PublicGetOrderbook(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2859,7 +2845,7 @@ func (this *Nado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = mathMin(limit, 500)
 	}
 
-	response := (<-this.ArchiveV2PublicGetTrades(this.Extend(request, params)))
+	response := (<-this.ArchiveV2PublicGetTrades(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2927,8 +2913,7 @@ func (this *Nado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		AddElementToObject(request["candlesticks"], "max_time", this.ParseToInt(Divide(until, 1000)))
 	}
 
-	response := (<-this.ArchivePost(this.DeepExtend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ArchivePost(this.DeepExtend(request, params))).Raw))
 	//
 	//     {
 	//         "candlesticks": [
@@ -3781,8 +3766,7 @@ func (this *Nado) queryContractsBody(ch chan any, optionalArgs ...any) any {
 		"type": "contracts",
 	}
 
-	response := (<-this.GatewayPublicGetQuery(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.GatewayPublicGetQuery(this.Extend(request, params))).Raw))
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	this.Options.Store("gatewayContracts", data)
 

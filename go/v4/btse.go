@@ -744,8 +744,7 @@ func (this *Btse) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 
-	response := (<-this.PublicGetPublicApiMarketV1Markets(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Markets(params)).Raw))
 	var data map[string]any = SafeMapTyped(response, "data")
 	var markets []any = SafeListTypedDefault(data, "symbols", []any{})
 
@@ -1008,8 +1007,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		}
 	}
 
-	response := (<-this.PublicGetPublicApiMarketV1Klines(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Klines(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "data": [
@@ -1082,8 +1080,7 @@ func (this *Btse) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		request["depth"] = mathMin(limit, 50) // the endpoint supports a maximum depth of 50
 	}
 
-	response := (<-this.PublicGetPublicApiMarketV1Orderbook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Orderbook(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "data": {
@@ -1171,8 +1168,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 
-	response := (<-this.PublicGetPublicApiMarketV1RecentFundingHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1RecentFundingHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "data": [
@@ -1255,8 +1251,7 @@ func (this *Btse) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(typeVar, "spot") {
 
-		walletResponse := (<-this.PrivateGetPublicApiWalletV1UserAssets(params))
-		PanicOnError(walletResponse)
+		var walletResponse map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPublicApiWalletV1UserAssets(params)).Raw))
 		//
 		//     {
 		//         "data": [
@@ -1285,7 +1280,7 @@ func (this *Btse) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			"wallet": wallet,
 		}
 
-		response = (<-this.PrivateGetFuturesApiV23UserWallet(this.Extend(request, params)))
+		response = (<-this.PrivateGetFuturesApiV23UserWallet(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1385,8 +1380,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	response := (<-this.PublicGetPublicApiMarketV1RiskLimits(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1RiskLimits(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "data": [
@@ -1524,8 +1518,7 @@ func (this *Btse) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	// the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
 	params = MapTyped(this.Omit(params, "type"))
 
-	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(params)).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(data, symbols)
@@ -1558,8 +1551,7 @@ func (this *Btse) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "data": [
@@ -1677,8 +1669,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
 	var interest any = this.SafeDict(response, "data")
 	if IsEqual(interest, nil) {
 		var rows []any = SafeListTypedDefault(response, "data", []any{})
@@ -1714,8 +1705,7 @@ func (this *Btse) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(params)).Raw))
 	var data []any = SafeListTyped(response, "data")
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -1782,8 +1772,7 @@ func (this *Btse) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
 	var data any = this.SafeDict(response, "data")
 	if IsEqual(data, nil) {
 		var rows []any = SafeListTypedDefault(response, "data", []any{})
@@ -1819,8 +1808,7 @@ func (this *Btse) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(params)).Raw))
 	var data []any = SafeListTyped(response, "data")
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -1945,8 +1933,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 
-	response := (<-this.PublicGetPublicApiMarketV1Trades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Trades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "data": [
@@ -2124,7 +2111,7 @@ func (this *Btse) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.PrivateGetFuturesApiV3TradeTradeHistory(this.Extend(request, params)))
+		response = (<-this.PrivateGetFuturesApiV3TradeTradeHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var rows any = this.SafeList(response, "data")
@@ -2499,7 +2486,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 		//     ]
 		//
 
-		response = (<-this.PrivatePostSpotApiV4TradeOrders(this.Extend(request, params)))
+		response = (<-this.PrivatePostSpotApiV4TradeOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if isConditionalOrder {
@@ -2561,7 +2548,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 			}
 		}
 
-		response = (<-this.PrivatePostSpotApiV4TradeOrdersAlgo(this.Extend(request, params)))
+		response = (<-this.PrivatePostSpotApiV4TradeOrdersAlgo(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var order map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
@@ -2732,7 +2719,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 		//     }
 		//
 
-		response = (<-this.PrivatePostFuturesApiV3TradeOrders(this.Extend(request, params)))
+		response = (<-this.PrivatePostFuturesApiV3TradeOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if isConditionalOrder {
@@ -2792,7 +2779,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 			}
 		}
 
-		response = (<-this.PrivatePostFuturesApiV3TradeOrdersAlgo(this.Extend(request, params)))
+		response = (<-this.PrivatePostFuturesApiV3TradeOrdersAlgo(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	// the normal futures endpoint responds with a single order dict, keep a
@@ -2866,13 +2853,13 @@ func (this *Btse) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var response any = nil
 	if IsEqual(marketType, "spot") {
 
-		response = (<-this.PrivateGetSpotApiV4TradeOrder(this.Extend(request, params)))
+		response = (<-this.PrivateGetSpotApiV4TradeOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		// the futures endpoint doubles as the single order lookup when an
 		// order id is sent and responds with a bare array
 
-		response = (<-this.PrivateGetFuturesApiV3TradeOrders(this.Extend(request, params)))
+		response = (<-this.PrivateGetFuturesApiV3TradeOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	// accept a bare order dict, a data envelope and a one element array
@@ -2950,7 +2937,7 @@ func (this *Btse) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	if GetValue(market, "spot") == true {
 		request["symbol"] = market["id"]
 
-		response = (<-this.PrivatePutSpotApiV4TradeOrders(this.Extend(request, params)))
+		response = (<-this.PrivatePutSpotApiV4TradeOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		// the futures amend requires an explicit amendType discriminator
@@ -2969,7 +2956,7 @@ func (this *Btse) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 			request["amendType"] = "PRICE"
 		}
 
-		response = (<-this.PrivatePutFuturesApiV3TradeOrders(this.Extend(request, params)))
+		response = (<-this.PrivatePutFuturesApiV3TradeOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var order map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
@@ -3022,7 +3009,7 @@ func (this *Btse) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	if GetValue(market, "spot") == true {
 		request["symbol"] = market["id"]
 
-		response = (<-this.PrivateDeleteSpotApiV4TradeOrders(this.Extend(request, params)))
+		response = (<-this.PrivateDeleteSpotApiV4TradeOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		//
@@ -3043,7 +3030,7 @@ func (this *Btse) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		//
 		request["symbol"] = this.FuturesRequestId(market)
 
-		response = (<-this.PrivateDeleteFuturesApiV3TradeOrders(this.Extend(request, params)))
+		response = (<-this.PrivateDeleteFuturesApiV3TradeOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var order map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
@@ -3096,7 +3083,7 @@ func (this *Btse) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			return "ALL"
 		}()
 
-		response = (<-this.PrivateDeleteSpotApiV4TradeOrdersAll(this.Extend(request, params)))
+		response = (<-this.PrivateDeleteSpotApiV4TradeOrdersAll(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if IsEqual(market, nil) {
@@ -3147,13 +3134,13 @@ func (this *Btse) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArg
 	if IsEqual(marketType, "spot") {
 		request["timeout"] = timeout
 
-		response = (<-this.PrivatePostSpotApiV4TradeOrdersCancelAllAfter(this.Extend(request, params)))
+		response = (<-this.PrivatePostSpotApiV4TradeOrdersCancelAllAfter(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		// the futures param is named timeoutMs and is required, zero disarms
 		request["timeoutMs"] = timeout
 
-		response = (<-this.PrivatePostFuturesApiV3TradeOrdersCancelAllAfter(this.Extend(request, params)))
+		response = (<-this.PrivatePostFuturesApiV3TradeOrdersCancelAllAfter(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -3207,14 +3194,14 @@ func (this *Btse) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["symbol"] = GetValue(market, "id")
 		}
 
-		response = (<-this.PrivateGetSpotApiV4TradeOrders(this.Extend(request, params)))
+		response = (<-this.PrivateGetSpotApiV4TradeOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if !IsEqual(market, nil) {
 			request["symbol"] = this.FuturesRequestId(market)
 		}
 
-		response = (<-this.PrivateGetFuturesApiV3TradeOrders(this.Extend(request, params)))
+		response = (<-this.PrivateGetFuturesApiV3TradeOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	// the endpoints have no server side time filters, accept a bare array
@@ -3411,13 +3398,13 @@ func (this *Btse) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {
 
-		response = (<-this.PrivateGetSpotApiV4TradeFees(params))
+		response = (<-this.PrivateGetSpotApiV4TradeFees(params)).Raw
 		PanicOnError(response)
 	} else {
 		// the futures fees stay on the legacy endpoint, the unified futures
 		// api has no fees route
 
-		response = (<-this.PrivateGetFuturesApiV23UserFees(params))
+		response = (<-this.PrivateGetFuturesApiV23UserFees(params)).Raw
 		PanicOnError(response)
 	}
 	//
@@ -3963,13 +3950,13 @@ func (this *Btse) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 	var response any = nil
 	if GetValue(market, "spot") == true {
 
-		response = (<-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params)))
+		response = (<-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		// the futures fees stay on the legacy endpoint, the unified futures
 		// api has no fees route
 
-		response = (<-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params)))
+		response = (<-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var rows any = this.SafeList(response, "data", response)
@@ -4013,7 +4000,7 @@ func (this *Btse) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PrivateGetFuturesApiV3TradePositions(params))
+	response := (<-this.PrivateGetFuturesApiV3TradePositions(params)).Raw
 	PanicOnError(response)
 	//
 	// the response is a bare array of position rows
@@ -4198,8 +4185,7 @@ func (this *Btse) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	response := (<-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -4263,7 +4249,7 @@ func (this *Btse) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 		"positionMode": positionMode,
 	}
 
-	retRes346215 := (<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params)))
+	retRes346215 := (<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params))).Raw
 	PanicOnError(retRes346215)
 	ch <- retRes346215
 	return nil
@@ -4295,8 +4281,7 @@ func (this *Btse) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	response := (<-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))).Raw))
 	var data map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseMarginMode(data, market)
@@ -4385,7 +4370,7 @@ func (this *Btse) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 		"positionMode": positionMode,
 	}
 
-	retRes355315 := (<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params)))
+	retRes355315 := (<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params))).Raw
 	PanicOnError(retRes355315)
 	ch <- retRes355315
 	return nil
@@ -4479,7 +4464,7 @@ func (this *Btse) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	response := (<-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params)))
+	response := (<-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -4576,7 +4561,7 @@ func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 		request["marginMode"] = ToUpper(marginMode)
 	}
 
-	response := (<-this.PrivatePostFuturesApiV3TradeLeverage(this.Extend(request, params)))
+	response := (<-this.PrivatePostFuturesApiV3TradeLeverage(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- response

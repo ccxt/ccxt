@@ -427,8 +427,7 @@ func (this *Bitteam) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetTradeApiCcxtPairs(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradeApiCcxtPairs(params)).Raw))
 	//
 	//     {
 	//         "ok": true,
@@ -610,8 +609,7 @@ func (this *Bitteam) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetTradeApiCurrencies(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradeApiCurrencies(params)).Raw))
 	//
 	//     {
 	//         "ok": true,
@@ -706,7 +704,7 @@ func (this *Bitteam) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var currencies []any = SafeListTypedDefault(responseResult, "currencies", []any{})
 	// using another endpoint to fetch statuses of deposits and withdrawals
 
-	statusesResponse := (<-this.PublicGetTradeApiCmcAssets())
+	statusesResponse := (<-this.PublicGetTradeApiCmcAssets()).Raw
 	PanicOnError(statusesResponse)
 	//
 	//     {
@@ -864,8 +862,7 @@ func (this *Bitteam) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"resolution": resolution,
 	}
 
-	response := (<-this.HistoryGetApiTwHistoryPairNameResolution(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.HistoryGetApiTwHistoryPairNameResolution(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "ok": true,
@@ -946,7 +943,7 @@ func (this *Bitteam) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetTradeApiCmcOrderbookPair(this.Extend(request, params)))
+	response := (<-this.PublicGetTradeApiCmcOrderbookPair(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1027,8 +1024,7 @@ func (this *Bitteam) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetTradeApiCcxtOrdersOfUser(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeApiCcxtOrdersOfUser(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "ok": true,
@@ -1152,8 +1148,7 @@ func (this *Bitteam) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		market = this.Market(symbol)
 	}
 
-	response := (<-this.PrivateGetTradeApiCcxtOrderId(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeApiCcxtOrderId(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "ok": true,
@@ -1364,8 +1359,7 @@ func (this *Bitteam) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		}
 	}
 
-	response := (<-this.PrivatePostTradeApiCcxtOrdercreate(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeApiCcxtOrdercreate(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "ok": true,
@@ -1425,8 +1419,7 @@ func (this *Bitteam) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"id": id,
 	}
 
-	response := (<-this.PrivatePostTradeApiCcxtCancelorder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeApiCcxtCancelorder(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "ok": true,
@@ -1475,8 +1468,7 @@ func (this *Bitteam) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["pairId"] = "0" // '0' for all markets
 	}
 
-	response := (<-this.PrivatePostTradeApiCcxtCancelAllOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeApiCcxtCancelAllOrder(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "ok": true,
@@ -1690,7 +1682,7 @@ func (this *Bitteam) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetTradeApiCmcSummary())
+	response := (<-this.PublicGetTradeApiCmcSummary()).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -1766,8 +1758,7 @@ func (this *Bitteam) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"name": market["id"],
 	}
 
-	response := (<-this.PublicGetTradeApiPairName(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradeApiPairName(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "ok": true,
@@ -2121,7 +2112,7 @@ func (this *Bitteam) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetTradeApiCmcTradesPair(this.Extend(request, params)))
+	response := (<-this.PublicGetTradeApiCmcTradesPair(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2190,8 +2181,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetTradeApiCcxtTradesOfUser(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeApiCcxtTradesOfUser(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "ok": true,
@@ -2463,7 +2453,7 @@ func (this *Bitteam) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetTradeApiCcxtBalance(params))
+	response := (<-this.PrivateGetTradeApiCcxtBalance(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseBalance(response)
@@ -2578,8 +2568,7 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetTradeApiTransactionsOfUser(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeApiTransactionsOfUser(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "ok": true,

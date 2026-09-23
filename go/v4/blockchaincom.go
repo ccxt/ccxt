@@ -353,7 +353,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	markets := (<-this.PublicGetSymbols(params))
+	markets := (<-this.PublicGetSymbols(params)).Raw
 	PanicOnError(markets)
 	var marketIds []string = ObjectKeys(markets)
 	var result []any = []any{}
@@ -516,7 +516,7 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan any, symbol any, optiona
 		request["depth"] = limit
 	}
 
-	response := (<-this.PublicGetL3Symbol(this.Extend(request, params)))
+	response := (<-this.PublicGetL3Symbol(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
@@ -546,7 +546,7 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan any, symbol any, optiona
 		request["depth"] = limit
 	}
 
-	response := (<-this.PublicGetL2Symbol(this.Extend(request, params)))
+	response := (<-this.PublicGetL2Symbol(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
@@ -620,7 +620,7 @@ func (this *Blockchaincom) fetchTickerBody(ch chan any, symbol any, optionalArgs
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
+	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTicker(response, market)
@@ -653,7 +653,7 @@ func (this *Blockchaincom) fetchTickersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	tickers := (<-this.PublicGetTickers(params))
+	tickers := (<-this.PublicGetTickers(params)).Raw
 	PanicOnError(tickers)
 
 	ch <- this.ParseTickers(tickers, symbols)
@@ -807,7 +807,7 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar any,
 		request["stopPx"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
 
-	response := (<-this.PrivatePostOrders(this.Extend(request, params)))
+	response := (<-this.PrivatePostOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response, market)
@@ -840,7 +840,7 @@ func (this *Blockchaincom) cancelOrderBody(ch chan any, id any, optionalArgs ...
 		"orderId": id,
 	}
 
-	response := (<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.SafeOrder(map[string]any{
@@ -883,7 +883,7 @@ func (this *Blockchaincom) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
 		request["symbol"] = marketId
 	}
 
-	response := (<-this.PrivateDeleteOrders(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -918,7 +918,7 @@ func (this *Blockchaincom) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetFees(params))
+	response := (<-this.PrivateGetFees(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1079,7 +1079,7 @@ func (this *Blockchaincom) fetchOrdersByStateBody(ch chan any, state any, option
 		request["symbol"] = GetValue(market, "id")
 	}
 
-	response := (<-this.PrivateGetOrders(this.Extend(request, params)))
+	response := (<-this.PrivateGetOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -1178,7 +1178,7 @@ func (this *Blockchaincom) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 		market = this.Market(symbol)
 	}
 
-	trades := (<-this.PrivateGetFills(this.Extend(request, params)))
+	trades := (<-this.PrivateGetFills(this.Extend(request, params))).Raw
 	PanicOnError(trades)
 
 	ch <- this.ParseTrades(trades, market, since, limit, params) // need to define
@@ -1213,7 +1213,7 @@ func (this *Blockchaincom) fetchDepositAddressBody(ch chan any, code any, option
 		"currency": currency["id"],
 	}
 
-	response := (<-this.PrivatePostDepositsCurrency(this.Extend(request, params)))
+	response := (<-this.PrivatePostDepositsCurrency(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var rawAddress *string = this.SafeString(response, "address")
 	var tag *string = nil
@@ -1361,7 +1361,7 @@ func (this *Blockchaincom) withdrawBody(ch chan any, code any, amount any, addre
 		"sendMax":     false,
 	}
 
-	response := (<-this.PrivatePostWithdrawals(this.Extend(request, params)))
+	response := (<-this.PrivatePostWithdrawals(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1419,7 +1419,7 @@ func (this *Blockchaincom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
 		currency = this.Currency(code)
 	}
 
-	response := (<-this.PrivateGetWithdrawals(this.Extend(request, params)))
+	response := (<-this.PrivateGetWithdrawals(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
@@ -1456,7 +1456,7 @@ func (this *Blockchaincom) fetchWithdrawalBody(ch chan any, id any, optionalArgs
 		"withdrawalId": id,
 	}
 
-	response := (<-this.PrivateGetWithdrawalsWithdrawalId(this.Extend(request, params)))
+	response := (<-this.PrivateGetWithdrawalsWithdrawalId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransaction(response)
@@ -1503,7 +1503,7 @@ func (this *Blockchaincom) fetchDepositsBody(ch chan any, optionalArgs ...any) a
 		currency = this.Currency(code)
 	}
 
-	response := (<-this.PrivateGetDeposits(this.Extend(request, params)))
+	response := (<-this.PrivateGetDeposits(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
@@ -1541,7 +1541,7 @@ func (this *Blockchaincom) fetchDepositBody(ch chan any, id any, optionalArgs ..
 		"depositId": depositId,
 	}
 
-	deposit := (<-this.PrivateGetDepositsDepositId(this.Extend(request, params)))
+	deposit := (<-this.PrivateGetDepositsDepositId(this.Extend(request, params))).Raw
 	PanicOnError(deposit)
 
 	ch <- this.ParseTransaction(deposit)
@@ -1576,7 +1576,7 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 		"account": accountName,
 	}
 
-	response := (<-this.PrivateGetAccounts(this.Extend(request, params)))
+	response := (<-this.PrivateGetAccounts(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1646,7 +1646,7 @@ func (this *Blockchaincom) fetchOrderBody(ch chan any, id any, optionalArgs ...a
 		"orderId": id,
 	}
 
-	response := (<-this.PrivateGetOrdersOrderId(this.Extend(request, params)))
+	response := (<-this.PrivateGetOrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//

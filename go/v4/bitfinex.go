@@ -857,7 +857,7 @@ func (this *Bitfinex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetPlatformStatus(params))
+	response := (<-this.PublicGetPlatformStatus(params)).Raw
 	PanicOnError(response)
 	var statusRaw *string = this.SafeString(response, 0)
 
@@ -1554,8 +1554,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var fullRequest map[string]any = this.Extend(request, params)
 
-	orderbook := (<-this.PublicGetBookSymbolPrecision(fullRequest))
-	PanicOnError(orderbook)
+	var orderbook []any = ListTyped(PanicOnError((<-this.PublicGetBookSymbolPrecision(fullRequest)).Raw))
 	var timestamp int64 = this.Milliseconds()
 	var result map[string]any = map[string]any{
 		"symbol":    market["symbol"],
@@ -3236,7 +3235,7 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 		"op_renew": 0,
 	}
 
-	response := (<-this.PrivatePostAuthWDepositAddress(this.Extend(request, params)))
+	response := (<-this.PrivatePostAuthWDepositAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -3713,7 +3712,7 @@ func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address an
 		request["fee_deduct"] = 1
 	}
 
-	response := (<-this.PrivatePostAuthWWithdraw(this.Extend(request, params)))
+	response := (<-this.PrivatePostAuthWWithdraw(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -4860,8 +4859,7 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.PublicGetLiquidationsHist(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetLiquidationsHist(this.Extend(request, params))).Raw))
 
 	//
 	//     [

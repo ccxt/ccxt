@@ -489,8 +489,7 @@ func (this *Latoken) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetTime(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTime(params)).Raw))
 
 	//
 	//     {
@@ -520,8 +519,7 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetPair(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetPair(params)).Raw))
 	//
 	//     [
 	//         {
@@ -648,7 +646,7 @@ func (this *Latoken) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetCurrency(params))
+	response := (<-this.PublicGetCurrency(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -745,7 +743,7 @@ func (this *Latoken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAuthAccount(params))
+	response := (<-this.PrivateGetAuthAccount(params)).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -847,8 +845,7 @@ func (this *Latoken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		request["limit"] = limit // max 1000
 	}
 
-	response := (<-this.PublicGetBookCurrencyQuote(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetBookCurrencyQuote(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "ask":[
@@ -988,7 +985,7 @@ func (this *Latoken) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"quote": market["quoteId"],
 	}
 
-	response := (<-this.PublicGetTickerBaseQuote(this.Extend(request, params)))
+	response := (<-this.PublicGetTickerBaseQuote(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1041,7 +1038,7 @@ func (this *Latoken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetTicker(params))
+	response := (<-this.PublicGetTicker(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -1206,7 +1203,7 @@ func (this *Latoken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["limit"] = mathMin(limit, 100) // default 100, limit 100
 	}
 
-	response := (<-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params)))
+	response := (<-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1280,7 +1277,7 @@ func (this *Latoken) fetchPublicTradingFeeBody(ch chan any, symbol any, optional
 		"quote":    market["quoteId"],
 	}
 
-	response := (<-this.PublicGetTradeFeeCurrencyQuote(this.Extend(request, params)))
+	response := (<-this.PublicGetTradeFeeCurrencyQuote(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1321,7 +1318,7 @@ func (this *Latoken) fetchPrivateTradingFeeBody(ch chan any, symbol any, optiona
 		"quote":    market["quoteId"],
 	}
 
-	response := (<-this.PrivateGetAuthTradeFeeCurrencyQuote(this.Extend(request, params)))
+	response := (<-this.PrivateGetAuthTradeFeeCurrencyQuote(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1386,11 +1383,11 @@ func (this *Latoken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["currency"] = GetValue(market, "baseId")
 		request["quote"] = GetValue(market, "quoteId")
 
-		response = (<-this.PrivateGetAuthTradePairCurrencyQuote(this.Extend(request, params)))
+		response = (<-this.PrivateGetAuthTradePairCurrencyQuote(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetAuthTrade(this.Extend(request, params)))
+		response = (<-this.PrivateGetAuthTrade(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1602,11 +1599,11 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if isTrigger != nil && *isTrigger == true {
 
-		response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, params)))
+		response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, params)))
+		response = (<-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1685,21 +1682,21 @@ func (this *Latoken) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["quote"] = GetValue(market, "quoteId")
 		if isTrigger != nil && *isTrigger == true {
 
-			response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, params)))
+			response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, params)))
+			response = (<-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
 		if isTrigger != nil && *isTrigger == true {
 
-			response = (<-this.PrivateGetAuthStopOrder(this.Extend(request, params)))
+			response = (<-this.PrivateGetAuthStopOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateGetAuthOrder(this.Extend(request, params)))
+			response = (<-this.PrivateGetAuthOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	}
@@ -1766,11 +1763,11 @@ func (this *Latoken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var response any = nil
 	if isTrigger != nil && *isTrigger == true {
 
-		response = (<-this.PrivateGetAuthStopOrderGetOrderId(this.Extend(request, params)))
+		response = (<-this.PrivateGetAuthStopOrderGetOrderId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetAuthOrderGetOrderId(this.Extend(request, params)))
+		response = (<-this.PrivateGetAuthOrderGetOrderId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1857,11 +1854,11 @@ func (this *Latoken) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	if triggerPrice != nil {
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 
-		response = (<-this.PrivatePostAuthStopOrderPlace(this.Extend(request, params)))
+		response = (<-this.PrivatePostAuthStopOrderPlace(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostAuthOrderPlace(this.Extend(request, params)))
+		response = (<-this.PrivatePostAuthOrderPlace(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1917,11 +1914,11 @@ func (this *Latoken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var response any = nil
 	if isTrigger != nil && *isTrigger == true {
 
-		response = (<-this.PrivatePostAuthStopOrderCancel(this.Extend(request, params)))
+		response = (<-this.PrivatePostAuthStopOrderCancel(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostAuthOrderCancel(this.Extend(request, params)))
+		response = (<-this.PrivatePostAuthOrderCancel(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1976,21 +1973,21 @@ func (this *Latoken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["quote"] = GetValue(market, "quoteId")
 		if isTrigger != nil && *isTrigger == true {
 
-			response = (<-this.PrivatePostAuthStopOrderCancelAllCurrencyQuote(this.Extend(request, params)))
+			response = (<-this.PrivatePostAuthStopOrderCancelAllCurrencyQuote(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivatePostAuthOrderCancelAllCurrencyQuote(this.Extend(request, params)))
+			response = (<-this.PrivatePostAuthOrderCancelAllCurrencyQuote(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
 		if isTrigger != nil && *isTrigger == true {
 
-			response = (<-this.PrivatePostAuthStopOrderCancelAll(this.Extend(request, params)))
+			response = (<-this.PrivatePostAuthStopOrderCancelAll(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivatePostAuthOrderCancelAll(this.Extend(request, params)))
+			response = (<-this.PrivatePostAuthOrderCancelAll(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	}
@@ -2041,8 +2038,7 @@ func (this *Latoken) fetchTransactionsBody(ch chan any, optionalArgs ...any) any
 	}
 	var request map[string]any = map[string]any{}
 
-	response := (<-this.PrivateGetAuthTransaction(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAuthTransaction(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "hasNext":false,
@@ -2195,8 +2191,7 @@ func (this *Latoken) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 
-	response := (<-this.PrivateGetAuthTransfer(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAuthTransfer(params)).Raw))
 	//
 	//     {
 	//         "hasNext": true,
@@ -2271,15 +2266,15 @@ func (this *Latoken) transferBody(ch chan any, code any, amount any, fromAccount
 	var response any = nil
 	if GetIndexOf(toAccount, "@") >= 0 {
 
-		response = (<-this.PrivatePostAuthTransferEmail(this.Extend(request, params)))
+		response = (<-this.PrivatePostAuthTransferEmail(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if GetLength(toAccount) == 36 {
 
-		response = (<-this.PrivatePostAuthTransferId(this.Extend(request, params)))
+		response = (<-this.PrivatePostAuthTransferId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostAuthTransferPhone(this.Extend(request, params)))
+		response = (<-this.PrivatePostAuthTransferPhone(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 

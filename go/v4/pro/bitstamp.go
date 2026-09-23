@@ -1228,8 +1228,7 @@ func (this *Bitstamp) authenticateBody(ch chan any, optionalArgs ...any) any {
 				}()
 				// try block:
 
-				response := (<-this.PrivatePostWebsocketsToken(params))
-				ccxt.PanicOnError(response)
+				var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostWebsocketsToken(params)).Raw))
 				//
 				// {
 				//     "valid_sec":60,

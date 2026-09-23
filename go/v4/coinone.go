@@ -450,8 +450,7 @@ func (this *Coinone) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V2PublicGetCurrencies(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetCurrencies(params)).Raw))
 	//
 	//     {
 	//         "result": "success",
@@ -535,8 +534,7 @@ func (this *Coinone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		"quote_currency": "KRW",
 	}
 
-	response := (<-this.V2PublicGetTickerNewQuoteCurrency(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetTickerNewQuoteCurrency(request)).Raw))
 	//
 	//     {
 	//         "result": "success",
@@ -677,7 +675,7 @@ func (this *Coinone) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V2PrivatePostAccountBalance(params))
+	response := (<-this.V2PrivatePostAccountBalance(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseBalance(response)
@@ -719,7 +717,7 @@ func (this *Coinone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		request["size"] = limit // only support 5, 10, 15, 16
 	}
 
-	response := (<-this.V2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.Extend(request, params)))
+	response := (<-this.V2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -788,11 +786,11 @@ func (this *Coinone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["quote_currency"] = GetValue(market, "quote")
 		request["target_currency"] = GetValue(market, "base")
 
-		response = (<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params)))
+		response = (<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V2PublicGetTickerNewQuoteCurrency(this.Extend(request, params)))
+		response = (<-this.V2PublicGetTickerNewQuoteCurrency(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -863,8 +861,7 @@ func (this *Coinone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"target_currency": market["base"],
 	}
 
-	response := (<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": "success",
@@ -1078,8 +1075,7 @@ func (this *Coinone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["size"] = mathMin(limit, 200)
 	}
 
-	response := (<-this.V2PublicGetTradesQuoteCurrencyTargetCurrency(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetTradesQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": "success",
@@ -1154,7 +1150,7 @@ func (this *Coinone) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"qty":             this.AmountToPrecision(symbol, amount),
 	}
 
-	response := (<-this.V2_1PrivatePostOrderLimit(this.Extend(request, params)))
+	response := (<-this.V2_1PrivatePostOrderLimit(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1202,7 +1198,7 @@ func (this *Coinone) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"currency": market["id"],
 	}
 
-	response := (<-this.V2PrivatePostOrderQueryOrder(this.Extend(request, params)))
+	response := (<-this.V2PrivatePostOrderQueryOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1408,8 +1404,7 @@ func (this *Coinone) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"target_currency": market["baseId"],
 	}
 
-	response := (<-this.V2_1PrivatePostOrderOpenOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2_1PrivatePostOrderOpenOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": "success",
@@ -1471,8 +1466,7 @@ func (this *Coinone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"currency": market["id"],
 	}
 
-	response := (<-this.V2PrivatePostOrderCompleteOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostOrderCompleteOrders(this.Extend(request, params))).Raw))
 	//
 	// despite the name of the endpoint it returns trades which may have a duplicate orderId
 	// https://github.com/ccxt/ccxt/pull/7067
@@ -1541,8 +1535,7 @@ func (this *Coinone) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"currency": this.MarketId(symbol),
 	}
 
-	response := (<-this.V2PrivatePostOrderCancel(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostOrderCancel(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -1579,8 +1572,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V2PrivatePostAccountDepositAddress(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAccountDepositAddress(params)).Raw))
 	//
 	//     {
 	//         "result": "success",

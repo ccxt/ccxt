@@ -692,7 +692,7 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promises []any = []any{this.PublicGetAssetPairs(params), this.ContractPublicGetSymbols(params)}
+	var promises []any = []any{EndpointRaw(this.PublicGetAssetPairs(params)), EndpointRaw(this.ContractPublicGetSymbols(params))}
 
 	promisesResult := (<-promiseAll(promises))
 	PanicOnError(promisesResult)
@@ -1004,8 +1004,7 @@ func (this *Bigone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 			"asset_pair_name": market["id"],
 		}
 
-		response := (<-this.PublicGetAssetPairsAssetPairNameTicker(this.Extend(request, params)))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAssetPairsAssetPairNameTicker(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "code":0,
@@ -1079,8 +1078,7 @@ func (this *Bigone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			request["pair_names"] = Join(ids, ",")
 		}
 
-		response := (<-this.PublicGetAssetPairsTickers(this.Extend(request, params)))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAssetPairsTickers(this.Extend(request, params))).Raw))
 		//
 		//    {
 		//        "code": 0,
@@ -1111,8 +1109,7 @@ func (this *Bigone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		data = this.SafeList(response, "data", []any{})
 	} else {
 
-		instruments := (<-this.ContractPublicGetInstruments(params))
-		PanicOnError(instruments)
+		var instruments []any = ListTyped(PanicOnError((<-this.ContractPublicGetInstruments(params)).Raw))
 		data = this.ToArray(instruments)
 	}
 	var tickers any = this.ParseTickers(data, symbols)
@@ -1140,8 +1137,7 @@ func (this *Bigone) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetPing(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPing(params)).Raw))
 	//
 	//     {
 	//         "data": {
@@ -1192,7 +1188,7 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			"symbol": market["id"],
 		}
 
-		response = (<-this.ContractPublicGetDepthSymbolSnapshot(this.Extend(request, params)))
+		response = (<-this.ContractPublicGetDepthSymbolSnapshot(this.Extend(request, params))).Raw
 		PanicOnError(response)
 
 		//
@@ -1232,7 +1228,7 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			request["limit"] = limit // default 50, max 200
 		}
 
-		response = (<-this.PublicGetAssetPairsAssetPairNameDepth(this.Extend(request, params)))
+		response = (<-this.PublicGetAssetPairsAssetPairNameDepth(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -1476,8 +1472,7 @@ func (this *Bigone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"asset_pair_name": market["id"],
 	}
 
-	response := (<-this.PublicGetAssetPairsAssetPairNameTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAssetPairsAssetPairNameTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -1587,8 +1582,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	params = MapTyped(this.Omit(params, "until"))
 
-	response := (<-this.PublicGetAssetPairsAssetPairNameCandles(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAssetPairsAssetPairNameCandles(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -1671,11 +1665,11 @@ func (this *Bigone) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if (typeVar != nil && *typeVar == "funding") || (typeVar != nil && *typeVar == "fund") {
 
-		response = (<-this.PrivateGetFundAccounts(params))
+		response = (<-this.PrivateGetFundAccounts(params)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetAccounts(params))
+		response = (<-this.PrivateGetAccounts(params)).Raw
 		PanicOnError(response)
 	}
 
@@ -1935,8 +1929,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	params = this.Omit(params, []any{"stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"})
 
-	response := (<-this.PrivatePostOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "id": 10,
@@ -1987,8 +1980,7 @@ func (this *Bigone) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"id": id,
 	}
 
-	response := (<-this.PrivatePostOrdersIdCancel(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrdersIdCancel(this.Extend(request, params))).Raw))
 	//    {
 	//        "id": 10,
 	//        "asset_pair_name": "EOS-BTC",
@@ -2037,8 +2029,7 @@ func (this *Bigone) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"asset_pair_name": market["id"],
 	}
 
-	response := (<-this.PrivatePostOrdersCancel(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrdersCancel(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code":0,
@@ -2116,8 +2107,7 @@ func (this *Bigone) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"id": id,
 	}
 
-	response := (<-this.PrivateGetOrdersId(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersId(this.Extend(request, params))).Raw))
 	var order map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(order)
@@ -2166,8 +2156,7 @@ func (this *Bigone) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit // default 20, max 200
 	}
 
-	response := (<-this.PrivateGetOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code":0,
@@ -2236,8 +2225,7 @@ func (this *Bigone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit // default 20, max 200
 	}
 
-	response := (<-this.PrivateGetTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -2441,7 +2429,7 @@ func (this *Bigone) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	networkCode := GetValue(networkCodeparamsOmittedVariable, 0)
 	paramsOmitted := GetValue(networkCodeparamsOmittedVariable, 1)
 
-	response := (<-this.PrivateGetAssetsAssetSymbolAddress(this.Extend(request, paramsOmitted)))
+	response := (<-this.PrivateGetAssetsAssetSymbolAddress(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
 	//
 	// the actual response format is not the same as the documented one
@@ -2627,8 +2615,7 @@ func (this *Bigone) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit // default 50
 	}
 
-	response := (<-this.PrivateGetDeposits(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeposits(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -2697,8 +2684,7 @@ func (this *Bigone) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit // default 50
 	}
 
-	response := (<-this.PrivateGetWithdrawals(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWithdrawals(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -2765,7 +2751,7 @@ func (this *Bigone) transferBody(ch chan any, code any, amount any, fromAccount 
 		"guid":   guid,
 	}
 
-	response := (<-this.PrivatePostTransfer(this.Extend(request, params)))
+	response := (<-this.PrivatePostTransfer(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2864,8 +2850,7 @@ func (this *Bigone) withdrawBody(ch chan any, code any, amount any, address any,
 	}
 	// requires write permission on the wallet
 
-	response := (<-this.PrivatePostWithdrawals(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawals(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code":0,

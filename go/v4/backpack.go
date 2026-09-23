@@ -674,7 +674,7 @@ func (this *Backpack) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetApiV1Assets(params))
+	response := (<-this.PublicGetApiV1Assets(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -797,7 +797,7 @@ func (this *Backpack) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 
-	response := (<-this.PublicGetApiV1Markets(params))
+	response := (<-this.PublicGetApiV1Markets(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseMarkets(response)
@@ -1013,7 +1013,7 @@ func (this *Backpack) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 
-	response := (<-this.PublicGetApiV1Tickers(this.Extend(request, params)))
+	response := (<-this.PublicGetApiV1Tickers(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var tickers any = this.ParseTickers(response)
 
@@ -1049,7 +1049,7 @@ func (this *Backpack) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetApiV1Ticker(this.Extend(request, params)))
+	response := (<-this.PublicGetApiV1Ticker(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTicker(response, market)
@@ -1148,7 +1148,7 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetApiV1Depth(this.Extend(request, params)))
+	response := (<-this.PublicGetApiV1Depth(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1244,8 +1244,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		params = this.Omit(params, "price")
 	}
 
-	response := (<-this.PublicGetApiV1Klines(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1Klines(this.Extend(request, params))).Raw))
 	var ohlcvs []any = this.ToArray(response)
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
@@ -1304,8 +1303,7 @@ func (this *Backpack) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetApiV1MarkPrices(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1MarkPrices(this.Extend(request, params))).Raw))
 	var data map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(data, market)
@@ -1380,8 +1378,7 @@ func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetApiV1OpenInterest(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1OpenInterest(this.Extend(request, params))).Raw))
 	var interest map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseOpenInterest(interest, market)
@@ -1453,8 +1450,7 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		request["limit"] = mathMin(limit, 1000) // api maximum 1000
 	}
 
-	response := (<-this.PublicGetApiV1FundingRates(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1FundingRates(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -1531,11 +1527,11 @@ func (this *Backpack) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var offset *int64 = this.SafeInteger(params, "offset")
 	if offset != nil {
 
-		response = (<-this.PublicGetApiV1TradesHistory(this.Extend(request, params)))
+		response = (<-this.PublicGetApiV1TradesHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PublicGetApiV1Trades(this.Extend(request, params)))
+		response = (<-this.PublicGetApiV1Trades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var responseList []any = this.ToArray(response)
@@ -1599,8 +1595,7 @@ func (this *Backpack) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["fillType"] = "User" // default
 	}
 
-	response := (<-this.PrivateGetWapiV1HistoryFills(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWapiV1HistoryFills(this.Extend(request, params))).Raw))
 	var responseList []any = this.ToArray(response)
 
 	ch <- this.ParseTrades(responseList, market, since, limit)
@@ -1714,7 +1709,7 @@ func (this *Backpack) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetApiV1Status(params))
+	response := (<-this.PublicGetApiV1Status(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1756,8 +1751,7 @@ func (this *Backpack) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetApiV1Time(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1Time(params)).Raw))
 
 	//
 	//     1753131712992
@@ -1789,7 +1783,7 @@ func (this *Backpack) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetApiV1Capital(params))
+	response := (<-this.PrivateGetApiV1Capital(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseBalance(response)
@@ -1875,7 +1869,7 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 
-	response := (<-this.PrivateGetWapiV1CapitalDeposits(this.Extend(request, params)))
+	response := (<-this.PrivateGetWapiV1CapitalDeposits(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
@@ -1933,7 +1927,7 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["to"] = until
 	}
 
-	response := (<-this.PrivateGetWapiV1CapitalWithdrawals(this.Extend(request, params)))
+	response := (<-this.PrivateGetWapiV1CapitalWithdrawals(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
@@ -1987,7 +1981,7 @@ func (this *Backpack) withdrawBody(ch chan any, code any, amount any, address an
 	}
 	request["blockchain"] = networkId
 
-	response := (<-this.PrivatePostWapiV1CapitalWithdrawals(this.Extend(request, query)))
+	response := (<-this.PrivatePostWapiV1CapitalWithdrawals(this.Extend(request, query))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransaction(response, currency)
@@ -2162,7 +2156,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code any, optionalArg
 		"blockchain": this.NetworkCodeToId(networkCode, currency["code"]),
 	}
 
-	response := (<-this.PrivateGetWapiV1CapitalDepositAddress(this.Extend(request, params)))
+	response := (<-this.PrivateGetWapiV1CapitalDepositAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseDepositAddress(response, currency)
@@ -2237,7 +2231,7 @@ func (this *Backpack) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
-	response := (<-this.PrivatePostApiV1Order(orderRequest))
+	response := (<-this.PrivatePostApiV1Order(orderRequest)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response, market)
@@ -2281,7 +2275,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
-	response := (<-this.PrivatePostApiV1Orders(ordersRequests))
+	response := (<-this.PrivatePostApiV1Orders(ordersRequests)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response)
@@ -2427,7 +2421,7 @@ func (this *Backpack) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["symbol"] = GetValue(market, "id")
 	}
 
-	response := (<-this.PrivateGetApiV1Orders(this.Extend(request, params)))
+	response := (<-this.PrivateGetApiV1Orders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -2469,7 +2463,7 @@ func (this *Backpack) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
 		"orderId": id,
 	}
 
-	response := (<-this.PrivateGetApiV1Order(this.Extend(request, params)))
+	response := (<-this.PrivateGetApiV1Order(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response)
@@ -2511,7 +2505,7 @@ func (this *Backpack) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"symbol":  market["id"],
 	}
 
-	response := (<-this.PrivateDeleteApiV1Order(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteApiV1Order(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response)
@@ -2551,7 +2545,7 @@ func (this *Backpack) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PrivateDeleteApiV1Orders(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteApiV1Orders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response, market)
@@ -2599,7 +2593,7 @@ func (this *Backpack) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetWapiV1HistoryOrders(this.Extend(request, params)))
+	response := (<-this.PrivateGetWapiV1HistoryOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -2794,7 +2788,7 @@ func (this *Backpack) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetApiV1Position(params))
+	response := (<-this.PrivateGetApiV1Position(params)).Raw
 	PanicOnError(response)
 	var positions any = this.ParsePositions(response)
 	if this.IsEmpty(symbols) {
@@ -2937,7 +2931,7 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params)))
+	response := (<-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseIncomes(response, market, since, limit)

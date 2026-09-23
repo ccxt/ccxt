@@ -345,8 +345,7 @@ func (this *Bitbank) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.MarketsGetSpotPairs(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.MarketsGetSpotPairs(params)).Raw))
 	//
 	//     {
 	//       "success": 1,
@@ -496,8 +495,7 @@ func (this *Bitbank) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetPairTicker(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPairTicker(this.Extend(request, params))).Raw))
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTicker(data, market)
@@ -535,8 +533,7 @@ func (this *Bitbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetPairDepth(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPairDepth(this.Extend(request, params))).Raw))
 	var orderbook map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 
@@ -625,8 +622,7 @@ func (this *Bitbank) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetPairTransactions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPairTransactions(this.Extend(request, params))).Raw))
 	var data map[string]any = SafeMapTyped(response, "data")
 	var trades []any = SafeListTypedDefault(data, "transactions", []any{})
 
@@ -657,8 +653,7 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.MarketsGetSpotPairs(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.MarketsGetSpotPairs(params)).Raw))
 	//
 	//     {
 	//         "success": "1",
@@ -775,8 +770,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"yyyymmdd":   this.Yyyymmdd(since, ""),
 	}
 
-	response := (<-this.PublicGetPairCandlestickCandletypeYyyymmdd(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPairCandlestickCandletypeYyyymmdd(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success":1,
@@ -854,7 +848,7 @@ func (this *Bitbank) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetUserAssets(params))
+	response := (<-this.PrivateGetUserAssets(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -1086,8 +1080,7 @@ func (this *Bitbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"pair":     market["id"],
 	}
 
-	response := (<-this.PrivateGetUserSpotOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserSpotOrder(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "success": 1,
@@ -1158,8 +1151,7 @@ func (this *Bitbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["since"] = this.ParseToInt(Divide(since, 1000))
 	}
 
-	response := (<-this.PrivateGetUserSpotActiveOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserSpotActiveOrders(this.Extend(request, params))).Raw))
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
@@ -1211,8 +1203,7 @@ func (this *Bitbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["since"] = this.ParseToInt(Divide(since, 1000))
 	}
 
-	response := (<-this.PrivateGetUserSpotTradeHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserSpotTradeHistory(this.Extend(request, params))).Raw))
 	var data map[string]any = SafeMapTyped(response, "data")
 	var trades []any = SafeListTypedDefault(data, "trades", []any{})
 
@@ -1248,7 +1239,7 @@ func (this *Bitbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		"asset": currency["id"],
 	}
 
-	response := (<-this.PrivateGetUserWithdrawalAccount(this.Extend(request, params)))
+	response := (<-this.PrivateGetUserWithdrawalAccount(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
 	// Not sure about this if there could be more than one account...

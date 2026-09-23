@@ -835,8 +835,7 @@ func (this *Pacifica) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetInfo(params))
-	PanicOnError(response) // meta
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInfo(params)).Raw)) // meta
 	// {
 	//   "success": true,
 	//   "data": [
@@ -1070,8 +1069,7 @@ func (this *Pacifica) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"account": userAccount,
 	}
 
-	response := (<-this.PublicGetAccount(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccount(this.Extend(request, params))).Raw))
 	// {
 	//   "success": true,
 	//   "data": {
@@ -1269,8 +1267,7 @@ func (this *Pacifica) fetchAccountSettingsBody(ch chan any, optionalArgs ...any)
 		"account": userAccount,
 	}
 
-	response := (<-this.PublicGetAccountSettings(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccountSettings(this.Extend(request, params))).Raw))
 
 	// {
 	//   "success": true,
@@ -1449,8 +1446,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"agg_level": aggLevel,
 	}
 
-	response := (<-this.PublicGetBook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetBook(this.Extend(request, params))).Raw))
 	// {
 	//   "success": true,
 	//   "data": {
@@ -1520,8 +1516,7 @@ func (this *Pacifica) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetInfoPrices(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInfoPrices(params)).Raw))
 	//
 	//  {
 	//     "success": true,
@@ -1673,8 +1668,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		AddElementToObject(request, "end_time", until)
 	}
 
-	response := (<-this.PublicGetKline(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetKline(this.Extend(request, params))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -1755,8 +1749,7 @@ func (this *Pacifica) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTrades(this.Extend(request, params))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -1850,7 +1843,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "start_time", since)
 	}
 
-	response := (<-this.PublicGetTradesHistory(this.Extend(request, params)))
+	response := (<-this.PublicGetTradesHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	// {
@@ -2015,19 +2008,19 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var response any = nil
 	if IsEqual(operationType, "create_market_order") {
 
-		response = (<-this.PrivatePostOrdersCreateMarket(this.Extend(request, params)))
+		response = (<-this.PrivatePostOrdersCreateMarket(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(operationType, "create_stop_order") {
 
-		response = (<-this.PrivatePostOrdersStopCreate(this.Extend(request, params)))
+		response = (<-this.PrivatePostOrdersStopCreate(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(operationType, "set_position_tpsl") {
 
-		response = (<-this.PrivatePostPositionsTpsl(this.Extend(request, params)))
+		response = (<-this.PrivatePostPositionsTpsl(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostOrdersCreate(this.Extend(request, params)))
+		response = (<-this.PrivatePostOrdersCreate(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -2275,8 +2268,7 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	PanicOnError((<-this.InitializeClientAsync()))
 	var request any = this.CreateOrdersRequest(orders)
 
-	response := (<-this.PrivatePostOrdersBatch(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrdersBatch(this.Extend(request, params))).Raw))
 	// {
 	//   "success": true,
 	//   "data": {
@@ -2361,8 +2353,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
 	params = MapTyped(this.Omit(params, []any{"expiryWindow", "clientOrderIds"}))
 
-	response := (<-this.PrivatePostOrdersBatch(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrdersBatch(this.Extend(request, params))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -2652,7 +2643,7 @@ func (this *Pacifica) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
 	params = MapTyped(this.Omit(params, []any{"expiryWindow", "clientOrderId"}))
 
-	response := (<-this.PrivatePostOrdersEdit(this.Extend(request, params)))
+	response := (<-this.PrivatePostOrdersEdit(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	// {
@@ -2759,7 +2750,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetFundingRateHistory(this.Extend(request, params)))
+	response := (<-this.PublicGetFundingRateHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	// {
@@ -2825,8 +2816,7 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetInfoPrices(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInfoPrices(params)).Raw))
 	//
 	//  {
 	//   "success": true,
@@ -3065,8 +3055,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 	}
 
-	response := (<-this.PublicGetOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrders(this.Extend(request, params))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -3159,7 +3148,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetOrdersHistory(this.Extend(request, params)))
+	response := (<-this.PublicGetOrdersHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	// {
@@ -3245,8 +3234,7 @@ func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"order_id": id,
 	}
 
-	response := (<-this.PublicGetOrdersHistoryById(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrdersHistoryById(this.Extend(request, params))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -3554,8 +3542,7 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"account": userAddress,
 	}
 
-	response := (<-this.PublicGetPositions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPositions(this.Extend(request, params))).Raw))
 	// {
 	//   "success": true,
 	//   "data": [
@@ -3693,7 +3680,7 @@ func (this *Pacifica) setMarginModeBody(ch chan any, marginMode any, optionalArg
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 	params = MapTyped(this.Omit(params, []any{"expiryWindow"}))
 
-	response := (<-this.PrivatePostAccountMargin(request))
+	response := (<-this.PrivatePostAccountMargin(request)).Raw
 	PanicOnError(response)
 
 	// {
@@ -3742,7 +3729,7 @@ func (this *Pacifica) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 	params = MapTyped(this.Omit(params, []any{"expiryWindow"}))
 
-	response := (<-this.PrivatePostAccountLeverage(request))
+	response := (<-this.PrivatePostAccountLeverage(request)).Raw
 	PanicOnError(response)
 
 	// {
@@ -3789,7 +3776,7 @@ func (this *Pacifica) withdrawBody(ch chan any, code any, amount any, address an
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 	params = MapTyped(this.Omit(params, []any{"expiryWindow"}))
 
-	response := (<-this.PrivatePostAccountWithdraw(this.Extend(request, params)))
+	response := (<-this.PrivatePostAccountWithdraw(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- map[string]any{
@@ -3831,8 +3818,7 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 		"account": userAddress,
 	}
 
-	response := (<-this.PublicGetAccount(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccount(this.Extend(request, params))).Raw))
 	// {
 	//   "success": true,
 	//   "data": {
@@ -3921,8 +3907,7 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetInfoPrices(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInfoPrices(params)).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOpenInterests(data, symbols)
@@ -4060,7 +4045,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetAccountBalanceHistory(this.Extend(request, params)))
+	response := (<-this.PublicGetAccountBalanceHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	// {
 	//   "success": true,
@@ -4197,7 +4182,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		return nil
 	}
 
-	response := (<-this.PublicGetFundingHistory(this.Extend(request, params)))
+	response := (<-this.PublicGetFundingHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	// {
 	//   "success": true,
@@ -4291,8 +4276,7 @@ func (this *Pacifica) transferBody(ch chan any, code any, amount any, fromAccoun
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 	params = MapTyped(this.Omit(params, []any{"expiryWindow"}))
 
-	response := (<-this.PrivatePostAccountSubaccountTransfer(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountSubaccountTransfer(this.Extend(request, params))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -4435,7 +4419,7 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 	finalHeaders["expiry_window"] = expiryWindow
 	var request map[string]any = finalHeaders
 
-	response := (<-this.PrivatePostAccountSubaccountCreate(this.Extend(request, params)))
+	response := (<-this.PrivatePostAccountSubaccountCreate(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -4465,7 +4449,7 @@ func (this *Pacifica) bindAgentWalletBody(ch chan any, agentAddress any, optiona
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes342815 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
+	retRes342815 := (<-this.PrivatePostAgentBind(this.Extend(request, params))).Raw
 	PanicOnError(retRes342815)
 	ch <- retRes342815
 	return nil
@@ -4484,7 +4468,7 @@ func (this *Pacifica) createApiKeyBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes343515 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
+	retRes343515 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params))).Raw
 	PanicOnError(retRes343515)
 	ch <- retRes343515
 	return nil
@@ -4505,7 +4489,7 @@ func (this *Pacifica) revokeApiKeyBody(ch chan any, apiKey any, optionalArgs ...
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes344415 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
+	retRes344415 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params))).Raw
 	PanicOnError(retRes344415)
 	ch <- retRes344415
 	return nil
@@ -4524,7 +4508,7 @@ func (this *Pacifica) fetchApiKeysBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes345115 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
+	retRes345115 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params))).Raw
 	PanicOnError(retRes345115)
 	ch <- retRes345115
 	return nil
@@ -4546,7 +4530,7 @@ func (this *Pacifica) approveBuilderCodeBody(ch chan any, builderCode any, maxFe
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes346115 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
+	retRes346115 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params))).Raw
 	PanicOnError(retRes346115)
 	ch <- retRes346115
 	return nil
@@ -4563,7 +4547,7 @@ func (this *Pacifica) fetchBuilderApprovalsBody(ch chan any, address any) any {
 		"account": address,
 	}
 
-	retRes346815 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
+	retRes346815 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request))).Raw
 	PanicOnError(retRes346815)
 	ch <- retRes346815
 	return nil
@@ -4584,7 +4568,7 @@ func (this *Pacifica) revokeBuilderCodeBody(ch chan any, builderCode any, option
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes347715 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
+	retRes347715 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params))).Raw
 	PanicOnError(retRes347715)
 	ch <- retRes347715
 	return nil

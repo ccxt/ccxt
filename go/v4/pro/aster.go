@@ -1731,11 +1731,11 @@ func (this *Aster) authenticateBody(ch chan any, optionalArgs ...any) any {
 				var response any = map[string]any{}
 				if typeVar == "spot" {
 
-					response = (<-this.SapiPrivatePostV3ListenKey(params))
+					response = (<-this.SapiPrivatePostV3ListenKey(params)).Raw
 					ccxt.PanicOnError(response)
 				} else {
 
-					response = (<-this.FapiPrivatePostV3ListenKey(params))
+					response = (<-this.FapiPrivatePostV3ListenKey(params)).Raw
 					ccxt.PanicOnError(response)
 				}
 				var listenKey *string = this.SafeString(response, "listenKey")
@@ -1805,10 +1805,10 @@ func (this *Aster) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any 
 			// try block:
 			if typeVar != nil && *typeVar == "spot" {
 
-				ccxt.PanicOnError((<-this.SapiPrivatePutV3ListenKey())) // extend the expiry
+				ccxt.PanicOnError((<-this.SapiPrivatePutV3ListenKey()).Raw) // extend the expiry
 			} else {
 
-				ccxt.PanicOnError((<-this.FapiPrivatePutV3ListenKey())) // extend the expiry
+				ccxt.PanicOnError((<-this.FapiPrivatePutV3ListenKey()).Raw) // extend the expiry
 			}
 			return nil
 		}(this)

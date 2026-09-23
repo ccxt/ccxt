@@ -3916,15 +3916,15 @@ func (this *Binance) authenticateBody(ch chan any, optionalArgs ...any) any {
 					})
 				} else if ccxt.IsEqual(typeVar, "future") {
 
-					response = (<-this.FapiPrivatePostListenKey(params))
+					response = (<-this.FapiPrivatePostListenKey(params)).Raw
 					ccxt.PanicOnError(response)
 				} else if ccxt.IsEqual(typeVar, "delivery") {
 
-					response = (<-this.DapiPrivatePostListenKey(params))
+					response = (<-this.DapiPrivatePostListenKey(params)).Raw
 					ccxt.PanicOnError(response)
 				} else if ccxt.IsEqual(typeVar, "option") {
 
-					response = (<-this.EapiPrivatePostListenKey(params))
+					response = (<-this.EapiPrivatePostListenKey(params)).Raw
 					ccxt.PanicOnError(response)
 				} else {
 
@@ -4066,13 +4066,13 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 				})
 			} else if ccxt.IsEqual(typeVar, "future") {
 
-				ccxt.PanicOnError((<-this.FapiPrivatePutListenKey(this.Extend(request, params))))
+				ccxt.PanicOnError((<-this.FapiPrivatePutListenKey(this.Extend(request, params))).Raw)
 			} else if ccxt.IsEqual(typeVar, "delivery") {
 
-				ccxt.PanicOnError((<-this.DapiPrivatePutListenKey(this.Extend(request, params))))
+				ccxt.PanicOnError((<-this.DapiPrivatePutListenKey(this.Extend(request, params))).Raw)
 			} else if ccxt.IsEqual(typeVar, "option") {
 
-				ccxt.PanicOnError((<-this.EapiPrivatePutListenKey(this.Extend(request, params))))
+				ccxt.PanicOnError((<-this.EapiPrivatePutListenKey(this.Extend(request, params))).Raw)
 			} else {
 				request["listenKey"] = listenKey
 

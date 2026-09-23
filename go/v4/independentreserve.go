@@ -431,11 +431,11 @@ func (this *Independentreserve) fetchMarketsBody(ch chan any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var baseCurrenciesPromise any = this.PublicGetGetValidPrimaryCurrencyCodes(params)
+	var baseCurrenciesPromise any = EndpointRaw(this.PublicGetGetValidPrimaryCurrencyCodes(params))
 	//     ['Xbt', 'Eth', 'Usdt', ...]
-	var quoteCurrenciesPromise any = this.PublicGetGetValidSecondaryCurrencyCodes(params)
+	var quoteCurrenciesPromise any = EndpointRaw(this.PublicGetGetValidSecondaryCurrencyCodes(params))
 	//     ['Aud', 'Usd', 'Nzd', 'Sgd']
-	var limitsPromise any = this.PublicGetGetOrderMinimumVolumes(params)
+	var limitsPromise any = EndpointRaw(this.PublicGetGetOrderMinimumVolumes(params))
 	baseCurrenciesquoteCurrencieslimitsVariable := (<-promiseAll([]any{baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise}))
 	baseCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 0)
 	quoteCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 1)
@@ -564,7 +564,7 @@ func (this *Independentreserve) fetchBalanceBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostGetAccounts(params))
+	response := (<-this.PrivatePostGetAccounts(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseBalance(response)
@@ -602,7 +602,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan any, symbol any, opti
 		"secondaryCurrencyCode": market["quoteId"],
 	}
 
-	response := (<-this.PublicGetGetOrderBook(this.Extend(request, params)))
+	response := (<-this.PublicGetGetOrderBook(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "CreatedTimestampUtc"))
 
@@ -687,7 +687,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan any, symbol any, optiona
 		"secondaryCurrencyCode": market["quoteId"],
 	}
 
-	response := (<-this.PublicGetGetMarketSummary(this.Extend(request, params)))
+	response := (<-this.PublicGetGetMarketSummary(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	// {
@@ -872,7 +872,7 @@ func (this *Independentreserve) fetchOrderBody(ch chan any, id any, optionalArgs
 
 	response := (<-this.PrivatePostGetOrderDetails(this.Extend(map[string]any{
 		"orderGuid": id,
-	}, params)))
+	}, params))).Raw
 	PanicOnError(response)
 	var market any = nil
 	if symbol != nil {
@@ -926,8 +926,7 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ..
 	request["pageIndex"] = 1
 	request["pageSize"] = limit
 
-	response := (<-this.PrivatePostGetOpenOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetOpenOrders(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "Data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
@@ -977,8 +976,7 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs 
 	request["pageIndex"] = 1
 	request["pageSize"] = limit
 
-	response := (<-this.PrivatePostGetClosedOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetClosedOrders(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "Data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
@@ -1024,8 +1022,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 		"pageSize":  limit,
 	}
 
-	response := (<-this.PrivatePostGetTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetTrades(this.Extend(request, params))).Raw))
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1113,8 +1110,7 @@ func (this *Independentreserve) fetchTradesBody(ch chan any, symbol any, optiona
 		"numberOfRecentTradesToRetrieve": 50,
 	}
 
-	response := (<-this.PublicGetGetRecentTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetRecentTrades(this.Extend(request, params))).Raw))
 	var trades []any = SafeListTypedDefault(response, "Trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -1143,8 +1139,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostGetBrokerageFees(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostGetBrokerageFees(params)).Raw))
 	//
 	//     [
 	//         {
@@ -1239,11 +1234,11 @@ func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar
 	if IsEqual(typeVar, "limit") {
 		request["price"] = price
 
-		response = (<-this.PrivatePostPlaceLimitOrder(this.Extend(request, params)))
+		response = (<-this.PrivatePostPlaceLimitOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostPlaceMarketOrder(this.Extend(request, params)))
+		response = (<-this.PrivatePostPlaceMarketOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1284,7 +1279,7 @@ func (this *Independentreserve) cancelOrderBody(ch chan any, id any, optionalArg
 		"orderGuid": id,
 	}
 
-	response := (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
+	response := (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1334,7 +1329,7 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan any, code any, o
 		"primaryCurrencyCode": currency["id"],
 	}
 
-	response := (<-this.PrivatePostGetDigitalCurrencyDepositAddress(this.Extend(request, params)))
+	response := (<-this.PrivatePostGetDigitalCurrencyDepositAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1421,7 +1416,7 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 		panic(BadRequest(this.Id + " withdraw () does not accept params[\"networkCode\"]"))
 	}
 
-	response := (<-this.PrivatePostWithdrawDigitalCurrency(this.Extend(request, params)))
+	response := (<-this.PrivatePostWithdrawDigitalCurrency(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//

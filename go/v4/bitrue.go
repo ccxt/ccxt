@@ -1287,18 +1287,18 @@ func (this *Bitrue) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(typeVar, "swap") {
 		if (subType != nil) && (IsEqual(subType, "inverse")) {
 
-			response = (<-this.DapiV2PrivateGetAccount(params))
+			response = (<-this.DapiV2PrivateGetAccount(params)).Raw
 			PanicOnError(response)
 			result = this.SafeDict(response, "data", map[string]any{})
 		} else {
 
-			response = (<-this.FapiV2PrivateGetAccount(params))
+			response = (<-this.FapiV2PrivateGetAccount(params)).Raw
 			PanicOnError(response)
 			result = this.SafeDict(response, "data", map[string]any{})
 		}
 	} else {
 
-		response = (<-this.SpotV1PrivateGetAccount(params))
+		response = (<-this.SpotV1PrivateGetAccount(params)).Raw
 		PanicOnError(response)
 		result = response
 	}
@@ -1367,7 +1367,7 @@ func (this *Bitrue) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			request["limit"] = limit // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
 		}
 
-		response = (<-this.SpotV1PublicGetDepth(this.Extend(request, params)))
+		response = (<-this.SpotV1PublicGetDepth(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchOrderBook only support spot & swap markets"))
@@ -2366,11 +2366,11 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		params = this.Omit(params, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"})
 		if GetValue(market, "linear") == true {
 
-			response = (<-this.FapiV2PrivatePostOrder(this.Extend(request, params)))
+			response = (<-this.FapiV2PrivatePostOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiV2PrivatePostOrder(this.Extend(request, params)))
+			response = (<-this.DapiV2PrivatePostOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
@@ -2392,7 +2392,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}
 
-		response = (<-this.SpotV1PrivatePostOrder(this.Extend(request, params)))
+		response = (<-this.SpotV1PrivatePostOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		data = response
 	} else {
@@ -2473,11 +2473,11 @@ func (this *Bitrue) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		request["contractName"] = market["id"]
 		if GetValue(market, "linear") == true {
 
-			response = (<-this.FapiV2PrivateGetOrder(this.Extend(request, params)))
+			response = (<-this.FapiV2PrivateGetOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiV2PrivateGetOrder(this.Extend(request, params)))
+			response = (<-this.DapiV2PrivateGetOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
@@ -2485,7 +2485,7 @@ func (this *Bitrue) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		request["orderId"] = id // spot market id is mandatory
 		request["symbol"] = market["id"]
 
-		response = (<-this.SpotV1PrivateGetOrder(this.Extend(request, params)))
+		response = (<-this.SpotV1PrivateGetOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		data = response
 	} else {
@@ -2587,7 +2587,7 @@ func (this *Bitrue) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit // default 100, max 1000
 	}
 
-	response := (<-this.SpotV1PrivateGetAllOrders(this.Extend(request, params)))
+	response := (<-this.SpotV1PrivateGetAllOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2659,18 +2659,18 @@ func (this *Bitrue) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["contractName"] = market["id"]
 		if GetValue(market, "linear") == true {
 
-			response = (<-this.FapiV2PrivateGetOpenOrders(this.Extend(request, params)))
+			response = (<-this.FapiV2PrivateGetOpenOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiV2PrivateGetOpenOrders(this.Extend(request, params)))
+			response = (<-this.DapiV2PrivateGetOpenOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 		data = this.SafeList(response, "data", []any{})
 	} else if GetValue(market, "spot") == true {
 		request["symbol"] = market["id"]
 
-		response = (<-this.SpotV1PrivateGetOpenOrders(this.Extend(request, params)))
+		response = (<-this.SpotV1PrivateGetOpenOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		data = response
 	} else {
@@ -2777,18 +2777,18 @@ func (this *Bitrue) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		request["contractName"] = market["id"]
 		if GetValue(market, "linear") == true {
 
-			response = (<-this.FapiV2PrivatePostCancel(this.Extend(request, params)))
+			response = (<-this.FapiV2PrivatePostCancel(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiV2PrivatePostCancel(this.Extend(request, params)))
+			response = (<-this.DapiV2PrivatePostCancel(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
 	} else if GetValue(market, "spot") == true {
 		request["symbol"] = market["id"]
 
-		response = (<-this.SpotV1PrivateDeleteOrder(this.Extend(request, params)))
+		response = (<-this.SpotV1PrivateDeleteOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		data = response
 	} else {
@@ -2855,11 +2855,11 @@ func (this *Bitrue) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		if GetValue(market, "linear") == true {
 
-			response = (<-this.FapiV2PrivatePostAllOpenOrders(this.Extend(request, params)))
+			response = (<-this.FapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiV2PrivatePostAllOpenOrders(this.Extend(request, params)))
+			response = (<-this.DapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 		data = this.SafeList(response, "data", []any{})
@@ -2932,11 +2932,11 @@ func (this *Bitrue) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["contractName"] = market["id"]
 		if GetValue(market, "linear") == true {
 
-			response = (<-this.FapiV2PrivateGetMyTrades(this.Extend(request, params)))
+			response = (<-this.FapiV2PrivateGetMyTrades(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiV2PrivateGetMyTrades(this.Extend(request, params)))
+			response = (<-this.DapiV2PrivateGetMyTrades(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 		data = this.SafeList(response, "data", []any{})
@@ -3045,8 +3045,7 @@ func (this *Bitrue) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.SpotV1PrivateGetDepositHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SpotV1PrivateGetDepositHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code":200,
@@ -3135,8 +3134,7 @@ func (this *Bitrue) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.SpotV1PrivateGetWithdrawHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SpotV1PrivateGetWithdrawHistory(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": 200,
@@ -3368,8 +3366,7 @@ func (this *Bitrue) withdrawBody(ch chan any, code any, amount any, address any,
 		request["tag"] = tag
 	}
 
-	response := (<-this.SpotV1PrivatePostWithdrawCommit(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SpotV1PrivatePostWithdrawCommit(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -3578,8 +3575,7 @@ func (this *Bitrue) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 
-	response := (<-this.FapiV2PrivateGetFuturesTransferHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FapiV2PrivateGetFuturesTransferHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         'code': '0',
@@ -3636,8 +3632,7 @@ func (this *Bitrue) transferBody(ch chan any, code any, amount any, fromAccount 
 		"transferType": *fromId + "_to_" + *toId,
 	}
 
-	response := (<-this.FapiV2PrivatePostFuturesTransfer(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FapiV2PrivatePostFuturesTransfer(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         'code': '0',
@@ -3695,11 +3690,11 @@ func (this *Bitrue) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	}
 	if GetValue(market, "linear") == true {
 
-		response = (<-this.FapiV2PrivatePostLevelEdit(this.Extend(request, params)))
+		response = (<-this.FapiV2PrivatePostLevelEdit(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiV2PrivatePostLevelEdit(this.Extend(request, params)))
+		response = (<-this.DapiV2PrivatePostLevelEdit(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -3768,11 +3763,11 @@ func (this *Bitrue) setMarginBody(ch chan any, symbol any, amount any, optionalA
 	}
 	if GetValue(market, "linear") == true {
 
-		response = (<-this.FapiV2PrivatePostPositionMargin(this.Extend(request, params)))
+		response = (<-this.FapiV2PrivatePostPositionMargin(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiV2PrivatePostPositionMargin(this.Extend(request, params)))
+		response = (<-this.DapiV2PrivatePostPositionMargin(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 

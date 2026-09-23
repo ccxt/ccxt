@@ -2117,11 +2117,11 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var response any = nil
 	if method != nil && *method == "spotPrivatePostCreateOrder" {
 
-		response = (<-this.SpotPrivatePostCreateOrder(this.Extend(request, params)))
+		response = (<-this.SpotPrivatePostCreateOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.SpotPrivatePostSupplementCreateOrder(this.Extend(request, params)))
+		response = (<-this.SpotPrivatePostSupplementCreateOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -2742,8 +2742,7 @@ func (this *Lbank) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		request["origClientOrderId"] = clientOrderId
 	}
 
-	response := (<-this.SpotPrivatePostSupplementCancelOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivatePostSupplementCancelOrder(this.Extend(request, params))).Raw))
 	//
 	//   {
 	//      "result":true,
@@ -2796,8 +2795,7 @@ func (this *Lbank) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"symbol": market["id"],
 	}
 
-	response := (<-this.SpotPrivatePostSupplementCancelOrderBySymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivatePostSupplementCancelOrderBySymbol(this.Extend(request, params))).Raw))
 	//
 	//      {
 	//          "result":"true",

@@ -1381,7 +1381,7 @@ func (this *Mexc) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var updated *int64 = nil
 	if marketType == "spot" {
 
-		response = (<-this.SpotPublicGetPing(query))
+		response = (<-this.SpotPublicGetPing(query)).Raw
 		PanicOnError(response)
 		//
 		//     {}
@@ -1396,7 +1396,7 @@ func (this *Mexc) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		}()
 	} else if marketType == "swap" {
 
-		response = (<-this.ContractPublicGetPing(query))
+		response = (<-this.ContractPublicGetPing(query)).Raw
 		PanicOnError(response)
 		//
 		//     {"success":true,"code":"0","data":"1648124374985"}
@@ -1446,7 +1446,7 @@ func (this *Mexc) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if marketType == "spot" {
 
-		response = (<-this.SpotPublicGetTime(query))
+		response = (<-this.SpotPublicGetTime(query)).Raw
 		PanicOnError(response)
 
 		//
@@ -1456,7 +1456,7 @@ func (this *Mexc) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	} else if marketType == "swap" {
 
-		response = (<-this.ContractPublicGetPing(query))
+		response = (<-this.ContractPublicGetPing(query)).Raw
 		PanicOnError(response)
 
 		//
@@ -1497,7 +1497,7 @@ func (this *Mexc) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	response := (<-this.SpotPrivateGetCapitalConfigGetall(params))
+	response := (<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -1649,8 +1649,7 @@ func (this *Mexc) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.SpotPublicGetExchangeInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPublicGetExchangeInfo(params)).Raw))
 	//
 	//     {
 	//         "timezone": "CST",
@@ -1796,8 +1795,7 @@ func (this *Mexc) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	var currentRl any = this.RateLimit
 	this.SetProperty(this, "rateLimit", 10) // see comment: https://github.com/ccxt/ccxt/pull/23698
 
-	response := (<-this.ContractPublicGetDetail(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPublicGetDetail(params)).Raw))
 	this.SetProperty(this, "rateLimit", currentRl)
 	//
 	//     {
@@ -1955,7 +1953,7 @@ func (this *Mexc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var orderbook any = nil
 	if GetValue(market, "spot") == true {
 
-		response := (<-this.SpotPublicGetDepth(this.Extend(request, params)))
+		response := (<-this.SpotPublicGetDepth(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -1975,7 +1973,7 @@ func (this *Mexc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
 	} else if GetValue(market, "swap") == true {
 
-		response := (<-this.ContractPublicGetDepthSymbol(this.Extend(request, params)))
+		response := (<-this.ContractPublicGetDepthSymbol(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -2080,23 +2078,22 @@ func (this *Mexc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		params = MapTyped(this.Omit(params, []any{"method"}))
 		if method != nil && *method == "spotPublicGetAggTrades" {
 
-			trades = (<-this.SpotPublicGetAggTrades(this.Extend(request, params)))
+			trades = (<-this.SpotPublicGetAggTrades(this.Extend(request, params))).Raw
 			PanicOnError(trades)
 		} else if method != nil && *method == "spotPublicGetHistoricalTrades" {
 
-			trades = (<-this.SpotPublicGetHistoricalTrades(this.Extend(request, params)))
+			trades = (<-this.SpotPublicGetHistoricalTrades(this.Extend(request, params))).Raw
 			PanicOnError(trades)
 		} else if method != nil && *method == "spotPublicGetTrades" {
 
-			trades = (<-this.SpotPublicGetTrades(this.Extend(request, params)))
+			trades = (<-this.SpotPublicGetTrades(this.Extend(request, params))).Raw
 			PanicOnError(trades)
 		} else {
 			panic(NotSupported(this.Id + " fetchTrades() not support this method"))
 		}
 	} else if GetValue(market, "swap") == true {
 
-		response := (<-this.ContractPublicGetDealsSymbol(this.Extend(request, params)))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPublicGetDealsSymbol(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "success": true,
@@ -2381,7 +2378,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 			request["endTime"] = Add(until, 1) // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
 		}
 
-		response := (<-this.SpotPublicGetKlines(this.Extend(request, params)))
+		response := (<-this.SpotPublicGetKlines(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     [
@@ -2413,15 +2410,15 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		var response any = nil
 		if priceType != nil && *priceType == "default" {
 
-			response = (<-this.ContractPublicGetKlineSymbol(this.Extend(request, params)))
+			response = (<-this.ContractPublicGetKlineSymbol(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if priceType != nil && *priceType == "index" {
 
-			response = (<-this.ContractPublicGetKlineIndexPriceSymbol(this.Extend(request, params)))
+			response = (<-this.ContractPublicGetKlineIndexPriceSymbol(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if priceType != nil && *priceType == "mark" {
 
-			response = (<-this.ContractPublicGetKlineFairPriceSymbol(this.Extend(request, params)))
+			response = (<-this.ContractPublicGetKlineFairPriceSymbol(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			panic(NotSupported(this.Id + " fetchOHLCV() not support this price type, [default, index, mark]"))
@@ -2502,8 +2499,7 @@ func (this *Mexc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(tickers)
 	} else if marketType == "swap" {
 
-		response := (<-this.ContractPublicGetTicker(this.Extend(request, query)))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPublicGetTicker(this.Extend(request, query))).Raw))
 		//
 		//     {
 		//         "success":true,
@@ -2580,8 +2576,7 @@ func (this *Mexc) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		PanicOnError(ticker)
 	} else if marketType == "swap" {
 
-		response := (<-this.ContractPublicGetTicker(this.Extend(request, query)))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPublicGetTicker(this.Extend(request, query))).Raw))
 		//
 		//     {
 		//         "success":true,
@@ -2771,7 +2766,7 @@ func (this *Mexc) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var tickers any = nil
 	if marketType == "spot" {
 
-		tickers = (<-this.SpotPublicGetTickerBookTicker(query))
+		tickers = (<-this.SpotPublicGetTickerBookTicker(query)).Raw
 		PanicOnError(tickers)
 	} else if marketType == "swap" {
 		panic(NotSupported(Add(Add(this.Id+" fetchBidsAsks() is not available for ", marketType), " markets")))
@@ -3028,11 +3023,11 @@ func (this *Mexc) createSpotOrderBody(ch chan any, market any, typeVar any, side
 	var response any = nil
 	if test != nil && *test == true {
 
-		response = (<-this.SpotPrivatePostOrderTest(request))
+		response = (<-this.SpotPrivatePostOrderTest(request)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.SpotPrivatePostOrder(request))
+		response = (<-this.SpotPrivatePostOrder(request)).Raw
 		PanicOnError(response)
 	}
 	//
@@ -3216,11 +3211,11 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 		request["trend"] = this.SafeInteger(params, "trend", 1)
 		request["orderType"] = this.SafeInteger(params, "orderType", 1)
 
-		response = (<-this.ContractPrivatePostPlanorderPlace(this.Extend(request, params)))
+		response = (<-this.ContractPrivatePostPlanorderPlace(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.ContractPrivatePostOrderCreate(this.Extend(request, params)))
+		response = (<-this.ContractPrivatePostOrderCreate(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -3296,7 +3291,7 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		"batchOrders": this.Json(ordersRequests),
 	}
 
-	response := (<-this.SpotPrivatePostBatchOrders(request))
+	response := (<-this.SpotPrivatePostBatchOrders(request)).Raw
 	PanicOnError(response)
 
 	//
@@ -3375,18 +3370,17 @@ func (this *Mexc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 				panic(BadRequest(Add(Add(this.Id+" fetchOrder() does not support marginMode ", marginMode), " for spot-margin trading")))
 			}
 
-			data = (<-this.SpotPrivateGetMarginOrder(this.Extend(request, query)))
+			data = (<-this.SpotPrivateGetMarginOrder(this.Extend(request, query))).Raw
 			PanicOnError(data)
 		} else {
 
-			data = (<-this.SpotPrivateGetOrder(this.Extend(request, query)))
+			data = (<-this.SpotPrivateGetOrder(this.Extend(request, query))).Raw
 			PanicOnError(data)
 		}
 	} else if GetValue(market, "swap") == true {
 		request["order_id"] = id
 
-		response := (<-this.ContractPrivateGetOrderGetOrderId(this.Extend(request, params)))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetOrderGetOrderId(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "success": true,
@@ -3494,11 +3488,11 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 				panic(BadRequest(Add(Add(this.Id+" fetchOrders() does not support marginMode ", marginMode), " for spot-margin trading")))
 			}
 
-			response = (<-this.SpotPrivateGetMarginAllOrders(this.Extend(request, queryInner)))
+			response = (<-this.SpotPrivateGetMarginAllOrders(this.Extend(request, queryInner))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.SpotPrivateGetAllOrders(this.Extend(request, queryInner)))
+			response = (<-this.SpotPrivateGetAllOrders(this.Extend(request, queryInner))).Raw
 			PanicOnError(response)
 		}
 
@@ -3578,7 +3572,7 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		var ordersOfTrigger any = []any{}
 		if method != nil && *method == "contractPrivateGetOrderListHistoryOrders" {
 
-			response := (<-this.ContractPrivateGetOrderListHistoryOrders(this.Extend(request, query)))
+			response := (<-this.ContractPrivateGetOrderListHistoryOrders(this.Extend(request, query))).Raw
 			PanicOnError(response)
 			//
 			//     {
@@ -3618,7 +3612,7 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		} else {
 			// the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
 
-			response := (<-this.ContractPrivateGetPlanorderListOrders(this.Extend(request, query)))
+			response := (<-this.ContractPrivateGetPlanorderListOrders(this.Extend(request, query))).Raw
 			PanicOnError(response)
 			//
 			//     {
@@ -3684,8 +3678,7 @@ func (this *Mexc) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...any
 	} else {
 		request["order_ids"] = Join(ids, ",")
 
-		response := (<-this.ContractPrivateGetOrderBatchQuery(this.Extend(request, query)))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetOrderBatchQuery(this.Extend(request, query))).Raw))
 		//
 		//     {
 		//         "success": true,
@@ -3783,11 +3776,11 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 				panic(BadRequest(Add(Add(this.Id+" fetchOpenOrders() does not support marginMode ", marginMode), " for spot-margin trading")))
 			}
 
-			response = (<-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query)))
+			response = (<-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.SpotPrivateGetOpenOrders(this.Extend(request, query)))
+			response = (<-this.SpotPrivateGetOpenOrders(this.Extend(request, query))).Raw
 			PanicOnError(response)
 		}
 
@@ -3846,8 +3839,7 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["page_size"] = 100 // max
 		}
 
-		swapResponse := (<-this.ContractPrivateGetOrderListOpenOrders(this.Extend(request, params)))
-		PanicOnError(swapResponse)
+		var swapResponse map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetOrderListOpenOrders(this.Extend(request, params))).Raw))
 		var data []any = SafeListTypedDefault(swapResponse, "data", []any{})
 
 		ch <- this.ParseOrders(data, market, since, limit, params)
@@ -4027,11 +4019,11 @@ func (this *Mexc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 				panic(BadRequest(Add(Add(this.Id+" cancelOrder() does not support marginMode ", marginMode), " for spot-margin trading")))
 			}
 
-			data = (<-this.SpotPrivateDeleteMarginOrder(this.Extend(requestInner, query)))
+			data = (<-this.SpotPrivateDeleteMarginOrder(this.Extend(requestInner, query))).Raw
 			PanicOnError(data)
 		} else {
 
-			data = (<-this.SpotPrivateDeleteOrder(this.Extend(requestInner, query)))
+			data = (<-this.SpotPrivateDeleteOrder(this.Extend(requestInner, query))).Raw
 			PanicOnError(data)
 		}
 	} else {
@@ -4041,11 +4033,11 @@ func (this *Mexc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		var response any = nil
 		if method != nil && *method == "contractPrivatePostOrderCancel" {
 
-			response = (<-this.ContractPrivatePostOrderCancel([]any{id}))
+			response = (<-this.ContractPrivatePostOrderCancel([]any{id})).Raw
 			PanicOnError(response) // the request cannot be changed or extended. This is the only way to send.
 		} else if method != nil && *method == "contractPrivatePostPlanorderCancel" {
 
-			response = (<-this.ContractPrivatePostPlanorderCancel([]any{id}))
+			response = (<-this.ContractPrivatePostPlanorderCancel([]any{id})).Raw
 			PanicOnError(response) // the request cannot be changed or extended. This is the only way to send.
 		} else {
 			panic(NotSupported(this.Id + " cancelOrder() not support this method"))
@@ -4113,8 +4105,7 @@ func (this *Mexc) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		panic(BadRequest(Add(this.Id+" cancelOrders() is not supported for ", marketType)))
 	} else {
 
-		response := (<-this.ContractPrivatePostOrderCancel(ids))
-		PanicOnError(response) // the request cannot be changed or extended. The only way to send.
+		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivatePostOrderCancel(ids)).Raw)) // the request cannot be changed or extended. The only way to send.
 		//
 		//     {
 		//         "success": true,
@@ -4175,7 +4166,7 @@ func (this *Mexc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(marketType, "spot") {
 		if symbol == nil {
 
-			PanicOnError((<-this.SpotPrivateDeleteOrderAll(params)))
+			PanicOnError((<-this.SpotPrivateDeleteOrderAll(params)).Raw)
 
 			//
 			//     {
@@ -4189,7 +4180,7 @@ func (this *Mexc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		request["symbol"] = this.SafeString(market, "id")
 
-		response := (<-this.SpotPrivateDeleteOpenOrders(this.Extend(request, params)))
+		response := (<-this.SpotPrivateDeleteOpenOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 
 		//
@@ -4219,11 +4210,11 @@ func (this *Mexc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		var response any = map[string]any{}
 		if method != nil && *method == "contractPrivatePostOrderCancelAll" {
 
-			response = (<-this.ContractPrivatePostOrderCancelAll(this.Extend(request, params)))
+			response = (<-this.ContractPrivatePostOrderCancelAll(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if method != nil && *method == "contractPrivatePostPlanorderCancelAll" {
 
-			response = (<-this.ContractPrivatePostPlanorderCancelAll(this.Extend(request, params)))
+			response = (<-this.ContractPrivatePostPlanorderCancelAll(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 		//
@@ -4531,14 +4522,13 @@ func (this *Mexc) fetchAccountHelperBody(ch chan any, typeVar any, params any) a
 	defer ReturnPanicError(ch)
 	if IsEqual(typeVar, "spot") {
 
-		retRes375619 := (<-this.SpotPrivateGetAccount(params))
+		retRes375619 := (<-this.SpotPrivateGetAccount(params)).Raw
 		PanicOnError(retRes375619)
 		ch <- retRes375619
 		return nil
 	} else if IsEqual(typeVar, "swap") {
 
-		response := (<-this.ContractPrivateGetAccountAssets(params))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetAccountAssets(params)).Raw))
 
 		//
 		//     {
@@ -4652,8 +4642,7 @@ func (this *Mexc) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	response := (<-this.SpotPrivateGetTradeFee(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivateGetTradeFee(this.Extend(request, params))).Raw))
 	//
 	//  {
 	//      "data":{
@@ -4857,15 +4846,15 @@ func (this *Mexc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		request["symbols"] = parsedSymbols
 		params = this.Omit(params, []any{"symbol", "symbols"})
 
-		response = (<-this.SpotPrivateGetMarginIsolatedAccount(this.Extend(request, params)))
+		response = (<-this.SpotPrivateGetMarginIsolatedAccount(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(marketType, "spot") {
 
-		response = (<-this.SpotPrivateGetAccount(this.Extend(request, params)))
+		response = (<-this.SpotPrivateGetAccount(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(marketType, "swap") {
 
-		response = (<-this.ContractPrivateGetAccountAssets(this.Extend(request, params)))
+		response = (<-this.ContractPrivateGetAccountAssets(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchBalance() not support this method"))
@@ -5017,7 +5006,7 @@ func (this *Mexc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			request["endTime"] = until
 		}
 
-		trades = (<-this.SpotPrivateGetMyTrades(this.Extend(request, params)))
+		trades = (<-this.SpotPrivateGetMyTrades(this.Extend(request, params))).Raw
 		PanicOnError(trades)
 	} else {
 		if since != nil {
@@ -5031,8 +5020,7 @@ func (this *Mexc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			request["page_size"] = limit
 		}
 
-		response := (<-this.ContractPrivateGetOrderListOrderDeals(this.Extend(request, params)))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetOrderListOrderDeals(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "success": true,
@@ -5112,13 +5100,12 @@ func (this *Mexc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 		request["symbol"] = this.SafeString(market, "id")
 		request["orderId"] = id
 
-		trades = (<-this.SpotPrivateGetMyTrades(this.Extend(request, query)))
+		trades = (<-this.SpotPrivateGetMyTrades(this.Extend(request, query))).Raw
 		PanicOnError(trades)
 	} else {
 		request["order_id"] = id
 
-		response := (<-this.ContractPrivateGetOrderDealDetailsOrderId(this.Extend(request, query)))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetOrderDealDetailsOrderId(this.Extend(request, query))).Raw))
 		//
 		//     {
 		//         "success": true,
@@ -5172,7 +5159,7 @@ func (this *Mexc) modifyMarginHelperBody(ch chan any, symbol any, amount any, ad
 		"type":       addOrReduce,
 	}
 
-	response := (<-this.ContractPrivatePostPositionChangeMargin(this.Extend(request, params)))
+	response := (<-this.ContractPrivatePostPositionChangeMargin(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -5288,7 +5275,7 @@ func (this *Mexc) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 		request["positionId"] = positionId
 	}
 
-	retRes441615 := (<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params)))
+	retRes441615 := (<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params))).Raw
 	PanicOnError(retRes441615)
 	ch <- retRes441615
 	return nil
@@ -5335,8 +5322,7 @@ func (this *Mexc) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		request["page_size"] = limit
 	}
 
-	response := (<-this.ContractPrivateGetPositionFundingRecords(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetPositionFundingRecords(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -5502,8 +5488,7 @@ func (this *Mexc) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": market["id"],
 	}
 
-	response := (<-this.ContractPublicGetFundingRateSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPublicGetFundingRateSymbol(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -5567,8 +5552,7 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		request["page_size"] = limit
 	}
 
-	response := (<-this.ContractPublicGetFundingRateHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPublicGetFundingRateHistory(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "success": true,
@@ -5647,8 +5631,7 @@ func (this *Mexc) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, "swap", true, true)
 
-	response := (<-this.ContractPublicGetDetail(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPublicGetDetail(params)).Raw))
 	//
 	//     {
 	//         "success":true,
@@ -5858,7 +5841,7 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan any, code any, opti
 	}
 	params = MapTyped(this.Omit(params, "network"))
 
-	response := (<-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, params)))
+	response := (<-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//    [
@@ -5930,7 +5913,7 @@ func (this *Mexc) createDepositAddressBody(ch chan any, code any, optionalArgs .
 	}
 	params = MapTyped(this.Omit(params, "network"))
 
-	response := (<-this.SpotPrivatePostCapitalDepositAddress(this.Extend(request, params)))
+	response := (<-this.SpotPrivatePostCapitalDepositAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//     {
@@ -6049,7 +6032,7 @@ func (this *Mexc) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, params)))
+	response := (<-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -6122,7 +6105,7 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params)))
+	response := (<-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -6319,8 +6302,7 @@ func (this *Mexc) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.ContractPrivatePostPositionCloseAll(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivatePostPositionCloseAll(params)).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -6394,8 +6376,7 @@ func (this *Mexc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.ContractPrivateGetPositionOpenPositions(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetPositionOpenPositions(params)).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -6581,8 +6562,7 @@ func (this *Mexc) fetchTransferBody(ch chan any, id any, optionalArgs ...any) an
 			"transact_id": id,
 		}
 
-		response := (<-this.SpotPrivateGetAssetInternalTransferRecord(this.Extend(request, query)))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivateGetAssetInternalTransferRecord(this.Extend(request, query))).Raw))
 		//
 		//     {
 		//         "code": "200",
@@ -6686,7 +6666,7 @@ func (this *Mexc) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 			request["size"] = limit
 		}
 
-		response := (<-this.SpotPrivateGetCapitalTransfer(this.Extend(request, params)))
+		response := (<-this.SpotPrivateGetCapitalTransfer(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//
@@ -6712,7 +6692,7 @@ func (this *Mexc) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 			request["page_size"] = limit
 		}
 
-		response := (<-this.ContractPrivateGetAccountTransferRecord(this.Extend(request, params)))
+		response := (<-this.ContractPrivateGetAccountTransferRecord(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		var data map[string]any = SafeMapTyped(response, "data")
 		resultList = this.SafeValue(data, "resultList")
@@ -6781,7 +6761,7 @@ func (this *Mexc) transferBody(ch chan any, code any, amount any, fromAccount an
 		request["symbol"] = market["id"]
 	}
 
-	response := (<-this.SpotPrivatePostCapitalTransfer(this.Extend(request, params)))
+	response := (<-this.SpotPrivatePostCapitalTransfer(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -6954,7 +6934,7 @@ func (this *Mexc) withdrawBody(ch chan any, code any, amount any, address any, o
 			panic(ArgumentsRequired(this.Id + " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE"))
 		}
 
-		responseForInternal := (<-this.SpotPrivatePostCapitalTransferInternal(this.Extend(requestForInternal, params)))
+		responseForInternal := (<-this.SpotPrivatePostCapitalTransferInternal(this.Extend(requestForInternal, params))).Raw
 		PanicOnError(responseForInternal)
 
 		//
@@ -6983,7 +6963,7 @@ func (this *Mexc) withdrawBody(ch chan any, code any, amount any, address any, o
 		params = this.Omit(params, []any{"network", "netWork"})
 	}
 
-	response := (<-this.SpotPrivatePostCapitalWithdraw(this.Extend(request, params)))
+	response := (<-this.SpotPrivatePostCapitalWithdraw(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -7026,7 +7006,7 @@ func (this *Mexc) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 		}(),
 	}
 
-	response := (<-this.ContractPrivatePostPositionChangePositionMode(this.Extend(request, params)))
+	response := (<-this.ContractPrivatePostPositionChangePositionMode(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -7061,7 +7041,7 @@ func (this *Mexc) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	response := (<-this.ContractPrivateGetPositionPositionMode(params))
+	response := (<-this.ContractPrivateGetPositionPositionMode(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -7105,7 +7085,7 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.SpotPrivateGetCapitalConfigGetall(params))
+	response := (<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -7231,7 +7211,7 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.SpotPrivateGetCapitalConfigGetall(params))
+	response := (<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -7350,8 +7330,7 @@ func (this *Mexc) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol": market["id"],
 	}
 
-	response := (<-this.ContractPrivateGetPositionLeverage(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetPositionLeverage(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -7489,8 +7468,7 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 		request["page_size"] = limit
 	}
 
-	response := (<-this.ContractPrivateGetPositionListHistoryPositions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetPositionListHistoryPositions(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        success: true,
@@ -7601,7 +7579,7 @@ func (this *Mexc) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 	}
 	params = MapTyped(this.Omit(params, "direction"))
 
-	response := (<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params)))
+	response := (<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//

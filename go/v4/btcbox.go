@@ -276,7 +276,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promise1 any = this.PublicGetTickers()
+	var promise1 any = EndpointRaw(this.PublicGetTickers())
 	var promise2 any = this.FetchWebEndpointAsync("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true)
 	response1response2Variable := (<-promiseAll([]any{promise1, promise2}))
 	response1 := GetValue(response1response2Variable, 0)
@@ -460,7 +460,7 @@ func (this *Btcbox) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostBalance(params))
+	response := (<-this.PrivatePostBalance(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseBalance(response)
@@ -500,7 +500,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		request["coin"] = market["baseId"]
 	}
 
-	response := (<-this.PublicGetDepth(this.Extend(request, params)))
+	response := (<-this.PublicGetDepth(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrderBook(response, market["symbol"])
@@ -565,7 +565,7 @@ func (this *Btcbox) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		request["coin"] = market["baseId"]
 	}
 
-	response := (<-this.PublicGetTicker(this.Extend(request, params)))
+	response := (<-this.PublicGetTicker(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTicker(response, market)
@@ -597,7 +597,7 @@ func (this *Btcbox) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetTickers(params))
+	response := (<-this.PublicGetTickers(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTickers(response, symbols)
@@ -677,7 +677,7 @@ func (this *Btcbox) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["coin"] = market["baseId"]
 	}
 
-	response := (<-this.PublicGetOrders(this.Extend(request, params)))
+	response := (<-this.PublicGetOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -732,7 +732,7 @@ func (this *Btcbox) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"coin":   market["baseId"],
 	}
 
-	response := (<-this.PrivatePostTradeAdd(this.Extend(request, params)))
+	response := (<-this.PrivatePostTradeAdd(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -781,7 +781,7 @@ func (this *Btcbox) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"coin": market["baseId"],
 	}
 
-	response := (<-this.PrivatePostTradeCancel(this.Extend(request, params)))
+	response := (<-this.PrivatePostTradeCancel(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -899,7 +899,7 @@ func (this *Btcbox) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"coin": market["baseId"],
 	}, params)
 
-	response := (<-this.PrivatePostTradeView(this.Extend(request, params)))
+	response := (<-this.PrivatePostTradeView(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -947,7 +947,7 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan any, typeVar any, optionalArgs
 		"coin": market["baseId"],
 	}
 
-	response := (<-this.PrivatePostTradeList(this.Extend(request, params)))
+	response := (<-this.PrivatePostTradeList(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	// [

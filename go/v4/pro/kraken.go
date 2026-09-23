@@ -1408,8 +1408,7 @@ func (this *Kraken) authenticateBody(ch chan any, optionalArgs ...any) any {
 				// try block:
 				// https://docs.kraken.com/api/docs/rest-api/get-websockets-token
 
-				response := (<-this.PrivatePostGetWebSocketsToken(params))
-				ccxt.PanicOnError(response)
+				var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostGetWebSocketsToken(params)).Raw))
 				//
 				//     {
 				//         "error":[],

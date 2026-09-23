@@ -2062,7 +2062,7 @@ func (this *Kucoin) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 		//    }
 		//
 
-		response = (<-this.FuturesPublicGetTimestamp(params))
+		response = (<-this.FuturesPublicGetTimestamp(params)).Raw
 		PanicOnError(response)
 	} else {
 		//
@@ -2073,7 +2073,7 @@ func (this *Kucoin) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.PublicGetTimestamp(params))
+		response = (<-this.PublicGetTimestamp(params)).Raw
 		PanicOnError(response)
 	}
 
@@ -2126,15 +2126,15 @@ func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 			"tradeType": tradeType,
 		}
 
-		response = (<-this.UtaGetServerStatus(this.Extend(request, params)))
+		response = (<-this.UtaGetServerStatus(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if (!IsEqual(typeVar, "spot")) && (!IsEqual(typeVar, "margin")) {
 
-		response = (<-this.FuturesPublicGetStatus(params))
+		response = (<-this.FuturesPublicGetStatus(params)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PublicGetStatus(params))
+		response = (<-this.PublicGetStatus(params)).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -2205,10 +2205,10 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	fetchTickersFees = (fetchTickersFees == true) && fetchSpotMarkets // tickers and fees are only fetched for spot markets
 	var promises []any = []any{}
 	if fetchSpotMarkets {
-		promises = append(promises, this.PublicGetSymbols(params))
+		promises = append(promises, EndpointRaw(this.PublicGetSymbols(params)))
 	}
 	if requestMarginables == true {
-		promises = append(promises, this.PrivateGetMarginSymbols(params)) // cross margin symbols
+		promises = append(promises, EndpointRaw(this.PrivateGetMarginSymbols(params))) // cross margin symbols
 		//
 		//    {
 		//        "code": "200000",
@@ -2220,7 +2220,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		//                    "minFunds": "0.1"
 		//                },
 		//
-		promises = append(promises, this.PrivateGetIsolatedSymbols(params)) // isolated margin symbols
+		promises = append(promises, EndpointRaw(this.PrivateGetIsolatedSymbols(params))) // isolated margin symbols
 	}
 	if fetchTickersFees == true {
 		//
@@ -2248,7 +2248,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		//                     "makerCoefficient": "1" // Maker Fee Coefficient
 		//                 }
 		//
-		promises = append(promises, this.PublicGetMarketAllTickers(params))
+		promises = append(promises, EndpointRaw(this.PublicGetMarketAllTickers(params)))
 	}
 	if fetchContractMarkets {
 		promises = append(promises, this.FetchContractMarketsAsync(params))
@@ -2422,8 +2422,7 @@ func (this *Kucoin) fetchContractMarketsBody(ch chan any, optionalArgs ...any) a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.FuturesPublicGetContractsActive(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPublicGetContractsActive(params)).Raw))
 	//
 	//    {
 	//        "code": "200000",
@@ -2597,9 +2596,9 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promises []any = []any{}
-	promises = append(promises, this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
+	promises = append(promises, EndpointRaw(this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
 		"tradeType": "SPOT",
-	})))
+	}))))
 	//
 	//     {
 	//         "code": "200000",
@@ -2632,9 +2631,9 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	promises = append(promises, this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
+	promises = append(promises, EndpointRaw(this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
 		"tradeType": "FUTURES",
-	})))
+	}))))
 	//
 	//     {
 	//         "code": "200000",
@@ -2815,8 +2814,7 @@ func (this *Kucoin) loadMigrationStatusBody(ch chan any, optionalArgs ...any) an
 	_ = force
 	if !(InOp(this.Options, "hf")) || (IsEqual(GetValue(this.Options, "hf"), nil)) || (force == true) {
 
-		result := (<-this.PrivateGetHfAccountsOpened())
-		PanicOnError(result)
+		var result map[string]any = MapTyped(PanicOnError((<-this.PrivateGetHfAccountsOpened()).Raw))
 		this.Options.Store("hf", this.SafeBool(result, "data"))
 	}
 
@@ -2872,7 +2870,7 @@ func (this *Kucoin) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if uta == true {
 
-		response = (<-this.UtaGetAssetCurrencies(params))
+		response = (<-this.UtaGetAssetCurrencies(params)).Raw
 		PanicOnError(response)
 	} else {
 		//
@@ -2913,7 +2911,7 @@ func (this *Kucoin) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		//    }
 		//
 
-		response = (<-this.PublicGetCurrencies(params))
+		response = (<-this.PublicGetCurrencies(params)).Raw
 		PanicOnError(response)
 	}
 	var currenciesData []any = SafeListTyped(response, "data")
@@ -3019,7 +3017,7 @@ func (this *Kucoin) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.UtaPrivateGetAccountModeAccountOverview(this.Extend(params, map[string]any{
 			"accountMode": "unified",
-		})))
+		}))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -3063,7 +3061,7 @@ func (this *Kucoin) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.PrivateGetAccounts(params))
+		response = (<-this.PrivateGetAccounts(params)).Raw
 		PanicOnError(response)
 		data = this.SafeList(response, "data", []any{})
 	}
@@ -3125,7 +3123,7 @@ func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code any, optionalArgs 
 		}
 	}
 
-	response := (<-this.PrivateGetWithdrawalsQuotas(this.Extend(request, params)))
+	response := (<-this.PrivateGetWithdrawalsQuotas(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
 	var withdrawFees map[string]any = map[string]any{}
@@ -3178,8 +3176,7 @@ func (this *Kucoin) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalA
 		}
 	}
 
-	response := (<-this.PrivateGetWithdrawalsQuotas(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWithdrawalsQuotas(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "200000",
@@ -3646,7 +3643,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			request["tradeType"] = this.TypeToTradeType(typeVar)
 		}
 
-		response = (<-this.UtaGetMarketTicker(this.Extend(request, params)))
+		response = (<-this.UtaGetMarketTicker(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if (!IsEqual(typeVar, "spot")) && (!IsEqual(typeVar, "margin")) {
 
@@ -3656,7 +3653,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	} else {
 
-		response = (<-this.PublicGetMarketAllTickers(params))
+		response = (<-this.PublicGetMarketAllTickers(params)).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -3699,11 +3696,11 @@ func (this *Kucoin) fetchContractTickersBody(ch chan any, optionalArgs ...any) a
 	var response any = nil
 	if IsEqual(method, "futuresPublicGetAllTickers") {
 
-		response = (<-this.FuturesPublicGetAllTickers(params))
+		response = (<-this.FuturesPublicGetAllTickers(params)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.FuturesPublicGetContractsActive(params))
+		response = (<-this.FuturesPublicGetContractsActive(params)).Raw
 		PanicOnError(response)
 	}
 	//
@@ -3802,8 +3799,7 @@ func (this *Kucoin) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetMarkPriceAllSymbols(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarkPriceAllSymbols(params)).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(data)
@@ -3853,7 +3849,7 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	if uta == true {
 		request["tradeType"] = this.TypeToTradeType(typeVar)
 
-		response = (<-this.UtaGetMarketTicker(this.Extend(request, params)))
+		response = (<-this.UtaGetMarketTicker(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -3889,7 +3885,7 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		result = this.SafeDict(resultList, 0, map[string]any{})
 	} else if GetValue(market, "contract") == true {
 
-		response = (<-this.FuturesPublicGetTicker(this.Extend(request, params)))
+		response = (<-this.FuturesPublicGetTicker(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//    {
@@ -3915,7 +3911,7 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		return nil
 	} else {
 
-		response = (<-this.PublicGetMarketStats(this.Extend(request, params)))
+		response = (<-this.PublicGetMarketStats(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -3978,7 +3974,7 @@ func (this *Kucoin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 	var response any = nil
 	if GetValue(market, "contract") == true {
 
-		response = (<-this.FuturesPublicGetMarkPriceSymbolCurrent(this.Extend(request, params)))
+		response = (<-this.FuturesPublicGetMarkPriceSymbolCurrent(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -3986,7 +3982,7 @@ func (this *Kucoin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 		return nil
 	} else {
 
-		response = (<-this.PublicGetMarkPriceSymbolCurrent(this.Extend(request, params)))
+		response = (<-this.PublicGetMarkPriceSymbolCurrent(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -4176,8 +4172,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		request["symbol"] = Add(Add(market["id"], "-"), suffix)
 	}
 
-	response := (<-this.UtaGetMarketKline(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaGetMarketKline(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -4266,8 +4261,7 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	}
 	request["endAt"] = this.ParseToInt(MathFloor(Divide(endAt, denominator)))
 
-	response := (<-this.PublicGetMarketCandles(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketCandles(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code":"200000",
@@ -4357,8 +4351,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs
 	}
 	request["to"] = endAt
 
-	response := (<-this.FuturesPublicGetKlineQuery(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPublicGetKlineQuery(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "200000",
@@ -4411,8 +4404,7 @@ func (this *Kucoin) createDepositAddressBody(ch chan any, code any, optionalArgs
 		request["chain"] = this.NetworkCodeToId(networkCode, currency["code"]) // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
 	}
 
-	response := (<-this.PrivatePostDepositAddressCreate(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDepositAddressCreate(this.Extend(request, params))).Raw))
 	// {"code":"260000","msg":"Deposit address already exists."}
 	//
 	//   {
@@ -4505,8 +4497,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	var version any = GetValue(GetValue(GetValue(GetValue(this.Options, "versions"), "private"), "GET"), "deposit-addresses")
 	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "versions"), "private"), "GET"), "deposit-addresses", "v1")
 
-	response := (<-this.PrivateGetDepositAddresses(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDepositAddresses(this.Extend(request, params))).Raw))
 	// BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
 	// BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
 	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "versions"), "private"), "GET"), "deposit-addresses", version)
@@ -4548,7 +4539,7 @@ func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code any, optio
 		"currency": currencyId,
 	}
 
-	response := (<-this.FuturesPrivateGetDepositAddress(this.Extend(request, params)))
+	response := (<-this.FuturesPrivateGetDepositAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//    {
@@ -4667,13 +4658,13 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
 		//     }
 		//
 
-		response = (<-this.UtaPrivateGetAssetDepositAddress(this.Extend(request, params)))
+		response = (<-this.UtaPrivateGetAssetDepositAddress(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		var version any = GetValue(GetValue(GetValue(GetValue(this.Options, "versions"), "private"), "GET"), "deposit-addresses")
 		AddElementToObject(GetValue(GetValue(GetValue(this.Options, "versions"), "private"), "GET"), "deposit-addresses", "v2")
 
-		response = (<-this.PrivateGetDepositAddresses(this.Extend(request, params)))
+		response = (<-this.PrivateGetDepositAddresses(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -4761,7 +4752,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			request["tradeType"] = "FUTURES"
 		}
 
-		response = (<-this.UtaPrivateGetMarketOrderbook(this.Extend(request, params)))
+		response = (<-this.UtaPrivateGetMarketOrderbook(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if (!IsEqual(typeVar, "spot")) && (!IsEqual(typeVar, "margin")) {
 		if (level == nil || *level != 2) && (level != nil) {
@@ -4772,7 +4763,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			// stream covers the whole book while depth20/depth100 truncate the snapshot,
 			// see https://github.com/ccxt/ccxt/issues/22063
 
-			response = (<-this.FuturesPublicGetLevel2Snapshot(this.Extend(request, params)))
+			response = (<-this.FuturesPublicGetLevel2Snapshot(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if IsEqual(limit, 20) {
 			//
@@ -4794,11 +4785,11 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			//     }
 			//
 
-			response = (<-this.FuturesPublicGetLevel2Depth20(this.Extend(request, params)))
+			response = (<-this.FuturesPublicGetLevel2Depth20(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if IsEqual(limit, 100) {
 
-			response = (<-this.FuturesPublicGetLevel2Depth100(this.Extend(request, params)))
+			response = (<-this.FuturesPublicGetLevel2Depth100(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			panic(BadRequest(this.Id + " fetchOrderBook() limit argument must be 20 or 100"))
@@ -4821,11 +4812,11 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			}()
 		}
 
-		response = (<-this.PublicGetMarketOrderbookLevelLevelLimit(this.Extend(request, params)))
+		response = (<-this.PublicGetMarketOrderbookLevelLevelLimit(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetMarketOrderbookLevel2(this.Extend(request, params)))
+		response = (<-this.PrivateGetMarketOrderbookLevel2(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -5043,53 +5034,53 @@ func (this *Kucoin) createSpotOrderBody(ch chan any, symbol any, typeVar any, si
 		if isMarginOrder {
 			if hf == true {
 
-				response = (<-this.PrivatePostHfMarginOrderTest(orderRequest))
+				response = (<-this.PrivatePostHfMarginOrderTest(orderRequest)).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PrivatePostMarginOrderTest(orderRequest))
+				response = (<-this.PrivatePostMarginOrderTest(orderRequest)).Raw
 				PanicOnError(response)
 			}
 		} else if hf == true {
 
-			response = (<-this.PrivatePostHfOrdersTest(orderRequest))
+			response = (<-this.PrivatePostHfOrdersTest(orderRequest)).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivatePostOrdersTest(orderRequest))
+			response = (<-this.PrivatePostOrdersTest(orderRequest)).Raw
 			PanicOnError(response)
 		}
 	} else if isTriggerOrder {
 		if isMarginOrder {
 
-			response = (<-this.PrivatePostHfMarginStopOrder(orderRequest))
+			response = (<-this.PrivatePostHfMarginStopOrder(orderRequest)).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivatePostStopOrder(orderRequest))
+			response = (<-this.PrivatePostStopOrder(orderRequest)).Raw
 			PanicOnError(response)
 		}
 	} else if isMarginOrder {
 		if hf == true {
 
-			response = (<-this.PrivatePostHfMarginOrder(orderRequest))
+			response = (<-this.PrivatePostHfMarginOrder(orderRequest)).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivatePostMarginOrder(orderRequest))
+			response = (<-this.PrivatePostMarginOrder(orderRequest)).Raw
 			PanicOnError(response)
 		}
 	} else if useSync {
 
-		response = (<-this.PrivatePostHfOrdersSync(orderRequest))
+		response = (<-this.PrivatePostHfOrdersSync(orderRequest)).Raw
 		PanicOnError(response)
 	} else if hf == true {
 
-		response = (<-this.PrivatePostHfOrders(orderRequest))
+		response = (<-this.PrivatePostHfOrders(orderRequest)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostOrders(orderRequest))
+		response = (<-this.PrivatePostOrders(orderRequest)).Raw
 		PanicOnError(response)
 	}
 	//
@@ -5267,16 +5258,16 @@ func (this *Kucoin) createContractOrderBody(ch chan any, symbol any, typeVar any
 	var response any = nil
 	if testOrder != nil && *testOrder == true {
 
-		response = (<-this.FuturesPrivatePostOrdersTest(orderRequest))
+		response = (<-this.FuturesPrivatePostOrdersTest(orderRequest)).Raw
 		PanicOnError(response)
 	} else {
 		if hasTpOrSlOrder {
 
-			response = (<-this.FuturesPrivatePostStOrders(orderRequest))
+			response = (<-this.FuturesPrivatePostStOrders(orderRequest)).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FuturesPrivatePostOrders(orderRequest))
+			response = (<-this.FuturesPrivatePostOrders(orderRequest)).Raw
 			PanicOnError(response)
 		}
 	}
@@ -5514,8 +5505,7 @@ func (this *Kucoin) createUtaOrderBody(ch chan any, symbol any, typeVar any, sid
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateUtaOrderRequest(symbol, typeVar, side, amount, price, params)
 
-	response := (<-this.UtaPrivatePostAccountModeOrderPlace(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaPrivatePostAccountModeOrderPlace(request)).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -5944,15 +5934,15 @@ func (this *Kucoin) createSpotOrdersBody(ch chan any, orders any, optionalArgs .
 	var response any = nil
 	if useSync {
 
-		response = (<-this.PrivatePostHfOrdersMultiSync(this.Extend(request, params)))
+		response = (<-this.PrivatePostHfOrdersMultiSync(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if hf == true {
 
-		response = (<-this.PrivatePostHfOrdersMulti(this.Extend(request, params)))
+		response = (<-this.PrivatePostHfOrdersMulti(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostOrdersMulti(this.Extend(request, params)))
+		response = (<-this.PrivatePostOrdersMulti(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -6031,8 +6021,7 @@ func (this *Kucoin) createContractOrdersBody(ch chan any, orders any, optionalAr
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
-	response := (<-this.FuturesPrivatePostOrdersMulti(ordersRequests))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivatePostOrdersMulti(ordersRequests)).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -6110,8 +6099,7 @@ func (this *Kucoin) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		request["newPrice"] = this.PriceToPrecision(symbol, price)
 	}
 
-	response := (<-this.PrivatePostHfOrdersAlter(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostHfOrdersAlter(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "code":"200000",
@@ -6276,7 +6264,7 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan any, id any, optionalArgs ...any
 		if trigger != nil && *trigger == true {
 			if isMarginOrder {
 
-				response = (<-this.PrivateDeleteHfMarginStopOrderCancelByClientOid(this.Extend(request, params)))
+				response = (<-this.PrivateDeleteHfMarginStopOrderCancelByClientOid(this.Extend(request, params))).Raw
 				PanicOnError(response)
 				var data any = this.SafeDict(response, "data")
 				var orderIds []any = SafeListTypedDefault(data, "cancelledOrderIds", []any{})
@@ -6298,24 +6286,24 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan any, id any, optionalArgs ...any
 				//    }
 				//
 
-				response = (<-this.PrivateDeleteStopOrderCancelOrderByClientOid(this.Extend(request, params)))
+				response = (<-this.PrivateDeleteStopOrderCancelOrderByClientOid(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else if isMarginOrder {
 
-			response = (<-this.PrivateDeleteHfMarginOrdersClientOrderClientOid(this.Extend(request, params)))
+			response = (<-this.PrivateDeleteHfMarginOrdersClientOrderClientOid(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if useSync == true {
 
-			response = (<-this.PrivateDeleteHfOrdersSyncClientOrderClientOid(this.Extend(request, params)))
+			response = (<-this.PrivateDeleteHfOrdersSyncClientOrderClientOid(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if hf == true {
 
-			response = (<-this.PrivateDeleteHfOrdersClientOrderClientOid(this.Extend(request, params)))
+			response = (<-this.PrivateDeleteHfOrdersClientOrderClientOid(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateDeleteOrderClientOrderClientOid(this.Extend(request, params)))
+			response = (<-this.PrivateDeleteOrderClientOrderClientOid(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 		response = this.SafeDict(response, "data")
@@ -6327,7 +6315,7 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan any, id any, optionalArgs ...any
 		if trigger != nil && *trigger == true {
 			if isMarginOrder {
 
-				response = (<-this.PrivateDeleteHfMarginStopOrderCancelById(this.Extend(request, params)))
+				response = (<-this.PrivateDeleteHfMarginStopOrderCancelById(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 				//
@@ -6337,20 +6325,20 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan any, id any, optionalArgs ...any
 				//    }
 				//
 
-				response = (<-this.PrivateDeleteStopOrderOrderId(this.Extend(request, params)))
+				response = (<-this.PrivateDeleteStopOrderOrderId(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else if isMarginOrder {
 
-			response = (<-this.PrivateDeleteHfMarginOrdersOrderId(this.Extend(request, params)))
+			response = (<-this.PrivateDeleteHfMarginOrdersOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if useSync == true {
 
-			response = (<-this.PrivateDeleteHfOrdersSyncOrderId(this.Extend(request, params)))
+			response = (<-this.PrivateDeleteHfOrdersSyncOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if hf == true {
 
-			response = (<-this.PrivateDeleteHfOrdersOrderId(this.Extend(request, params)))
+			response = (<-this.PrivateDeleteHfOrdersOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
 			//
 			//    {
@@ -6366,7 +6354,7 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan any, id any, optionalArgs ...any
 			return nil
 		} else {
 
-			response = (<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params)))
+			response = (<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 		var data any = this.SafeDict(response, "data")
@@ -6422,12 +6410,12 @@ func (this *Kucoin) cancelContractOrderBody(ch chan any, id any, optionalArgs ..
 		request["symbol"] = market["id"]
 		request["clientOid"] = clientOrderId
 
-		response = (<-this.FuturesPrivateDeleteOrdersClientOrderClientOid(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateDeleteOrdersClientOrderClientOid(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["orderId"] = id
 
-		response = (<-this.FuturesPrivateDeleteOrdersOrderId(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateDeleteOrdersOrderId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -6509,8 +6497,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan any, id any, optionalArgs ...any)
 	var tradeType any = this.HandleTradeType(market["contract"], marginMode, isUnified, params)
 	request["tradeType"] = tradeType
 
-	response := (<-this.UtaPrivatePostAccountModeOrderCancel(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaPrivatePostAccountModeOrderCancel(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -6659,30 +6646,30 @@ func (this *Kucoin) cancelAllSpotOrdersBody(ch chan any, optionalArgs ...any) an
 	if trigger != nil && *trigger == true {
 		if isMarginOrders {
 
-			response = (<-this.PrivateDeleteHfMarginStopOrderCancel(this.Extend(request, query)))
+			response = (<-this.PrivateDeleteHfMarginStopOrderCancel(this.Extend(request, query))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateDeleteStopOrderCancel(this.Extend(request, query)))
+			response = (<-this.PrivateDeleteStopOrderCancel(this.Extend(request, query))).Raw
 			PanicOnError(response)
 		}
 	} else if isMarginOrders {
 
-		response = (<-this.PrivateDeleteHfMarginOrders(this.Extend(request, query)))
+		response = (<-this.PrivateDeleteHfMarginOrders(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if hf == true {
 		if symbol == nil {
 
-			response = (<-this.PrivateDeleteHfOrdersCancelAll(this.Extend(request, query)))
+			response = (<-this.PrivateDeleteHfOrdersCancelAll(this.Extend(request, query))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateDeleteHfOrders(this.Extend(request, query)))
+			response = (<-this.PrivateDeleteHfOrders(this.Extend(request, query))).Raw
 			PanicOnError(response)
 		}
 	} else {
 
-		response = (<-this.PrivateDeleteOrders(this.Extend(request, query)))
+		response = (<-this.PrivateDeleteOrders(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	}
 
@@ -6728,11 +6715,11 @@ func (this *Kucoin) cancelAllContractOrdersBody(ch chan any, optionalArgs ...any
 	var response any = nil
 	if (!IsEqual(trigger, nil)) && (trigger != false) {
 
-		response = (<-this.FuturesPrivateDeleteStopOrders(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateDeleteStopOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.FuturesPrivateDeleteOrders(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateDeleteOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -6808,8 +6795,7 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan any, optionalArgs ...any) any
 		"orderFilter": orderFilter,
 	}
 
-	response := (<-this.UtaPrivatePostAccountModeOrderCancelAll(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaPrivatePostAccountModeOrderCancelAll(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -7004,7 +6990,7 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
 	if isMarginOrder && (lowercaseStatus == "active") && (trigger == nil || *trigger != true) {
 		// hf margin open non-trigger orders require only symbol and tradeType params
 
-		response = (<-this.PrivateGetHfMarginOrdersActive(this.Extend(request, query)))
+		response = (<-this.PrivateGetHfMarginOrdersActive(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else {
 		if !isMarginOrder {
@@ -7022,30 +7008,30 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
 		if trigger != nil && *trigger == true {
 			if isMarginOrder {
 
-				response = (<-this.PrivateGetHfMarginStopOrders(this.Extend(request, query)))
+				response = (<-this.PrivateGetHfMarginStopOrders(this.Extend(request, query))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PrivateGetStopOrder(this.Extend(request, query)))
+				response = (<-this.PrivateGetStopOrder(this.Extend(request, query))).Raw
 				PanicOnError(response)
 			}
 		} else if isMarginOrder {
 
-			response = (<-this.PrivateGetHfMarginOrdersDone(this.Extend(request, query)))
+			response = (<-this.PrivateGetHfMarginOrdersDone(this.Extend(request, query))).Raw
 			PanicOnError(response)
 		} else if hf == true {
 			if lowercaseStatus == "active" {
 
-				response = (<-this.PrivateGetHfOrdersActive(this.Extend(request, query)))
+				response = (<-this.PrivateGetHfOrdersActive(this.Extend(request, query))).Raw
 				PanicOnError(response)
 			} else if lowercaseStatus == "done" {
 
-				response = (<-this.PrivateGetHfOrdersDone(this.Extend(request, query)))
+				response = (<-this.PrivateGetHfOrdersDone(this.Extend(request, query))).Raw
 				PanicOnError(response)
 			}
 		} else {
 
-			response = (<-this.PrivateGetOrders(this.Extend(request, query)))
+			response = (<-this.PrivateGetOrders(this.Extend(request, query))).Raw
 			PanicOnError(response)
 		}
 	}
@@ -7138,11 +7124,11 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan any, status any, opt
 	var response any = nil
 	if trigger != nil && *trigger == true {
 
-		response = (<-this.FuturesPrivateGetStopOrders(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateGetStopOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.FuturesPrivateGetOrders(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateGetOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -7346,11 +7332,11 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
 		//     }
 		//
 
-		response = (<-this.UtaPrivateGetAccountModeOrderOpenList(this.Extend(request, params)))
+		response = (<-this.UtaPrivateGetAccountModeOrderOpenList(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.UtaPrivateGetAccountModeOrderHistory(this.Extend(request, params)))
+		response = (<-this.UtaPrivateGetAccountModeOrderHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -7633,27 +7619,27 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan any, id any, optionalArgs ...any)
 		if trigger != nil && *trigger == true {
 			if isMarginOrder {
 
-				response = (<-this.PrivateGetHfMarginStopOrderClientOid(this.Extend(request, params)))
+				response = (<-this.PrivateGetHfMarginStopOrderClientOid(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 				if symbol != nil {
 					request["symbol"] = this.SafeString(market, "id")
 				}
 
-				response = (<-this.PrivateGetStopOrderQueryOrderByClientOid(this.Extend(request, params)))
+				response = (<-this.PrivateGetStopOrderQueryOrderByClientOid(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else if isMarginOrder {
 
-			response = (<-this.PrivateGetHfMarginOrdersClientOrderClientOid(this.Extend(request, params)))
+			response = (<-this.PrivateGetHfMarginOrdersClientOrderClientOid(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if hf == true {
 
-			response = (<-this.PrivateGetHfOrdersClientOrderClientOid(this.Extend(request, params)))
+			response = (<-this.PrivateGetHfOrdersClientOrderClientOid(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateGetOrderClientOrderClientOid(this.Extend(request, params)))
+			response = (<-this.PrivateGetOrderClientOrderClientOid(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -7667,24 +7653,24 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan any, id any, optionalArgs ...any)
 		if trigger != nil && *trigger == true {
 			if isMarginOrder {
 
-				response = (<-this.PrivateGetHfMarginStopOrderOrderId(this.Extend(request, params)))
+				response = (<-this.PrivateGetHfMarginStopOrderOrderId(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PrivateGetStopOrderOrderId(this.Extend(request, params)))
+				response = (<-this.PrivateGetStopOrderOrderId(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else if isMarginOrder {
 
-			response = (<-this.PrivateGetHfMarginOrdersOrderId(this.Extend(request, params)))
+			response = (<-this.PrivateGetHfMarginOrdersOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if hf == true {
 
-			response = (<-this.PrivateGetHfOrdersOrderId(this.Extend(request, params)))
+			response = (<-this.PrivateGetHfOrdersOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params)))
+			response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	}
@@ -7731,7 +7717,7 @@ func (this *Kucoin) fetchContractOrderBody(ch chan any, id any, optionalArgs ...
 		request["clientOid"] = clientOrderId
 		params = MapTyped(this.Omit(params, []any{"clientOid", "clientOrderId"}))
 
-		response = (<-this.FuturesPrivateGetOrdersByClientOid(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateGetOrdersByClientOid(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if IsEqual(id, nil) {
@@ -7739,7 +7725,7 @@ func (this *Kucoin) fetchContractOrderBody(ch chan any, id any, optionalArgs ...
 		}
 		request["orderId"] = id
 
-		response = (<-this.FuturesPrivateGetOrdersOrderId(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateGetOrdersOrderId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -7855,8 +7841,7 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var tradeType any = this.HandleTradeType(market["contract"], marginMode, isUnified, params)
 	request["tradeType"] = tradeType
 
-	response := (<-this.UtaPrivateGetAccountModeOrderDetail(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaPrivateGetAccountModeOrderDetail(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -8615,11 +8600,11 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
 		}
 		if isMargin {
 
-			response = (<-this.PrivateGetHfMarginFills(this.Extend(request, params)))
+			response = (<-this.PrivateGetHfMarginFills(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateGetHfFills(this.Extend(request, params)))
+			response = (<-this.PrivateGetHfFills(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if IsEqual(method, "private_get_fills") {
@@ -8629,7 +8614,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
 			AddElementToObject(request, "startAt", since)
 		}
 
-		response = (<-this.PrivateGetFills(this.Extend(request, params)))
+		response = (<-this.PrivateGetFills(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "private_get_limit_fills") {
 		// does not return trades earlier than 2019-02-18T00:00:00Z
@@ -8637,7 +8622,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
 		// only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
 		parseResponseData = true
 
-		response = (<-this.PrivateGetLimitFills(this.Extend(request, params)))
+		response = (<-this.PrivateGetLimitFills(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(ExchangeError(this.Id + " fetchMyTradesMethod() invalid method"))
@@ -8759,8 +8744,7 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan any, optionalArgs ...any) 
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.FuturesPrivateGetFills(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivateGetFills(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "200000",
@@ -8889,8 +8873,7 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.UtaPrivateGetAccountModeOrderExecution(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaPrivateGetAccountModeOrderExecution(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -8989,7 +8972,7 @@ func (this *Kucoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 			request["tradeType"] = "FUTURES"
 		}
 
-		response = (<-this.UtaGetMarketTrade(this.Extend(request, params)))
+		response = (<-this.UtaGetMarketTrade(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -9013,7 +8996,7 @@ func (this *Kucoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		trades = this.SafeList(data, "list", []any{})
 	} else if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin")) {
 
-		response = (<-this.PublicGetMarketHistories(this.Extend(request, params)))
+		response = (<-this.PublicGetMarketHistories(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -9032,7 +9015,7 @@ func (this *Kucoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		trades = this.SafeList(response, "data", []any{})
 	} else {
 
-		response = (<-this.FuturesPublicGetTradeHistory(this.Extend(request, params)))
+		response = (<-this.FuturesPublicGetTradeHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//      {
@@ -9453,7 +9436,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		}
 		request["symbol"] = market["id"]
 
-		response = (<-this.UtaPrivateGetUserFeeRate(this.Extend(request, params)))
+		response = (<-this.UtaPrivateGetUserFeeRate(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -9476,7 +9459,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 	} else if GetValue(market, "spot") == true {
 		request["symbols"] = market["id"]
 
-		response = (<-this.PrivateGetTradeFees(this.Extend(request, params)))
+		response = (<-this.PrivateGetTradeFees(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -9495,7 +9478,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 	} else {
 		request["symbol"] = market["id"]
 
-		response = (<-this.FuturesPrivateGetTradeFees(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateGetTradeFees(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -9586,8 +9569,7 @@ func (this *Kucoin) withdrawBody(ch chan any, code any, amount any, address any,
 		request["feeDeductType"] = "INTERNAL"
 	}
 
-	response := (<-this.PrivatePostWithdrawals(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawals(this.Extend(request, params))).Raw))
 	//
 	// the id is inside "data"
 	//
@@ -9818,14 +9800,14 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		// if since is earlier than 2019-02-18T00:00:00Z
 		AddElementToObject(request, "startAt", this.ParseToInt(Divide(since, 1000)))
 
-		response = (<-this.PrivateGetHistDeposits(this.Extend(request, params)))
+		response = (<-this.PrivateGetHistDeposits(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if since != nil {
 			AddElementToObject(request, "startAt", since)
 		}
 
-		response = (<-this.PrivateGetDeposits(this.Extend(request, params)))
+		response = (<-this.PrivateGetDeposits(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -9918,8 +9900,7 @@ func (this *Kucoin) fetchContractDepositsBody(ch chan any, optionalArgs ...any) 
 		request["startAt"] = since
 	}
 
-	response := (<-this.FuturesPrivateGetDepositList(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivateGetDepositList(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -10033,14 +10014,14 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		// if since is earlier than 2019-02-18T00:00:00Z
 		AddElementToObject(request, "startAt", this.ParseToInt(Divide(since, 1000)))
 
-		response = (<-this.PrivateGetHistWithdrawals(this.Extend(request, params)))
+		response = (<-this.PrivateGetHistWithdrawals(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if since != nil {
 			AddElementToObject(request, "startAt", since)
 		}
 
-		response = (<-this.PrivateGetWithdrawals(this.Extend(request, params)))
+		response = (<-this.PrivateGetWithdrawals(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -10134,8 +10115,7 @@ func (this *Kucoin) fetchContractWithdrawalsBody(ch chan any, optionalArgs ...an
 		request["startAt"] = since
 	}
 
-	response := (<-this.FuturesPrivateGetWithdrawalList(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivateGetWithdrawalList(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -10265,11 +10245,11 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			request["balanceCurrency"] = GetValue(currency, "id")
 		}
 
-		response = (<-this.PrivateGetIsolatedAccounts(this.Extend(request, params)))
+		response = (<-this.PrivateGetIsolatedAccounts(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if cross {
 
-		response = (<-this.PrivateGetMarginAccount(this.Extend(request, params)))
+		response = (<-this.PrivateGetMarginAccount(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if !IsEqual(currency, nil) {
@@ -10277,7 +10257,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		}
 		request["type"] = typeVar
 
-		response = (<-this.PrivateGetAccounts(this.Extend(request, params)))
+		response = (<-this.PrivateGetAccounts(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -10458,7 +10438,7 @@ func (this *Kucoin) fetchContractBalanceBody(ch chan any, optionalArgs ...any) a
 		"currency": currency["id"],
 	}
 
-	response := (<-this.FuturesPrivateGetAccountOverview(this.Extend(request, params)))
+	response := (<-this.FuturesPrivateGetAccountOverview(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -10571,7 +10551,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.UtaPrivateGetAccountModeAccountBalance(this.Extend(request, params)))
+		response = (<-this.UtaPrivateGetAccountModeAccountBalance(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["accountType"] = typeVar
@@ -10608,7 +10588,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.UtaPrivateGetAccountBalance(this.Extend(request, params)))
+		response = (<-this.UtaPrivateGetAccountBalance(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -10799,8 +10779,7 @@ func (this *Kucoin) transferUtaBody(ch chan any, code any, amount any, fromAccou
 	}
 	request["type"] = this.SafeString(types, transferType, transferType)
 
-	response := (<-this.UtaPrivatePostAccountTransfer(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaPrivatePostAccountTransfer(this.Extend(request, params))).Raw))
 	//
 	//
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
@@ -10895,7 +10874,7 @@ func (this *Kucoin) transferClassicBody(ch chan any, code any, amount any, fromA
 		request["from"] = fromId
 		request["to"] = toId
 
-		response = (<-this.PrivatePostAccountsInnerTransfer(this.Extend(request, params)))
+		response = (<-this.PrivatePostAccountsInnerTransfer(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["type"] = transferType
@@ -10910,7 +10889,7 @@ func (this *Kucoin) transferClassicBody(ch chan any, code any, amount any, fromA
 		//     }
 		//
 
-		response = (<-this.PrivatePostAccountsUniversalTransfer(this.Extend(request, params)))
+		response = (<-this.PrivatePostAccountsUniversalTransfer(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
@@ -11386,16 +11365,16 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if uta == true {
 		AddElementToObject(request, "accountType", typeVar)
 
-		response = (<-this.UtaPrivateGetAccountLedger(this.Extend(request, params)))
+		response = (<-this.UtaPrivateGetAccountLedger(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if hf == true {
 		if marginMode != nil {
 
-			response = (<-this.PrivateGetHfMarginAccountLedgers(this.Extend(request, params)))
+			response = (<-this.PrivateGetHfMarginAccountLedgers(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateGetHfAccountsLedgers(this.Extend(request, params)))
+			response = (<-this.PrivateGetHfAccountsLedgers(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if IsEqual(typeVar, "contract") {
@@ -11421,11 +11400,11 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.FuturesPrivateGetTransactionHistory(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateGetTransactionHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetAccountsLedgers(this.Extend(request, params)))
+		response = (<-this.PrivateGetAccountsLedgers(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -11603,11 +11582,11 @@ func (this *Kucoin) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	var response any = nil
 	if IsEqual(marginMode, "isolated") {
 
-		response = (<-this.PrivateGetIsolatedAccounts(this.Extend(request, params)))
+		response = (<-this.PrivateGetIsolatedAccounts(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetMarginAccounts(this.Extend(request, params)))
+		response = (<-this.PrivateGetMarginAccounts(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -11822,8 +11801,7 @@ func (this *Kucoin) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...an
 		AddElementToObject(request, "pageSize", limit) // default:50, min:10, max:500
 	}
 
-	response := (<-this.PrivateGetMarginInterest(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetMarginInterest(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -11900,8 +11878,7 @@ func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan any, code any, optionalAr
 		AddElementToObject(request, "pageSize", limit) // default:50, min:10, max:500
 	}
 
-	response := (<-this.PrivateGetMarginInterest(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetMarginInterest(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -12004,8 +11981,7 @@ func (this *Kucoin) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
 		"currency": currency["id"],
 	}
 
-	response := (<-this.UtaPrivateGetAccountInterestLimits(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaPrivateGetAccountInterestLimits(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -12057,8 +12033,7 @@ func (this *Kucoin) borrowCrossMarginBody(ch chan any, code any, amount any, opt
 		"timeInForce": "FOK",
 	}
 
-	response := (<-this.PrivatePostMarginBorrow(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostMarginBorrow(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -12113,8 +12088,7 @@ func (this *Kucoin) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
 		"isIsolated":  true,
 	}
 
-	response := (<-this.PrivatePostMarginBorrow(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostMarginBorrow(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -12163,8 +12137,7 @@ func (this *Kucoin) repayCrossMarginBody(ch chan any, code any, amount any, opti
 		"size":     this.CurrencyToPrecision(code, amount),
 	}
 
-	response := (<-this.PrivatePostMarginRepay(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostMarginRepay(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -12217,8 +12190,7 @@ func (this *Kucoin) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
 		"isIsolated": true,
 	}
 
-	response := (<-this.PrivatePostMarginRepay(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostMarginRepay(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -12283,8 +12255,7 @@ func (this *Kucoin) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetCurrencies(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCurrencies(params)).Raw))
 	//
 	//  [
 	//      {
@@ -12347,8 +12318,7 @@ func (this *Kucoin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	response := (<-this.FuturesPrivateGetGetCrossUserLeverage(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivateGetGetCrossUserLeverage(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "200000",
@@ -12445,7 +12415,7 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		}
 		request["currency"] = this.CurrencyId(code)
 
-		response = (<-this.UtaPrivatePostAccountModeAccountModifyLeverageMarginCross(this.Extend(request, params)))
+		response = (<-this.UtaPrivatePostAccountModeAccountModifyLeverageMarginCross(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if marginMode == nil {
@@ -12459,7 +12429,7 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		}
 		request["isIsolated"] = (IsEqual(marginMode, "isolated"))
 
-		response = (<-this.PrivatePostPositionUpdateUserLeverage(this.Extend(request, params)))
+		response = (<-this.PrivatePostPositionUpdateUserLeverage(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -12520,7 +12490,7 @@ func (this *Kucoin) setContractLeverageBody(ch chan any, leverage any, optionalA
 	if uta == true {
 		request["accountMode"] = "unified"
 
-		response = (<-this.UtaPrivatePostAccountModeAccountModifyLeverage(this.Extend(request, params)))
+		response = (<-this.UtaPrivatePostAccountModeAccountModifyLeverage(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		//
@@ -12530,7 +12500,7 @@ func (this *Kucoin) setContractLeverageBody(ch chan any, leverage any, optionalA
 		//    }
 		//
 
-		response = (<-this.FuturesPrivatePostChangeCrossUserLeverage(this.Extend(request, params)))
+		response = (<-this.FuturesPrivatePostChangeCrossUserLeverage(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -12624,7 +12594,7 @@ func (this *Kucoin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 		//     }
 		//
 
-		response = (<-this.UtaGetMarketFundingRate(this.Extend(request, params)))
+		response = (<-this.UtaGetMarketFundingRate(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		//
@@ -12644,7 +12614,7 @@ func (this *Kucoin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 		//     }
 		//
 
-		response = (<-this.FuturesPublicGetFundingRateSymbolCurrent(this.Extend(request, params)))
+		response = (<-this.FuturesPublicGetFundingRateSymbolCurrent(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
@@ -12682,8 +12652,7 @@ func (this *Kucoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.UtaV2GetMarketFundingRate(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaV2GetMarketFundingRate(params)).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -12861,8 +12830,7 @@ func (this *Kucoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		//     }
 		//
 
-		utaResponse := (<-this.UtaGetMarketFundingRateHistory(this.Extend(request, params)))
-		PanicOnError(utaResponse)
+		var utaResponse map[string]any = MapTyped(PanicOnError((<-this.UtaGetMarketFundingRateHistory(this.Extend(request, params))).Raw))
 		response = this.SafeDict(utaResponse, "data", map[string]any{})
 		resultKey = "list"
 	} else {
@@ -12881,7 +12849,7 @@ func (this *Kucoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		//     }
 		//
 
-		response = (<-this.FuturesPublicGetContractFundingRates(this.Extend(request, params)))
+		response = (<-this.FuturesPublicGetContractFundingRates(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var result []any = SafeListTypedDefault(response, resultKey, []any{})
@@ -12975,7 +12943,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
 
-		response := (<-this.UtaPrivateGetPositionFundingHistory(this.Extend(request, params)))
+		response := (<-this.UtaPrivateGetPositionFundingHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -13005,7 +12973,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 			AddElementToObject(request, "maxCount", limit)
 		}
 
-		response := (<-this.FuturesPrivateGetFundingHistory(this.Extend(request, params)))
+		response := (<-this.FuturesPrivateGetFundingHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//    {
@@ -13098,7 +13066,7 @@ func (this *Kucoin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	if uta == true {
 		request["accountMode"] = "unified"
 
-		response = (<-this.UtaPrivateGetAccountModePositionOpenList(this.Extend(request, params)))
+		response = (<-this.UtaPrivateGetAccountModePositionOpenList(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -13128,7 +13096,7 @@ func (this *Kucoin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		position = this.SafeDict(data, 0, map[string]any{})
 	} else {
 
-		response = (<-this.FuturesPrivateGetPosition(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateGetPosition(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//    {
@@ -13222,11 +13190,11 @@ func (this *Kucoin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.UtaPrivateGetAccountModePositionOpenList(this.Extend(map[string]any{
 			"accountMode": "unified",
 			"limit":       200,
-		}, params)))
+		}, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.FuturesPrivateGetPositions(params))
+		response = (<-this.FuturesPrivateGetPositions(params)).Raw
 		PanicOnError(response)
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -13324,7 +13292,7 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		//     }
 		//
 
-		response = (<-this.UtaPrivateGetPositionHistory(this.Extend(request, params)))
+		response = (<-this.UtaPrivateGetPositionHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if limit == nil {
@@ -13378,7 +13346,7 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		// }
 		//
 
-		response = (<-this.FuturesPrivateGetHistoryPositions(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateGetHistoryPositions(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -13672,7 +13640,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		request["tradeType"] = tradeType
 		request["cancelOrderList"] = ordersRequests
 
-		response = (<-this.UtaPrivatePostAccountModeOrderCancelBatch(this.Extend(request, params)))
+		response = (<-this.UtaPrivatePostAccountModeOrderCancelBatch(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		var data map[string]any = SafeMapTyped(response, "data")
 		orders = this.SafeList(data, "items", []any{})
@@ -13685,7 +13653,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		}()
 		request[requestKey] = ordersRequests
 
-		response = (<-this.FuturesPrivateDeleteOrdersMultiCancel(this.Extend(request, params)))
+		response = (<-this.FuturesPrivateDeleteOrdersMultiCancel(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//   {
@@ -13747,8 +13715,7 @@ func (this *Kucoin) addMarginBody(ch chan any, symbol any, amount any, optionalA
 		"bizNo":  uuid,
 	}
 
-	response := (<-this.FuturesPrivatePostPositionMarginDepositMargin(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivatePostPositionMarginDepositMargin(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "200000",
@@ -13839,7 +13806,7 @@ func (this *Kucoin) reduceMarginBody(ch chan any, symbol any, amount any, option
 		"withdrawAmount": amountString,
 	}
 
-	response := (<-this.FuturesPrivatePostMarginWithdrawMargin(this.Extend(request, params)))
+	response := (<-this.FuturesPrivatePostMarginWithdrawMargin(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -13971,8 +13938,7 @@ func (this *Kucoin) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	response := (<-this.FuturesPrivateGetPositionGetMarginMode(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivateGetPositionGetMarginMode(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -14043,8 +14009,7 @@ func (this *Kucoin) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		"marginMode": ToUpper(marginMode),
 	}
 
-	response := (<-this.FuturesPrivatePostPositionChangeMarginMode(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivatePostPositionChangeMarginMode(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "200000",
@@ -14096,7 +14061,7 @@ func (this *Kucoin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 		"positionMode": posMode,
 	}
 
-	response := (<-this.FuturesPrivatePostPositionSwitchPositionMode(this.Extend(request, params)))
+	response := (<-this.FuturesPrivatePostPositionSwitchPositionMode(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -14133,8 +14098,7 @@ func (this *Kucoin) fetchPositionModeBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	response := (<-this.FuturesPrivateGetPositionGetPositionMode(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivateGetPositionGetPositionMode(params)).Raw))
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var positionMode *int64 = this.SafeInteger(data, "positionMode")
 
@@ -14189,11 +14153,11 @@ func (this *Kucoin) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	var response any = nil
 	if testOrder != nil && *testOrder == true {
 
-		response = (<-this.FuturesPrivatePostOrdersTest(this.Extend(request, params)))
+		response = (<-this.FuturesPrivatePostOrdersTest(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.FuturesPrivatePostOrders(this.Extend(request, params)))
+		response = (<-this.FuturesPrivatePostOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -14244,8 +14208,7 @@ func (this *Kucoin) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
 		"symbol": market["id"],
 	}
 
-	response := (<-this.FuturesPublicGetContractsRiskLimitSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPublicGetContractsRiskLimitSymbol(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "200000",
@@ -14366,8 +14329,7 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 		"symbol":      Join(marketIds, ","),
 	}
 
-	response := (<-this.UtaGetMarketPositionTiers(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaGetMarketPositionTiers(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -14460,8 +14422,7 @@ func (this *Kucoin) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 		}
 	}
 
-	response := (<-this.UtaGetMarketOpenInterest(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaGetMarketOpenInterest(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200000",
@@ -14581,8 +14542,7 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan any, symbol any, option
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.UtaGetMarketOpenInterest(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.UtaGetMarketOpenInterest(this.Extend(request, params))).Raw))
 	var data any = this.SafeList(response, "data")
 
 	ch <- this.ParseOpenInterestsHistory(data, market, since, limit)
@@ -14610,8 +14570,7 @@ func (this *Kucoin) isUTAEnabledBody(ch chan any, optionalArgs ...any) any {
 	var uta any = DerefScalar(this.SafeBool(this.Options, "uta"))
 	if IsEqual(uta, nil) {
 
-		response := (<-this.UtaPrivateGetAccountMode(params))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.UtaPrivateGetAccountMode(params)).Raw))
 		var data map[string]any = SafeMapTyped(response, "data")
 		var accountMode *string = this.SafeString(data, "selfAccountMode")
 		uta = (accountMode != nil && *accountMode == "UNIFIED")
@@ -14834,8 +14793,7 @@ func (this *Kucoin) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.PrivateGetAccountsLedgers(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountsLedgers(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "code": "200000",
@@ -14895,8 +14853,7 @@ func (this *Kucoin) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 
-	response := (<-this.FuturesPrivateGetPositions(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivateGetPositions(params)).Raw))
 	//
 	//     {
 	//         "code": "200000",

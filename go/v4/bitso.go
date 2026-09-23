@@ -405,8 +405,7 @@ func (this *Bitso) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetLedger(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetLedger(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -570,8 +569,7 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetAvailableBooks(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAvailableBooks(params)).Raw))
 	//
 	//     {
 	//         "success":true,
@@ -736,8 +734,7 @@ func (this *Bitso) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	catalogues := (<-this.PublicGetCatalogues(params))
-	PanicOnError(catalogues)
+	var catalogues map[string]any = MapTyped(PanicOnError((<-this.PublicGetCatalogues(params)).Raw))
 	//
 	//     {
 	//         "payload": {
@@ -850,7 +847,7 @@ func (this *Bitso) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetBalance(params))
+	response := (<-this.PrivateGetBalance(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -913,8 +910,7 @@ func (this *Bitso) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		"book": market["id"],
 	}
 
-	response := (<-this.PublicGetOrderBook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBook(this.Extend(request, params))).Raw))
 	var orderbook any = this.SafeDict(response, "payload")
 	var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "updated_at"))
 
@@ -996,8 +992,7 @@ func (this *Bitso) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		"book": market["id"],
 	}
 
-	response := (<-this.PublicGetTicker(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTicker(this.Extend(request, params))).Raw))
 	var ticker any = this.SafeValue(response, "payload")
 
 	//
@@ -1069,8 +1064,7 @@ func (this *Bitso) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["start"] = Subtract(now, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), limit))
 	}
 
-	response := (<-this.PublicGetOhlc(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOhlc(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success":true,
@@ -1256,8 +1250,7 @@ func (this *Bitso) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		"book": market["id"],
 	}
 
-	response := (<-this.PublicGetTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTrades(this.Extend(request, params))).Raw))
 	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 
 	ch <- this.ParseTrades(payload, market, since, limit)
@@ -1287,8 +1280,7 @@ func (this *Bitso) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetFees(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFees(params)).Raw))
 	//
 	//    {
 	//        "success": true,
@@ -1411,8 +1403,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"limit": limit,
 	}
 
-	response := (<-this.PrivateGetUserTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserTrades(this.Extend(request, params))).Raw))
 	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 
 	ch <- this.ParseTrades(payload, market, since, limit)
@@ -1459,7 +1450,7 @@ func (this *Bitso) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		request["price"] = this.PriceToPrecision(market["symbol"], price)
 	}
 
-	response := (<-this.PrivatePostOrders(this.Extend(request, params)))
+	response := (<-this.PrivatePostOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var payload map[string]any = SafeMapTyped(response, "payload")
 	var id *string = this.SafeString(payload, "oid")
@@ -1501,7 +1492,7 @@ func (this *Bitso) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"oid": id,
 	}
 
-	response := (<-this.PrivateDeleteOrdersOid(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteOrdersOid(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1553,8 +1544,7 @@ func (this *Bitso) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		"oids": oids,
 	}
 
-	response := (<-this.PrivateDeleteOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -1602,8 +1592,7 @@ func (this *Bitso) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(NotSupported(this.Id + " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol."))
 	}
 
-	response := (<-this.PrivateDeleteOrdersAll(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersAll(params)).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -1736,8 +1725,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"limit": limit,
 	}
 
-	response := (<-this.PrivateGetOpenOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenOrders(this.Extend(request, params))).Raw))
 	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 	var orders any = this.ParseOrders(payload, market, since, limit)
 
@@ -1772,10 +1760,9 @@ func (this *Bitso) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetOrdersOid(map[string]any{
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersOid(map[string]any{
 		"oid": id,
-	}))
-	PanicOnError(response)
+	})).Raw))
 	var payload any = this.SafeList(response, "payload")
 	if IsArray(payload) {
 		var numOrders int = GetArrayLength(payload)
@@ -1825,8 +1812,7 @@ func (this *Bitso) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any
 		"oid": id,
 	}
 
-	response := (<-this.PrivateGetOrderTradesOid(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrderTradesOid(this.Extend(request, params))).Raw))
 	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 
 	ch <- this.ParseTrades(payload, market)
@@ -1863,8 +1849,7 @@ func (this *Bitso) fetchDepositBody(ch chan any, id any, optionalArgs ...any) an
 		"fid": id,
 	}
 
-	response := (<-this.PrivateGetFundingsFid(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundingsFid(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -1931,8 +1916,7 @@ func (this *Bitso) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 	}
 
-	response := (<-this.PrivateGetFundings(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundings(params)).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -1989,7 +1973,7 @@ func (this *Bitso) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		"fund_currency": currency["id"],
 	}
 
-	response := (<-this.PrivateGetFundingDestination(this.Extend(request, params)))
+	response := (<-this.PrivateGetFundingDestination(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var payload map[string]any = SafeMapTyped(response, "payload")
 	var address *string = this.SafeString(payload, "account_identifier")
@@ -2038,8 +2022,7 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetFees(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFees(params)).Raw))
 	//
 	//    {
 	//        "success": true,
@@ -2159,8 +2142,7 @@ func (this *Bitso) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetFees(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFees(params)).Raw))
 	//
 	//    {
 	//        "success": true,

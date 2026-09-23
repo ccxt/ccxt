@@ -595,8 +595,7 @@ func (this *Dydx) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.IndexerGetTime(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetTime(params)).Raw))
 
 	//
 	// {
@@ -730,8 +729,7 @@ func (this *Dydx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var request map[string]any = map[string]any{}
 
-	response := (<-this.IndexerGetPerpetualMarkets(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetPerpetualMarkets(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "markets": {
@@ -842,8 +840,7 @@ func (this *Dydx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = mathMin(limit, 1000)
 	}
 
-	response := (<-this.IndexerGetTradesPerpetualMarketMarket(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetTradesPerpetualMarketMarket(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "trades": [
@@ -937,8 +934,7 @@ func (this *Dydx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		request["toIso"] = this.Iso8601(until)
 	}
 
-	response := (<-this.IndexerGetCandlesPerpetualMarketsMarket(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetCandlesPerpetualMarketsMarket(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "candles": [
@@ -1013,8 +1009,7 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		request["effectiveBeforeOrAt"] = this.Iso8601(until)
 	}
 
-	response := (<-this.IndexerGetHistoricalFundingMarket(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetHistoricalFundingMarket(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "historicalFunding": [
@@ -1186,7 +1181,7 @@ func (this *Dydx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		"orderId": id,
 	}
 
-	order := (<-this.IndexerGetOrdersOrderId(this.Extend(request, params)))
+	order := (<-this.IndexerGetOrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(order)
 
 	ch <- this.ParseOrder(order)
@@ -1247,7 +1242,7 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.IndexerGetOrders(this.Extend(request, params)))
+	response := (<-this.IndexerGetOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1486,8 +1481,7 @@ func (this *Dydx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"status":           "OPEN",
 	}
 
-	response := (<-this.IndexerGetPerpetualPositions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetPerpetualPositions(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "positions": [
@@ -1620,8 +1614,7 @@ func (this *Dydx) fetchDydxAccountBody(ch chan any) any {
 	// }
 	//
 
-	response := (<-this.NodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).Raw))
 	var account any = this.SafeDict(response, "info", map[string]any{})
 	AddElementToObject(account, "pub_key", map[string]any{
 		"key": GetValue(GetValue(account, "pub_key"), "key"),
@@ -1829,8 +1822,7 @@ func (this *Dydx) fetchLatestBlockHeightBody(ch chan any, optionalArgs ...any) a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.NodeRpcGetAbciInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetAbciInfo(params)).Raw))
 	//
 	// {
 	//     "jsonrpc": "2.0",
@@ -1915,8 +1907,7 @@ func (this *Dydx) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	}
 	// nodeRpcGetBroadcastTxAsync
 
-	response := (<-this.NodeRpcGetBroadcastTxSync(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetBroadcastTxSync(request)).Raw))
 	//
 	// {
 	//     "jsonrpc": "2.0",
@@ -2051,8 +2042,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	// nodeRpcGetBroadcastTxAsync
 
-	response := (<-this.NodeRpcGetBroadcastTxSync(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetBroadcastTxSync(request)).Raw))
 	//
 	// {
 	//     "jsonrpc": "2.0",
@@ -2145,8 +2135,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	}
 	// nodeRpcGetBroadcastTxAsync
 
-	response := (<-this.NodeRpcGetBroadcastTxSync(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetBroadcastTxSync(request)).Raw))
 	//
 	// {
 	//     "jsonrpc": "2.0",
@@ -2199,7 +2188,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"market": market["id"],
 	}
 
-	response := (<-this.IndexerGetOrderbooksPerpetualMarketMarket(this.Extend(request, params)))
+	response := (<-this.IndexerGetOrderbooksPerpetualMarketMarket(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2346,8 +2335,7 @@ func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account 
 		"txBytes": txBytes,
 	}
 
-	response := (<-this.NodeRestPostCosmosTxV1beta1Simulate(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRestPostCosmosTxV1beta1Simulate(request)).Raw))
 	//
 	// {
 	//     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
@@ -2497,7 +2485,7 @@ func (this *Dydx) transferBody(ch chan any, code any, amount any, fromAccount an
 	}
 	// nodeRpcGetBroadcastTxAsync
 
-	response := (<-this.NodeRpcGetBroadcastTxSync(request))
+	response := (<-this.NodeRpcGetBroadcastTxSync(request)).Raw
 	PanicOnError(response)
 
 	//
@@ -2730,8 +2718,7 @@ func (this *Dydx) withdrawBody(ch chan any, code any, amount any, address any, o
 	}
 	// nodeRpcGetBroadcastTxAsync
 
-	response := (<-this.NodeRpcGetBroadcastTxSync(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetBroadcastTxSync(request)).Raw))
 	//
 	// {
 	//     "jsonrpc": "2.0",
@@ -2927,8 +2914,7 @@ func (this *Dydx) fetchTransactionsHelperBody(ch chan any, optionalArgs ...any) 
 		"subaccountNumber": subAccountNumber,
 	}
 
-	response := (<-this.IndexerGetTransfers(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetTransfers(this.Extend(request, params))).Raw))
 
 	//
 	// {
@@ -2984,8 +2970,7 @@ func (this *Dydx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		"address": userAddress,
 	}
 
-	response := (<-this.IndexerGetAddressesAddress(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetAddressesAddress(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "subaccounts": [
@@ -3088,8 +3073,7 @@ func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"subaccountNumber": subaccountNumber,
 	}
 
-	response := (<-this.IndexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "subaccount": {

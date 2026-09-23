@@ -797,8 +797,7 @@ func (this *Tokocrypto) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetOpenV1CommonTime(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenV1CommonTime(params)).Raw))
 
 	//
 	// {
@@ -831,8 +830,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetOpenV1CommonSymbols(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenV1CommonSymbols(params)).Raw))
 	//
 	//     {
 	//         "code":0,
@@ -1036,11 +1034,11 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var response any = nil
 	if EvalTruthy(this.IsNativeMarket(market)) {
 
-		response = (<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params)))
+		response = (<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.BinanceGetDepth(this.Extend(request, params)))
+		response = (<-this.BinanceGetDepth(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -1291,8 +1289,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		// open/v1/market/trades answers an empty list for every market, the
 		// aggregate endpoint is the one that carries data for these markets
 
-		responseInner := (<-this.PublicGetOpenV1MarketAggTrades(this.Extend(request, params)))
-		PanicOnError(responseInner)
+		var responseInner map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenV1MarketAggTrades(this.Extend(request, params))).Raw))
 		//
 		//    {
 		//       "code": 0,
@@ -1331,11 +1328,11 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
 		request["endTime"] = this.Sum(since, 3600000)
 
-		response = (<-this.BinanceGetAggTrades(this.Extend(request, params)))
+		response = (<-this.BinanceGetAggTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.BinanceGetTrades(this.Extend(request, params)))
+		response = (<-this.BinanceGetTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -1615,7 +1612,7 @@ func (this *Tokocrypto) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.BinanceGetTickerBookTicker(params))
+	response := (<-this.BinanceGetTickerBookTicker(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTickers(response, symbols)
@@ -1728,11 +1725,11 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var response any = nil
 	if EvalTruthy(this.IsNativeMarket(market)) {
 
-		response = (<-this.PublicGetOpenV1MarketKlines(this.Extend(request, params)))
+		response = (<-this.PublicGetOpenV1MarketKlines(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.BinanceGetKlines(this.Extend(request, params)))
+		response = (<-this.BinanceGetKlines(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -1816,7 +1813,7 @@ func (this *Tokocrypto) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marginMode *string = this.SafeStringLower(params, "marginMode", defaultMarginMode)
 	var request map[string]any = map[string]any{}
 
-	response := (<-this.PrivateGetOpenV1AccountSpot(this.Extend(request, params)))
+	response := (<-this.PrivateGetOpenV1AccountSpot(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2223,8 +2220,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 		}
 	}
 
-	response := (<-this.PrivatePostOpenV1Orders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenV1Orders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -2285,8 +2281,7 @@ func (this *Tokocrypto) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		"orderId": id,
 	}
 
-	response := (<-this.PrivateGetOpenV1Orders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Orders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -2370,8 +2365,7 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetOpenV1Orders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Orders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -2512,8 +2506,7 @@ func (this *Tokocrypto) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		"orderId": id,
 	}
 
-	response := (<-this.PrivatePostOpenV1OrdersCancel(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenV1OrdersCancel(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -2597,8 +2590,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetOpenV1OrdersTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1OrdersTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -2668,7 +2660,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan any, code any, optionalA
 	// has support for the 'network' parameter
 	// https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
 
-	response := (<-this.PrivateGetOpenV1DepositsAddress(this.Extend(request, params)))
+	response := (<-this.PrivateGetOpenV1DepositsAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2755,8 +2747,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetOpenV1Deposits(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Deposits(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code":0,
@@ -2833,8 +2824,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetOpenV1Withdraws(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Withdraws(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code":0,
@@ -3054,7 +3044,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 		request["network"] = ToUpper(networkId)
 	}
 
-	response := (<-this.PrivatePostOpenV1Withdraws(this.Extend(request, query)))
+	response := (<-this.PrivatePostOpenV1Withdraws(this.Extend(request, query))).Raw
 	PanicOnError(response)
 
 	//

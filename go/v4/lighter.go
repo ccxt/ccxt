@@ -664,10 +664,9 @@ func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1
 			panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(this.Id+" ", methodName1), "() requires an "), optionName1), "/"), optionName2), " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")))
 		}
 
-		res := (<-this.PublicGetAccountsByL1Address(map[string]any{
+		var res map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccountsByL1Address(map[string]any{
 			"l1_address": walletAddress,
-		}))
-		PanicOnError(res)
+		})).Raw))
 		//
 		// {
 		//     "code": 200,
@@ -744,7 +743,7 @@ func (this *Lighter) createSubAccountBody(ch chan any, name any, optionalArgs ..
 		"tx_info": txInfo,
 	}
 
-	retRes56815 := (<-this.PublicPostSendTx(request))
+	retRes56815 := (<-this.PublicPostSendTx(request)).Raw
 	PanicOnError(retRes56815)
 	ch <- retRes56815
 	return nil
@@ -914,7 +913,7 @@ func (this *Lighter) approveBuilderFeeBody(ch chan any, builder any, takerFeeRat
 		"tx_info": newTxInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request))
+	response := (<-this.PublicPostSendTx(request)).Raw
 	PanicOnError(response)
 
 	ch <- response
@@ -967,7 +966,7 @@ func (this *Lighter) changeApiKeyBody(ch chan any, optionalArgs ...any) any {
 		"tx_info": newTxInfo,
 	}
 
-	PanicOnError((<-this.PublicPostSendTx(request)))
+	PanicOnError((<-this.PublicPostSendTx(request)).Raw)
 	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "lighterPrivateKey", privateKey)
 	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "signer", signer) // reassign signer in go
 
@@ -1203,11 +1202,10 @@ func (this *Lighter) fetchNonceBody(ch chan any, accountIndex any, apiKeyIndex a
 		return nil
 	}
 
-	response := (<-this.PublicGetNextNonce(map[string]any{
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetNextNonce(map[string]any{
 		"account_index": accountIndex,
 		"api_key_index": apiKeyIndex,
-	}))
-	PanicOnError(response)
+	})).Raw))
 
 	ch <- this.SafeInteger(response, "nonce")
 	return nil
@@ -1325,7 +1323,7 @@ func (this *Lighter) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request))
+	response := (<-this.PublicPostSendTx(request)).Raw
 	PanicOnError(response)
 
 	//
@@ -1427,7 +1425,7 @@ func (this *Lighter) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request))
+	response := (<-this.PublicPostSendTx(request)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response, market)
@@ -1453,7 +1451,7 @@ func (this *Lighter) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.RootGet(params))
+	response := (<-this.RootGet(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1498,8 +1496,7 @@ func (this *Lighter) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.RootGet(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.RootGet(params)).Raw))
 
 	//
 	//     {
@@ -1531,8 +1528,7 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetOrderBookDetails(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBookDetails(params)).Raw))
 	//
 	//    {
 	//        "code": "200",
@@ -1751,8 +1747,7 @@ func (this *Lighter) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetAssetDetails(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAssetDetails(params)).Raw))
 	if this.CheckRequiredCredentials(false) {
 
 		PanicOnError((<-this.PreLoadLighterLibraryAsync()))
@@ -1854,7 +1849,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		request["limit"] = mathMin(limit, 100)
 	}
 
-	response := (<-this.PublicGetOrderBookOrders(this.Extend(request, params)))
+	response := (<-this.PublicGetOrderBookOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2021,8 +2016,7 @@ func (this *Lighter) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"market_id": market["id"],
 	}
 
-	response := (<-this.PublicGetOrderBookDetails(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBookDetails(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -2103,8 +2097,7 @@ func (this *Lighter) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetOrderBookDetails(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBookDetails(params)).Raw))
 	var spotTickers []any = SafeListTypedDefault(response, "spot_order_book_details", []any{})
 	var swapTickers []any = SafeListTypedDefault(response, "order_book_details", []any{})
 	var tickers []any = this.ArrayConcat(spotTickers, swapTickers)
@@ -2208,8 +2201,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"end_timestamp":   endTs,
 	}
 
-	response := (<-this.PublicGetCandles(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCandles(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "code": 200,
@@ -2297,8 +2289,7 @@ func (this *Lighter) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetFundingRates(this.Extend(params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingRates(this.Extend(params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -2371,7 +2362,7 @@ func (this *Lighter) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"value": accountIndex,
 	}
 
-	response := (<-this.PublicGetAccount(this.Extend(request, params)))
+	response := (<-this.PublicGetAccount(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2526,8 +2517,7 @@ func (this *Lighter) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"value": accountIndex,
 	}
 
-	response := (<-this.PublicGetAccount(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccount(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -2712,8 +2702,7 @@ func (this *Lighter) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		"value": accountIndex,
 	}
 
-	response := (<-this.PublicGetAccount(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccount(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200",
@@ -2843,8 +2832,7 @@ func (this *Lighter) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"account_index": accountIndex,
 	}
 
-	response := (<-this.PrivateGetAccountActiveOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountActiveOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -2950,8 +2938,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		request["limit"] = mathMin(limit, 100)
 	}
 
-	response := (<-this.PrivateGetAccountInactiveOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountInactiveOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -3289,7 +3276,7 @@ func (this *Lighter) transferBody(ch chan any, code any, amount any, fromAccount
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request))
+	response := (<-this.PublicPostSendTx(request)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransfer(response)
@@ -3359,8 +3346,7 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 	}
 
-	response := (<-this.PrivateGetTransferHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransferHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -3505,8 +3491,7 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["coin"] = GetValue(currency, "id")
 	}
 
-	response := (<-this.PrivateGetDepositHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDepositHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -3598,8 +3583,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		request["coin"] = GetValue(currency, "id")
 	}
 
-	response := (<-this.PrivateGetWithdrawHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWithdrawHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "200",
@@ -3764,7 +3748,7 @@ func (this *Lighter) withdrawBody(ch chan any, code any, amount any, address any
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request))
+	response := (<-this.PublicPostSendTx(request)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransaction(response)
@@ -3848,8 +3832,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["market_id"] = GetValue(market, "id")
 	}
 
-	response := (<-this.PrivateGetTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -4114,7 +4097,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan any, leverage any, 
 		"tx_info": txInfo,
 	}
 
-	retRes314615 := (<-this.PublicPostSendTx(request))
+	retRes314615 := (<-this.PublicPostSendTx(request)).Raw
 	PanicOnError(retRes314615)
 	ch <- retRes314615
 	return nil
@@ -4210,7 +4193,7 @@ func (this *Lighter) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request))
+	response := (<-this.PublicPostSendTx(request)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response, market)
@@ -4293,7 +4276,7 @@ func (this *Lighter) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request))
+	response := (<-this.PublicPostSendTx(request)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders([]any{response})
@@ -4356,7 +4339,7 @@ func (this *Lighter) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request))
+	response := (<-this.PublicPostSendTx(request)).Raw
 	PanicOnError(response)
 
 	ch <- response
@@ -4489,7 +4472,7 @@ func (this *Lighter) setMarginBody(ch chan any, symbol any, amount any, optional
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request))
+	response := (<-this.PublicPostSendTx(request)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseMarginModification(response, market)

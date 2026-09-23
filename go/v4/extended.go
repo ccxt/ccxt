@@ -549,8 +549,7 @@ func (this *Extended) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V1PublicGetInfoMarkets(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInfoMarkets(params)).Raw))
 	//
 	//     {
 	//       "status": "OK",
@@ -814,8 +813,7 @@ func (this *Extended) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V1PublicGetInfoAssets(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInfoAssets(params)).Raw))
 	//
 	//     {
 	//       "status": "OK",
@@ -921,8 +919,7 @@ func (this *Extended) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		"market": market["id"],
 	}
 
-	response := (<-this.V1PublicGetInfoMarketsMarketStats(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInfoMarketsMarketStats(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//       "status": "OK",
@@ -999,8 +996,7 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["market"] = marketIds
 	}
 
-	response := (<-this.V1PublicGetInfoMarkets(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInfoMarkets(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//       "status": "OK",
@@ -1140,8 +1136,7 @@ func (this *Extended) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"market": market["id"],
 	}
 
-	response := (<-this.V1PublicGetInfoMarketsMarketOrderbook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInfoMarketsMarketOrderbook(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//       "status": "OK",
@@ -1206,8 +1201,7 @@ func (this *Extended) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"market": market["id"],
 	}
 
-	response := (<-this.V1PublicGetInfoMarketsMarketTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInfoMarketsMarketTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//       "status": "OK",
@@ -1280,8 +1274,7 @@ func (this *Extended) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.V1PrivateGetUserTrades(this.Extend(params, request)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserTrades(this.Extend(params, request))).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -1385,8 +1378,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		request["limit"] = limit
 	}
 
-	response := (<-this.V1PrivateGetUserFundingHistory(this.Extend(params, request)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserFundingHistory(this.Extend(params, request))).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -1635,8 +1627,7 @@ func (this *Extended) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		request["endTime"] = until
 	}
 
-	response := (<-this.V1PublicGetInfoCandlesMarketCandleType(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInfoCandlesMarketCandleType(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//       "status": "OK",
@@ -1737,8 +1728,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		"limit":     limit,
 	}
 
-	response := (<-this.V1PublicGetInfoMarketFunding(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInfoMarketFunding(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//       "status": "OK",
@@ -1854,8 +1844,7 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 		"limit":     limit,
 	}
 
-	response := (<-this.V1PublicGetInfoMarketOpenInterests(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInfoMarketOpenInterests(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//       "status": "OK",
@@ -1917,8 +1906,7 @@ func (this *Extended) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 
-	response := (<-this.V1PrivateGetUserSpotBalances(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserSpotBalances(params)).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -1990,8 +1978,7 @@ func (this *Extended) fetchAccountBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V1PrivateGetUserAccountInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserAccountInfo(params)).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -2035,8 +2022,7 @@ func (this *Extended) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V1PrivateGetUserAccounts(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserAccounts(params)).Raw))
 	//
 	// {
 	//     "status": "OK",
@@ -2134,8 +2120,7 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.V1PrivateGetUserAssetOperations(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserAssetOperations(this.Extend(request, params))).Raw))
 	var data []any = SafeListTyped(response, "data")
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
@@ -2270,8 +2255,7 @@ func (this *Extended) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 		request["limit"] = limit
 	}
 
-	response := (<-this.V1PrivateGetUserAssetOperations(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserAssetOperations(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -2444,7 +2428,7 @@ func (this *Extended) withdrawBody(ch chan any, code any, amount any, address an
 	}
 	params = MapTyped(this.Omit(params, []any{"chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"}))
 
-	response := (<-this.V1PrivatePostUserWithdrawal(this.Extend(request, params)))
+	response := (<-this.V1PrivatePostUserWithdrawal(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2530,8 +2514,7 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.V1PrivateGetUserAssetOperations(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserAssetOperations(this.Extend(request, params))).Raw))
 	var data []any = SafeListTyped(response, "data")
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
@@ -2610,7 +2593,7 @@ func (this *Extended) transferBody(ch chan any, code any, amount any, fromAccoun
 	}
 	params = MapTyped(this.Omit(params, []any{"fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution"}))
 
-	response := (<-this.V1PrivatePostUserTransfer(this.Extend(request, params)))
+	response := (<-this.V1PrivatePostUserTransfer(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2817,8 +2800,7 @@ func (this *Extended) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 		"market": market["id"],
 	}
 
-	response := (<-this.V1PrivateGetUserFees(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserFees(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -2862,8 +2844,7 @@ func (this *Extended) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 
-	response := (<-this.V1PrivateGetUserFees(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserFees(params)).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -2940,8 +2921,7 @@ func (this *Extended) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 		"market": market["id"],
 	}
 
-	response := (<-this.V1PrivateGetUserLeverage(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserLeverage(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -2992,8 +2972,7 @@ func (this *Extended) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 		"leverage": this.NumberToString(leverage),
 	}
 
-	response := (<-this.V1PrivatePatchUserLeverage(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePatchUserLeverage(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -3055,8 +3034,7 @@ func (this *Extended) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		request["market"] = marketIds
 	}
 
-	response := (<-this.V1PrivateGetUserPositions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserPositions(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -3168,8 +3146,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 		request["market"] = marketIds
 	}
 
-	response := (<-this.V1PrivateGetUserPositionsHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserPositionsHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -3725,8 +3702,7 @@ func (this *Extended) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var extendedOrderRequest map[string]any = MapTyped(PanicOnError((<-this.CreateExtendedOrderRequestAsync(symbol, typeVar, side, amount, price, params))))
 	var request map[string]any = MapTyped(this.SafeDict(extendedOrderRequest, "request", map[string]any{}))
 
-	response := (<-this.V1PrivatePostUserOrder(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostUserOrder(request)).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -3783,10 +3759,9 @@ func (this *Extended) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var cancelId *string = this.SafeString2(params, "cancelId", "previousOrderId")
 	if (amount == nil) || (price == nil) || (expiryEpochMillis == nil) || (postOnly == nil) || (reduceOnly == nil) || (cancelId == nil) {
 
-		response := (<-this.V1PrivateGetUserOrdersId(map[string]any{
+		var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserOrdersId(map[string]any{
 			"id": id,
-		}))
-		PanicOnError(response)
+		})).Raw))
 		var order map[string]any = SafeMapTyped(response, "data")
 		if amount == nil {
 			amount = DerefScalar(this.SafeNumber(order, "qty"))
@@ -3825,8 +3800,7 @@ func (this *Extended) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var extendedOrderRequest map[string]any = MapTyped(PanicOnError((<-this.CreateExtendedOrderRequestAsync(symbol, typeVar, side, amount, price, requestParams))))
 	var request map[string]any = MapTyped(this.SafeDict(extendedOrderRequest, "request", map[string]any{}))
 
-	editResponse := (<-this.V1PrivatePostUserOrder(request))
-	PanicOnError(editResponse)
+	var editResponse map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostUserOrder(request)).Raw))
 	//
 	//     {
 	//         "status": "OK",
@@ -3884,7 +3858,7 @@ func (this *Extended) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 			"externalId": clientOrderId,
 		}
 
-		response = (<-this.V1PrivateDeleteUserOrder(this.Extend(request, params)))
+		response = (<-this.V1PrivateDeleteUserOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if IsEqual(id, nil) {
@@ -3894,7 +3868,7 @@ func (this *Extended) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 			"id": id,
 		}
 
-		response = (<-this.V1PrivateDeleteUserOrderId(this.Extend(request, params)))
+		response = (<-this.V1PrivateDeleteUserOrderId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -3978,7 +3952,7 @@ func (this *Extended) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires an ids argument or clientOrderIds parameter"))
 	}
 
-	PanicOnError((<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params))))
+	PanicOnError((<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params))).Raw)
 
 	//
 	//     {
@@ -4022,7 +3996,7 @@ func (this *Extended) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["markets"] = []any{GetValue(market, "id")}
 	}
 
-	PanicOnError((<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params))))
+	PanicOnError((<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params))).Raw)
 
 	//
 	//     {
@@ -4064,7 +4038,7 @@ func (this *Extended) cancelAllOrdersAfterBody(ch chan any, timeout any, optiona
 		}(),
 	}
 
-	response := (<-this.V1PrivatePostUserDeadmanswitch(this.Extend(request, params)))
+	response := (<-this.V1PrivatePostUserDeadmanswitch(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -4115,7 +4089,7 @@ func (this *Extended) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 			"externalId": clientOrderId,
 		}
 
-		response = (<-this.V1PrivateGetUserOrdersExternalExternalId(this.Extend(request, params)))
+		response = (<-this.V1PrivateGetUserOrdersExternalExternalId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		var data []any = SafeListTypedDefault(response, "data", []any{})
 		order = this.SafeDict(data, 0, map[string]any{})
@@ -4127,7 +4101,7 @@ func (this *Extended) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 			"id": id,
 		}
 
-		response = (<-this.V1PrivateGetUserOrdersId(this.Extend(request, params)))
+		response = (<-this.V1PrivateGetUserOrdersId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		order = this.SafeDict(response, "data", map[string]any{})
 	}
@@ -4172,8 +4146,7 @@ func (this *Extended) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["market"] = GetValue(market, "id")
 	}
 
-	response := (<-this.V1PrivateGetUserOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//       "status": "OK",
@@ -4258,8 +4231,7 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.V1PrivateGetUserOrdersHistory(this.Extend(params, request)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetUserOrdersHistory(this.Extend(params, request))).Raw))
 	//
 	//     {
 	//       "status": "OK",

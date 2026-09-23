@@ -651,8 +651,7 @@ func (this *Bittrade) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetCommonTimestamp(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCommonTimestamp(params)).Raw))
 
 	ch <- this.SafeInteger(response, "data")
 	return nil
@@ -705,8 +704,7 @@ func (this *Bittrade) fetchTradingLimitsByIdBody(ch chan any, id any, optionalAr
 		"symbol": id,
 	}
 
-	response := (<-this.PublicGetCommonExchange(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCommonExchange(this.Extend(request, params))).Raw))
 
 	//
 	//     { status:   "ok",
@@ -782,7 +780,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(method, "publicGetCommonSymbols") {
 
-		response = (<-this.PublicGetCommonSymbols(params))
+		response = (<-this.PublicGetCommonSymbols(params)).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" fetchMarkets() does not support the ", method), " method")))
@@ -1029,7 +1027,7 @@ func (this *Bittrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"type":   "step0",
 	}
 
-	response := (<-this.MarketGetDepth(this.Extend(request, params)))
+	response := (<-this.MarketGetDepth(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1094,8 +1092,7 @@ func (this *Bittrade) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	response := (<-this.MarketGetDetailMerged(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.MarketGetDetailMerged(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status": "ok",
@@ -1152,8 +1149,7 @@ func (this *Bittrade) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.MarketGetTickers(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.MarketGetTickers(params)).Raw))
 	var tickers []any = SafeListTyped(response, "data")
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	var result map[string]any = map[string]any{}
@@ -1351,8 +1347,7 @@ func (this *Bittrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["start-time"] = since // a date within 120 days from today
 	}
 
-	response := (<-this.PrivateGetOrderMatchresults(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrderMatchresults(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
@@ -1395,8 +1390,7 @@ func (this *Bittrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		request["size"] = mathMin(limit, 2000)
 	}
 
-	response := (<-this.MarketGetHistoryTrade(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.MarketGetHistoryTrade(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status": "ok",
@@ -1503,8 +1497,7 @@ func (this *Bittrade) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		request["size"] = mathMin(limit, 2000)
 	}
 
-	response := (<-this.MarketGetHistoryKline(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.MarketGetHistoryKline(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status":"ok",
@@ -1573,8 +1566,7 @@ func (this *Bittrade) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 		"language": this.HandleOption("fetchCurrencies", "language", "en-US"),
 	}
 
-	response := (<-this.PublicGetSettingsCurrencys(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetSettingsCurrencys(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status":"ok",
@@ -1780,7 +1772,7 @@ func (this *Bittrade) fetchOrdersByStatesBody(ch chan any, states any, optionalA
 	var response any = nil
 	if (IsEqual(method, "private_get_order_history")) || (IsEqual(method, "privateGetOrderHistory")) {
 
-		response = (<-this.PrivateGetOrderHistory(this.Extend(request, params)))
+		response = (<-this.PrivateGetOrderHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
@@ -2603,8 +2595,7 @@ func (this *Bittrade) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["size"] = limit // max 100
 	}
 
-	response := (<-this.PrivateGetQueryDepositWithdraw(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetQueryDepositWithdraw(this.Extend(request, params))).Raw))
 	// return response
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -2660,8 +2651,7 @@ func (this *Bittrade) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["size"] = limit // max 100
 	}
 
-	response := (<-this.PrivateGetQueryDepositWithdraw(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetQueryDepositWithdraw(this.Extend(request, params))).Raw))
 	// return response
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -2824,7 +2814,7 @@ func (this *Bittrade) withdrawBody(ch chan any, code any, amount any, address an
 		params = this.Omit(params, "network")
 	}
 
-	response := (<-this.PrivatePostDwWithdrawApiCreate(this.Extend(request, params)))
+	response := (<-this.PrivatePostDwWithdrawApiCreate(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//

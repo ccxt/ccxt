@@ -369,8 +369,7 @@ func (this *Indodax) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetApiServerTime(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiServerTime(params)).Raw))
 
 	//
 	//     {
@@ -401,8 +400,7 @@ func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetApiPairs(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiPairs(params)).Raw))
 	//
 	//     [
 	//         {
@@ -554,7 +552,7 @@ func (this *Indodax) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostGetInfo(params))
+	response := (<-this.PrivatePostGetInfo(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -622,7 +620,7 @@ func (this *Indodax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"pair": market["id"],
 	}
 
-	orderbook := (<-this.PublicGetApiDepthPair(this.Extend(request, params)))
+	orderbook := (<-this.PublicGetApiDepthPair(this.Extend(request, params))).Raw
 	PanicOnError(orderbook)
 
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "buy", "sell")
@@ -700,8 +698,7 @@ func (this *Indodax) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetApiTickerPair(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiTickerPair(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "ticker": {
@@ -764,8 +761,7 @@ func (this *Indodax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 
-	response := (<-this.PublicGetApiTickerAll(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiTickerAll(params)).Raw))
 	var tickers map[string]any = SafeMapTyped(response, "tickers")
 	var keys []string = ObjectKeys(tickers)
 	var parsedTickers map[string]any = map[string]any{}
@@ -836,7 +832,7 @@ func (this *Indodax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetApiTradesPair(this.Extend(request, params)))
+	response := (<-this.PublicGetApiTradesPair(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTrades(response, market, since, limit)
@@ -910,8 +906,7 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		request["from"] = Subtract(Subtract(now, Multiply(limit, duration)), 1)
 	}
 
-	response := (<-this.PublicGetTradingviewHistoryV2(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradingviewHistoryV2(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1073,7 +1068,7 @@ func (this *Indodax) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id": id,
 	}
 
-	response := (<-this.PrivatePostGetOrder(this.Extend(request, params)))
+	response := (<-this.PrivatePostGetOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var orders map[string]any = SafeMapTyped(response, "return")
 	var order any = this.ParseOrder(this.Extend(map[string]any{
@@ -1123,8 +1118,7 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["pair"] = GetValue(market, "id")
 	}
 
-	response := (<-this.PrivatePostOpenOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenOrders(this.Extend(request, params))).Raw))
 	var openOrdersResult map[string]any = SafeMapTyped(response, "return")
 	var rawOrders any = openOrdersResult["orders"]
 	// { success: 1, return: { orders: null }} if no orders
@@ -1193,8 +1187,7 @@ func (this *Indodax) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		"pair": market["id"],
 	}
 
-	response := (<-this.PrivatePostOrderHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderHistory(this.Extend(request, params))).Raw))
 	var historyResult map[string]any = SafeMapTyped(response, "return")
 	var orders any = this.ParseOrders(historyResult["orders"], market)
 	orders = this.FilterBy(orders, "status", "closed")
@@ -1277,7 +1270,7 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		AddElementToObject(request, market["baseId"], this.AmountToPrecision(symbol, amount))
 	}
 
-	result := (<-this.PrivatePostTrade(this.Extend(request, params)))
+	result := (<-this.PrivatePostTrade(this.Extend(request, params))).Raw
 	PanicOnError(result)
 	var data map[string]any = SafeMapTyped(result, "return")
 	var id *string = this.SafeString(data, "order_id")
@@ -1329,8 +1322,7 @@ func (this *Indodax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"type":     side,
 	}
 
-	response := (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "success": 1,
@@ -1384,7 +1376,7 @@ func (this *Indodax) fetchTransactionFeeBody(ch chan any, code any, optionalArgs
 		"currency": currency["id"],
 	}
 
-	response := (<-this.PrivatePostWithdrawFee(this.Extend(request, params)))
+	response := (<-this.PrivatePostWithdrawFee(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1433,7 +1425,7 @@ func (this *Indodax) fetchDepositWithdrawFeeBody(ch chan any, code any, optional
 		"currency": currency["id"],
 	}
 
-	response := (<-this.PrivatePostWithdrawFee(this.Extend(request, params)))
+	response := (<-this.PrivatePostWithdrawFee(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1494,8 +1486,7 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 		request["end"] = this.Yyyymmdd(this.Milliseconds())
 	}
 
-	response := (<-this.PrivatePostTransHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTransHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": 1,
@@ -1630,7 +1621,7 @@ func (this *Indodax) withdrawBody(ch chan any, code any, amount any, address any
 		request["withdraw_memo"] = tag
 	}
 
-	response := (<-this.PrivatePostWithdrawCoin(this.Extend(request, params)))
+	response := (<-this.PrivatePostWithdrawCoin(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1768,8 +1759,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostGetInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetInfo(params)).Raw))
 	//
 	//    {
 	//        success: '1',

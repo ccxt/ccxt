@@ -2042,8 +2042,7 @@ func (this *Gate) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicSpotGetTime(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicSpotGetTime(params)).Raw))
 
 	//
 	//     {
@@ -2208,8 +2207,8 @@ func (this *Gate) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var marginPromise any = this.PublicMarginGetCurrencyPairs(params)
-	var spotMarketsPromise any = this.PublicSpotGetCurrencyPairs(params)
+	var marginPromise any = EndpointRaw(this.PublicMarginGetCurrencyPairs(params))
+	var spotMarketsPromise any = EndpointRaw(this.PublicSpotGetCurrencyPairs(params))
 	marginResponsespotMarketsResponseVariable := (<-promiseAll([]any{marginPromise, spotMarketsPromise}))
 	marginResponse := GetValue(marginResponsespotMarketsResponseVariable, 0)
 	spotMarketsResponse := GetValue(marginResponsespotMarketsResponseVariable, 1)
@@ -2360,8 +2359,7 @@ func (this *Gate) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 			"settle": settleId,
 		}
 
-		response := (<-this.PublicFuturesGetSettleContracts(this.Extend(request, params)))
-		PanicOnError(response)
+		var response []any = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleContracts(this.Extend(request, params))).Raw))
 		for i := 0; i < GetArrayLength(response); i++ {
 			var contract map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 			var parsedMarket map[string]any = this.ParseContractMarket(contract, settleId)
@@ -2395,8 +2393,7 @@ func (this *Gate) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
 			"settle": settleId,
 		}
 
-		response := (<-this.PublicDeliveryGetSettleContracts(this.Extend(request, params)))
-		PanicOnError(response)
+		var response []any = ListTyped(PanicOnError((<-this.PublicDeliveryGetSettleContracts(this.Extend(request, params))).Raw))
 		for i := 0; i < GetArrayLength(response); i++ {
 			var contract map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 			var parsedMarket map[string]any = this.ParseContractMarket(contract, settleId)
@@ -2611,8 +2608,7 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 		var query map[string]any = this.Extend(map[string]any{}, params)
 		query["underlying"] = underlying
 
-		response := (<-this.PublicOptionsGetContracts(query))
-		PanicOnError(response)
+		var response []any = ListTyped(PanicOnError((<-this.PublicOptionsGetContracts(query)).Raw))
 		//
 		//    [
 		//        {
@@ -2752,8 +2748,7 @@ func (this *Gate) fetchOptionUnderlyingsBody(ch chan any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 
-	underlyingsResponse := (<-this.PublicOptionsGetUnderlyings())
-	PanicOnError(underlyingsResponse)
+	var underlyingsResponse []any = ListTyped(PanicOnError((<-this.PublicOptionsGetUnderlyings()).Raw))
 	//
 	//    [
 	//        {
@@ -2959,7 +2954,7 @@ func (this *Gate) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	response := (<-this.PublicSpotGetCurrencies(params))
+	response := (<-this.PublicSpotGetCurrencies(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -3093,7 +3088,7 @@ func (this *Gate) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	request := GetValue(requestqueryVariable, 0)
 	query := GetValue(requestqueryVariable, 1)
 
-	response := (<-this.PublicFuturesGetSettleContractsContract(this.Extend(request, query)))
+	response := (<-this.PublicFuturesGetSettleContractsContract(this.Extend(request, query))).Raw
 	PanicOnError(response)
 
 	//
@@ -3179,7 +3174,7 @@ func (this *Gate) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	request := GetValue(requestqueryVariable, 0)
 	query := GetValue(requestqueryVariable, 1)
 
-	response := (<-this.PublicFuturesGetSettleContracts(this.Extend(request, query)))
+	response := (<-this.PublicFuturesGetSettleContracts(this.Extend(request, query))).Raw
 	PanicOnError(response)
 
 	//
@@ -3333,8 +3328,7 @@ func (this *Gate) fetchNetworkDepositAddressBody(ch chan any, code any, optional
 		"currency": currency["id"],
 	}
 
-	response := (<-this.PrivateWalletGetDepositAddress(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateWalletGetDepositAddress(this.Extend(request, params))).Raw))
 	var addresses any = this.SafeValue(response, "multichain_addresses")
 	var currencyId *string = this.SafeString(response, "currency")
 	code = DerefScalar(this.SafeCurrencyCode(currencyId))
@@ -3398,8 +3392,7 @@ func (this *Gate) fetchDepositAddressesByNetworkBody(ch chan any, code any, opti
 		"currency": GetValue(currency, "id"),
 	}
 
-	response := (<-this.PrivateWalletGetDepositAddress(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateWalletGetDepositAddress(this.Extend(request, params))).Raw))
 	var chains []any = SafeListTypedDefault(response, "multichain_addresses", []any{})
 	var currencyId *string = this.SafeString(response, "currency")
 	currency = this.SafeCurrency(currencyId, currency)
@@ -3498,7 +3491,7 @@ func (this *Gate) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		"currency_pair": market["id"],
 	}
 
-	response := (<-this.PrivateWalletGetFee(this.Extend(request, params)))
+	response := (<-this.PrivateWalletGetFee(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3542,7 +3535,7 @@ func (this *Gate) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateWalletGetFee(params))
+	response := (<-this.PrivateWalletGetFee(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -3652,8 +3645,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateWalletGetWithdrawStatus(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateWalletGetWithdrawStatus(params)).Raw))
 	//
 	//    {
 	//        "currency": "MTN",
@@ -3731,7 +3723,7 @@ func (this *Gate) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateWalletGetWithdrawStatus(params))
+	response := (<-this.PrivateWalletGetWithdrawStatus(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -3868,7 +3860,7 @@ func (this *Gate) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var response any = nil
 	if typeVar == "swap" {
 
-		response = (<-this.PrivateFuturesGetSettleAccountBook(this.Extend(request, requestParams)))
+		response = (<-this.PrivateFuturesGetSettleAccountBook(this.Extend(request, requestParams))).Raw
 		PanicOnError(response)
 	} else if typeVar == "future" {
 
@@ -3984,19 +3976,19 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var response any = nil
 	if (GetValue(market, "spot") == true) || (GetValue(market, "margin") == true) {
 
-		response = (<-this.PublicSpotGetOrderBook(this.Extend(request, query)))
+		response = (<-this.PublicSpotGetOrderBook(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "swap") == true {
 
-		response = (<-this.PublicFuturesGetSettleOrderBook(this.Extend(request, query)))
+		response = (<-this.PublicFuturesGetSettleOrderBook(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "future") == true {
 
-		response = (<-this.PublicDeliveryGetSettleOrderBook(this.Extend(request, query)))
+		response = (<-this.PublicDeliveryGetSettleOrderBook(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "option") == true {
 
-		response = (<-this.PublicOptionsGetOrderBook(this.Extend(request, query)))
+		response = (<-this.PublicOptionsGetOrderBook(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchOrderBook() not support this market type"))
@@ -4125,22 +4117,22 @@ func (this *Gate) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	var response any = nil
 	if (GetValue(market, "spot") == true) || (GetValue(market, "margin") == true) {
 
-		response = (<-this.PublicSpotGetTickers(this.Extend(request, query)))
+		response = (<-this.PublicSpotGetTickers(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "swap") == true {
 
-		response = (<-this.PublicFuturesGetSettleTickers(this.Extend(request, query)))
+		response = (<-this.PublicFuturesGetSettleTickers(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "future") == true {
 
-		response = (<-this.PublicDeliveryGetSettleTickers(this.Extend(request, query)))
+		response = (<-this.PublicDeliveryGetSettleTickers(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "option") == true {
 		var marketId any = market["id"]
 		var optionParts []string = Split(marketId, "-")
 		AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
 
-		response = (<-this.PublicOptionsGetTickers(this.Extend(request, query)))
+		response = (<-this.PublicOptionsGetTickers(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchTicker() not support this market type"))
@@ -4330,15 +4322,15 @@ func (this *Gate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	AddElementToObject(request, "timezone", "utc0") // default to utc
 	if (typeVar == "spot") || (typeVar == "margin") {
 
-		response = (<-this.PublicSpotGetTickers(this.Extend(request, requestParams)))
+		response = (<-this.PublicSpotGetTickers(this.Extend(request, requestParams))).Raw
 		PanicOnError(response)
 	} else if typeVar == "swap" {
 
-		response = (<-this.PublicFuturesGetSettleTickers(this.Extend(request, requestParams)))
+		response = (<-this.PublicFuturesGetSettleTickers(this.Extend(request, requestParams))).Raw
 		PanicOnError(response)
 	} else if typeVar == "future" {
 
-		response = (<-this.PublicDeliveryGetSettleTickers(this.Extend(request, requestParams)))
+		response = (<-this.PublicDeliveryGetSettleTickers(this.Extend(request, requestParams))).Raw
 		PanicOnError(response)
 	} else if typeVar == "option" {
 		this.CheckRequiredArgument("fetchTickers", symbols, "symbols")
@@ -4346,7 +4338,7 @@ func (this *Gate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var optionParts []string = Split(marketId, "-")
 		AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
 
-		response = (<-this.PublicOptionsGetTickers(this.Extend(request, requestParams)))
+		response = (<-this.PublicOptionsGetTickers(this.Extend(request, requestParams))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchTickers() not support this market type, provide symbols or set params[\"defaultType\"] to one from spot/margin/swap/future/option"))
@@ -4427,7 +4419,7 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	} else if typeVar == "spot" {
 		if IsEqual(marginMode, "spot") {
 
-			response = (<-this.PrivateSpotGetAccounts(this.Extend(request, requestQuery)))
+			response = (<-this.PrivateSpotGetAccounts(this.Extend(request, requestQuery))).Raw
 			PanicOnError(response)
 		} else if IsEqual(marginMode, "margin") {
 
@@ -4446,7 +4438,7 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else if typeVar == "swap" {
 
-		response = (<-this.PrivateFuturesGetSettleAccounts(this.Extend(request, requestQuery)))
+		response = (<-this.PrivateFuturesGetSettleAccounts(this.Extend(request, requestQuery))).Raw
 		PanicOnError(response)
 	} else if typeVar == "future" {
 
@@ -4801,16 +4793,16 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		}
 		if GetValue(market, "future") == true {
 
-			response = (<-this.PublicDeliveryGetSettleCandlesticks(this.Extend(request, params)))
+			response = (<-this.PublicDeliveryGetSettleCandlesticks(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if GetValue(market, "swap") == true {
 
-			response = (<-this.PublicFuturesGetSettleCandlesticks(this.Extend(request, params)))
+			response = (<-this.PublicFuturesGetSettleCandlesticks(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
 
-		response = (<-this.PublicSpotGetCandlesticks(this.Extend(request, params)))
+		response = (<-this.PublicSpotGetCandlesticks(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -4845,8 +4837,7 @@ func (this *Gate) fetchOptionOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	params = GetValue(requestparamsVariable, 1)
 	AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
 
-	response := (<-this.PublicOptionsGetCandlesticks(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicOptionsGetCandlesticks(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 	return nil
@@ -4919,8 +4910,7 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))
 	}
 
-	response := (<-this.PublicFuturesGetSettleFundingRate(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleFundingRate(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "r": "0.00063521",
@@ -5062,19 +5052,19 @@ func (this *Gate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var response any = nil
 	if (GetValue(market, "type") == "spot") || (GetValue(market, "type") == "margin") {
 
-		response = (<-this.PublicSpotGetTrades(this.Extend(request, query)))
+		response = (<-this.PublicSpotGetTrades(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "swap") == true {
 
-		response = (<-this.PublicFuturesGetSettleTrades(this.Extend(request, query)))
+		response = (<-this.PublicFuturesGetSettleTrades(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "future") == true {
 
-		response = (<-this.PublicDeliveryGetSettleTrades(this.Extend(request, query)))
+		response = (<-this.PublicDeliveryGetSettleTrades(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "type") == "option" {
 
-		response = (<-this.PublicOptionsGetTrades(this.Extend(request, query)))
+		response = (<-this.PublicOptionsGetTrades(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchTrades() not support this market type."))
@@ -5291,11 +5281,11 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin")) {
 
-		response = (<-this.PrivateSpotGetMyTrades(this.Extend(request, params)))
+		response = (<-this.PrivateSpotGetMyTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "swap") {
 
-		response = (<-this.PrivateFuturesGetSettleMyTradesTimerange(this.Extend(request, params)))
+		response = (<-this.PrivateFuturesGetSettleMyTradesTimerange(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "future") {
 
@@ -5617,7 +5607,7 @@ func (this *Gate) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.PrivateWalletGetDeposits(this.Extend(request, params)))
+	response := (<-this.PrivateWalletGetDeposits(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransactions(response, currency)
@@ -5686,7 +5676,7 @@ func (this *Gate) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.PrivateWalletGetWithdrawals(this.Extend(request, params)))
+	response := (<-this.PrivateWalletGetWithdrawals(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransactions(response, currency)
@@ -5742,7 +5732,7 @@ func (this *Gate) withdrawBody(ch chan any, code any, amount any, address any, o
 		request["chain"] = this.NetworkCodeToId(networkCode, code)
 	}
 
-	response := (<-this.PrivateWithdrawalsPostWithdrawals(this.Extend(request, params)))
+	response := (<-this.PrivateWithdrawalsPostWithdrawals(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -6580,7 +6570,7 @@ func (this *Gate) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateFuturesPutSettleOrdersOrderId(extendedRequest))
+		response = (<-this.PrivateFuturesPutSettleOrdersOrderId(extendedRequest)).Raw
 		PanicOnError(response)
 	}
 
@@ -7114,21 +7104,21 @@ func (this *Gate) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 		if trigger != nil && *trigger == true {
 
-			response = (<-this.PrivateSpotGetPriceOrdersOrderId(this.Extend(request, requestParams)))
+			response = (<-this.PrivateSpotGetPriceOrdersOrderId(this.Extend(request, requestParams))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateSpotGetOrdersOrderId(this.Extend(request, requestParams)))
+			response = (<-this.PrivateSpotGetOrdersOrderId(this.Extend(request, requestParams))).Raw
 			PanicOnError(response)
 		}
 	} else if typeVar != nil && *typeVar == "swap" {
 		if trigger != nil && *trigger == true {
 
-			response = (<-this.PrivateFuturesGetSettlePriceOrdersOrderId(this.Extend(request, requestParams)))
+			response = (<-this.PrivateFuturesGetSettlePriceOrdersOrderId(this.Extend(request, requestParams))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateFuturesGetSettleOrdersOrderId(this.Extend(request, requestParams)))
+			response = (<-this.PrivateFuturesGetSettleOrdersOrderId(this.Extend(request, requestParams))).Raw
 			PanicOnError(response)
 		}
 	} else if typeVar != nil && *typeVar == "future" {
@@ -7281,7 +7271,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "limit", limit)
 	}
 
-	response := (<-this.PrivateFuturesGetSettleOrdersTimerange(this.Extend(request, params)))
+	response := (<-this.PrivateFuturesGetSettleOrdersTimerange(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -7389,26 +7379,26 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs 
 		if trigger == nil || *trigger != true {
 			if openStatus {
 
-				response = (<-this.PrivateSpotGetOpenOrders(this.Extend(request, requestParams)))
+				response = (<-this.PrivateSpotGetOpenOrders(this.Extend(request, requestParams))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PrivateSpotGetOrders(this.Extend(request, requestParams)))
+				response = (<-this.PrivateSpotGetOrders(this.Extend(request, requestParams))).Raw
 				PanicOnError(response)
 			}
 		} else {
 
-			response = (<-this.PrivateSpotGetPriceOrders(this.Extend(request, requestParams)))
+			response = (<-this.PrivateSpotGetPriceOrders(this.Extend(request, requestParams))).Raw
 			PanicOnError(response)
 		}
 	} else if typeVar != nil && *typeVar == "swap" {
 		if trigger != nil && *trigger == true {
 
-			response = (<-this.PrivateFuturesGetSettlePriceOrders(this.Extend(request, requestParams)))
+			response = (<-this.PrivateFuturesGetSettlePriceOrders(this.Extend(request, requestParams))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateFuturesGetSettleOrders(this.Extend(request, requestParams)))
+			response = (<-this.PrivateFuturesGetSettleOrders(this.Extend(request, requestParams))).Raw
 			PanicOnError(response)
 		}
 	} else if typeVar != nil && *typeVar == "future" {
@@ -8190,7 +8180,7 @@ func (this *Gate) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	var response any = nil
 	if GetValue(market, "swap") == true {
 
-		response = (<-this.PrivateFuturesPostSettlePositionsContractLeverage(this.Extend(request, query)))
+		response = (<-this.PrivateFuturesPostSettlePositionsContractLeverage(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "future") == true {
 
@@ -8414,7 +8404,7 @@ func (this *Gate) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
 	var response any = nil
 	if GetValue(market, "swap") == true {
 
-		response = (<-this.PrivateFuturesGetSettlePositionsContract(extendedRequest))
+		response = (<-this.PrivateFuturesGetSettlePositionsContract(extendedRequest)).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "future") == true {
 
@@ -8548,7 +8538,7 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(typeVar, "swap") {
 
-		response = (<-this.PrivateFuturesGetSettlePositions(this.Extend(request, params)))
+		response = (<-this.PrivateFuturesGetSettlePositions(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "future") {
 
@@ -8666,11 +8656,11 @@ func (this *Gate) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if typeVar == "swap" {
 
-		response = (<-this.PublicFuturesGetSettleContracts(this.Extend(request, requestParams)))
+		response = (<-this.PublicFuturesGetSettleContracts(this.Extend(request, requestParams))).Raw
 		PanicOnError(response)
 	} else if typeVar == "future" {
 
-		response = (<-this.PublicDeliveryGetSettleContracts(this.Extend(request, requestParams)))
+		response = (<-this.PublicDeliveryGetSettleContracts(this.Extend(request, requestParams))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchLeverageTiers() not support this market type"))
@@ -8820,11 +8810,11 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan any, symbol any, optional
 		//     ]
 		//
 
-		response = (<-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams)))
+		response = (<-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams)))
+		response = (<-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams))).Raw
 		PanicOnError(response)
 	}
 
@@ -9440,7 +9430,7 @@ func (this *Gate) modifyMarginHelperBody(ch chan any, symbol any, amount any, op
 	var response any = nil
 	if GetValue(market, "swap") == true {
 
-		response = (<-this.PrivateFuturesPostSettlePositionsContractMargin(this.Extend(request, query)))
+		response = (<-this.PrivateFuturesPostSettlePositionsContractMargin(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "future") == true {
 
@@ -9616,7 +9606,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan any, symbol any, optional
 		request["from"] = this.ParseToInt(Divide(since, 1000))
 	}
 
-	response := (<-this.PublicFuturesGetSettleContractStats(this.Extend(request, params)))
+	response := (<-this.PublicFuturesGetSettleContractStats(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -9729,7 +9719,7 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicOptionsGetSettlements(this.Extend(request, params)))
+	response := (<-this.PublicOptionsGetSettlements(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -10037,7 +10027,7 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(requestparamsVariable, 1)
 	if IsEqual(typeVar, "spot") {
 
-		response = (<-this.PrivateSpotGetAccountBook(this.Extend(request, params)))
+		response = (<-this.PrivateSpotGetAccountBook(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "margin") {
 
@@ -10045,7 +10035,7 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "swap") {
 
-		response = (<-this.PrivateFuturesGetSettleAccountBook(this.Extend(request, params)))
+		response = (<-this.PrivateFuturesGetSettleAccountBook(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "future") {
 
@@ -10276,7 +10266,7 @@ func (this *Gate) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	query := GetValue(requestqueryVariable, 1)
 	AddElementToObject(request, "dual_mode", hedged)
 
-	retRes791515 := (<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query)))
+	retRes791515 := (<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query))).Raw
 	PanicOnError(retRes791515)
 	ch <- retRes791515
 	return nil
@@ -10316,8 +10306,7 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan any, optionalArgs ...any) an
 		panic(NotSupported(this.Id + " fetchUnderlyingAssets() supports option markets only"))
 	}
 
-	response := (<-this.PublicOptionsGetUnderlyings(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicOptionsGetUnderlyings(params)).Raw))
 	//
 	//    [
 	//        {
@@ -10388,8 +10377,7 @@ func (this *Gate) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs ..
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.PublicFuturesGetSettleLiqOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleLiqOrders(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -10460,7 +10448,7 @@ func (this *Gate) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any 
 	}
 	if GetValue(market, "swap") == true {
 
-		response = (<-this.PrivateFuturesGetSettleLiquidates(this.Extend(request, params)))
+		response = (<-this.PrivateFuturesGetSettleLiquidates(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "future") == true {
 
@@ -10624,8 +10612,7 @@ func (this *Gate) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any) 
 		"underlying": GetValue(market["info"], "underlying"),
 	}
 
-	response := (<-this.PublicOptionsGetTickers(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicOptionsGetTickers(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -10787,11 +10774,11 @@ func (this *Gate) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 		request["currency_pair"] = this.SafeString(market, "id")
 		if isUnified != nil && *isUnified == true {
 
-			response = (<-this.PublicMarginGetUniCurrencyPairsCurrencyPair(this.Extend(request, params)))
+			response = (<-this.PublicMarginGetUniCurrencyPairsCurrencyPair(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PublicMarginGetCurrencyPairsCurrencyPair(this.Extend(request, params)))
+			response = (<-this.PublicMarginGetCurrencyPairsCurrencyPair(this.Extend(request, params))).Raw
 			PanicOnError(response) // deprecated
 		}
 	} else if isUnified != nil && *isUnified == true {
@@ -10840,11 +10827,11 @@ func (this *Gate) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	if isUnified != nil && *isUnified == true {
 		marketIdRequest = "currency_pair"
 
-		response = (<-this.PublicMarginGetUniCurrencyPairs(params))
+		response = (<-this.PublicMarginGetUniCurrencyPairs(params)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PublicMarginGetCurrencyPairs(params))
+		response = (<-this.PublicMarginGetCurrencyPairs(params)).Raw
 		PanicOnError(response) // deprecated
 	}
 
@@ -10893,7 +10880,7 @@ func (this *Gate) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any) 
 		"contract": market["id"],
 	}
 
-	response := (<-this.PublicOptionsGetContractsContract(this.Extend(request, params)))
+	response := (<-this.PublicOptionsGetContractsContract(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -10970,8 +10957,7 @@ func (this *Gate) fetchOptionChainBody(ch chan any, code any, optionalArgs ...an
 		"underlying": Add(currency["code"], "_USDT"),
 	}
 
-	response := (<-this.PublicOptionsGetContracts(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicOptionsGetContracts(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -11154,7 +11140,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 	var response any = nil
 	if IsEqual(marketType, "swap") {
 
-		response = (<-this.PrivateFuturesGetSettlePositionClose(this.Extend(request, params)))
+		response = (<-this.PrivateFuturesGetSettlePositionClose(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(marketType, "future") {
 

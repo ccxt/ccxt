@@ -802,7 +802,7 @@ func (this *Woofipro) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V1PublicGetPublicSystemInfo(params))
+	response := (<-this.V1PublicGetPublicSystemInfo(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -853,8 +853,7 @@ func (this *Woofipro) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V1PublicGetPublicSystemInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicSystemInfo(params)).Raw))
 
 	//
 	//     {
@@ -980,8 +979,7 @@ func (this *Woofipro) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V1PublicGetPublicInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicInfo(params)).Raw))
 	//
 	//   {
 	//     "success": true,
@@ -1044,7 +1042,7 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var result map[string]any = map[string]any{}
-	var tokenPromise any = this.V1PublicGetPublicToken(params)
+	var tokenPromise any = EndpointRaw(this.V1PublicGetPublicToken(params))
 	//
 	// {
 	//     "success": true,
@@ -1067,7 +1065,7 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	// }
 	//
-	var chainPromise any = this.V1PublicGetPublicChainInfo(params)
+	var chainPromise any = EndpointRaw(this.V1PublicGetPublicChainInfo(params))
 	tokenResponsechainResponseVariable := (<-promiseAll([]any{tokenPromise, chainPromise}))
 	tokenResponse := GetValue(tokenResponsechainResponseVariable, 0)
 	chainResponse := GetValue(tokenResponsechainResponseVariable, 1)
@@ -1286,8 +1284,7 @@ func (this *Woofipro) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		request["limit"] = limit
 	}
 
-	response := (<-this.V1PublicGetPublicMarketTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicMarketTrades(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "success": true,
@@ -1467,8 +1464,7 @@ func (this *Woofipro) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.V1PublicGetPublicFundingRates(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFundingRates(params)).Raw))
 	//
 	// {
 	//     "success": true,
@@ -1570,8 +1566,7 @@ func (this *Woofipro) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	response := (<-this.V1PublicGetPublicFuturesSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFuturesSymbol(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "success": true,
@@ -1628,8 +1623,7 @@ func (this *Woofipro) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.V1PublicGetPublicFutures(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFutures(params)).Raw))
 	//
 	// {
 	//     "success": true,
@@ -1737,8 +1731,7 @@ func (this *Woofipro) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 		"symbol": market["id"],
 	}
 
-	response := (<-this.V1PublicGetPublicFuturesSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFuturesSymbol(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "success": true,
@@ -1787,8 +1780,7 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.V1PublicGetPublicFutures(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFutures(params)).Raw))
 	//
 	// {
 	//     "success": true,
@@ -1887,8 +1879,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.V1PublicGetPublicFundingRateHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFundingRateHistory(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "success": true,
@@ -2034,8 +2025,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		request["size"] = mathMin(limit, 500)
 	}
 
-	response := (<-this.V1PrivateGetFundingFeeHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetFundingFeeHistory(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "success": true,
@@ -2089,7 +2079,7 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V1PrivateGetClientInfo(params))
+	response := (<-this.V1PrivateGetClientInfo(params)).Raw
 	PanicOnError(response)
 	//
 	// {
@@ -2174,8 +2164,7 @@ func (this *Woofipro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		request["max_level"] = limit
 	}
 
-	response := (<-this.V1PrivateGetOrderbookSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetOrderbookSymbol(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "success": true,
@@ -2246,8 +2235,7 @@ func (this *Woofipro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		request["limit"] = mathMin(limit, 1000)
 	}
 
-	response := (<-this.V1PrivateGetKline(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetKline(this.Extend(request, params))).Raw))
 	var data map[string]any = SafeMapTyped(response, "data")
 	//
 	// {
@@ -2610,11 +2598,11 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var response any = nil
 	if isConditional {
 
-		response = (<-this.V1PrivatePostAlgoOrder(request))
+		response = (<-this.V1PrivatePostAlgoOrder(request)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V1PrivatePostOrder(request))
+		response = (<-this.V1PrivatePostOrder(request)).Raw
 		PanicOnError(response)
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
@@ -2672,8 +2660,7 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		"orders": ordersRequests,
 	}
 
-	response := (<-this.V1PrivatePostBatchOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostBatchOrder(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -2768,7 +2755,7 @@ func (this *Woofipro) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	}
 	if isConditional {
 
-		response = (<-this.V1PrivatePutAlgoOrder(this.Extend(request, params)))
+		response = (<-this.V1PrivatePutAlgoOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["symbol"] = market["id"]
@@ -2794,7 +2781,7 @@ func (this *Woofipro) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		// request['side'] = side.toUpperCase ();
 		// request['symbol'] = market['id'];
 
-		response = (<-this.V1PrivatePutOrder(this.Extend(request, params)))
+		response = (<-this.V1PrivatePutOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -2865,12 +2852,12 @@ func (this *Woofipro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 			request["client_order_id"] = clientOrderIdExchangeSpecific
 			params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"}))
 
-			response = (<-this.V1PrivateDeleteAlgoClientOrder(this.Extend(request, params)))
+			response = (<-this.V1PrivateDeleteAlgoClientOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			request["order_id"] = id
 
-			response = (<-this.V1PrivateDeleteAlgoOrder(this.Extend(request, params)))
+			response = (<-this.V1PrivateDeleteAlgoOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -2878,12 +2865,12 @@ func (this *Woofipro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 			request["client_order_id"] = clientOrderIdExchangeSpecific
 			params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"}))
 
-			response = (<-this.V1PrivateDeleteClientOrder(this.Extend(request, params)))
+			response = (<-this.V1PrivateDeleteClientOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			request["order_id"] = id
 
-			response = (<-this.V1PrivateDeleteOrder(this.Extend(request, params)))
+			response = (<-this.V1PrivateDeleteOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	}
@@ -2962,12 +2949,12 @@ func (this *Woofipro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	if !IsEqual(clientOrderIds, nil) {
 		request["client_order_ids"] = Join(clientOrderIds, ",")
 
-		response = (<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, params)))
+		response = (<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["order_ids"] = Join(ids, ",")
 
-		response = (<-this.V1PrivateDeleteBatchOrder(this.Extend(request, params)))
+		response = (<-this.V1PrivateDeleteBatchOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -3023,11 +3010,11 @@ func (this *Woofipro) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var response any = nil
 	if trigger != nil && *trigger == true {
 
-		response = (<-this.V1PrivateDeleteAlgoOrders(this.Extend(request, params)))
+		response = (<-this.V1PrivateDeleteAlgoOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V1PrivateDeleteOrders(this.Extend(request, params)))
+		response = (<-this.V1PrivateDeleteOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -3096,24 +3083,24 @@ func (this *Woofipro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		if (clientOrderId != nil) && (clientOrderId == nil || *clientOrderId != "") {
 			request["client_order_id"] = clientOrderId
 
-			response = (<-this.V1PrivateGetAlgoClientOrderClientOrderId(this.Extend(request, params)))
+			response = (<-this.V1PrivateGetAlgoClientOrderClientOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			request["oid"] = id
 
-			response = (<-this.V1PrivateGetAlgoOrderOid(this.Extend(request, params)))
+			response = (<-this.V1PrivateGetAlgoOrderOid(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
 		if (clientOrderId != nil) && (clientOrderId == nil || *clientOrderId != "") {
 			request["client_order_id"] = clientOrderId
 
-			response = (<-this.V1PrivateGetClientOrderClientOrderId(this.Extend(request, params)))
+			response = (<-this.V1PrivateGetClientOrderClientOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			request["oid"] = id
 
-			response = (<-this.V1PrivateGetOrderOid(this.Extend(request, params)))
+			response = (<-this.V1PrivateGetOrderOid(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	}
@@ -3235,11 +3222,11 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if isTrigger != nil && *isTrigger == true {
 
-		response = (<-this.V1PrivateGetAlgoOrders(this.Extend(request, params)))
+		response = (<-this.V1PrivateGetAlgoOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V1PrivateGetOrders(this.Extend(request, params)))
+		response = (<-this.V1PrivateGetOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -3417,8 +3404,7 @@ func (this *Woofipro) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 		"oid": id,
 	}
 
-	response := (<-this.V1PrivateGetOrderOidTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetOrderOidTrades(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "success": true,
@@ -3509,8 +3495,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.V1PrivateGetTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetTrades(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "success": true,
@@ -3589,8 +3574,7 @@ func (this *Woofipro) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V1PrivateGetClientHolding(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetClientHolding(params)).Raw))
 	//
 	// {
 	//     "success": true,
@@ -3649,8 +3633,7 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) 
 		request["type"] = transactionType
 	}
 
-	response := (<-this.V1PrivateGetAssetHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetAssetHistory(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "success": true,
@@ -3941,8 +3924,7 @@ func (this *Woofipro) getWithdrawNonceBody(ch chan any, optionalArgs ...any) any
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V1PrivateGetWithdrawNonce(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetWithdrawNonce(params)).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -4068,8 +4050,7 @@ func (this *Woofipro) withdrawBody(ch chan any, code any, amount any, address an
 	}
 	params = MapTyped(this.Omit(params, "chainId"))
 
-	response := (<-this.V1PrivatePostWithdrawRequest(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostWithdrawRequest(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -4129,8 +4110,7 @@ func (this *Woofipro) fetchMarginModesBody(ch chan any, optionalArgs ...any) any
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.V1PrivateGetClientMarginModes(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetClientMarginModes(params)).Raw))
 	//
 	// {
 	//     "success": true,
@@ -4225,7 +4205,7 @@ func (this *Woofipro) setMarginModeBody(ch chan any, marginMode any, optionalArg
 		"default_margin_mode": ToUpper(marginMode),
 	}
 
-	retRes315015 := (<-this.V1PrivatePostClientMarginMode(this.Extend(request, params)))
+	retRes315015 := (<-this.V1PrivatePostClientMarginMode(this.Extend(request, params))).Raw
 	PanicOnError(retRes315015)
 	//
 	// {
@@ -4299,7 +4279,7 @@ func (this *Woofipro) modifyMarginHelperBody(ch chan any, symbol any, amount any
 		"type":   typeVar,
 	}
 
-	response := (<-this.V1PrivatePostPositionMargin(this.Extend(request, params)))
+	response := (<-this.V1PrivatePostPositionMargin(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	// {
@@ -4411,8 +4391,7 @@ func (this *Woofipro) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 
-	response := (<-this.V1PrivateGetClientInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetClientInfo(params)).Raw))
 	//
 	// {
 	//     "success": true,
@@ -4479,7 +4458,7 @@ func (this *Woofipro) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 		"leverage": leverage,
 	}
 
-	retRes331615 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
+	retRes331615 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params))).Raw
 	PanicOnError(retRes331615)
 	ch <- retRes331615
 	return nil

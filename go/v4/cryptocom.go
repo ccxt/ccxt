@@ -1256,8 +1256,7 @@ func (this *Cryptocom) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["instrument_name"] = GetValue(market, "id")
 	}
 
-	response := (<-this.V1PublicGetPublicGetTickers(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicGetTickers(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "id": -1,
@@ -1381,8 +1380,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["end_time"] = until
 	}
 
-	response := (<-this.V1PrivatePostPrivateGetOrderHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostPrivateGetOrderHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "id": 1686881486183,
@@ -1486,8 +1484,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 		request["end_ts"] = until
 	}
 
-	response := (<-this.V1PublicGetPublicGetTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicGetTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "id": -1,
@@ -1586,8 +1583,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		request["end_ts"] = until
 	}
 
-	response := (<-this.V1PublicGetPublicGetCandlestick(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicGetCandlestick(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "id": -1,
@@ -1650,8 +1646,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		request["depth"] = mathMin(limit, 50) // max 50
 	}
 
-	response := (<-this.V1PublicGetPublicGetBook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicGetBook(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "id": -1,
@@ -2656,8 +2651,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["end_time"] = until
 	}
 
-	response := (<-this.V1PrivatePostPrivateGetTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostPrivateGetTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "id": 1686942003520,
@@ -3990,8 +3984,7 @@ func (this *Cryptocom) fetchFundingRateBody(ch chan any, symbol any, optionalArg
 		"count":           1,
 	}
 
-	response := (<-this.V1PublicGetPublicGetValuations(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicGetValuations(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "id": -1,
@@ -4118,8 +4111,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		request["end_ts"] = until
 	}
 
-	response := (<-this.V1PublicGetPublicGetValuations(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicGetValuations(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "id": -1,
@@ -4487,8 +4479,7 @@ func (this *Cryptocom) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 		"instrument_name": market["id"],
 	}
 
-	response := (<-this.V1PrivatePostPrivateGetInstrumentFeeRate(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostPrivateGetInstrumentFeeRate(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "id": 1,
@@ -4533,8 +4524,7 @@ func (this *Cryptocom) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V1PrivatePostPrivateGetFeeRate(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostPrivateGetFeeRate(params)).Raw))
 	//
 	//   {
 	//       "id": 1,

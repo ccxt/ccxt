@@ -1552,8 +1552,7 @@ func (this *Toobit) authenticateBody(ch chan any, optionalArgs ...any) any {
 				}()
 				// try block:
 
-				response := (<-this.PrivatePostApiV1UserDataStream(params))
-				ccxt.PanicOnError(response)
+				var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostApiV1UserDataStream(params)).Raw))
 				var listenKey *string = this.SafeString(response, "listenKey")
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
@@ -1616,8 +1615,7 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any
 			}()
 			// try block:
 
-			response := (<-this.PrivatePostApiV1UserDataStream(params))
-			ccxt.PanicOnError(response)
+			var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostApiV1UserDataStream(params)).Raw))
 			ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "listenKey", this.SafeString(response, "listenKey"))
 			ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", this.Milliseconds())
 			return nil

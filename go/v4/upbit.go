@@ -688,7 +688,7 @@ func (this *Upbit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetMarketAll(params))
+	response := (<-this.PublicGetMarketAll(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -875,8 +875,7 @@ func (this *Upbit) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit
 	}
 
-	response := (<-this.PublicGetOrderbook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetOrderbook(this.Extend(request, params))).Raw))
 	//
 	//     [ {          market:   "BTC-ETH",
 	//               "timestamp":    1542899030043,
@@ -1078,7 +1077,7 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			"quote_currencies": quoteCurrencies,
 		}
 
-		tickers = (<-this.PublicGetTickerAll(this.Extend(request, params)))
+		tickers = (<-this.PublicGetTickerAll(this.Extend(request, params))).Raw
 		PanicOnError(tickers)
 	} else {
 		var ids any = this.MarketIds(symbols)
@@ -1086,9 +1085,9 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var queries any = this.IdsQueryStrings(ids, 4000) // the url is limited to about 8000 characters once the commas are percent-encoded
 		for i := 0; i < GetArrayLength(queries); i++ {
 			var idsQuery any = GetValue(queries, i)
-			promises = append(promises, this.PublicGetTicker(this.Extend(map[string]any{
+			promises = append(promises, EndpointRaw(this.PublicGetTicker(this.Extend(map[string]any{
 				"markets": idsQuery,
-			}, params)))
+			}, params))))
 		}
 
 		responses := (<-promiseAll(promises))
@@ -1289,7 +1288,7 @@ func (this *Upbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		"count":  limit,
 	}
 
-	response := (<-this.PublicGetTradesTicks(this.Extend(request, params)))
+	response := (<-this.PublicGetTradesTicks(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1516,11 +1515,11 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		var numMinutes float64 = MathRound(Divide(timeframePeriod, 60))
 		request["unit"] = numMinutes
 
-		response = (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params)))
+		response = (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PublicGetCandlesTimeframe(this.Extend(request, params)))
+		response = (<-this.PublicGetCandlesTimeframe(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//

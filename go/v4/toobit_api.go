@@ -8,118 +8,118 @@
 package ccxt
 
 // CommonGetApiV1Time returns a channel that yields a JSON object.
-func (this *Toobit) CommonGetApiV1Time(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/time", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetApiV1Time(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/time", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetApiV1Ping returns a channel that yields a JSON object.
-func (this *Toobit) CommonGetApiV1Ping(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/ping", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetApiV1Ping(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/ping", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetApiV1ExchangeInfo returns a channel that yields a JSON object.
-func (this *Toobit) CommonGetApiV1ExchangeInfo(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/exchangeInfo", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetApiV1ExchangeInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/exchangeInfo", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1Depth returns a channel that yields a JSON object.
-func (this *Toobit) CommonGetQuoteV1Depth(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/depth", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1Depth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "quote/v1/depth", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1DepthMerged returns a channel that yields a JSON object.
-func (this *Toobit) CommonGetQuoteV1DepthMerged(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/depth/merged", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1DepthMerged(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "quote/v1/depth/merged", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1Trades returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1Trades(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/trades", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1Trades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "quote/v1/trades", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1Klines returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1Klines(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/klines", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1Klines(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "quote/v1/klines", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1IndexKlines returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1IndexKlines(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/index/klines", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1IndexKlines(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "quote/v1/index/klines", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1IndexPriceComponents returns a channel that yields a JSON object.
-func (this *Toobit) CommonGetQuoteV1IndexPriceComponents(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/indexPriceComponents", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1IndexPriceComponents(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "quote/v1/indexPriceComponents", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1MarkPriceKlines returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1MarkPriceKlines(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/markPrice/klines", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1MarkPriceKlines(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "quote/v1/markPrice/klines", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1MarkPrice returns a channel that yields a JSON object.
-func (this *Toobit) CommonGetQuoteV1MarkPrice(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/markPrice", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Toobit) CommonGetQuoteV1MarkPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "quote/v1/markPrice", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // CommonGetQuoteV1Index returns a channel that yields a JSON object.
-func (this *Toobit) CommonGetQuoteV1Index(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/index", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1Index(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "quote/v1/index", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1Ticker24hr returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1Ticker24hr(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/ticker/24hr", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
+func (this *Toobit) CommonGetQuoteV1Ticker24hr(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "quote/v1/ticker/24hr", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // CommonGetQuoteV1ContractTicker24hr returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1ContractTicker24hr(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/contract/ticker/24hr", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
+func (this *Toobit) CommonGetQuoteV1ContractTicker24hr(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "quote/v1/contract/ticker/24hr", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // CommonGetQuoteV1TickerPrice returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1TickerPrice(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/ticker/price", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1TickerPrice(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "quote/v1/ticker/price", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1ContractTickerPrice returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1ContractTickerPrice(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/contract/ticker/price", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1ContractTickerPrice(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "quote/v1/contract/ticker/price", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1TickerBookTicker returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1TickerBookTicker(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/ticker/bookTicker", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1TickerBookTicker(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "quote/v1/ticker/bookTicker", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1ContractTickerBookTicker returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1ContractTickerBookTicker(args ...any) <-chan any {
-	return this.Fetch2Async("quote/v1/contract/ticker/bookTicker", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetQuoteV1ContractTickerBookTicker(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "quote/v1/contract/ticker/bookTicker", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetApiV1FuturesFundingRate returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetApiV1FuturesFundingRate(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/fundingRate", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetApiV1FuturesFundingRate(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/futures/fundingRate", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetApiV1FuturesHistoryFundingRate returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetApiV1FuturesHistoryFundingRate(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/historyFundingRate", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetApiV1FuturesHistoryFundingRate(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/futures/historyFundingRate", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetApiV1FuturesRiskLimits returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetApiV1FuturesRiskLimits(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/riskLimits", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) CommonGetApiV1FuturesRiskLimits(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/futures/riskLimits", "common", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1Account returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1Account(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/account", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1Account(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/account", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1AccountCheckApiKey returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AccountCheckApiKey(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/account/checkApiKey", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AccountCheckApiKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/account/checkApiKey", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1SpotOrder returns a channel that yields a JSON object.
@@ -153,43 +153,43 @@ func (this *Toobit) PrivateGetApiV1AccountTrades(args ...any) <-chan any {
 }
 
 // PrivateGetApiV1AccountBalanceFlow returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1AccountBalanceFlow(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/account/balanceFlow", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1AccountBalanceFlow(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/account/balanceFlow", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1AccountDepositOrders returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1AccountDepositOrders(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/account/depositOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1AccountDepositOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/account/depositOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1AccountWithdrawOrders returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1AccountWithdrawOrders(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/account/withdrawOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1AccountWithdrawOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/account/withdrawOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1AccountDepositAddress returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AccountDepositAddress(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/account/deposit/address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AccountDepositAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/account/deposit/address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1SubAccount returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1SubAccount(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/subAccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1SubAccount(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/subAccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1AccountSubAccount returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1AccountSubAccount(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/account/subAccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1AccountSubAccount(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/account/subAccount", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1SubAccountList returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1SubAccountList(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/subAccount/list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1SubAccountList(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/subAccount/list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1FuturesAccountLeverage returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1FuturesAccountLeverage(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/accountLeverage", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1FuturesAccountLeverage(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/futures/accountLeverage", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1FuturesOrder returns a channel that yields a JSON object.
@@ -203,13 +203,13 @@ func (this *Toobit) PrivateGetApiV1FuturesPositions(args ...any) <-chan any {
 }
 
 // PrivateGetApiV1FuturesHistoryPositions returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1FuturesHistoryPositions(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/historyPositions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1FuturesHistoryPositions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/futures/historyPositions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1FuturesBalance returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1FuturesBalance(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1FuturesBalance(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/futures/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1FuturesUserTrades returns a channel that yields a JSON array.
@@ -218,93 +218,93 @@ func (this *Toobit) PrivateGetApiV1FuturesUserTrades(args ...any) <-chan any {
 }
 
 // PrivateGetApiV1FuturesBalanceFlow returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV1FuturesBalanceFlow(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/balanceFlow", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1FuturesBalanceFlow(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/futures/balanceFlow", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1FuturesCommissionRate returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1FuturesCommissionRate(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/commissionRate", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1FuturesCommissionRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/futures/commissionRate", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1FuturesTodayPnl returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1FuturesTodayPnl(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/todayPnl", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV1FuturesTodayPnl(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/futures/todayPnl", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV1AccountDownloadDetail returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AccountDownloadDetail(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/account/download/detail", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Toobit) PrivateGetApiV1AccountDownloadDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/account/download/detail", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PrivateGetApiV1AgentInviteUserList returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentInviteUserList(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/inviteUserList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentInviteUserList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/inviteUserList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentCommissionDataList returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentCommissionDataList(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/commissionDataList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentCommissionDataList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/commissionDataList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentCommissionDataInfo returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentCommissionDataInfo(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/commissionDataInfo", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentCommissionDataInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/commissionDataInfo", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentInviteRelationCheck returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentInviteRelationCheck(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/inviteRelationCheck", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentInviteRelationCheck(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/inviteRelationCheck", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentDepositDetailList returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentDepositDetailList(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/depositDetailList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentDepositDetailList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/depositDetailList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentQuerySubAgentData returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentQuerySubAgentData(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/querySubAgentData", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentQuerySubAgentData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/querySubAgentData", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentSpotOrdersList returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentSpotOrdersList(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/spotOrdersList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentSpotOrdersList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/spotOrdersList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentFuturesOrdersList returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentFuturesOrdersList(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/futuresOrdersList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentFuturesOrdersList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/futuresOrdersList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentFuturesPositionsList returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentFuturesPositionsList(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/futuresPositionsList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentFuturesPositionsList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/futuresPositionsList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentInviteCommissionDetail returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentInviteCommissionDetail(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/invite-commission-detail", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentInviteCommissionDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/invite-commission-detail", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentUserExport returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentUserExport(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/user/export", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentUserExport(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/user/export", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentExportList returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentExportList(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/export-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentExportList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/export-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AgentExportUrl returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV1AgentExportUrl(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/agent/export-url", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateGetApiV1AgentExportUrl(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/agent/export-url", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV2AccountBalanceFlow returns a channel that yields a JSON array.
-func (this *Toobit) PrivateGetApiV2AccountBalanceFlow(args ...any) <-chan any {
-	return this.Fetch2Async("api/v2/account/balance-flow", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV2AccountBalanceFlow(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v2/account/balance-flow", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV2FuturesOrder returns a channel that yields a JSON object.
@@ -343,8 +343,8 @@ func (this *Toobit) PrivateGetApiV2FuturesHistoryAlgoOrders(args ...any) <-chan 
 }
 
 // PrivateGetApiV2FuturesVoucherList returns a channel that yields a JSON object.
-func (this *Toobit) PrivateGetApiV2FuturesVoucherList(args ...any) <-chan any {
-	return this.Fetch2Async("api/v2/futures/voucher/list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivateGetApiV2FuturesVoucherList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v2/futures/voucher/list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostApiV1SpotOrderTest returns a channel that yields a JSON object.
@@ -368,23 +368,23 @@ func (this *Toobit) PrivatePostApiV1SpotBatchOrders(args ...any) <-chan any {
 }
 
 // PrivatePostApiV1SubAccountTransfer returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1SubAccountTransfer(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/subAccount/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivatePostApiV1SubAccountTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/subAccount/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1AccountWithdraw returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1AccountWithdraw(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/account/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivatePostApiV1AccountWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/account/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1FuturesMarginType returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1FuturesMarginType(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/marginType", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivatePostApiV1FuturesMarginType(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/futures/marginType", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1FuturesLeverage returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1FuturesLeverage(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivatePostApiV1FuturesLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/futures/leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1FuturesBatchOrders returns a channel that yields a JSON object.
@@ -398,8 +398,8 @@ func (this *Toobit) PrivatePostApiV1FuturesPositionTradingStop(args ...any) <-ch
 }
 
 // PrivatePostApiV1FuturesPositionMargin returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1FuturesPositionMargin(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/positionMargin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivatePostApiV1FuturesPositionMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/futures/positionMargin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1FuturesOrderUpdate returns a channel that yields a JSON object.
@@ -408,33 +408,33 @@ func (this *Toobit) PrivatePostApiV1FuturesOrderUpdate(args ...any) <-chan any {
 }
 
 // PrivatePostApiV1FuturesAutoAddMargin returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1FuturesAutoAddMargin(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/autoAddMargin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivatePostApiV1FuturesAutoAddMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/futures/autoAddMargin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1FuturesFlashClose returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1FuturesFlashClose(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/flashClose", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivatePostApiV1FuturesFlashClose(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/futures/flashClose", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1FuturesReversePosition returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1FuturesReversePosition(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/futures/reversePosition", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Toobit) PrivatePostApiV1FuturesReversePosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/futures/reversePosition", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostApiV1AccountDownloadApply returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1AccountDownloadApply(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/account/download/apply", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1000)})
+func (this *Toobit) PrivatePostApiV1AccountDownloadApply(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/account/download/apply", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1000)})
 }
 
 // PrivatePostApiV1UserDataStream returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1UserDataStream(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/userDataStream", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivatePostApiV1UserDataStream(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/userDataStream", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1ListenKey returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePostApiV1ListenKey(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/listenKey", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivatePostApiV1ListenKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/listenKey", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteApiV1SpotOrder returns a channel that yields a JSON object.
@@ -468,21 +468,21 @@ func (this *Toobit) PrivateDeleteApiV1FuturesCancelOrderByIds(args ...any) <-cha
 }
 
 // PrivateDeleteApiV1UserDataStream returns a channel that yields a JSON object.
-func (this *Toobit) PrivateDeleteApiV1UserDataStream(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/userDataStream", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateDeleteApiV1UserDataStream(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/userDataStream", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteApiV1ListenKey returns a channel that yields a JSON object.
-func (this *Toobit) PrivateDeleteApiV1ListenKey(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/listenKey", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivateDeleteApiV1ListenKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/listenKey", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutApiV1UserDataStream returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePutApiV1UserDataStream(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/userDataStream", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivatePutApiV1UserDataStream(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/userDataStream", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutApiV1ListenKey returns a channel that yields a JSON object.
-func (this *Toobit) PrivatePutApiV1ListenKey(args ...any) <-chan any {
-	return this.Fetch2Async("api/v1/listenKey", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Toobit) PrivatePutApiV1ListenKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/listenKey", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

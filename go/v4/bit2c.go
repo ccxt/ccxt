@@ -388,7 +388,7 @@ func (this *Bit2c) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccountBalanceV2(params))
+	response := (<-this.PrivateGetAccountBalanceV2(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -468,8 +468,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		"pair": market["id"],
 	}
 
-	orderbook := (<-this.PublicGetExchangesPairOrderbook(this.Extend(request, params)))
-	PanicOnError(orderbook)
+	var orderbook map[string]any = MapTyped(PanicOnError((<-this.PublicGetExchangesPairOrderbook(this.Extend(request, params))).Raw))
 	// the full orderbook.json snapshot can contain dead orders - rows
 	// published with a zero amount at their limit price, hours-stable and
 	// sometimes crossing the real market. per the api docs the endpoint
@@ -572,7 +571,7 @@ func (this *Bit2c) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetExchangesPairTicker(this.Extend(request, params)))
+	response := (<-this.PublicGetExchangesPairTicker(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTicker(response, market)
@@ -624,7 +623,7 @@ func (this *Bit2c) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var responseList []any = []any{}
 	if IsEqual(method, "public_get_exchanges_pair_trades") {
 
-		response := (<-this.PublicGetExchangesPairTrades(this.Extend(request, params)))
+		response := (<-this.PublicGetExchangesPairTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     [
@@ -639,7 +638,7 @@ func (this *Bit2c) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		responseList = this.ToArray(response)
 	} else {
 
-		response := (<-this.PublicGetExchangesPairLasttrades(this.Extend(request, params)))
+		response := (<-this.PublicGetExchangesPairLasttrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		if IsString(response) {
 			panic(ExchangeError(response))
@@ -674,8 +673,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccountBalance(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountBalance(params)).Raw))
 	//
 	//     {
 	//         "AVAILABLE_NIS": 0.0,
@@ -755,11 +753,11 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	if IsEqual(typeVar, "market") {
 		if IsEqual(side, "buy") {
 
-			response = (<-this.PrivatePostOrderAddOrderMarketPriceBuy(this.Extend(request, params)))
+			response = (<-this.PrivatePostOrderAddOrderMarketPriceBuy(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivatePostOrderAddOrderMarketPriceSell(this.Extend(request, params)))
+			response = (<-this.PrivatePostOrderAddOrderMarketPriceSell(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -769,7 +767,7 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		request["Total"] = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 		request["IsBid"] = (IsEqual(side, "buy"))
 
-		response = (<-this.PrivatePostOrderAddOrder(this.Extend(request, params)))
+		response = (<-this.PrivatePostOrderAddOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -803,7 +801,7 @@ func (this *Bit2c) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"id": id,
 	}
 
-	response := (<-this.PrivatePostOrderCancelOrder(this.Extend(request, params)))
+	response := (<-this.PrivatePostOrderCancelOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response)
@@ -849,8 +847,7 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"pair": market["id"],
 	}
 
-	response := (<-this.PrivateGetOrderMyOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrderMyOrders(this.Extend(request, params))).Raw))
 	var orders map[string]any = SafeMapTyped(response, market["id"])
 	var asks []any = SafeListTypedDefault(orders, "ask", []any{})
 	var bids []any = SafeListTypedDefault(orders, "bid", []any{})
@@ -890,7 +887,7 @@ func (this *Bit2c) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		"id": id,
 	}
 
-	response := (<-this.PrivateGetOrderGetById(this.Extend(request, params)))
+	response := (<-this.PrivateGetOrderGetById(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1072,7 +1069,7 @@ func (this *Bit2c) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["pair"] = GetValue(market, "id")
 	}
 
-	response := (<-this.PrivateGetOrderOrderHistory(this.Extend(request, params)))
+	response := (<-this.PrivateGetOrderOrderHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -1274,7 +1271,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		"Coin": currency["id"],
 	}
 
-	response := (<-this.PrivatePostFundsAddCoinFundsRequest(this.Extend(request, params)))
+	response := (<-this.PrivatePostFundsAddCoinFundsRequest(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//

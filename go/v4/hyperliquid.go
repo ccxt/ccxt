@@ -2177,7 +2177,7 @@ func (this *Hyperliquid) setRefBody(ch chan any) any {
 			}()
 			// try block:
 
-			response = (<-this.PrivatePostExchange(request))
+			response = (<-this.PrivatePostExchange(request)).Raw
 			PanicOnError(response)
 
 			ch <- response
@@ -2231,7 +2231,7 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan any, builder any, maxFeeR
 		"vaultAddress": nil,
 	}
 
-	retRes190715 := (<-this.PrivatePostExchange(request))
+	retRes190715 := (<-this.PrivatePostExchange(request)).Raw
 	PanicOnError(retRes190715)
 	//
 	// {
@@ -2479,7 +2479,7 @@ func (this *Hyperliquid) setUserAbstractionBody(ch chan any, abstraction any, op
 		"vaultAddress": nil,
 	}
 
-	retRes203815 := (<-this.PrivatePostExchange(request))
+	retRes203815 := (<-this.PrivatePostExchange(request)).Raw
 	PanicOnError(retRes203815)
 	//
 	// {
@@ -2547,7 +2547,7 @@ func (this *Hyperliquid) enableUserDexAbstractionBody(ch chan any, enabled any, 
 		"vaultAddress": nil,
 	}
 
-	retRes208615 := (<-this.PrivatePostExchange(request))
+	retRes208615 := (<-this.PrivatePostExchange(request)).Raw
 	PanicOnError(retRes208615)
 	//
 	// {
@@ -2591,7 +2591,7 @@ func (this *Hyperliquid) setAgentAbstractionBody(ch chan any, abstraction any, o
 	request["action"] = action
 	request["signature"] = signature
 
-	response := (<-this.PrivatePostExchange(this.Extend(request, params)))
+	response := (<-this.PrivatePostExchange(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- response
@@ -2715,8 +2715,7 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol any, side any, 
 		params = this.Omit(params, "expiresAfter")
 	}
 
-	response := (<-this.PrivatePostExchange(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
 	// {
 	//     "status":"ok",
 	//     "response":{
@@ -2770,8 +2769,7 @@ func (this *Hyperliquid) createOrdersBody(ch chan any, orders any, optionalArgs 
 	PanicOnError((<-this.InitializeClientAsync()))
 	var request any = this.CreateOrdersRequest(orders, params)
 
-	response := (<-this.PrivatePostExchange(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
 	//
 	//     {
 	//         "status": "ok",
@@ -3116,8 +3114,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	PanicOnError((<-this.InitializeClientAsync()))
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
 
-	response := (<-this.PrivatePostExchange(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
 	//
 	//     {
 	//         "status":"ok",
@@ -3211,8 +3208,7 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan any, id any, optionalArgs .
 		params = this.Omit(params, "expiresAfter")
 	}
 
-	response := (<-this.PrivatePostExchange(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
 	//
 	//  {
 	//     "status":"ok",
@@ -3396,7 +3392,7 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan any, orders any, opt
 		request["vaultAddress"] = vaultAddress
 	}
 
-	response := (<-this.PrivatePostExchange(request))
+	response := (<-this.PrivatePostExchange(request)).Raw
 	PanicOnError(response)
 
 	//
@@ -3467,7 +3463,7 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan any, timeout any, opti
 		request["vaultAddress"] = vaultAddress
 	}
 
-	response := (<-this.PrivatePostExchange(request))
+	response := (<-this.PrivatePostExchange(request)).Raw
 	PanicOnError(response)
 
 	//
@@ -3697,8 +3693,7 @@ func (this *Hyperliquid) editOrdersBody(ch chan any, orders any, optionalArgs ..
 	PanicOnError((<-this.InitializeClientAsync()))
 	var request any = this.EditOrdersRequest(orders, params)
 
-	response := (<-this.PrivatePostExchange(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
 	//
 	//     {
 	//         "status": "ok",
@@ -3783,7 +3778,7 @@ func (this *Hyperliquid) createVaultBody(ch chan any, name any, description any,
 	request["action"] = action
 	request["signature"] = signature
 
-	response := (<-this.PrivatePostExchange(this.Extend(request, params)))
+	response := (<-this.PrivatePostExchange(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -5003,7 +4998,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan any, marginMode any, optional
 		request["vaultAddress"] = vaultAddress
 	}
 
-	response := (<-this.PrivatePostExchange(request))
+	response := (<-this.PrivatePostExchange(request)).Raw
 	PanicOnError(response)
 
 	//
@@ -5075,7 +5070,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan any, leverage any, optionalArgs
 		request["vaultAddress"] = vaultAddress
 	}
 
-	response := (<-this.PrivatePostExchange(request))
+	response := (<-this.PrivatePostExchange(request)).Raw
 	PanicOnError(response)
 
 	//
@@ -5189,7 +5184,7 @@ func (this *Hyperliquid) modifyMarginHelperBody(ch chan any, symbol any, amount 
 		request["vaultAddress"] = vaultAddress
 	}
 
-	response := (<-this.PrivatePostExchange(request))
+	response := (<-this.PrivatePostExchange(request)).Raw
 	PanicOnError(response)
 
 	//
@@ -5295,7 +5290,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 			"signature": transferSig,
 		}
 
-		transferResponse := (<-this.PrivatePostExchange(transferRequest))
+		transferResponse := (<-this.PrivatePostExchange(transferRequest)).Raw
 		PanicOnError(transferResponse)
 		//
 		// {'response': {'type': 'default'}, 'status': 'ok'}
@@ -5341,7 +5336,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 			"signature": sig,
 		}
 
-		response := (<-this.PrivatePostExchange(request))
+		response := (<-this.PrivatePostExchange(request)).Raw
 		PanicOnError(response)
 
 		//
@@ -5374,7 +5369,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 			"signature": sig,
 		}
 
-		response := (<-this.PrivatePostExchange(request))
+		response := (<-this.PrivatePostExchange(request)).Raw
 		PanicOnError(response)
 
 		ch <- this.ParseTransfer(response)
@@ -5484,7 +5479,7 @@ func (this *Hyperliquid) withdrawBody(ch chan any, code any, amount any, address
 		"signature": sig,
 	}
 
-	response := (<-this.PrivatePostExchange(request))
+	response := (<-this.PrivatePostExchange(request)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransaction(response)
@@ -6230,7 +6225,7 @@ func (this *Hyperliquid) reserveRequestWeightBody(ch chan any, weight any, optio
 	request["action"] = action
 	request["signature"] = signature
 
-	response := (<-this.PrivatePostExchange(this.Extend(request, params)))
+	response := (<-this.PrivatePostExchange(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- response
@@ -6273,7 +6268,7 @@ func (this *Hyperliquid) createSubAccountBody(ch chan any, name any, optionalArg
 	request["action"] = action
 	request["signature"] = signature
 
-	response := (<-this.PrivatePostExchange(this.Extend(request, params)))
+	response := (<-this.PrivatePostExchange(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- response

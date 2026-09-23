@@ -416,8 +416,7 @@ func (this *Hibachi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetMarketExchangeInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketExchangeInfo(params)).Raw))
 	// {
 	//     "displayName": "ETH/USDT Perps",
 	//     "id": 1,
@@ -537,7 +536,7 @@ func (this *Hibachi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"accountId": this.GetAccountId(),
 	}
 
-	response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params)))
+	response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -702,8 +701,7 @@ func (this *Hibachi) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetMarketDataTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketDataTrades(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "trades": [
@@ -754,7 +752,7 @@ func (this *Hibachi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var rawPromises []any = []any{this.PublicGetMarketDataPrices(this.Extend(request, params)), this.PublicGetMarketDataStats(this.Extend(request, params))}
+	var rawPromises []any = []any{EndpointRaw(this.PublicGetMarketDataPrices(this.Extend(request, params))), EndpointRaw(this.PublicGetMarketDataStats(this.Extend(request, params)))}
 
 	promises := (<-promiseAll(rawPromises))
 	PanicOnError(promises)
@@ -912,7 +910,7 @@ func (this *Hibachi) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"accountId": this.GetAccountId(),
 	}
 
-	response := (<-this.PrivateGetTradeOrder(this.Extend(request, params)))
+	response := (<-this.PrivateGetTradeOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response, market)
@@ -945,7 +943,7 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		"accountId": this.GetAccountId(),
 	}
 
-	response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params)))
+	response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//    {
 	//        "tradeMakerFeeRate": "0.00000000",
@@ -1126,8 +1124,7 @@ func (this *Hibachi) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var request any = this.CreateOrderRequest(nonce, symbol, typeVar, side, amount, price, params)
 	AddElementToObject(request, "accountId", this.GetAccountId())
 
-	response := (<-this.PrivatePostTradeOrder(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeOrder(request)).Raw))
 
 	//
 	// {
@@ -1183,8 +1180,7 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		"orders":    requestOrders,
 	}
 
-	response := (<-this.PrivatePostTradeOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeOrders(this.Extend(request, params))).Raw))
 	//
 	// { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
 	//
@@ -1285,7 +1281,7 @@ func (this *Hibachi) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	var request any = this.EditOrderRequest(nonce, id, symbol, typeVar, side, amount, price, params)
 	AddElementToObject(request, "accountId", this.GetAccountId())
 
-	PanicOnError((<-this.PrivatePutTradeOrder(request)))
+	PanicOnError((<-this.PrivatePutTradeOrder(request)).Raw)
 
 	// At this time the response body is empty. A 200 response means the update request is accepted and sent to process
 	//
@@ -1341,8 +1337,7 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 		"orders":    requestOrders,
 	}
 
-	response := (<-this.PrivatePostTradeOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeOrders(this.Extend(request, params))).Raw))
 	//
 	// { "orders": [ { "orderId": "589636801329628160" } ] }
 	//
@@ -1402,7 +1397,7 @@ func (this *Hibachi) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var request any = this.CancelOrderRequest(id)
 	AddElementToObject(request, "accountId", this.GetAccountId())
 
-	response := (<-this.PrivateDeleteTradeOrder(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteTradeOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	// At this time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
@@ -1450,8 +1445,7 @@ func (this *Hibachi) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		"orders":    orders,
 	}
 
-	response := (<-this.PrivatePostTradeOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeOrders(this.Extend(request, params))).Raw))
 	//
 	// { "orders": [ { "orderId": "589636801329628160" } ] }
 	//
@@ -1515,7 +1509,7 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["contractId"] = this.SafeInteger(market, "numericId")
 	}
 
-	response := (<-this.PrivateDeleteTradeOrders(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteTradeOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	// At this time the response body is empty. A 200 response means the cancel request is accepted and sent to process
@@ -1581,8 +1575,7 @@ func (this *Hibachi) withdrawBody(ch chan any, code any, amount any, address any
 	var withdrawAddress string = Slice(address, OpNeg(40), nil)
 	// Get the withdraw fees
 
-	exchangeInfo := (<-this.PublicGetMarketExchangeInfo(params))
-	PanicOnError(exchangeInfo)
+	var exchangeInfo map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketExchangeInfo(params)).Raw))
 	// {
 	//      "feeConfig": {
 	//          "depositFees": "0.004518",
@@ -1608,7 +1601,7 @@ func (this *Hibachi) withdrawBody(ch chan any, code any, amount any, address any
 		"signature":       signature,
 	}
 
-	PanicOnError((<-this.PrivatePostCapitalWithdraw(this.Extend(request, params))))
+	PanicOnError((<-this.PrivatePostCapitalWithdraw(this.Extend(request, params))).Raw)
 
 	// At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
 	//
@@ -1690,8 +1683,7 @@ func (this *Hibachi) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetMarketDataOrderbook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketDataOrderbook(this.Extend(request, params))).Raw))
 	var formattedResponse map[string]any = map[string]any{}
 	formattedResponse["ask"] = this.SafeList(this.SafeDict(response, "ask"), "levels")
 	formattedResponse["bid"] = this.SafeList(this.SafeDict(response, "bid"), "levels")
@@ -1777,8 +1769,7 @@ func (this *Hibachi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"accountId": this.GetAccountId(),
 	}
 
-	response := (<-this.PrivateGetTradeAccountTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeAccountTrades(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "trades": [
@@ -1867,7 +1858,7 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"accountId": this.GetAccountId(),
 	}
 
-	response := (<-this.PrivateGetTradeOrders(this.Extend(request, params)))
+	response := (<-this.PrivateGetTradeOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	// [
@@ -1958,8 +1949,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 		request["endTime"] = until
 	}
 
-	response := (<-this.PrivateGetTradeOrdersHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeOrdersHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "hasMore": false,
@@ -2117,8 +2107,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		request["toMs"] = until
 	}
 
-	response := (<-this.PublicGetMarketDataKlines(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketDataKlines(this.Extend(request, params))).Raw))
 	//
 	// [
 	//     {
@@ -2168,8 +2157,7 @@ func (this *Hibachi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"accountId": this.GetAccountId(),
 	}
 
-	response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeAccountInfo(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "assets": [
@@ -2444,7 +2432,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
-	var rawPromises []any = []any{this.PrivateGetCapitalHistory(this.Extend(request, params)), this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params))}
+	var rawPromises []any = []any{EndpointRaw(this.PrivateGetCapitalHistory(this.Extend(request, params))), EndpointRaw(this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params)))}
 
 	promises := (<-promiseAll(rawPromises))
 	PanicOnError(promises)
@@ -2562,7 +2550,7 @@ func (this *Hibachi) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		"accountId": this.GetAccountId(),
 	}
 
-	response := (<-this.PrivateGetCapitalDepositInfo(this.Extend(request, params)))
+	response := (<-this.PrivateGetCapitalDepositInfo(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	// {
@@ -2642,8 +2630,7 @@ func (this *Hibachi) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 		"accountId": this.GetAccountId(),
 	}
 
-	response := (<-this.PrivateGetCapitalHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetCapitalHistory(this.Extend(request, params))).Raw))
 	// {
 	//     "transactions": [
 	//         {
@@ -2842,8 +2829,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 		request["endTime"] = this.ParseToInt(Divide(until, 1000))
 	}
 
-	response := (<-this.PrivateGetTradeAccountSettlementsHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeAccountSettlementsHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "settlements": [
@@ -2886,8 +2872,7 @@ func (this *Hibachi) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetExchangeUtcTimestamp(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetExchangeUtcTimestamp(params)).Raw))
 
 	//
 	//     { "timestampMs":1754077574040 }
@@ -2924,7 +2909,7 @@ func (this *Hibachi) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetMarketDataOpenInterest(this.Extend(request, params)))
+	response := (<-this.PublicGetMarketDataOpenInterest(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//   { "totalQuantity" : "2.3299770166" }
@@ -2970,8 +2955,7 @@ func (this *Hibachi) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetMarketDataPrices(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketDataPrices(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "askPrice": "3514.650296",
@@ -3049,8 +3033,7 @@ func (this *Hibachi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetMarketDataFundingRates(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketDataFundingRates(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "data": [

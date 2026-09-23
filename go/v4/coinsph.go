@@ -706,7 +706,7 @@ func (this *Coinsph) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	response := (<-this.PrivateGetOpenapiWalletV1ConfigGetall(params))
+	response := (<-this.PrivateGetOpenapiWalletV1ConfigGetall(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -891,7 +891,7 @@ func (this *Coinsph) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetOpenapiV1Ping(params))
+	response := (<-this.PublicGetOpenapiV1Ping(params)).Raw
 	PanicOnError(response)
 
 	ch <- map[string]any{
@@ -923,8 +923,7 @@ func (this *Coinsph) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetOpenapiV1Time(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenapiV1Time(params)).Raw))
 
 	//
 	//     {"serverTime":1677705408268}
@@ -952,8 +951,7 @@ func (this *Coinsph) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetOpenapiV1ExchangeInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenapiV1ExchangeInfo(params)).Raw))
 	//
 	//     {
 	//         "timezone": "UTC",
@@ -1132,11 +1130,11 @@ func (this *Coinsph) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var tickers any = []any{}
 	if method != nil && *method == "publicGetOpenapiQuoteV1TickerPrice" {
 
-		tickers = (<-this.PublicGetOpenapiQuoteV1TickerPrice(this.Extend(request, params)))
+		tickers = (<-this.PublicGetOpenapiQuoteV1TickerPrice(this.Extend(request, params))).Raw
 		PanicOnError(tickers)
 	} else if method != nil && *method == "publicGetOpenapiQuoteV1TickerBookTicker" {
 
-		tickers = (<-this.PublicGetOpenapiQuoteV1TickerBookTicker(this.Extend(request, params)))
+		tickers = (<-this.PublicGetOpenapiQuoteV1TickerBookTicker(this.Extend(request, params))).Raw
 		PanicOnError(tickers)
 	} else {
 
@@ -1183,11 +1181,11 @@ func (this *Coinsph) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	var ticker any = map[string]any{}
 	if method != nil && *method == "publicGetOpenapiQuoteV1TickerPrice" {
 
-		ticker = (<-this.PublicGetOpenapiQuoteV1TickerPrice(this.Extend(request, params)))
+		ticker = (<-this.PublicGetOpenapiQuoteV1TickerPrice(this.Extend(request, params))).Raw
 		PanicOnError(ticker)
 	} else if method != nil && *method == "publicGetOpenapiQuoteV1TickerBookTicker" {
 
-		ticker = (<-this.PublicGetOpenapiQuoteV1TickerBookTicker(this.Extend(request, params)))
+		ticker = (<-this.PublicGetOpenapiQuoteV1TickerBookTicker(this.Extend(request, params))).Raw
 		PanicOnError(ticker)
 	} else {
 
@@ -1313,7 +1311,7 @@ func (this *Coinsph) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetOpenapiQuoteV1Depth(this.Extend(request, params)))
+	response := (<-this.PublicGetOpenapiQuoteV1Depth(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1398,8 +1396,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	request["limit"] = limit
 	params = MapTyped(this.Omit(params, "until"))
 
-	response := (<-this.PublicGetOpenapiQuoteV1Klines(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetOpenapiQuoteV1Klines(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         [
@@ -1470,7 +1467,7 @@ func (this *Coinsph) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		}
 	}
 
-	response := (<-this.PublicGetOpenapiQuoteV1Trades(this.Extend(request, params)))
+	response := (<-this.PublicGetOpenapiQuoteV1Trades(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1536,7 +1533,7 @@ func (this *Coinsph) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetOpenapiV1MyTrades(this.Extend(request, params)))
+	response := (<-this.PrivateGetOpenapiV1MyTrades(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTrades(response, market, since, limit)
@@ -1705,7 +1702,7 @@ func (this *Coinsph) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetOpenapiV1Account(params))
+	response := (<-this.PrivateGetOpenapiV1Account(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -1856,11 +1853,11 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var response any = map[string]any{}
 	if testOrder != nil && *testOrder == true {
 
-		response = (<-this.PrivatePostOpenapiV1OrderTest(this.Extend(request, params)))
+		response = (<-this.PrivatePostOpenapiV1OrderTest(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostOpenapiV1Order(this.Extend(request, params)))
+		response = (<-this.PrivatePostOpenapiV1Order(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1930,7 +1927,7 @@ func (this *Coinsph) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "origClientOrderId"}))
 
-	response := (<-this.PrivateGetOpenapiV1Order(this.Extend(request, params)))
+	response := (<-this.PrivateGetOpenapiV1Order(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response)
@@ -1975,7 +1972,7 @@ func (this *Coinsph) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 
-	response := (<-this.PrivateGetOpenapiV1OpenOrders(this.Extend(request, params)))
+	response := (<-this.PrivateGetOpenapiV1OpenOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -2028,7 +2025,7 @@ func (this *Coinsph) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetOpenapiV1HistoryOrders(this.Extend(request, params)))
+	response := (<-this.PrivateGetOpenapiV1HistoryOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -2070,7 +2067,7 @@ func (this *Coinsph) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	}
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "origClientOrderId"}))
 
-	response := (<-this.PrivateDeleteOpenapiV1Order(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteOpenapiV1Order(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response)
@@ -2112,7 +2109,7 @@ func (this *Coinsph) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 
-	response := (<-this.PrivateDeleteOpenapiV1OpenOrders(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteOpenapiV1OpenOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response, market)
@@ -2326,8 +2323,7 @@ func (this *Coinsph) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PrivateGetOpenapiV1AssetTradeFee(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOpenapiV1AssetTradeFee(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//       {
@@ -2366,8 +2362,7 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetOpenapiV1AssetTradeFee(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOpenapiV1AssetTradeFee(params)).Raw))
 	//
 	//     [
 	//         {
@@ -2478,7 +2473,7 @@ func (this *Coinsph) withdrawBody(ch chan any, code any, amount any, address any
 	}
 	params = MapTyped(this.Omit(params, "network"))
 
-	response := (<-this.PrivatePostOpenapiWalletV1WithdrawApply(this.Extend(request, params)))
+	response := (<-this.PrivatePostOpenapiWalletV1WithdrawApply(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTransaction(response, currency)
@@ -2530,7 +2525,7 @@ func (this *Coinsph) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params)))
+	response := (<-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2610,7 +2605,7 @@ func (this *Coinsph) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params)))
+	response := (<-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2800,7 +2795,7 @@ func (this *Coinsph) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	}
 	params = MapTyped(this.Omit(params, "network"))
 
-	response := (<-this.PrivateGetOpenapiWalletV1DepositAddress(this.Extend(request, params)))
+	response := (<-this.PrivateGetOpenapiWalletV1DepositAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//

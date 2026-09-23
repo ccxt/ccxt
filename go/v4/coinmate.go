@@ -469,8 +469,7 @@ func (this *Coinmate) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetSystemTime(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetSystemTime(params)).Raw))
 
 	//
 	//     {
@@ -500,8 +499,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetTradingPairs(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradingPairs(params)).Raw))
 	//
 	//     {
 	//         "error":false,
@@ -632,7 +630,7 @@ func (this *Coinmate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostBalances(params))
+	response := (<-this.PrivatePostBalances(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseBalance(response)
@@ -671,8 +669,7 @@ func (this *Coinmate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"groupByPriceLimit": "False",
 	}
 
-	response := (<-this.PublicGetOrderBook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBook(this.Extend(request, params))).Raw))
 	var orderbook map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeTimestamp(orderbook, "timestamp")
 
@@ -708,8 +705,7 @@ func (this *Coinmate) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		"currencyPair": market["id"],
 	}
 
-	response := (<-this.PublicGetTicker(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTicker(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "error": false,
@@ -760,8 +756,7 @@ func (this *Coinmate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetTickerAll(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickerAll(params)).Raw))
 	//
 	//     {
 	//         "error": false,
@@ -880,8 +875,7 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 		request["currency"] = currency["id"]
 	}
 
-	response := (<-this.PrivatePostTransferHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTransferHistory(this.Extend(request, params))).Raw))
 	var items []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(items, nil, since, limit)
@@ -1029,39 +1023,39 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 	var response any = nil
 	if method != nil && *method == "privatePostBitcoinWithdrawal" {
 
-		response = (<-this.PrivatePostBitcoinWithdrawal(requestParams))
+		response = (<-this.PrivatePostBitcoinWithdrawal(requestParams)).Raw
 		PanicOnError(response)
 	} else if method != nil && *method == "privatePostLitecoinWithdrawal" {
 
-		response = (<-this.PrivatePostLitecoinWithdrawal(requestParams))
+		response = (<-this.PrivatePostLitecoinWithdrawal(requestParams)).Raw
 		PanicOnError(response)
 	} else if method != nil && *method == "privatePostBitcoinCashWithdrawal" {
 
-		response = (<-this.PrivatePostBitcoinCashWithdrawal(requestParams))
+		response = (<-this.PrivatePostBitcoinCashWithdrawal(requestParams)).Raw
 		PanicOnError(response)
 	} else if method != nil && *method == "privatePostEthereumWithdrawal" {
 
-		response = (<-this.PrivatePostEthereumWithdrawal(requestParams))
+		response = (<-this.PrivatePostEthereumWithdrawal(requestParams)).Raw
 		PanicOnError(response)
 	} else if method != nil && *method == "privatePostRippleWithdrawal" {
 
-		response = (<-this.PrivatePostRippleWithdrawal(requestParams))
+		response = (<-this.PrivatePostRippleWithdrawal(requestParams)).Raw
 		PanicOnError(response)
 	} else if method != nil && *method == "privatePostDashWithdrawal" {
 
-		response = (<-this.PrivatePostDashWithdrawal(requestParams))
+		response = (<-this.PrivatePostDashWithdrawal(requestParams)).Raw
 		PanicOnError(response)
 	} else if method != nil && *method == "privatePostDaiWithdrawal" {
 
-		response = (<-this.PrivatePostDaiWithdrawal(requestParams))
+		response = (<-this.PrivatePostDaiWithdrawal(requestParams)).Raw
 		PanicOnError(response)
 	} else if method != nil && *method == "privatePostAdaWithdrawal" {
 
-		response = (<-this.PrivatePostAdaWithdrawal(requestParams))
+		response = (<-this.PrivatePostAdaWithdrawal(requestParams)).Raw
 		PanicOnError(response)
 	} else if method != nil && *method == "privatePostSolWithdrawal" {
 
-		response = (<-this.PrivatePostSolWithdrawal(requestParams))
+		response = (<-this.PrivatePostSolWithdrawal(requestParams)).Raw
 		PanicOnError(response)
 	} else {
 		panic(ExchangeError(this.Id + " withdraw() does not support the " + *method + " method"))
@@ -1136,8 +1130,7 @@ func (this *Coinmate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["timestampFrom"] = since
 	}
 
-	response := (<-this.PrivatePostTradeHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeHistory(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, nil, since, limit)
@@ -1249,8 +1242,7 @@ func (this *Coinmate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"minutesIntoHistory": 10,
 	}
 
-	response := (<-this.PublicGetTransactions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTransactions(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "error":false,
@@ -1301,8 +1293,7 @@ func (this *Coinmate) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 		"currencyPair": market["id"],
 	}
 
-	response := (<-this.PrivatePostTraderFees(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTraderFees(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "error": false,
@@ -1355,8 +1346,7 @@ func (this *Coinmate) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	response := (<-this.PrivatePostOpenOrders(this.Extend(map[string]any{}, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenOrders(this.Extend(map[string]any{}, params))).Raw))
 	var extension map[string]any = map[string]any{
 		"status": "open",
 	}
@@ -1409,8 +1399,7 @@ func (this *Coinmate) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivatePostOrderHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderHistory(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
@@ -1574,19 +1563,19 @@ func (this *Coinmate) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var response any = nil
 	if IsEqual(method, "privatePostBuyInstant") {
 
-		response = (<-this.PrivatePostBuyInstant(requestParams))
+		response = (<-this.PrivatePostBuyInstant(requestParams)).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "privatePostSellInstant") {
 
-		response = (<-this.PrivatePostSellInstant(requestParams))
+		response = (<-this.PrivatePostSellInstant(requestParams)).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "privatePostBuyLimit") {
 
-		response = (<-this.PrivatePostBuyLimit(requestParams))
+		response = (<-this.PrivatePostBuyLimit(requestParams)).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "privatePostSellLimit") {
 
-		response = (<-this.PrivatePostSellLimit(requestParams))
+		response = (<-this.PrivatePostSellLimit(requestParams)).Raw
 		PanicOnError(response)
 	} else {
 		panic(InvalidOrder(Add(this.Id+" createOrder() does not support order type ", typeVar)))
@@ -1635,8 +1624,7 @@ func (this *Coinmate) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		market = this.Market(symbol)
 	}
 
-	response := (<-this.PrivatePostOrderById(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderById(this.Extend(request, params))).Raw))
 	var data any = this.SafeDict(response, "data")
 
 	ch <- this.ParseOrder(data, market)
@@ -1670,8 +1658,7 @@ func (this *Coinmate) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"orderId": id,
 	}
 
-	response := (<-this.PrivatePostCancelOrderWithInfo(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrderWithInfo(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "error": false,

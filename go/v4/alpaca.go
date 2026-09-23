@@ -647,8 +647,7 @@ func (this *Alpaca) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.TraderPrivateGetV2Clock(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateGetV2Clock(params)).Raw))
 	//
 	//     {
 	//         timestamp: '2023-11-22T08:07:57.654738097-05:00',
@@ -709,7 +708,7 @@ func (this *Alpaca) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		"status":      "active",
 	}
 
-	assets := (<-this.TraderPrivateGetV2Assets(this.Extend(request, params)))
+	assets := (<-this.TraderPrivateGetV2Assets(this.Extend(request, params))).Raw
 	PanicOnError(assets)
 
 	//
@@ -886,7 +885,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 			request["limit"] = limit
 		}
 
-		response := (<-this.MarketPublicGetV1beta3CryptoLocTrades(this.Extend(request, params)))
+		response := (<-this.MarketPublicGetV1beta3CryptoLocTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//    {
@@ -908,7 +907,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		symbolTrades = this.SafeList(trades, marketId, []any{})
 	} else if method != nil && *method == "marketPublicGetV1beta3CryptoLocLatestTrades" {
 
-		response := (<-this.MarketPublicGetV1beta3CryptoLocLatestTrades(this.Extend(request, params)))
+		response := (<-this.MarketPublicGetV1beta3CryptoLocLatestTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//    {
@@ -973,8 +972,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"loc":     loc,
 	}
 
-	response := (<-this.MarketPublicGetV1beta3CryptoLocLatestOrderbooks(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.MarketPublicGetV1beta3CryptoLocLatestOrderbooks(this.Extend(request, params))).Raw))
 	//
 	//   {
 	//       "orderbooks":{
@@ -1090,7 +1088,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		}
 		request["timeframe"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 
-		response := (<-this.MarketPublicGetV1beta3CryptoLocBars(this.Extend(request, params)))
+		response := (<-this.MarketPublicGetV1beta3CryptoLocBars(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//    {
@@ -1133,7 +1131,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 				}
 				request["page_token"] = pageToken
 
-				response = (<-this.MarketPublicGetV1beta3CryptoLocBars(this.Extend(request, params)))
+				response = (<-this.MarketPublicGetV1beta3CryptoLocBars(this.Extend(request, params))).Raw
 				PanicOnError(response)
 				bars = this.SafeDict(response, "bars", map[string]any{})
 				var page []any = SafeListTypedDefault(bars, marketId, []any{})
@@ -1147,7 +1145,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		}
 	} else if method != nil && *method == "marketPublicGetV1beta3CryptoLocLatestBars" {
 
-		response := (<-this.MarketPublicGetV1beta3CryptoLocLatestBars(this.Extend(request, params)))
+		response := (<-this.MarketPublicGetV1beta3CryptoLocLatestBars(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//    {
@@ -1267,8 +1265,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	params = MapTyped(this.Omit(params, "loc"))
 
-	response := (<-this.MarketPublicGetV1beta3CryptoLocSnapshots(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.MarketPublicGetV1beta3CryptoLocSnapshots(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "snapshots": {
@@ -1549,7 +1546,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	request["client_order_id"] = this.GenerateClientOrderId(params)
 	params = this.Omit(params, []any{"clientOrderId"})
 
-	order := (<-this.TraderPrivatePostV2Orders(this.Extend(request, params)))
+	order := (<-this.TraderPrivatePostV2Orders(this.Extend(request, params))).Raw
 	PanicOnError(order)
 
 	//
@@ -1618,7 +1615,7 @@ func (this *Alpaca) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id": id,
 	}
 
-	response := (<-this.TraderPrivateDeleteV2OrdersOrderId(this.Extend(request, params)))
+	response := (<-this.TraderPrivateDeleteV2OrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1657,7 +1654,7 @@ func (this *Alpaca) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.TraderPrivateDeleteV2Orders(params))
+	response := (<-this.TraderPrivateDeleteV2Orders(params)).Raw
 	PanicOnError(response)
 	if IsArray(response) {
 
@@ -1702,7 +1699,7 @@ func (this *Alpaca) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"order_id": id,
 	}
 
-	order := (<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params)))
+	order := (<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(order)
 	var marketId *string = this.SafeString(order, "symbol")
 	var market any = this.SafeMarket(marketId)
@@ -1769,7 +1766,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.TraderPrivateGetV2Orders(this.Extend(request, params)))
+	response := (<-this.TraderPrivateGetV2Orders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1958,7 +1955,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	request["client_order_id"] = this.GenerateClientOrderId(params)
 	params = this.Omit(params, []any{"clientOrderId"})
 
-	response := (<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, params)))
+	response := (<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response, market)
@@ -2139,7 +2136,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(request, params)))
+	response := (<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2255,7 +2252,7 @@ func (this *Alpaca) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		"asset": currency["id"],
 	}
 
-	response := (<-this.TraderPrivateGetV2Wallets(this.Extend(request, params)))
+	response := (<-this.TraderPrivateGetV2Wallets(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2333,7 +2330,7 @@ func (this *Alpaca) withdrawBody(ch chan any, code any, amount any, address any,
 		"amount":  this.NumberToString(amount),
 	}
 
-	response := (<-this.TraderPrivatePostV2WalletsTransfers(this.Extend(request, params)))
+	response := (<-this.TraderPrivatePostV2WalletsTransfers(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2385,7 +2382,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 			"activity_types": "CSD,CSW,TRANS",
 		}
 
-		activities := (<-this.TraderPrivateGetV2AccountActivities(this.Extend(request, params)))
+		activities := (<-this.TraderPrivateGetV2AccountActivities(this.Extend(request, params))).Raw
 		PanicOnError(activities)
 		//
 		//     [
@@ -2423,7 +2420,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 		return nil
 	}
 
-	response := (<-this.TraderPrivateGetV2WalletsTransfers(params))
+	response := (<-this.TraderPrivateGetV2WalletsTransfers(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2726,10 +2723,10 @@ func (this *Alpaca) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	// the two calls stay sequential deliberately — the static request harness records one request per case,
 	// and concurrent calls make the recorded url nondeterministic per language
 
-	account := (<-this.TraderPrivateGetV2Account(params))
+	account := (<-this.TraderPrivateGetV2Account(params)).Raw
 	PanicOnError(account)
 
-	positions := (<-this.TraderPrivateGetV2Positions())
+	positions := (<-this.TraderPrivateGetV2Positions()).Raw
 	PanicOnError(positions)
 	//
 	//     {

@@ -175,19 +175,19 @@ func (this *Kucoin) negotiateHelperBody(ch chan any, privateChannel any, connect
 			// try block:
 			if ccxt.IsEqual(connectId, "private") {
 
-				response = (<-this.PrivatePostBulletPrivate(params))
+				response = (<-this.PrivatePostBulletPrivate(params)).Raw
 				ccxt.PanicOnError(response)
 			} else if ccxt.IsEqual(connectId, "public") {
 
-				response = (<-this.PublicPostBulletPublic(params))
+				response = (<-this.PublicPostBulletPublic(params)).Raw
 				ccxt.PanicOnError(response)
 			} else if ccxt.IsEqual(connectId, "privateFutures") {
 
-				response = (<-this.FuturesPrivatePostBulletPrivate(params))
+				response = (<-this.FuturesPrivatePostBulletPrivate(params)).Raw
 				ccxt.PanicOnError(response)
 			} else {
 
-				response = (<-this.FuturesPublicPostBulletPublic(params))
+				response = (<-this.FuturesPublicPostBulletPublic(params)).Raw
 				ccxt.PanicOnError(response)
 			}
 			var data map[string]any = ccxt.SafeMapTyped(response, "data")
@@ -412,10 +412,9 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 					}()
 					// try block:
 
-					response := (<-this.PrivatePostBulletPrivate(map[string]any{
+					var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostBulletPrivate(map[string]any{
 						"version": "v2",
-					}))
-					ccxt.PanicOnError(response)
+					})).Raw))
 					var data map[string]any = ccxt.SafeMapTyped(response, "data")
 					var utaTokenString *string = this.SafeString(data, "token")
 					this.Options.Store("utaTokenLastUpdate", now)

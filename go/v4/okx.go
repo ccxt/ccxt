@@ -2517,7 +2517,7 @@ func (this *Okx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetSystemStatus(params))
+	response := (<-this.PublicGetSystemStatus(params)).Raw
 	PanicOnError(response)
 	//
 	// Note, if there is no maintenance around, the 'data' array is empty
@@ -2597,8 +2597,7 @@ func (this *Okx) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetPublicTime(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicTime(params)).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -2634,8 +2633,7 @@ func (this *Okx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PrivateGetAccountConfig(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountConfig(params)).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -2974,7 +2972,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 				return nil
 			}()
 			request["uly"] = underlying
-			promises = append(promises, this.PublicGetPublicInstruments(this.Extend(request, params)))
+			promises = append(promises, EndpointRaw(this.PublicGetPublicInstruments(this.Extend(request, params))))
 		}
 
 		promisesResult := (<-promiseAll(promises))
@@ -2990,8 +2988,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 		return nil
 	}
 
-	response := (<-this.PublicGetPublicInstruments(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicInstruments(this.Extend(request, params))).Raw))
 	//
 	// spot, future, swap, option
 	//
@@ -3264,7 +3261,7 @@ func (this *Okx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError(response)
 	} else if (IsEqual(method, "publicGetMarketBooksFull")) || (IsGreaterThan(limit, 400)) {
 
-		response = (<-this.PublicGetMarketBooksFull(this.Extend(request, params)))
+		response = (<-this.PublicGetMarketBooksFull(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
@@ -3417,8 +3414,7 @@ func (this *Okx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 		"instId": market["id"],
 	}
 
-	response := (<-this.PublicGetMarketTicker(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTicker(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -3496,8 +3492,7 @@ func (this *Okx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	response := (<-this.PublicGetMarketTickers(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTickers(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -3558,8 +3553,7 @@ func (this *Okx) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any
 		"instId": market["id"],
 	}
 
-	response := (<-this.PublicGetPublicMarkPrice(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicMarkPrice(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "code": "0",
@@ -3624,8 +3618,7 @@ func (this *Okx) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	response := (<-this.PublicGetPublicMarkPrice(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicMarkPrice(this.Extend(request, params))).Raw))
 	var tickers []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(tickers, symbols)
@@ -3776,7 +3769,7 @@ func (this *Okx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	var response any = nil
 	if GetValue(market, "option") == true {
 
-		response = (<-this.PublicGetPublicOptionTrades(this.Extend(request, params)))
+		response = (<-this.PublicGetPublicOptionTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if limit != nil {
@@ -3792,7 +3785,7 @@ func (this *Okx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 			PanicOnError(response)
 		} else if IsEqual(method, "publicGetMarketHistoryTrades") {
 
-			response = (<-this.PublicGetMarketHistoryTrades(this.Extend(request, params)))
+			response = (<-this.PublicGetMarketHistoryTrades(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	}
@@ -3981,22 +3974,22 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	if priceType != nil && *priceType == "mark" {
 		if isHistoryCandles {
 
-			response = (<-this.PublicGetMarketHistoryMarkPriceCandles(this.Extend(request, params)))
+			response = (<-this.PublicGetMarketHistoryMarkPriceCandles(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PublicGetMarketMarkPriceCandles(this.Extend(request, params)))
+			response = (<-this.PublicGetMarketMarkPriceCandles(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if priceType != nil && *priceType == "index" {
 		request["instId"] = GetValue(market["info"], "instFamily") // okx index candles require instFamily instead of instId
 		if isHistoryCandles {
 
-			response = (<-this.PublicGetMarketHistoryIndexCandles(this.Extend(request, params)))
+			response = (<-this.PublicGetMarketHistoryIndexCandles(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PublicGetMarketIndexCandles(this.Extend(request, params)))
+			response = (<-this.PublicGetMarketIndexCandles(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -4006,7 +3999,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 				request["limit"] = 300 // reassign to 300, but this whole logic needs to be simplified...
 			}
 
-			response = (<-this.PublicGetMarketHistoryCandles(this.Extend(request, params)))
+			response = (<-this.PublicGetMarketHistoryCandles(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
@@ -4088,8 +4081,7 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetPublicFundingRateHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFundingRateHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code":"0",
@@ -4264,8 +4256,7 @@ func (this *Okx) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...an
 		panic(NotSupported(this.Id + " fetchTradingFee() supports spot, swap, future or option markets only"))
 	}
 
-	response := (<-this.PrivateGetAccountTradeFee(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountTradeFee(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -4326,7 +4317,7 @@ func (this *Okx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetAccountBalance(this.Extend(request, query)))
+		response = (<-this.PrivateGetAccountBalance(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	}
 
@@ -4915,7 +4906,7 @@ func (this *Okx) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		PanicOnError(response)
 	} else if IsEqual(method, "privatePostTradeOrderAlgo") {
 
-		response = (<-this.PrivatePostTradeOrderAlgo(request))
+		response = (<-this.PrivatePostTradeOrderAlgo(request)).Raw
 		PanicOnError(response)
 	} else {
 
@@ -5194,7 +5185,7 @@ func (this *Okx) editOrderBody(ch chan any, id any, symbol any, typeVar any, sid
 	var response any = nil
 	if isAlgoOrder == true {
 
-		response = (<-this.PrivatePostTradeAmendAlgos(this.Extend(request, params)))
+		response = (<-this.PrivatePostTradeAmendAlgos(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
@@ -5390,7 +5381,7 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 	var response any = nil
 	if IsEqual(method, "privatePostTradeCancelAlgos") {
 
-		response = (<-this.PrivatePostTradeCancelAlgos(request))
+		response = (<-this.PrivatePostTradeCancelAlgos(request)).Raw
 		PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
 	} else {
 
@@ -5500,7 +5491,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArg
 	var response any = nil
 	if IsEqual(method, "privatePostTradeCancelAlgos") {
 
-		response = (<-this.PrivatePostTradeCancelAlgos(request))
+		response = (<-this.PrivatePostTradeCancelAlgos(request)).Raw
 		PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
 	} else {
 
@@ -5573,7 +5564,7 @@ func (this *Okx) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs
 		"timeOut": timeOut,
 	}
 
-	response := (<-this.PrivatePostTradeCancelAllAfter(this.Extend(request, params)))
+	response := (<-this.PrivatePostTradeCancelAllAfter(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -5955,7 +5946,7 @@ func (this *Okx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(method, "privateGetTradeOrderAlgo") {
 
-		response = (<-this.PrivateGetTradeOrderAlgo(this.Extend(request, query)))
+		response = (<-this.PrivateGetTradeOrderAlgo(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else {
 
@@ -6148,7 +6139,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(method, "privateGetTradeOrdersAlgoPending") {
 
-		response = (<-this.PrivateGetTradeOrdersAlgoPending(this.Extend(request, query)))
+		response = (<-this.PrivateGetTradeOrdersAlgoPending(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else {
 
@@ -6352,7 +6343,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(method, "privateGetTradeOrdersAlgoHistory") {
 
-		response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, send)))
+		response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, send))).Raw
 		PanicOnError(response)
 	} else {
 
@@ -6568,11 +6559,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(method, "privateGetTradeOrdersAlgoHistory") {
 
-		response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, send)))
+		response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, send))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "privateGetTradeOrdersHistoryArchive") {
 
-		response = (<-this.PrivateGetTradeOrdersHistoryArchive(this.Extend(request, send)))
+		response = (<-this.PrivateGetTradeOrdersHistoryArchive(this.Extend(request, send))).Raw
 		PanicOnError(response)
 	} else {
 
@@ -6743,8 +6734,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "limit", limit) // default 100, max 100
 	}
 
-	response := (<-this.PrivateGetTradeFillsHistory(this.Extend(request, query)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeFillsHistory(this.Extend(request, query))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -6897,7 +6887,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if method != nil && *method == "privateGetAccountBillsArchive" {
 
-		response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, query)))
+		response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if method != nil && *method == "privateGetAssetBills" {
 
@@ -6905,7 +6895,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetAccountBills(this.Extend(request, query)))
+		response = (<-this.PrivateGetAccountBills(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -7872,8 +7862,7 @@ func (this *Okx) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 		"mgnMode": marginMode,
 	}
 
-	response := (<-this.PrivateGetAccountLeverageInfo(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountLeverageInfo(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//        "code": "0",
@@ -7958,8 +7947,7 @@ func (this *Okx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 		request["instType"] = this.ConvertToInstrumentType(typeVar)
 	}
 
-	response := (<-this.PrivateGetAccountPositions(this.Extend(request, query)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositions(this.Extend(request, query))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -8061,11 +8049,11 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if method != nil && *method == "privateGetAccountPositionsHistory" {
 
-		response = (<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params)))
+		response = (<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetAccountPositions(this.Extend(request, params)))
+		response = (<-this.PrivateGetAccountPositions(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -8385,8 +8373,7 @@ func (this *Okx) transferBody(ch chan any, code any, amount any, fromAccount any
 		request["to"] = this.SafeString(params, "to", "6")
 	}
 
-	response := (<-this.PrivatePostAssetTransfer(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAssetTransfer(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -8537,8 +8524,7 @@ func (this *Okx) fetchTransferBody(ch chan any, id any, optionalArgs ...any) any
 		"transId": id,
 	}
 
-	response := (<-this.PrivateGetAssetTransferState(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetTransferState(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -8612,8 +8598,7 @@ func (this *Okx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetAccountBillsArchive(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountBillsArchive(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "0",
@@ -8858,8 +8843,7 @@ func (this *Okx) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 		"instId": market["id"],
 	}
 
-	response := (<-this.PublicGetPublicFundingRate(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFundingRate(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "0",
@@ -8924,8 +8908,7 @@ func (this *Okx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		"instId": "ANY",
 	}
 
-	response := (<-this.PublicGetPublicFundingRate(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFundingRate(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "0",
@@ -9007,8 +8990,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	}
 	// AccountBillsArchive has the same cost as AccountBills but supports three months of data
 
-	response := (<-this.PrivateGetAccountBillsArchive(this.Extend(request, query)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountBillsArchive(this.Extend(request, query))).Raw))
 	//
 	//    {
 	//        "bal": "0.0242946200998573",
@@ -9131,7 +9113,7 @@ func (this *Okx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 		request["posSide"] = posSide
 	}
 
-	response := (<-this.PrivatePostAccountSetLeverage(this.Extend(request, params)))
+	response := (<-this.PrivatePostAccountSetLeverage(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -9234,7 +9216,7 @@ func (this *Okx) setPositionModeBody(ch chan any, hedged any, optionalArgs ...an
 		"posMode": hedgeMode,
 	}
 
-	response := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
+	response := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -9300,7 +9282,7 @@ func (this *Okx) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...
 		"instId":  market["id"],
 	}
 
-	response := (<-this.PrivatePostAccountSetLeverage(this.Extend(request, params)))
+	response := (<-this.PrivatePostAccountSetLeverage(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -9344,8 +9326,7 @@ func (this *Okx) fetchCrossBorrowRatesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccountInterestRate(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountInterestRate(params)).Raw))
 	//
 	//    {
 	//        "code": "0",
@@ -9406,8 +9387,7 @@ func (this *Okx) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs ..
 		"ccy": currency["id"],
 	}
 
-	response := (<-this.PrivateGetAccountInterestRate(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountInterestRate(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "0",
@@ -9646,8 +9626,7 @@ func (this *Okx) modifyMarginHelperBody(ch chan any, symbol any, amount any, typ
 		"posSide": posSide,
 	}
 
-	response := (<-this.PrivatePostAccountPositionMarginBalance(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountPositionMarginBalance(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//       "code": "0",
@@ -9871,8 +9850,7 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan any, symbol any, optionalA
 		request["instId"] = market["id"]
 	}
 
-	response := (<-this.PublicGetPublicPositionTiers(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicPositionTiers(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "0",
@@ -10006,8 +9984,7 @@ func (this *Okx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 		request["instId"] = GetValue(market, "id")
 	}
 
-	response := (<-this.PrivateGetAccountInterestAccrued(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountInterestAccrued(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "0",
@@ -10231,8 +10208,7 @@ func (this *Okx) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...
 		"instId":   market["id"],
 	}
 
-	response := (<-this.PublicGetPublicOpenInterest(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOpenInterest(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -10317,8 +10293,7 @@ func (this *Okx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 		panic(BadRequest(this.Id + " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets"))
 	}
 
-	response := (<-this.PublicGetPublicOpenInterest(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOpenInterest(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -10401,7 +10376,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 	params = GetValue(typeVarparamsVariable, 1)
 	if IsEqual(typeVar, "option") {
 
-		response = (<-this.PublicGetRubikStatOptionOpenInterestVolume(this.Extend(request, params)))
+		response = (<-this.PublicGetRubikStatOptionOpenInterestVolume(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if since != nil {
@@ -10413,7 +10388,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 			params = this.Omit(params, []any{"until"})
 		}
 
-		response = (<-this.PublicGetRubikStatContractsOpenInterestVolume(this.Extend(request, params)))
+		response = (<-this.PublicGetRubikStatContractsOpenInterestVolume(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -10833,8 +10808,7 @@ func (this *Okx) fetchUnderlyingAssetsBody(ch chan any, optionalArgs ...any) any
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
 
-	response := (<-this.PublicGetPublicUnderlying(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicUnderlying(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -10890,8 +10864,7 @@ func (this *Okx) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any) a
 		"expTime":    this.SafeString(optionParts, 2),
 	}
 
-	response := (<-this.PublicGetPublicOptSummary(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOptSummary(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -10998,8 +10971,7 @@ func (this *Okx) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	}
 	params = MapTyped(this.Omit(params, []any{"uly", "instFamily"}))
 
-	response := (<-this.PublicGetPublicOptSummary(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOptSummary(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -11147,8 +11119,7 @@ func (this *Okx) closePositionBody(ch chan any, symbol any, optionalArgs ...any)
 		request["ccy"] = currency["id"]
 	}
 
-	response := (<-this.PrivatePostTradeClosePosition(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeClosePosition(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "code": "1",
@@ -11201,8 +11172,7 @@ func (this *Okx) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any) a
 		"instId": market["id"],
 	}
 
-	response := (<-this.PublicGetMarketTicker(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTicker(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -11266,8 +11236,7 @@ func (this *Okx) fetchOptionChainBody(ch chan any, code any, optionalArgs ...any
 		"instType": "OPTION",
 	}
 
-	response := (<-this.PublicGetMarketTickers(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTickers(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -11383,8 +11352,7 @@ func (this *Okx) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, op
 		"side":     "sell",
 	}
 
-	response := (<-this.PrivatePostAssetConvertEstimateQuote(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAssetConvertEstimateQuote(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -11456,8 +11424,7 @@ func (this *Okx) createConvertTradeBody(ch chan any, id any, fromCode any, toCod
 		"side":     "sell",
 	}
 
-	response := (<-this.PrivatePostAssetConvertTrade(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAssetConvertTrade(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",
@@ -11913,11 +11880,11 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ...a
 	var threeMonthsAgo any = now - 7776000000
 	if (since == nil) || (IsGreaterThan(since, oneWeekAgo)) {
 
-		response = (<-this.PrivateGetAccountBills(this.Extend(request, params)))
+		response = (<-this.PrivateGetAccountBills(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsGreaterThan(since, threeMonthsAgo) {
 
-		response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, params)))
+		response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(BadRequest(this.Id + " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months"))
@@ -12033,8 +12000,7 @@ func (this *Okx) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any
 		request["instType"] = instType
 	}
 
-	response := (<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        code: '0',
@@ -12132,8 +12098,7 @@ func (this *Okx) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetRubikStatContractsLongShortAccountRatioContract(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetRubikStatContractsLongShortAccountRatioContract(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": "0",

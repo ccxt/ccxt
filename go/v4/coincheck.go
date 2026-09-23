@@ -390,7 +390,7 @@ func (this *Coincheck) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetExchangeStatus(params))
+	response := (<-this.PublicGetExchangeStatus(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -460,7 +460,7 @@ func (this *Coincheck) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccountsBalance(params))
+	response := (<-this.PrivateGetAccountsBalance(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseBalance(response)
@@ -504,8 +504,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 	}
 
-	response := (<-this.PrivateGetExchangeOrdersOpens(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrdersOpens(params)).Raw))
 	var rawOrders []any = SafeListTypedDefault(response, "orders", []any{})
 	var parsedOrders []any = ArrayTyped(this.ParseOrders(rawOrders, market, since, limit))
 	var result []any = []any{}
@@ -605,7 +604,7 @@ func (this *Coincheck) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetOrderBooks(this.Extend(request, params)))
+	response := (<-this.PublicGetOrderBooks(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrderBook(response, market["symbol"])
@@ -683,7 +682,7 @@ func (this *Coincheck) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
 		"pair": market["id"],
 	}
 
-	ticker := (<-this.PublicGetTicker(this.Extend(request, params)))
+	ticker := (<-this.PublicGetTicker(this.Extend(request, params))).Raw
 	PanicOnError(ticker)
 
 	//
@@ -820,8 +819,7 @@ func (this *Coincheck) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetExchangeOrdersTransactionsPagination(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrdersTransactionsPagination(this.Extend(request, params))).Raw))
 	//
 	//      {
 	//          "success": true,
@@ -887,8 +885,7 @@ func (this *Coincheck) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTrades(this.Extend(request, params))).Raw))
 	//
 	//      {
 	//          "id": "206849494",
@@ -928,8 +925,7 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccounts(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccounts(params)).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -1026,7 +1022,7 @@ func (this *Coincheck) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		request["amount"] = amount
 	}
 
-	response := (<-this.PrivatePostExchangeOrders(this.Extend(request, params)))
+	response := (<-this.PrivatePostExchangeOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var id *string = this.SafeString(response, "id")
 
@@ -1063,7 +1059,7 @@ func (this *Coincheck) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 		"id": id,
 	}
 
-	response := (<-this.PrivateDeleteExchangeOrdersId(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteExchangeOrdersId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1117,8 +1113,7 @@ func (this *Coincheck) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetDepositMoney(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDepositMoney(this.Extend(request, params))).Raw))
 	// {
 	//   "success": true,
 	//   "deposits": [
@@ -1190,8 +1185,7 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetWithdraws(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWithdraws(this.Extend(request, params))).Raw))
 	//  {
 	//   "success": true,
 	//   "pagination": {

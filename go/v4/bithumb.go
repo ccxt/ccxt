@@ -591,7 +591,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(generation, 2) {
 		request["isDetails"] = true
 
-		response := (<-this.PublicGetV1MarketAll(this.Extend(request, params)))
+		response := (<-this.PublicGetV1MarketAll(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     [
@@ -677,7 +677,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var promises []any = []any{}
 		for i := 0; i < len(quotes); i++ {
 			request["quoteId"] = GetValue(quotes, i)
-			promises = append(promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, params)))
+			promises = append(promises, EndpointRaw(this.PublicGetPublicTickerALLQuoteId(this.Extend(request, params))))
 		}
 
 		results := (<-promiseAll(promises))
@@ -847,14 +847,14 @@ func (this *Bithumb) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(generation, 2) {
 
-		response = (<-this.PrivateGetV1Accounts(params))
+		response = (<-this.PrivateGetV1Accounts(params)).Raw
 		PanicOnError(response)
 	} else {
 		var request map[string]any = map[string]any{
 			"currency": "ALL",
 		}
 
-		response = (<-this.PrivatePostInfoBalance(this.Extend(request, params)))
+		response = (<-this.PrivatePostInfoBalance(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -902,7 +902,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	if IsEqual(generation, 2) {
 		request["markets"] = this.GetGen2MarketId(market)
 
-		response = (<-this.PublicGetV1Orderbook(this.Extend(request, params)))
+		response = (<-this.PublicGetV1Orderbook(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     [
@@ -954,7 +954,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 			request["count"] = limit // default 30, max 30
 		}
 
-		response = (<-this.PublicGetPublicOrderbookBaseIdQuoteId(this.Extend(request, params)))
+		response = (<-this.PublicGetPublicOrderbookBaseIdQuoteId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -1181,7 +1181,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if symbols != nil {
 			request["markets"] = Join(marketIds, ",")
 			marketIdsChunks = append(marketIdsChunks, marketIds)
-			promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, params)))
+			promises = append(promises, EndpointRaw(this.PublicGetV1Ticker(this.Extend(request, params))))
 		} else {
 			var maxMarketIdsPerRequest any = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300)
 			if (IsEqual(maxMarketIdsPerRequest, nil)) || (IsLessThan(maxMarketIdsPerRequest, 1)) {
@@ -1200,7 +1200,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				if (IsGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId {
 					marketIdsChunks = append(marketIdsChunks, marketIdsChunk)
 					request["markets"] = Join(marketIdsChunk, ",")
-					promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, params)))
+					promises = append(promises, EndpointRaw(this.PublicGetV1Ticker(this.Extend(request, params))))
 					marketIdsChunk = []any{}
 				}
 			}
@@ -1312,7 +1312,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var promises []any = []any{}
 		for i := 0; i < len(quotes); i++ {
 			request["quoteId"] = GetValue(quotes, i)
-			promises = append(promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, params)))
+			promises = append(promises, EndpointRaw(this.PublicGetPublicTickerALLQuoteId(this.Extend(request, params))))
 		}
 
 		responses := (<-promiseAll(promises))
@@ -1376,7 +1376,7 @@ func (this *Bithumb) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	if IsEqual(generation, 2) {
 		request["markets"] = this.GetGen2MarketId(market)
 
-		response = (<-this.PublicGetV1Ticker(this.Extend(request, params)))
+		response = (<-this.PublicGetV1Ticker(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     [
@@ -1415,7 +1415,7 @@ func (this *Bithumb) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		request["baseId"] = market["baseId"]
 		request["quoteId"] = market["quoteId"]
 
-		response = (<-this.PublicGetPublicTickerBaseIdQuoteId(this.Extend(request, params)))
+		response = (<-this.PublicGetPublicTickerBaseIdQuoteId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -1534,15 +1534,15 @@ func (this *Bithumb) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		}
 		if timeframe == "1d" {
 
-			response = (<-this.PublicGetV1CandlesDays(this.Extend(request, params)))
+			response = (<-this.PublicGetV1CandlesDays(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if timeframe == "1w" {
 
-			response = (<-this.PublicGetV1CandlesWeeks(this.Extend(request, params)))
+			response = (<-this.PublicGetV1CandlesWeeks(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if timeframe == "1M" {
 
-			response = (<-this.PublicGetV1CandlesMonths(this.Extend(request, params)))
+			response = (<-this.PublicGetV1CandlesMonths(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			var timeframeInteger *int64 = this.SafeInteger(this.Timeframes, timeframe)
@@ -1551,7 +1551,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 			}
 			request["unit"] = timeframeInteger
 
-			response = (<-this.PublicGetV1CandlesMinutesUnit(this.Extend(request, params)))
+			response = (<-this.PublicGetV1CandlesMinutesUnit(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 		//
@@ -1590,7 +1590,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		request["baseId"] = market["baseId"]
 		request["quoteId"] = market["quoteId"]
 
-		response = (<-this.PublicGetPublicCandlestickBaseIdQuoteIdInterval(this.Extend(request, params)))
+		response = (<-this.PublicGetPublicCandlestickBaseIdQuoteIdInterval(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -1791,7 +1791,7 @@ func (this *Bithumb) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	if IsEqual(generation, 2) {
 		request["market"] = this.GetGen2MarketId(market)
 
-		response = (<-this.PublicGetV1TradesTicks(this.Extend(request, params)))
+		response = (<-this.PublicGetV1TradesTicks(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     [
@@ -1814,7 +1814,7 @@ func (this *Bithumb) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["baseId"] = market["baseId"]
 		request["quoteId"] = market["quoteId"]
 
-		response = (<-this.PublicGetPublicTransactionHistoryBaseIdQuoteId(this.Extend(request, params)))
+		response = (<-this.PublicGetPublicTransactionHistoryBaseIdQuoteId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -1904,8 +1904,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		"batch_orders": ordersRequests,
 	}
 
-	response := (<-this.PrivatePostV2OrdersBatch(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV2OrdersBatch(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "batch_orders_response": [
@@ -2068,7 +2067,7 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	if IsEqual(generation, 2) {
 		request = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
-		response = (<-this.PrivatePostV2Orders(request))
+		response = (<-this.PrivatePostV2Orders(request)).Raw
 		PanicOnError(response)
 	} else {
 		AddElementToObject(request, "order_currency", market["base"])
@@ -2084,15 +2083,15 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			}
 			AddElementToObject(request, "type", typeRequest)
 
-			response = (<-this.PrivatePostTradePlace(this.Extend(request, params)))
+			response = (<-this.PrivatePostTradePlace(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if IsEqual(side, "buy") {
 
-			response = (<-this.PrivatePostTradeMarketBuy(this.Extend(request, params)))
+			response = (<-this.PrivatePostTradeMarketBuy(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivatePostTradeMarketSell(this.Extend(request, params)))
+			response = (<-this.PrivatePostTradeMarketSell(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	}
@@ -2205,7 +2204,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan any, symbol any, side any, amou
 	}
 	request["side"] = sideRequest
 
-	response := (<-this.PrivatePostV1Twap(this.Extend(request, params)))
+	response := (<-this.PrivatePostV1Twap(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2269,7 +2268,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 			}
 			request["uuids"] = []any{id}
 
-			response = (<-this.PrivateGetV1Twap(this.Extend(request, params)))
+			response = (<-this.PrivateGetV1Twap(this.Extend(request, params))).Raw
 			PanicOnError(response)
 			//
 			//     {
@@ -2306,7 +2305,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 				request["uuid"] = id
 			}
 
-			response = (<-this.PrivateGetV1Order(this.Extend(request, params)))
+			response = (<-this.PrivateGetV1Order(this.Extend(request, params))).Raw
 			PanicOnError(response)
 			//
 			//     {
@@ -2346,7 +2345,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		request["order_currency"] = base
 		request["payment_currency"] = quote
 
-		response = (<-this.PrivatePostInfoOrderDetail(this.Extend(request, params)))
+		response = (<-this.PrivatePostInfoOrderDetail(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -2696,7 +2695,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["order_currency"] = GetValue(market, "base")
 		request["payment_currency"] = GetValue(market, "quote")
 
-		response = (<-this.PrivatePostInfoOrders(this.Extend(request, params)))
+		response = (<-this.PrivatePostInfoOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -2770,7 +2769,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var data any = nil
 	if twap != nil && *twap {
 
-		response = (<-this.PrivateGetV1Twap(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1Twap(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     {
@@ -2799,7 +2798,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		data = this.SafeList(response, "orders", []any{})
 	} else {
 
-		response = (<-this.PrivateGetV1Orders(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1Orders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//     [
@@ -2966,11 +2965,11 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if IsEqual(generation, 2) {
 		if twap != nil && *twap {
 
-			response = (<-this.PrivateDeleteV1Twap(this.Extend(request, params)))
+			response = (<-this.PrivateDeleteV1Twap(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateDeleteV2Order(this.Extend(request, params)))
+			response = (<-this.PrivateDeleteV2Order(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -2999,7 +2998,7 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		request["order_currency"] = base
 		request["payment_currency"] = quote
 
-		response = (<-this.PrivatePostTradeCancel(this.Extend(request, params)))
+		response = (<-this.PrivatePostTradeCancel(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -3057,8 +3056,7 @@ func (this *Bithumb) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		request["order_ids"] = ids
 	}
 
-	response := (<-this.PrivatePostV2OrdersCancel(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV2OrdersCancel(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": [
@@ -3174,7 +3172,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 				"amount": this.NumberToString(amount),
 			} // KRW withdraw only accepts amount and two_factor_type parameters
 
-			response = (<-this.PrivatePostV1WithdrawsKrw(this.Extend(krwRequest, params)))
+			response = (<-this.PrivatePostV1WithdrawsKrw(this.Extend(krwRequest, params))).Raw
 			PanicOnError(response)
 		} else {
 			if network == nil {
@@ -3191,7 +3189,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 				request["receiver_type"] = receiverType
 			}
 
-			response = (<-this.PrivatePostV1WithdrawsCoin(this.Extend(request, params)))
+			response = (<-this.PrivatePostV1WithdrawsCoin(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -3214,7 +3212,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 			}
 		}
 
-		response = (<-this.PrivatePostTradeBtcWithdrawal(this.Extend(request, params)))
+		response = (<-this.PrivatePostTradeBtcWithdrawal(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -3349,7 +3347,7 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan any, optionalArgs ...a
 		panic(BadRequest(this.Id + " fetchWithdrawalWhitelist() is only supported for the generation 2 API"))
 	}
 
-	response := (<-this.PrivateGetV1WithdrawsCoinAddresses(params))
+	response := (<-this.PrivateGetV1WithdrawsCoinAddresses(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -3416,7 +3414,7 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 		request["uuid"] = id
 	}
 
-	response := (<-this.PrivateGetV1Withdraw(this.Extend(request, params)))
+	response := (<-this.PrivateGetV1Withdraw(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3492,7 +3490,7 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	if IsEqual(code, "KRW") {
 		currency = this.Currency(code)
 
-		response = (<-this.PrivateGetV1WithdrawsKrw(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1WithdrawsKrw(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if code != nil {
@@ -3500,7 +3498,7 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		response = (<-this.PrivateGetV1Withdraws(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1Withdraws(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -3571,7 +3569,7 @@ func (this *Bithumb) fetchDepositBody(ch chan any, id any, optionalArgs ...any) 
 		request["uuid"] = id
 	}
 
-	response := (<-this.PrivateGetV1Deposit(this.Extend(request, params)))
+	response := (<-this.PrivateGetV1Deposit(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3647,7 +3645,7 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(code, "KRW") {
 		currency = this.Currency(code)
 
-		response = (<-this.PrivateGetV1DepositsKrw(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1DepositsKrw(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if code != nil {
@@ -3655,7 +3653,7 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		response = (<-this.PrivateGetV1Deposits(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1Deposits(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -3723,7 +3721,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code any, optionalArg
 	}
 	request["net_type"] = network
 
-	response := (<-this.PrivatePostV1DepositsGenerateCoinAddress(this.Extend(request, params)))
+	response := (<-this.PrivatePostV1DepositsGenerateCoinAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3781,7 +3779,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	}
 	request["net_type"] = network
 
-	response := (<-this.PrivateGetV1DepositsCoinAddress(this.Extend(request, params)))
+	response := (<-this.PrivateGetV1DepositsCoinAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3830,7 +3828,7 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		panic(BadRequest(this.Id + " fetchDepositAddresses() is only supported for the generation 2 API"))
 	}
 
-	response := (<-this.PrivateGetV1DepositsCoinAddresses(params))
+	response := (<-this.PrivateGetV1DepositsCoinAddresses(params)).Raw
 	PanicOnError(response)
 
 	//

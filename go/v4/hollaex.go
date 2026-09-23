@@ -379,8 +379,7 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetConstants(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetConstants(params)).Raw))
 	//
 	//     {
 	//         "coins": {
@@ -509,8 +508,7 @@ func (this *Hollaex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetConstants(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetConstants(params)).Raw))
 	//
 	//    {
 	//        "coins": {
@@ -675,7 +673,7 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetOrderbooks(params))
+	response := (<-this.PublicGetOrderbooks(params)).Raw
 	PanicOnError(response)
 	var result map[string]any = map[string]any{}
 	var marketIds []string = ObjectKeys(response)
@@ -722,8 +720,7 @@ func (this *Hollaex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetOrderbook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderbook(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "btc-usdt": {
@@ -778,7 +775,7 @@ func (this *Hollaex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTicker(this.Extend(request, params)))
+	response := (<-this.PublicGetTicker(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -823,7 +820,7 @@ func (this *Hollaex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetTickers(params))
+	response := (<-this.PublicGetTickers(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -953,8 +950,7 @@ func (this *Hollaex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "btc-usdt": [
@@ -1056,8 +1052,7 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetTiers(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTiers(params)).Raw))
 	//
 	//     {
 	//         "1": {
@@ -1174,8 +1169,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	request["to"] = this.ParseToInt(Divide(until, 1000))   // convert to seconds
 	params = this.Omit(params, "until")
 
-	response := (<-this.PublicGetChart(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetChart(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1257,7 +1251,7 @@ func (this *Hollaex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetUserBalance(params))
+	response := (<-this.PrivateGetUserBalance(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -1306,7 +1300,7 @@ func (this *Hollaex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 		"order_id": id,
 	}
 
-	response := (<-this.PrivateGetOrder(this.Extend(request, params)))
+	response := (<-this.PrivateGetOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1441,7 +1435,7 @@ func (this *Hollaex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id": id,
 	}
 
-	response := (<-this.PrivateGetOrder(this.Extend(request, params)))
+	response := (<-this.PrivateGetOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//             {
 	//                 "id": "string",
@@ -1518,8 +1512,7 @@ func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit // default 50, max 100
 	}
 
-	response := (<-this.PrivateGetOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "count": 1,
@@ -1687,7 +1680,7 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	}
 	params = MapTyped(this.Omit(params, []any{"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"}))
 
-	response := (<-this.PrivatePostOrder(this.Extend(request, params)))
+	response := (<-this.PrivatePostOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1747,7 +1740,7 @@ func (this *Hollaex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"order_id": id,
 	}
 
-	response := (<-this.PrivateDeleteOrder(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1800,7 +1793,7 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	market = this.Market(symbol)
 	request["symbol"] = GetValue(market, "id")
 
-	response := (<-this.PrivateDeleteOrderAll(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteOrderAll(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1866,8 +1859,7 @@ func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["start_date"] = this.Iso8601(since)
 	}
 
-	response := (<-this.PrivateGetUserTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "count": 1,
@@ -1949,8 +1941,7 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	var network *string = this.SafeString(params, "network")
 	params = MapTyped(this.Omit(params, "network"))
 
-	response := (<-this.PrivateGetUser(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUser(params)).Raw))
 	//
 	//     {
 	//         "id":620,
@@ -2052,8 +2043,7 @@ func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["start_date"] = this.Iso8601(since)
 	}
 
-	response := (<-this.PrivateGetUserDeposits(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserDeposits(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "count": 1,
@@ -2118,8 +2108,7 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 		request["currency"] = GetValue(currency, "id")
 	}
 
-	response := (<-this.PrivateGetUserWithdrawals(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserWithdrawals(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "count": 1,
@@ -2194,8 +2183,7 @@ func (this *Hollaex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		request["start_date"] = this.Iso8601(since)
 	}
 
-	response := (<-this.PrivateGetUserWithdrawals(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserWithdrawals(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "count": 1,
@@ -2373,7 +2361,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code any, amount any, address any
 		"network":  this.NetworkCodeToId(network, code),
 	}
 
-	response := (<-this.PrivatePostUserWithdrawal(this.Extend(request, params)))
+	response := (<-this.PrivatePostUserWithdrawal(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2487,8 +2475,7 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetConstants(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetConstants(params)).Raw))
 	//
 	//     {
 	//         "coins":{

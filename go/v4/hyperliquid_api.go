@@ -13,6 +13,6 @@ func (this *Hyperliquid) PublicPostInfo(args ...any) <-chan any {
 }
 
 // PrivatePostExchange returns a channel that yields a JSON object.
-func (this *Hyperliquid) PrivatePostExchange(args ...any) <-chan any {
-	return this.Fetch2Async("exchange", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Hyperliquid) PrivatePostExchange(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "exchange", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

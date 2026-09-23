@@ -2416,7 +2416,7 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 			}()
 			// try block:
 
-			response = (<-this.SpotPrivatePostUserDataStream(params))
+			response = (<-this.SpotPrivatePostUserDataStream(params)).Raw
 			ccxt.PanicOnError(response)
 			return nil
 		}(this)
@@ -2475,7 +2475,7 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan any, listenKey any, optionalArg
 			}()
 			// try block:
 
-			ccxt.PanicOnError((<-this.SpotPrivatePutUserDataStream(this.Extend(request, params))))
+			ccxt.PanicOnError((<-this.SpotPrivatePutUserDataStream(this.Extend(request, params))).Raw)
 			var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, listenKey, params)
 			return nil

@@ -466,8 +466,7 @@ func (this *Onetrading) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetTime(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTime(params)).Raw))
 
 	//
 	//     {
@@ -498,7 +497,7 @@ func (this *Onetrading) fetchCurrenciesBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetCurrencies(params))
+	response := (<-this.PublicGetCurrencies(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -561,7 +560,7 @@ func (this *Onetrading) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetInstruments(params))
+	response := (<-this.PublicGetInstruments(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -772,8 +771,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetFees(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetFees(params)).Raw))
 	//
 	// [
 	//     {
@@ -864,7 +862,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccountFees(params))
+	response := (<-this.PrivateGetAccountFees(params)).Raw
 	PanicOnError(response)
 	//
 	// {
@@ -1049,7 +1047,7 @@ func (this *Onetrading) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 		"instrument_code": market["id"],
 	}
 
-	response := (<-this.PublicGetMarketTickerInstrumentCode(this.Extend(request, params)))
+	response := (<-this.PublicGetMarketTickerInstrumentCode(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1101,8 +1099,7 @@ func (this *Onetrading) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetMarketTicker(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketTicker(params)).Raw))
 	//
 	//     [
 	//         {
@@ -1176,7 +1173,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 		request["depth"] = limit
 	}
 
-	response := (<-this.PublicGetOrderBookInstrumentCode(this.Extend(request, params)))
+	response := (<-this.PublicGetOrderBookInstrumentCode(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	// level 1
@@ -1341,8 +1338,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		request["to"] = this.Iso8601(this.Sum(since, Multiply(limit, duration)))
 	}
 
-	response := (<-this.PublicGetCandlesticksInstrumentCode(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCandlesticksInstrumentCode(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123},
@@ -1485,7 +1481,7 @@ func (this *Onetrading) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccountBalances(params))
+	response := (<-this.PrivateGetAccountBalances(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -1709,7 +1705,7 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, si
 	params = MapTyped(this.Omit(params, "timeInForce"))
 	request["time_in_force"] = timeInForce
 
-	response := (<-this.PrivatePostAccountOrders(this.Extend(request, params)))
+	response := (<-this.PrivatePostAccountOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1771,11 +1767,11 @@ func (this *Onetrading) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	var response any = nil
 	if method == "privateDeleteAccountOrdersOrderId" {
 
-		response = (<-this.PrivateDeleteAccountOrdersOrderId(this.Extend(request, params)))
+		response = (<-this.PrivateDeleteAccountOrdersOrderId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateDeleteAccountOrdersClientClientId(this.Extend(request, params)))
+		response = (<-this.PrivateDeleteAccountOrdersClientClientId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1817,7 +1813,7 @@ func (this *Onetrading) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 		request["instrument_code"] = market["id"]
 	}
 
-	response := (<-this.PrivateDeleteAccountOrders(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteAccountOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1861,7 +1857,7 @@ func (this *Onetrading) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 		"ids": Join(ids, ","),
 	}
 
-	response := (<-this.PrivateDeleteAccountOrders(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteAccountOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -1906,7 +1902,7 @@ func (this *Onetrading) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		"order_id": id,
 	}
 
-	response := (<-this.PrivateGetAccountOrdersOrderId(this.Extend(request, params)))
+	response := (<-this.PrivateGetAccountOrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2004,8 +2000,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		request["max_page_size"] = limit
 	}
 
-	response := (<-this.PrivateGetAccountOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "order_history": [
@@ -2168,8 +2163,7 @@ func (this *Onetrading) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 		request["max_page_size"] = limit
 	}
 
-	response := (<-this.PrivateGetAccountOrdersOrderIdTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountOrdersOrderIdTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "trade_history": [
@@ -2260,8 +2254,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		request["max_page_size"] = limit
 	}
 
-	response := (<-this.PrivateGetAccountTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "trade_history": [

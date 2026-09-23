@@ -721,7 +721,7 @@ func (this *Bitmex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetWalletAssets(params))
+	response := (<-this.PublicGetWalletAssets(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -923,7 +923,7 @@ func (this *Bitmex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetInstrumentActive(params))
+	response := (<-this.PublicGetInstrumentActive(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -1357,7 +1357,7 @@ func (this *Bitmex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"currency": "all",
 	}
 
-	response := (<-this.PrivateGetUserMargin(this.Extend(request, params)))
+	response := (<-this.PrivateGetUserMargin(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1445,8 +1445,7 @@ func (this *Bitmex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		request["depth"] = limit
 	}
 
-	response := (<-this.PublicGetOrderBookL2(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetOrderBookL2(this.Extend(request, params))).Raw))
 	var result map[string]any = map[string]any{
 		"symbol":    symbol,
 		"bids":      []any{},
@@ -1592,7 +1591,7 @@ func (this *Bitmex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["filter"] = this.Json(request["filter"])
 	}
 
-	response := (<-this.PrivateGetOrder(request))
+	response := (<-this.PrivateGetOrder(request)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -1740,7 +1739,7 @@ func (this *Bitmex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["filter"] = this.Json(request["filter"])
 	}
 
-	response := (<-this.PrivateGetExecutionTradeHistory(request))
+	response := (<-this.PrivateGetExecutionTradeHistory(request)).Raw
 	PanicOnError(response)
 
 	//
@@ -1959,7 +1958,7 @@ func (this *Bitmex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["currency"] = GetValue(currency, "id")
 	}
 
-	response := (<-this.PrivateGetUserWalletHistory(this.Extend(request, params)))
+	response := (<-this.PrivateGetUserWalletHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2034,8 +2033,7 @@ func (this *Bitmex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 		request["count"] = limit
 	}
 
-	response := (<-this.PrivateGetUserWalletHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetUserWalletHistory(this.Extend(request, params))).Raw))
 	var transactions any = this.FilterByArray(response, "transactType", []any{"Withdrawal", "Deposit"}, false)
 
 	ch <- this.ParseTransactions(transactions, currency, since, limit)
@@ -2157,8 +2155,7 @@ func (this *Bitmex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetInstrument(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetInstrument(this.Extend(request, params))).Raw))
 	var ticker any = this.SafeDict(response, 0)
 	if IsEqual(ticker, nil) {
 		panic(BadSymbol(Add(Add(this.Id+" fetchTicker() symbol ", symbol), " not found")))
@@ -2195,8 +2192,7 @@ func (this *Bitmex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetInstrumentActiveAndIndices(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetInstrumentActiveAndIndices(params)).Raw))
 	// same response as under "fetchMarkets"
 	var result map[string]any = map[string]any{}
 	var rawTickers []any = this.ToArray(response)
@@ -2356,8 +2352,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		request["reverse"] = true
 	}
 
-	response := (<-this.PublicGetTradeBucketed(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradeBucketed(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {"timestamp":"2015-09-25T13:38:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0},
@@ -2699,7 +2694,7 @@ func (this *Bitmex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["endTime"] = this.Iso8601(until)
 	}
 
-	response := (<-this.PublicGetTrade(this.Extend(request, params)))
+	response := (<-this.PublicGetTrade(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2867,7 +2862,7 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId"}))
 	}
 
-	response := (<-this.PrivatePostOrder(this.Extend(request, params)))
+	response := (<-this.PrivatePostOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response, market)
@@ -2963,7 +2958,7 @@ func (this *Bitmex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT")
 	request["text"] = brokerId
 
-	response := (<-this.PrivatePutOrder(this.Extend(request, params)))
+	response := (<-this.PrivatePutOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response)
@@ -3006,8 +3001,7 @@ func (this *Bitmex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId"}))
 	}
 
-	response := (<-this.PrivateDeleteOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteOrder(this.Extend(request, params))).Raw))
 	var order map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 	var error *string = this.SafeString(order, "error")
 	if error != nil {
@@ -3062,7 +3056,7 @@ func (this *Bitmex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId"}))
 	}
 
-	response := (<-this.PrivateDeleteOrder(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response)
@@ -3101,7 +3095,7 @@ func (this *Bitmex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 
-	response := (<-this.PrivateDeleteOrderAll(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteOrderAll(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3182,7 +3176,7 @@ func (this *Bitmex) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalA
 		}(),
 	}
 
-	response := (<-this.PrivatePostOrderCancelAllAfter(this.Extend(request, params)))
+	response := (<-this.PrivatePostOrderCancelAllAfter(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3266,7 +3260,7 @@ func (this *Bitmex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetPosition(params))
+	response := (<-this.PrivateGetPosition(params)).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -3572,7 +3566,7 @@ func (this *Bitmex) withdrawBody(ch chan any, code any, amount any, address any,
 		request["otpToken"] = Totp(this.Twofa)
 	}
 
-	response := (<-this.PrivatePostUserRequestWithdrawal(this.Extend(request, params)))
+	response := (<-this.PrivatePostUserRequestWithdrawal(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3622,8 +3616,7 @@ func (this *Bitmex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetInstrumentActiveAndIndices(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetInstrumentActiveAndIndices(params)).Raw))
 	// same response as under "fetchMarkets"
 	var filteredResponse []any = []any{}
 	var rawItems []any = this.ToArray(response)
@@ -3748,7 +3741,7 @@ func (this *Bitmex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		request["reverse"] = true
 	}
 
-	response := (<-this.PublicGetFunding(this.Extend(request, params)))
+	response := (<-this.PublicGetFunding(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3829,7 +3822,7 @@ func (this *Bitmex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		"leverage": leverage,
 	}
 
-	retRes300015 := (<-this.PrivatePostPositionLeverage(this.Extend(request, params)))
+	retRes300015 := (<-this.PrivatePostPositionLeverage(this.Extend(request, params))).Raw
 	PanicOnError(retRes300015)
 	ch <- retRes300015
 	return nil
@@ -3883,7 +3876,7 @@ func (this *Bitmex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		"enabled": enabled,
 	}
 
-	retRes303315 := (<-this.PrivatePostPositionIsolate(this.Extend(request, params)))
+	retRes303315 := (<-this.PrivatePostPositionIsolate(this.Extend(request, params))).Raw
 	PanicOnError(retRes303315)
 	ch <- retRes303315
 	return nil
@@ -3928,7 +3921,7 @@ func (this *Bitmex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		"network":  parsedNetwork,
 	}
 
-	response := (<-this.PrivateGetUserDepositAddress(this.Extend(request, params)))
+	response := (<-this.PrivateGetUserDepositAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -4048,7 +4041,7 @@ func (this *Bitmex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	assets := (<-this.PublicGetWalletAssets(params))
+	assets := (<-this.PublicGetWalletAssets(params)).Raw
 	PanicOnError(assets)
 
 	//
@@ -4112,7 +4105,7 @@ func (this *Bitmex) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{}
 	var response any = nil
 
-	response = (<-this.PublicGetStats(this.Extend(request, params)))
+	response = (<-this.PublicGetStats(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//    [
@@ -4238,8 +4231,7 @@ func (this *Bitmex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.PublicGetLiquidation(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetLiquidation(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -4309,7 +4301,7 @@ func (this *Bitmex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 
-	response := (<-this.PrivateGetPosition(params))
+	response := (<-this.PrivateGetPosition(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -4619,7 +4611,7 @@ func (this *Bitmex) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any)
 		params = MapTyped(this.Omit(params, "until"))
 	}
 
-	response := (<-this.PublicGetSettlement(this.Extend(request, params)))
+	response := (<-this.PublicGetSettlement(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -4706,7 +4698,7 @@ func (this *Bitmex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		"execInst": "Close",
 	}
 
-	response := (<-this.PrivatePostOrder(this.Extend(request, params)))
+	response := (<-this.PrivatePostOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//

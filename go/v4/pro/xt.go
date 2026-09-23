@@ -142,7 +142,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 				var listenKey any = nil
 				if ccxt.EvalTruthy(isContract) {
 
-					response := (<-this.PrivateLinearGetFutureUserV1UserListenKey())
+					response := (<-this.PrivateLinearGetFutureUserV1UserListenKey()).Raw
 					ccxt.PanicOnError(response)
 					//
 					//    {
@@ -155,7 +155,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 					listenKey = ccxt.DerefScalar(this.SafeString(response, "result"))
 				} else {
 
-					response := (<-this.PrivateSpotPostWsToken())
+					response := (<-this.PrivateSpotPostWsToken()).Raw
 					ccxt.PanicOnError(response)
 					//
 					//    {

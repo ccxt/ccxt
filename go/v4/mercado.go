@@ -343,8 +343,7 @@ func (this *Mercado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetCoins(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetCoins(params)).Raw))
 	//
 	//     [
 	//         "BCH",
@@ -469,7 +468,7 @@ func (this *Mercado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"coin": market["base"],
 	}
 
-	response := (<-this.PublicGetCoinOrderbook(this.Extend(request, params)))
+	response := (<-this.PublicGetCoinOrderbook(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrderBook(response, market["symbol"])
@@ -544,8 +543,7 @@ func (this *Mercado) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"coin": market["base"],
 	}
 
-	response := (<-this.PublicGetCoinTicker(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCoinTicker(this.Extend(request, params))).Raw))
 	var ticker map[string]any = MapTyped(this.SafeDict(response, "ticker", map[string]any{}))
 
 	//
@@ -639,15 +637,15 @@ func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var response any = nil
 	if (since != nil) && (to != nil) {
 
-		response = (<-this.PublicGetCoinTradesFromTo(this.Extend(request, params)))
+		response = (<-this.PublicGetCoinTradesFromTo(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if since != nil {
 
-		response = (<-this.PublicGetCoinTradesFrom(this.Extend(request, params)))
+		response = (<-this.PublicGetCoinTradesFrom(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PublicGetCoinTrades(this.Extend(request, params)))
+		response = (<-this.PublicGetCoinTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -699,7 +697,7 @@ func (this *Mercado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostGetAccountInfo(params))
+	response := (<-this.PrivatePostGetAccountInfo(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseBalance(response)
@@ -744,11 +742,11 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
 		if IsEqual(side, "buy") {
 
-			response = (<-this.PrivatePostPlaceBuyOrder(this.Extend(request, params)))
+			response = (<-this.PrivatePostPlaceBuyOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivatePostPlaceSellOrder(this.Extend(request, params)))
+			response = (<-this.PrivatePostPlaceSellOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -761,12 +759,12 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			var cost any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 			request["cost"] = this.PriceToPrecision(market["symbol"], cost)
 
-			response = (<-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params)))
+			response = (<-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
 
-			response = (<-this.PrivatePostPlaceMarketSellOrder(this.Extend(request, params)))
+			response = (<-this.PrivatePostPlaceMarketSellOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	}
@@ -813,8 +811,7 @@ func (this *Mercado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"order_id":  id,
 	}
 
-	response := (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "response_data": {
@@ -966,8 +963,7 @@ func (this *Mercado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id":  ParseInt(id),
 	}
 
-	response := (<-this.PrivatePostGetOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetOrder(this.Extend(request, params))).Raw))
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var order any = this.SafeDict(responseData, "order")
 
@@ -1033,8 +1029,7 @@ func (this *Mercado) withdrawBody(ch chan any, code any, amount any, address any
 		}
 	}
 
-	response := (<-this.PrivatePostWithdrawCoin(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawCoin(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "response_data": {
@@ -1153,7 +1148,7 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		request["from"] = Subtract(request["to"], (Multiply(limit, this.ParseTimeframe(timeframe))))
 	}
 
-	response := (<-this.V4PublicNetGetCandles(this.Extend(request, params)))
+	response := (<-this.V4PublicNetGetCandles(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	// parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
@@ -1200,8 +1195,7 @@ func (this *Mercado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"coin_pair": market["id"],
 	}
 
-	response := (<-this.PrivatePostListOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostListOrders(this.Extend(request, params))).Raw))
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var orders []any = SafeListTypedDefault(responseData, "orders", []any{})
 
@@ -1248,8 +1242,7 @@ func (this *Mercado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status_list": "[2]",
 	}
 
-	response := (<-this.PrivatePostListOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostListOrders(this.Extend(request, params))).Raw))
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var orders []any = SafeListTypedDefault(responseData, "orders", []any{})
 
@@ -1296,8 +1289,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"has_fills": true,
 	}
 
-	response := (<-this.PrivatePostListOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostListOrders(this.Extend(request, params))).Raw))
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var ordersRaw []any = SafeListTypedDefault(responseData, "orders", []any{})
 	var orders any = this.ParseOrders(ordersRaw, market, since, limit)

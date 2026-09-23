@@ -501,8 +501,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetInstruments(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInstruments(params)).Raw))
 	//
 	//    {
 	//        "result": "success",
@@ -713,8 +712,7 @@ func (this *Krakenfutures) fetchOrderBookBody(ch chan any, symbol any, optionalA
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetOrderbook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderbook(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//       "result": "success",
@@ -778,8 +776,7 @@ func (this *Krakenfutures) fetchTickerBody(ch chan any, symbol any, optionalArgs
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTickersSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "result": "success",
@@ -836,8 +833,7 @@ func (this *Krakenfutures) fetchTickersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetTickers(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
 	//
 	//    {
 	//        "result": "success",
@@ -972,8 +968,7 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 
-	response := (<-this.PublicGetFeeschedules(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFeeschedules(params)).Raw))
 	//
 	//    {
 	//        "result": "success",
@@ -993,8 +988,7 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	var volumes any = map[string]any{}
 	if this.CheckRequiredCredentials(false) {
 
-		volumesResponse := (<-this.PrivateGetFeeschedulesVolumes())
-		PanicOnError(volumesResponse)
+		var volumesResponse map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFeeschedulesVolumes()).Raw))
 		//
 		//    {
 		//        "result": "success",
@@ -1157,8 +1151,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		request["from"] = this.ParseToInt(Subtract(request["to"], (Multiply(duration, limit))))
 	}
 
-	response := (<-this.ChartsGetPriceTypeSymbolInterval(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ChartsGetPriceTypeSymbolInterval(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "candles": [
@@ -1260,7 +1253,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 			AddElementToObject(request, "count", limit)
 		}
 
-		response := (<-this.HistoryGetMarketSymbolExecutions(this.Extend(request, params)))
+		response := (<-this.HistoryGetMarketSymbolExecutions(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//    {
@@ -1328,7 +1321,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
 
-		response := (<-this.PublicGetHistory(this.Extend(request, params)))
+		response := (<-this.PublicGetHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 		//
 		//    {
@@ -1644,8 +1637,7 @@ func (this *Krakenfutures) createOrderBody(ch chan any, symbol any, typeVar any,
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
-	response := (<-this.PrivatePostSendorder(orderRequest))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostSendorder(orderRequest)).Raw))
 	//
 	//    {
 	//        "result": "success",
@@ -1764,8 +1756,7 @@ func (this *Krakenfutures) createOrdersBody(ch chan any, orders any, optionalArg
 		"batchOrder": ordersRequests,
 	}
 
-	response := (<-this.PrivatePostBatchorder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostBatchorder(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "result": "success",
@@ -1830,7 +1821,7 @@ func (this *Krakenfutures) editOrderBody(ch chan any, id any, symbol any, typeVa
 		request["limitPrice"] = price
 	}
 
-	response := (<-this.PrivatePostEditorder(this.Extend(request, params)))
+	response := (<-this.PrivatePostEditorder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var editStatus map[string]any = MapTyped(this.SafeDict(response, "editStatus", map[string]any{}))
 	var status *string = this.SafeString(editStatus, "status")
@@ -1871,7 +1862,7 @@ func (this *Krakenfutures) cancelOrderBody(ch chan any, id any, optionalArgs ...
 
 	response := (<-this.PrivatePostCancelorder(this.Extend(map[string]any{
 		"order_id": id,
-	}, params)))
+	}, params))).Raw
 	PanicOnError(response)
 	var status *string = this.SafeString(this.SafeDict(response, "cancelStatus", map[string]any{}), "status")
 	this.VerifyOrderActionSuccess(status, "cancelOrder")
@@ -1942,8 +1933,7 @@ func (this *Krakenfutures) cancelOrdersBody(ch chan any, ids any, optionalArgs .
 		"batchOrder": orders,
 	}
 
-	response := (<-this.PrivatePostBatchorder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostBatchorder(this.Extend(request, params))).Raw))
 	// {
 	//     "result": "success",
 	//     "serverTime": "2023-10-23T16:36:51.327Z",
@@ -2005,8 +1995,7 @@ func (this *Krakenfutures) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
 		request["symbol"] = this.MarketId(symbol)
 	}
 
-	response := (<-this.PrivatePostCancelallorders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelallorders(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        result: 'success',
@@ -2083,7 +2072,7 @@ func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan any, timeout any, op
 		}(),
 	}
 
-	response := (<-this.PrivatePostCancelallordersafter(this.Extend(request, params)))
+	response := (<-this.PrivatePostCancelallordersafter(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2136,8 +2125,7 @@ func (this *Krakenfutures) fetchOpenOrdersBody(ch chan any, optionalArgs ...any)
 		market = this.Market(symbol)
 	}
 
-	response := (<-this.PrivateGetOpenorders(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenorders(params)).Raw))
 	var orders []any = SafeListTypedDefault(response, "openOrders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -2180,8 +2168,7 @@ func (this *Krakenfutures) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 	}
 
-	response := (<-this.PrivateGetOrdersStatus(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersStatus(params)).Raw))
 	var orders []any = SafeListTypedDefault(response, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -2277,11 +2264,11 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 	if isTrigger != nil && *isTrigger == true {
 		params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
 
-		response = (<-this.HistoryGetTriggers(this.Extend(request, params)))
+		response = (<-this.HistoryGetTriggers(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.HistoryGetOrders(this.Extend(request, params)))
+		response = (<-this.HistoryGetOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var allOrders []any = SafeListTyped(response, "elements")
@@ -2365,11 +2352,11 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan any, optionalArgs ...
 	if isTrigger != nil && *isTrigger == true {
 		params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
 
-		response = (<-this.HistoryGetTriggers(this.Extend(request, params)))
+		response = (<-this.HistoryGetTriggers(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.HistoryGetOrders(this.Extend(request, params)))
+		response = (<-this.HistoryGetOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var allOrders []any = SafeListTyped(response, "elements")
@@ -3027,8 +3014,7 @@ func (this *Krakenfutures) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 	}
 	// todo: lastFillTime: this.iso8601(end)
 
-	response := (<-this.PrivateGetFills(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFills(params)).Raw))
 	//
 	//    {
 	//        "result": "success",
@@ -3106,8 +3092,7 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 		request["before"] = until
 	}
 
-	response := (<-this.HistoryGetAccountLog(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.HistoryGetAccountLog(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -3209,8 +3194,7 @@ func (this *Krakenfutures) fetchFundingHistoryBody(ch chan any, optionalArgs ...
 		request["before"] = until
 	}
 
-	response := (<-this.HistoryGetAccountLog(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.HistoryGetAccountLog(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -3402,7 +3386,7 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	var symbol any = DerefScalar(this.SafeString(params, "symbol"))
 	params = MapTyped(this.Omit(params, []any{"type", "account", "symbol"}))
 
-	response := (<-this.PrivateGetAccounts(params))
+	response := (<-this.PrivateGetAccounts(params)).Raw
 	PanicOnError(response)
 	//
 	//    {
@@ -3659,8 +3643,7 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan any, optionalArgs ...an
 	}
 	var marketIds any = this.MarketIds(symbols)
 
-	response := (<-this.PublicGetTickers(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
 	var tickers []any = SafeListTyped(response, "tickers")
 	var fundingRates []any = []any{}
 	for i := 0; i < len(tickers); i++ {
@@ -3796,8 +3779,7 @@ func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 		"symbol": this.SafeStringUpper(market, "id"),
 	}
 
-	response := (<-this.PublicGetHistoricalfundingrates(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetHistoricalfundingrates(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "rates": [
@@ -3856,8 +3838,7 @@ func (this *Krakenfutures) fetchPositionsBody(ch chan any, optionalArgs ...any) 
 	}
 	var request map[string]any = map[string]any{}
 
-	response := (<-this.PrivateGetOpenpositions(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenpositions(request)).Raw))
 	//
 	//    {
 	//        "result": "success",
@@ -3955,8 +3936,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs .
 		request["before"] = until
 	}
 
-	response := (<-this.HistoryGetPositions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.HistoryGetPositions(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -4149,8 +4129,7 @@ func (this *Krakenfutures) fetchLeverageTiersBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetInstruments(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInstruments(params)).Raw))
 	//
 	//    {
 	//        "result": "success",
@@ -4394,14 +4373,14 @@ func (this *Krakenfutures) transferBody(ch chan any, code any, amount any, fromA
 		}
 		request["currency"] = currency["id"]
 
-		response = (<-this.PrivatePostWithdrawal(this.Extend(request, params)))
+		response = (<-this.PrivatePostWithdrawal(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["fromAccount"] = this.ParseAccount(fromAccount)
 		request["toAccount"] = this.ParseAccount(toAccount)
 		request["unit"] = currency["id"]
 
-		response = (<-this.PrivatePostTransfer(this.Extend(request, params)))
+		response = (<-this.PrivatePostTransfer(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -4458,7 +4437,7 @@ func (this *Krakenfutures) setLeverageBody(ch chan any, leverage any, optionalAr
 		"symbol":      ToUpper(marketIdUpper),
 	}
 
-	retRes371015 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params)))
+	retRes371015 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params))).Raw
 	PanicOnError(retRes371015)
 	//
 	// { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
@@ -4493,8 +4472,7 @@ func (this *Krakenfutures) fetchLeveragesBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetLeveragepreferences(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetLeveragepreferences(params)).Raw))
 	//
 	//     {
 	//         "result": "success",
@@ -4548,8 +4526,7 @@ func (this *Krakenfutures) fetchLeverageBody(ch chan any, symbol any, optionalAr
 		"symbol": ToUpper(marketIdUpper),
 	}
 
-	response := (<-this.PrivateGetLeveragepreferences(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetLeveragepreferences(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": "success",

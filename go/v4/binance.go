@@ -4642,11 +4642,11 @@ func (this *Binance) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		response = (<-this.FapiPublicGetTime(query))
+		response = (<-this.FapiPublicGetTime(query)).Raw
 		PanicOnError(response)
 	} else if this.IsInverse(typeVar, subType) {
 
-		response = (<-this.DapiPublicGetTime(query))
+		response = (<-this.DapiPublicGetTime(query)).Raw
 		PanicOnError(response)
 	} else {
 
@@ -4705,7 +4705,7 @@ func (this *Binance) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		ch <- map[string]any{}
 		return nil
 	}
-	var promises []any = []any{this.SapiGetCapitalConfigGetall(params)}
+	var promises []any = []any{EndpointRaw(this.SapiGetCapitalConfigGetall(params))}
 	var fetchMargins *bool = this.SafeBool(this.Options, "fetchMargins", false)
 	if fetchMargins != nil && *fetchMargins == true {
 		promises = append(promises, this.SapiGetMarginAllPairs(params))
@@ -4996,17 +4996,17 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		if IsEqual(marketType, "spot") {
-			promisesRaw = append(promisesRaw, this.PublicGetExchangeInfo(params))
+			promisesRaw = append(promisesRaw, EndpointRaw(this.PublicGetExchangeInfo(params)))
 			if (fetchMargins != nil && *fetchMargins == true) && this.CheckRequiredCredentials(false) && (isDemoEnv != true) {
 				promisesRaw = append(promisesRaw, this.SapiGetMarginAllPairs(params))
-				promisesRaw = append(promisesRaw, this.SapiGetMarginIsolatedAllPairs(params))
+				promisesRaw = append(promisesRaw, EndpointRaw(this.SapiGetMarginIsolatedAllPairs(params)))
 			}
 		} else if IsEqual(marketType, "linear") {
-			promisesRaw = append(promisesRaw, this.FapiPublicGetExchangeInfo(params))
+			promisesRaw = append(promisesRaw, EndpointRaw(this.FapiPublicGetExchangeInfo(params)))
 		} else if IsEqual(marketType, "inverse") {
-			promisesRaw = append(promisesRaw, this.DapiPublicGetExchangeInfo(params))
+			promisesRaw = append(promisesRaw, EndpointRaw(this.DapiPublicGetExchangeInfo(params)))
 		} else if IsEqual(marketType, "option") {
-			promisesRaw = append(promisesRaw, this.EapiPublicGetExchangeInfo(params))
+			promisesRaw = append(promisesRaw, EndpointRaw(this.EapiPublicGetExchangeInfo(params)))
 		} else if IsEqual(marketType, "stock") {
 			if (isDemoEnv != true) && (!IsEqual(this.ApiKey, nil) && (this.ApiKey != "")) {
 				promisesRaw = append(promisesRaw, this.SapiGetEquityMarketExchangeInfo(params))
@@ -5729,7 +5729,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		}
 		isPortfolioMargin = true
 
-		response = (<-this.PapiGetBalance(this.Extend(request, query)))
+		response = (<-this.PapiGetBalance(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if this.IsLinear(typeVar, subType) {
 		typeVar = "linear"
@@ -5740,17 +5740,17 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		params = this.Extend(request, query)
 		if !(useV2 == true) {
 
-			response = (<-this.FapiPrivateV3GetAccount(params))
+			response = (<-this.FapiPrivateV3GetAccount(params)).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPrivateV2GetAccount(params))
+			response = (<-this.FapiPrivateV2GetAccount(params)).Raw
 			PanicOnError(response)
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		typeVar = "inverse"
 
-		response = (<-this.DapiPrivateGetAccount(this.Extend(request, query)))
+		response = (<-this.DapiPrivateGetAccount(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if IsEqual(marginMode, "isolated") {
 		var paramSymbols any = this.SafeList(params, "symbols")
@@ -5775,11 +5775,11 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			request["symbols"] = symbols
 		}
 
-		response = (<-this.SapiGetMarginIsolatedAccount(this.Extend(request, query)))
+		response = (<-this.SapiGetMarginIsolatedAccount(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if (IsEqual(typeVar, "margin")) || (IsEqual(marginMode, "cross")) {
 
-		response = (<-this.SapiGetMarginAccount(this.Extend(request, query)))
+		response = (<-this.SapiGetMarginAccount(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "savings") {
 
@@ -5791,7 +5791,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetAccount(this.Extend(request, query)))
+		response = (<-this.PrivateGetAccount(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	}
 
@@ -6020,7 +6020,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var response any = nil
 	if GetValue(market, "option") == true {
 
-		response = (<-this.EapiPublicGetDepth(this.Extend(request, params)))
+		response = (<-this.EapiPublicGetDepth(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "linear") == true {
 		var rpi *bool = this.SafeBool(params, "rpi", false)
@@ -6029,20 +6029,20 @@ func (this *Binance) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 			// rpi limit only supports 1000
 			request["limit"] = 1000
 
-			response = (<-this.FapiPublicGetRpiDepth(this.Extend(request, params)))
+			response = (<-this.FapiPublicGetRpiDepth(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPublicGetDepth(this.Extend(request, params)))
+			response = (<-this.FapiPublicGetDepth(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiPublicGetDepth(this.Extend(request, params)))
+		response = (<-this.DapiPublicGetDepth(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PublicGetDepth(this.Extend(request, params)))
+		response = (<-this.PublicGetDepth(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -6371,7 +6371,7 @@ func (this *Binance) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	var response any = nil
 	if GetValue(market, "option") == true {
 
-		response = (<-this.EapiPublicGetTicker(this.Extend(request, params)))
+		response = (<-this.EapiPublicGetTicker(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "linear") == true {
 
@@ -6477,7 +6477,7 @@ func (this *Binance) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(typeVar, "option") {
 
-		response = (<-this.EapiPublicGetTicker(params))
+		response = (<-this.EapiPublicGetTicker(params)).Raw
 		PanicOnError(response)
 	} else if this.IsLinear(typeVar, subType) {
 
@@ -6485,7 +6485,7 @@ func (this *Binance) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else if this.IsInverse(typeVar, subType) {
 
-		response = (<-this.DapiPublicGetTickerBookTicker(this.Extend(request, params)))
+		response = (<-this.DapiPublicGetTickerBookTicker(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "spot") {
 		if symbols != nil {
@@ -6550,7 +6550,7 @@ func (this *Binance) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else if this.IsInverse(typeVar, subType) {
 
-		response = (<-this.DapiPublicGetTickerPrice(params))
+		response = (<-this.DapiPublicGetTickerPrice(params)).Raw
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "spot") {
 
@@ -6687,7 +6687,7 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	} else if IsEqual(typeVar, "option") {
 
-		response = (<-this.EapiPublicGetTicker(params))
+		response = (<-this.EapiPublicGetTicker(params)).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" fetchTickers() does not support ", typeVar), " markets yet")))
@@ -6749,15 +6749,15 @@ func (this *Binance) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ..
 	var response any = nil
 	if GetValue(market, "option") == true {
 
-		response = (<-this.EapiPublicGetMark(this.Extend(request, params)))
+		response = (<-this.EapiPublicGetMark(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if this.IsLinear(typeVar, subType) {
 
-		response = (<-this.FapiPublicGetPremiumIndex(this.Extend(request, params)))
+		response = (<-this.FapiPublicGetPremiumIndex(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if this.IsInverse(typeVar, subType) {
 
-		response = (<-this.DapiPublicGetPremiumIndex(this.Extend(request, params)))
+		response = (<-this.DapiPublicGetPremiumIndex(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" fetchMarkPrice() does not support ", typeVar), " markets yet")))
@@ -6816,15 +6816,15 @@ func (this *Binance) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(typeVar, "option") {
 
-		response = (<-this.EapiPublicGetMark(params))
+		response = (<-this.EapiPublicGetMark(params)).Raw
 		PanicOnError(response)
 	} else if this.IsLinear(typeVar, subType) {
 
-		response = (<-this.FapiPublicGetPremiumIndex(params))
+		response = (<-this.FapiPublicGetPremiumIndex(params)).Raw
 		PanicOnError(response)
 	} else if this.IsInverse(typeVar, subType) {
 
-		response = (<-this.DapiPublicGetPremiumIndex(params))
+		response = (<-this.DapiPublicGetPremiumIndex(params)).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" fetchMarkPrices() does not support ", typeVar), " markets yet")))
@@ -7006,45 +7006,45 @@ func (this *Binance) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var response any = nil
 	if GetValue(market, "option") == true {
 
-		response = (<-this.EapiPublicGetKlines(this.Extend(request, params)))
+		response = (<-this.EapiPublicGetKlines(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if price != nil && *price == "mark" {
 		if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiPublicGetMarkPriceKlines(this.Extend(request, params)))
+			response = (<-this.DapiPublicGetMarkPriceKlines(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPublicGetMarkPriceKlines(this.Extend(request, params)))
+			response = (<-this.FapiPublicGetMarkPriceKlines(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if price != nil && *price == "index" {
 		if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiPublicGetIndexPriceKlines(this.Extend(request, params)))
+			response = (<-this.DapiPublicGetIndexPriceKlines(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPublicGetIndexPriceKlines(this.Extend(request, params)))
+			response = (<-this.FapiPublicGetIndexPriceKlines(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if price != nil && *price == "premiumIndex" {
 		if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiPublicGetPremiumIndexKlines(this.Extend(request, params)))
+			response = (<-this.DapiPublicGetPremiumIndexKlines(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPublicGetPremiumIndexKlines(this.Extend(request, params)))
+			response = (<-this.FapiPublicGetPremiumIndexKlines(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if GetValue(market, "linear") == true {
 
-		response = (<-this.FapiPublicGetKlines(this.Extend(request, params)))
+		response = (<-this.FapiPublicGetKlines(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiPublicGetKlines(this.Extend(request, params)))
+		response = (<-this.DapiPublicGetKlines(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
@@ -7508,43 +7508,43 @@ func (this *Binance) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(response)
 	} else if IsEqual(method, "publicGetTrades") {
 
-		response = (<-this.PublicGetTrades(this.Extend(request, params)))
+		response = (<-this.PublicGetTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "publicGetHistoricalTrades") {
 
-		response = (<-this.PublicGetHistoricalTrades(this.Extend(request, params)))
+		response = (<-this.PublicGetHistoricalTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "fapiPublicGetAggTrades") {
 
-		response = (<-this.FapiPublicGetAggTrades(this.Extend(request, params)))
+		response = (<-this.FapiPublicGetAggTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "fapiPublicGetTrades") {
 
-		response = (<-this.FapiPublicGetTrades(this.Extend(request, params)))
+		response = (<-this.FapiPublicGetTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "fapiPublicGetHistoricalTrades") {
 
-		response = (<-this.FapiPublicGetHistoricalTrades(this.Extend(request, params)))
+		response = (<-this.FapiPublicGetHistoricalTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "dapiPublicGetAggTrades") {
 
-		response = (<-this.DapiPublicGetAggTrades(this.Extend(request, params)))
+		response = (<-this.DapiPublicGetAggTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "dapiPublicGetTrades") {
 
-		response = (<-this.DapiPublicGetTrades(this.Extend(request, params)))
+		response = (<-this.DapiPublicGetTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "dapiPublicGetHistoricalTrades") {
 
-		response = (<-this.DapiPublicGetHistoricalTrades(this.Extend(request, params)))
+		response = (<-this.DapiPublicGetHistoricalTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "eapiPublicGetTrades") {
 
-		response = (<-this.EapiPublicGetTrades(this.Extend(request, params)))
+		response = (<-this.EapiPublicGetTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "eapiPublicGetHistoricalTrades") {
 
-		response = (<-this.EapiPublicGetHistoricalTrades(this.Extend(request, params)))
+		response = (<-this.EapiPublicGetHistoricalTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchTrades() does not support this method"))
@@ -7929,21 +7929,21 @@ func (this *Binance) editContractOrderBody(ch chan any, id any, symbol any, type
 	if GetValue(market, "linear") == true {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiPutUmOrder(this.Extend(request, params)))
+			response = (<-this.PapiPutUmOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPrivatePutOrder(this.Extend(request, params)))
+			response = (<-this.FapiPrivatePutOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if GetValue(market, "inverse") == true {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiPutCmOrder(this.Extend(request, params)))
+			response = (<-this.PapiPutCmOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivatePutOrder(this.Extend(request, params)))
+			response = (<-this.DapiPrivatePutOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	}
@@ -8093,11 +8093,11 @@ func (this *Binance) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 	request = this.Extend(request, params)
 	if GetValue(market, "linear") == true {
 
-		response = (<-this.FapiPrivatePutBatchOrders(request))
+		response = (<-this.FapiPrivatePutBatchOrders(request)).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiPrivatePutBatchOrders(request))
+		response = (<-this.DapiPrivatePutBatchOrders(request)).Raw
 		PanicOnError(response)
 	}
 
@@ -8917,15 +8917,15 @@ func (this *Binance) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	request = this.Extend(request, params)
 	if GetValue(market, "linear") == true {
 
-		response = (<-this.FapiPrivatePostBatchOrders(request))
+		response = (<-this.FapiPrivatePostBatchOrders(request)).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "option") == true {
 
-		response = (<-this.EapiPrivatePostBatchOrders(request))
+		response = (<-this.EapiPrivatePostBatchOrders(request)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.DapiPrivatePostBatchOrders(request))
+		response = (<-this.DapiPrivatePostBatchOrders(request)).Raw
 		PanicOnError(response)
 	}
 
@@ -9051,7 +9051,7 @@ func (this *Binance) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var response any = nil
 	if GetValue(market, "option") == true {
 
-		response = (<-this.EapiPrivatePostOrder(request))
+		response = (<-this.EapiPrivatePostOrder(request)).Raw
 		PanicOnError(response)
 	} else if sor != nil && *sor == true {
 		if test != nil && *test == true {
@@ -9067,22 +9067,22 @@ func (this *Binance) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		if isPortfolioMargin != nil && *isPortfolioMargin == true {
 			if isConditional {
 
-				response = (<-this.PapiPostUmConditionalOrder(request))
+				response = (<-this.PapiPostUmConditionalOrder(request)).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiPostUmOrder(request))
+				response = (<-this.PapiPostUmOrder(request)).Raw
 				PanicOnError(response)
 			}
 		} else {
 			if isConditional {
 				AddElementToObject(request, "algoType", "CONDITIONAL")
 
-				response = (<-this.FapiPrivatePostAlgoOrder(request))
+				response = (<-this.FapiPrivatePostAlgoOrder(request)).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.FapiPrivatePostOrder(request))
+				response = (<-this.FapiPrivatePostOrder(request)).Raw
 				PanicOnError(response)
 			}
 		}
@@ -9090,29 +9090,29 @@ func (this *Binance) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		if isPortfolioMargin != nil && *isPortfolioMargin == true {
 			if isConditional {
 
-				response = (<-this.PapiPostCmConditionalOrder(request))
+				response = (<-this.PapiPostCmConditionalOrder(request)).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiPostCmOrder(request))
+				response = (<-this.PapiPostCmOrder(request)).Raw
 				PanicOnError(response)
 			}
 		} else {
 			if isConditional {
 				AddElementToObject(request, "algoType", "CONDITIONAL")
 
-				response = (<-this.DapiPrivatePostAlgoOrder(request))
+				response = (<-this.DapiPrivatePostAlgoOrder(request)).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.DapiPrivatePostOrder(request))
+				response = (<-this.DapiPrivatePostOrder(request)).Raw
 				PanicOnError(response)
 			}
 		}
 	} else if (marketType != nil && *marketType == "margin") || (marginMode != nil) || (isPortfolioMargin != nil && *isPortfolioMargin == true) {
 		if isPortfolioMargin != nil && *isPortfolioMargin == true {
 
-			response = (<-this.PapiPostMarginOrder(request))
+			response = (<-this.PapiPostMarginOrder(request)).Raw
 			PanicOnError(response)
 		} else {
 
@@ -9787,45 +9787,45 @@ func (this *Binance) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var response any = nil
 	if isOptionType {
 
-		response = (<-this.EapiPrivateGetOrder(this.Extend(request, params)))
+		response = (<-this.EapiPrivateGetOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if isLinearType {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetUmOrder(this.Extend(request, params)))
+			response = (<-this.PapiGetUmOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.FapiPrivateGetAlgoOrder(this.Extend(request, params)))
+				response = (<-this.FapiPrivateGetAlgoOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.FapiPrivateGetOrder(this.Extend(request, params)))
+				response = (<-this.FapiPrivateGetOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		}
 	} else if isInverseType {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetCmOrder(this.Extend(request, params)))
+			response = (<-this.PapiGetCmOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivateGetOrder(this.Extend(request, params)))
+			response = (<-this.DapiPrivateGetOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if (IsEqual(typeVar, "margin")) || (marginMode != nil) || (isPortfolioMargin == true) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetMarginOrder(this.Extend(request, params)))
+			response = (<-this.PapiGetMarginOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			if IsEqual(marginMode, "isolated") {
 				request["isIsolated"] = true
 			}
 
-			response = (<-this.SapiGetMarginOrder(this.Extend(request, params)))
+			response = (<-this.SapiGetMarginOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if IsEqual(stock, true) {
@@ -9964,27 +9964,27 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if isOptionType {
 
-		response = (<-this.EapiPrivateGetHistoryOrders(this.Extend(request, params)))
+		response = (<-this.EapiPrivateGetHistoryOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if isLinearType {
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.PapiGetUmConditionalAllOrders(this.Extend(request, params)))
+				response = (<-this.PapiGetUmConditionalAllOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiGetUmAllOrders(this.Extend(request, params)))
+				response = (<-this.PapiGetUmAllOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.FapiPrivateGetAllAlgoOrders(this.Extend(request, params)))
+				response = (<-this.FapiPrivateGetAllAlgoOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.FapiPrivateGetAllOrders(this.Extend(request, params)))
+				response = (<-this.FapiPrivateGetAllOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		}
@@ -9992,29 +9992,29 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.PapiGetCmConditionalAllOrders(this.Extend(request, params)))
+				response = (<-this.PapiGetCmConditionalAllOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiGetCmAllOrders(this.Extend(request, params)))
+				response = (<-this.PapiGetCmAllOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else {
 
-			response = (<-this.DapiPrivateGetAllOrders(this.Extend(request, params)))
+			response = (<-this.DapiPrivateGetAllOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetMarginAllOrders(this.Extend(request, params)))
+			response = (<-this.PapiGetMarginAllOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if (IsEqual(typeVar, "margin")) || (marginMode != nil) {
 			if IsEqual(marginMode, "isolated") {
 				request["isIsolated"] = true
 			}
 
-			response = (<-this.SapiGetMarginAllOrders(this.Extend(request, params)))
+			response = (<-this.SapiGetMarginAllOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if IsEqual(stock, true) {
 
@@ -10022,7 +10022,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateGetAllOrders(this.Extend(request, params)))
+			response = (<-this.PrivateGetAllOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	}
@@ -10335,27 +10335,27 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["limit"] = limit
 		}
 
-		response = (<-this.EapiPrivateGetOpenOrders(this.Extend(request, params)))
+		response = (<-this.EapiPrivateGetOpenOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.PapiGetUmConditionalOpenOrders(this.Extend(request, params)))
+				response = (<-this.PapiGetUmConditionalOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiGetUmOpenOrders(this.Extend(request, params)))
+				response = (<-this.PapiGetUmOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.FapiPrivateGetOpenAlgoOrders(this.Extend(request, params)))
+				response = (<-this.FapiPrivateGetOpenAlgoOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.FapiPrivateGetOpenOrders(this.Extend(request, params)))
+				response = (<-this.FapiPrivateGetOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		}
@@ -10363,28 +10363,28 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.PapiGetCmConditionalOpenOrders(this.Extend(request, params)))
+				response = (<-this.PapiGetCmConditionalOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiGetCmOpenOrders(this.Extend(request, params)))
+				response = (<-this.PapiGetCmOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.DapiPrivateGetOpenAlgoOrders(this.Extend(request, params)))
+				response = (<-this.DapiPrivateGetOpenAlgoOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.DapiPrivateGetOpenOrders(this.Extend(request, params)))
+				response = (<-this.DapiPrivateGetOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		}
 	} else if (IsEqual(typeVar, "margin")) || (marginMode != nil) || (isPortfolioMargin == true) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetMarginOpenOrders(this.Extend(request, params)))
+			response = (<-this.PapiGetMarginOpenOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			if IsEqual(marginMode, "isolated") {
@@ -10394,7 +10394,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 				}
 			}
 
-			response = (<-this.SapiGetMarginOpenOrders(this.Extend(request, params)))
+			response = (<-this.SapiGetMarginOpenOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if IsEqual(stock, true) {
@@ -10470,32 +10470,32 @@ func (this *Binance) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.PapiGetUmConditionalOpenOrder(this.Extend(request, params)))
+				response = (<-this.PapiGetUmConditionalOpenOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiGetUmOpenOrder(this.Extend(request, params)))
+				response = (<-this.PapiGetUmOpenOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else {
 
-			response = (<-this.FapiPrivateGetOpenOrder(this.Extend(request, params)))
+			response = (<-this.FapiPrivateGetOpenOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if GetValue(market, "inverse") == true {
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.PapiGetCmConditionalOpenOrder(this.Extend(request, params)))
+				response = (<-this.PapiGetCmConditionalOpenOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiGetCmOpenOrder(this.Extend(request, params)))
+				response = (<-this.PapiGetCmOpenOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else {
 
-			response = (<-this.DapiPrivateGetOpenOrder(this.Extend(request, params)))
+			response = (<-this.DapiPrivateGetOpenOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -10955,27 +10955,27 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var response any = nil
 	if isOptionType {
 
-		response = (<-this.EapiPrivateDeleteOrder(this.Extend(request, params)))
+		response = (<-this.EapiPrivateDeleteOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if isLinearType {
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.PapiDeleteUmConditionalOrder(this.Extend(request, params)))
+				response = (<-this.PapiDeleteUmConditionalOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiDeleteUmOrder(this.Extend(request, params)))
+				response = (<-this.PapiDeleteUmOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.FapiPrivateDeleteAlgoOrder(this.Extend(request, params)))
+				response = (<-this.FapiPrivateDeleteAlgoOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.FapiPrivateDeleteOrder(this.Extend(request, params)))
+				response = (<-this.FapiPrivateDeleteOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		}
@@ -10983,28 +10983,28 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.PapiDeleteCmConditionalOrder(this.Extend(request, params)))
+				response = (<-this.PapiDeleteCmConditionalOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiDeleteCmOrder(this.Extend(request, params)))
+				response = (<-this.PapiDeleteCmOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.DapiPrivateDeleteAlgoOrder(this.Extend(request, params)))
+				response = (<-this.DapiPrivateDeleteAlgoOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.DapiPrivateDeleteOrder(this.Extend(request, params)))
+				response = (<-this.DapiPrivateDeleteOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		}
 	} else if (IsEqual(typeVar, "margin")) || (marginMode != nil) || (isPortfolioMargin == true) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiDeleteMarginOrder(this.Extend(request, params)))
+			response = (<-this.PapiDeleteMarginOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			if IsEqual(marginMode, "isolated") {
@@ -11110,27 +11110,27 @@ func (this *Binance) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if isOptionType {
 
-		response = (<-this.EapiPrivateDeleteAllOpenOrders(this.Extend(request, params)))
+		response = (<-this.EapiPrivateDeleteAllOpenOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if isLinearType {
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.PapiDeleteUmConditionalAllOpenOrders(this.Extend(request, params)))
+				response = (<-this.PapiDeleteUmConditionalAllOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiDeleteUmAllOpenOrders(this.Extend(request, params)))
+				response = (<-this.PapiDeleteUmAllOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.FapiPrivateDeleteAlgoOpenOrders(this.Extend(request, params)))
+				response = (<-this.FapiPrivateDeleteAlgoOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.FapiPrivateDeleteAllOpenOrders(this.Extend(request, params)))
+				response = (<-this.FapiPrivateDeleteAllOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		}
@@ -11138,22 +11138,22 @@ func (this *Binance) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		if isPortfolioMargin == true {
 			if isConditional != nil && *isConditional == true {
 
-				response = (<-this.PapiDeleteCmConditionalAllOpenOrders(this.Extend(request, params)))
+				response = (<-this.PapiDeleteCmConditionalAllOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PapiDeleteCmAllOpenOrders(this.Extend(request, params)))
+				response = (<-this.PapiDeleteCmAllOpenOrders(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else {
 
-			response = (<-this.DapiPrivateDeleteAllOpenOrders(this.Extend(request, params)))
+			response = (<-this.DapiPrivateDeleteAllOpenOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if (IsEqual(typeVar, "margin")) || (marginMode != nil) || (isPortfolioMargin == true) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiDeleteMarginAllOpenOrders(this.Extend(request, params)))
+			response = (<-this.PapiDeleteMarginAllOpenOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			if IsEqual(marginMode, "isolated") {
@@ -11238,11 +11238,11 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	var response any = nil
 	if GetValue(market, "linear") == true {
 
-		response = (<-this.FapiPrivateDeleteBatchOrders(this.Extend(request, params)))
+		response = (<-this.FapiPrivateDeleteBatchOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiPrivateDeleteBatchOrders(this.Extend(request, params)))
+		response = (<-this.DapiPrivateDeleteBatchOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -11450,7 +11450,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(typeVar, "option") {
 
-		response = (<-this.EapiPrivateGetUserTrades(this.Extend(request, params)))
+		response = (<-this.EapiPrivateGetUserTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchMyTrades", params)
@@ -11475,38 +11475,38 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		} else if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin")) {
 			if isPortfolioMargin == true {
 
-				response = (<-this.PapiGetMarginMyTrades(this.Extend(request, params)))
+				response = (<-this.PapiGetMarginMyTrades(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else if (IsEqual(typeVar, "margin")) || (marginMode != nil) {
 				if IsEqual(marginMode, "isolated") {
 					request["isIsolated"] = true
 				}
 
-				response = (<-this.SapiGetMarginMyTrades(this.Extend(request, params)))
+				response = (<-this.SapiGetMarginMyTrades(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.PrivateGetMyTrades(this.Extend(request, params)))
+				response = (<-this.PrivateGetMyTrades(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else if IsEqual(this.SafeBool(market, "linear"), true) {
 			if isPortfolioMargin == true {
 
-				response = (<-this.PapiGetUmUserTrades(this.Extend(request, params)))
+				response = (<-this.PapiGetUmUserTrades(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.FapiPrivateGetUserTrades(this.Extend(request, params)))
+				response = (<-this.FapiPrivateGetUserTrades(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		} else if IsEqual(this.SafeBool(market, "inverse"), true) {
 			if isPortfolioMargin == true {
 
-				response = (<-this.PapiGetCmUserTrades(this.Extend(request, params)))
+				response = (<-this.PapiGetCmUserTrades(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.DapiPrivateGetUserTrades(this.Extend(request, params)))
+				response = (<-this.DapiPrivateGetUserTrades(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			}
 		}
@@ -12043,7 +12043,7 @@ func (this *Binance) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 			request["limit"] = limit
 		}
 
-		response = (<-this.SapiGetCapitalWithdrawHistory(this.Extend(request, params)))
+		response = (<-this.SapiGetCapitalWithdrawHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	if IsEqual(response, nil) {
@@ -12649,7 +12649,7 @@ func (this *Binance) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	}
 	// has support for the 'network' parameter
 
-	response := (<-this.SapiGetCapitalDepositAddress(this.Extend(request, params)))
+	response := (<-this.SapiGetCapitalDepositAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -12727,7 +12727,7 @@ func (this *Binance) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.SapiGetCapitalConfigGetall(params))
+	response := (<-this.SapiGetCapitalConfigGetall(params)).Raw
 	PanicOnError(response)
 	//
 	//  [
@@ -12875,7 +12875,7 @@ func (this *Binance) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.SapiGetCapitalConfigGetall(params))
+	response := (<-this.SapiGetCapitalConfigGetall(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -13138,21 +13138,21 @@ func (this *Binance) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 	if isLinear {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetUmCommissionRate(this.Extend(request, params)))
+			response = (<-this.PapiGetUmCommissionRate(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPrivateGetCommissionRate(this.Extend(request, params)))
+			response = (<-this.FapiPrivateGetCommissionRate(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if isInverse {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetCmCommissionRate(this.Extend(request, params)))
+			response = (<-this.PapiGetCmCommissionRate(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivateGetCommissionRate(this.Extend(request, params)))
+			response = (<-this.DapiPrivateGetCommissionRate(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -13235,11 +13235,11 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(response)
 	} else if isLinear {
 
-		response = (<-this.FapiPrivateGetAccountConfig(params))
+		response = (<-this.FapiPrivateGetAccountConfig(params)).Raw
 		PanicOnError(response)
 	} else if isInverse {
 
-		response = (<-this.DapiPrivateGetAccount(params))
+		response = (<-this.DapiPrivateGetAccount(params)).Raw
 		PanicOnError(response)
 	}
 	//
@@ -13495,11 +13495,11 @@ func (this *Binance) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 	var response any = nil
 	if GetValue(market, "linear") == true {
 
-		response = (<-this.FapiPublicGetPremiumIndex(this.Extend(request, params)))
+		response = (<-this.FapiPublicGetPremiumIndex(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiPublicGetPremiumIndex(this.Extend(request, params)))
+		response = (<-this.DapiPublicGetPremiumIndex(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRate() supports linear and inverse contracts only"))
@@ -13602,11 +13602,11 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var response any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		response = (<-this.FapiPublicGetFundingRate(this.Extend(request, params)))
+		response = (<-this.FapiPublicGetFundingRate(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if this.IsInverse(typeVar, subType) {
 
-		response = (<-this.DapiPublicGetFundingRate(this.Extend(request, params)))
+		response = (<-this.DapiPublicGetFundingRate(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() is not supported for " + *typeVar + " markets"))
@@ -13680,11 +13680,11 @@ func (this *Binance) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	var response any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		response = (<-this.FapiPublicGetPremiumIndex(query))
+		response = (<-this.FapiPublicGetPremiumIndex(query)).Raw
 		PanicOnError(response)
 	} else if this.IsInverse(typeVar, subType) {
 
-		response = (<-this.DapiPublicGetPremiumIndex(query))
+		response = (<-this.DapiPublicGetPremiumIndex(query)).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRates() supports linear and inverse contracts only"))
@@ -14375,7 +14375,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) 
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.FapiPrivateGetLeverageBracket(query))
+				response = (<-this.FapiPrivateGetLeverageBracket(query)).Raw
 				PanicOnError(response)
 			}
 		} else if this.IsInverse(typeVar, subType) {
@@ -14385,7 +14385,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) 
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.DapiPrivateV2GetLeverageBracket(query))
+				response = (<-this.DapiPrivateV2GetLeverageBracket(query)).Raw
 				PanicOnError(response)
 			}
 		} else {
@@ -14476,7 +14476,7 @@ func (this *Binance) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) an
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPrivateGetLeverageBracket(params))
+			response = (<-this.FapiPrivateGetLeverageBracket(params)).Raw
 			PanicOnError(response)
 		}
 	} else if this.IsInverse(typeVar, subType) {
@@ -14486,7 +14486,7 @@ func (this *Binance) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) an
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivateV2GetLeverageBracket(params))
+			response = (<-this.DapiPrivateV2GetLeverageBracket(params)).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -14615,8 +14615,7 @@ func (this *Binance) fetchPositionBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": market["id"],
 	}
 
-	response := (<-this.EapiPrivateGetPosition(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.EapiPrivateGetPosition(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -14688,8 +14687,7 @@ func (this *Binance) fetchOptionPositionsBody(ch chan any, optionalArgs ...any) 
 		request["symbol"] = GetValue(market, "id")
 	}
 
-	response := (<-this.EapiPrivateGetPosition(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.EapiPrivateGetPosition(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -14909,7 +14907,7 @@ func (this *Binance) fetchAccountPositionsBody(ch chan any, optionalArgs ...any)
 	if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiV2GetUmAccount(params))
+			response = (<-this.PapiV2GetUmAccount(params)).Raw
 			PanicOnError(response)
 		} else {
 			var useV2 any = nil
@@ -14918,22 +14916,22 @@ func (this *Binance) fetchAccountPositionsBody(ch chan any, optionalArgs ...any)
 			params = GetValue(useV2paramsVariable, 1)
 			if !(useV2 == true) {
 
-				response = (<-this.FapiPrivateV3GetAccount(params))
+				response = (<-this.FapiPrivateV3GetAccount(params)).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.FapiPrivateV2GetAccount(params))
+				response = (<-this.FapiPrivateV2GetAccount(params)).Raw
 				PanicOnError(response)
 			}
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetCmAccount(params))
+			response = (<-this.PapiGetCmAccount(params)).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivateGetAccount(params))
+			response = (<-this.DapiPrivateGetAccount(params)).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -15007,7 +15005,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) an
 	if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetUmPositionRisk(this.Extend(request, params)))
+			response = (<-this.PapiGetUmPositionRisk(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 			var useV2 any = nil
@@ -15017,11 +15015,11 @@ func (this *Binance) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) an
 			params = this.Extend(request, params)
 			if !(useV2 == true) {
 
-				response = (<-this.FapiPrivateV3GetPositionRisk(params))
+				response = (<-this.FapiPrivateV3GetPositionRisk(params)).Raw
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.FapiPrivateV2GetPositionRisk(params))
+				response = (<-this.FapiPrivateV2GetPositionRisk(params)).Raw
 				PanicOnError(response)
 			}
 		}
@@ -15032,7 +15030,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) an
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivateGetPositionRisk(this.Extend(request, params)))
+			response = (<-this.DapiPrivateGetPositionRisk(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -15214,21 +15212,21 @@ func (this *Binance) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetUmIncome(this.Extend(request, params)))
+			response = (<-this.PapiGetUmIncome(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPrivateGetIncome(this.Extend(request, params)))
+			response = (<-this.FapiPrivateGetIncome(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetCmIncome(this.Extend(request, params)))
+			response = (<-this.PapiGetCmIncome(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivateGetIncome(this.Extend(request, params)))
+			response = (<-this.DapiPrivateGetIncome(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -15294,7 +15292,7 @@ func (this *Binance) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPrivatePostLeverage(this.Extend(request, params)))
+			response = (<-this.FapiPrivatePostLeverage(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if GetValue(market, "inverse") == true {
@@ -15304,7 +15302,7 @@ func (this *Binance) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivatePostLeverage(this.Extend(request, params)))
+			response = (<-this.DapiPrivatePostLeverage(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -15403,11 +15401,11 @@ func (this *Binance) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 			// try block:
 			if GetValue(market, "linear") == true {
 
-				response = (<-this.FapiPrivatePostMarginType(this.Extend(request, params)))
+				response = (<-this.FapiPrivatePostMarginType(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else if GetValue(market, "inverse") == true {
 
-				response = (<-this.DapiPrivatePostMarginType(this.Extend(request, params)))
+				response = (<-this.DapiPrivatePostMarginType(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else {
 				panic(NotSupported(this.Id + " setMarginMode() supports linear and inverse contracts only"))
@@ -15484,7 +15482,7 @@ func (this *Binance) setPositionModeBody(ch chan any, hedged any, optionalArgs .
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivatePostPositionSideDual(this.Extend(request, params)))
+			response = (<-this.DapiPrivatePostPositionSideDual(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if this.IsLinear(typeVar, subType) {
@@ -15494,7 +15492,7 @@ func (this *Binance) setPositionModeBody(ch chan any, hedged any, optionalArgs .
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPrivatePostPositionSideDual(this.Extend(request, params)))
+			response = (<-this.FapiPrivatePostPositionSideDual(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -15562,21 +15560,21 @@ func (this *Binance) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetUmAccount(params))
+			response = (<-this.PapiGetUmAccount(params)).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPrivateGetSymbolConfig(params))
+			response = (<-this.FapiPrivateGetSymbolConfig(params)).Raw
 			PanicOnError(response)
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetCmAccount(params))
+			response = (<-this.PapiGetCmAccount(params)).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivateGetAccount(params))
+			response = (<-this.DapiPrivateGetAccount(params)).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -15690,7 +15688,7 @@ func (this *Binance) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	response := (<-this.EapiPublicGetExerciseHistory(this.Extend(request, params)))
+	response := (<-this.EapiPublicGetExerciseHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -15766,7 +15764,7 @@ func (this *Binance) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 		request["limit"] = limit
 	}
 
-	response := (<-this.EapiPrivateGetExerciseRecord(this.Extend(request, params)))
+	response := (<-this.EapiPrivateGetExerciseRecord(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -15917,7 +15915,7 @@ func (this *Binance) fetchLedgerEntryBody(ch chan any, id any, optionalArgs ...a
 		"currency": currency["id"],
 	}
 
-	response := (<-this.EapiPrivateGetBill(this.Extend(request, params)))
+	response := (<-this.EapiPrivateGetBill(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -16021,26 +16019,26 @@ func (this *Binance) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 		request["currency"] = GetValue(currency, "id")
 
-		response = (<-this.EapiPrivateGetBill(this.Extend(request, params)))
+		response = (<-this.EapiPrivateGetBill(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetUmIncome(this.Extend(request, params)))
+			response = (<-this.PapiGetUmIncome(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPrivateGetIncome(this.Extend(request, params)))
+			response = (<-this.FapiPrivateGetIncome(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetCmIncome(this.Extend(request, params)))
+			response = (<-this.PapiGetCmIncome(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivateGetIncome(this.Extend(request, params)))
+			response = (<-this.DapiPrivateGetIncome(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -16583,12 +16581,12 @@ func (this *Binance) modifyMarginHelperBody(ch chan any, symbol any, amount any,
 	if GetValue(market, "linear") == true {
 		code = market["quote"]
 
-		response = (<-this.FapiPrivatePostPositionMargin(this.Extend(request, params)))
+		response = (<-this.FapiPrivatePostPositionMargin(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		code = market["base"]
 
-		response = (<-this.DapiPrivatePostPositionMargin(this.Extend(request, params)))
+		response = (<-this.DapiPrivatePostPositionMargin(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -17301,11 +17299,11 @@ func (this *Binance) repayCrossMarginBody(ch chan any, code any, amount any, opt
 		params = GetValue(methodparamsVariable, 1)
 		if IsEqual(method, "papiPostMarginRepayDebt") {
 
-			response = (<-this.PapiPostMarginRepayDebt(this.Extend(request, params)))
+			response = (<-this.PapiPostMarginRepayDebt(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PapiPostRepayLoan(this.Extend(request, params)))
+			response = (<-this.PapiPostRepayLoan(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -17406,7 +17404,7 @@ func (this *Binance) borrowCrossMarginBody(ch chan any, code any, amount any, op
 	params = GetValue(isPortfolioMarginparamsVariable, 1)
 	if isPortfolioMargin == true {
 
-		response = (<-this.PapiPostMarginLoan(this.Extend(request, params)))
+		response = (<-this.PapiPostMarginLoan(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["isIsolated"] = "FALSE"
@@ -17589,11 +17587,11 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan any, symbol any, optio
 	var response any = nil
 	if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiDataGetOpenInterestHist(this.Extend(request, params)))
+		response = (<-this.DapiDataGetOpenInterestHist(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.FapiDataGetOpenInterestHist(this.Extend(request, params)))
+		response = (<-this.FapiDataGetOpenInterestHist(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -17651,15 +17649,15 @@ func (this *Binance) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 	var response any = nil
 	if GetValue(market, "option") == true {
 
-		response = (<-this.EapiPublicGetOpenInterest(this.Extend(request, params)))
+		response = (<-this.EapiPublicGetOpenInterest(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiPublicGetOpenInterest(this.Extend(request, params)))
+		response = (<-this.DapiPublicGetOpenInterest(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.FapiPublicGetOpenInterest(this.Extend(request, params)))
+		response = (<-this.FapiPublicGetOpenInterest(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -17837,7 +17835,7 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	if IsEqual(typeVar, "spot") {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetMarginForceOrders(this.Extend(request, params)))
+			response = (<-this.PapiGetMarginForceOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
@@ -17847,21 +17845,21 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	} else if IsEqual(subType, "linear") {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetUmForceOrders(this.Extend(request, params)))
+			response = (<-this.PapiGetUmForceOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPrivateGetForceOrders(this.Extend(request, params)))
+			response = (<-this.FapiPrivateGetForceOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else if IsEqual(subType, "inverse") {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetCmForceOrders(this.Extend(request, params)))
+			response = (<-this.PapiGetCmForceOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivateGetForceOrders(this.Extend(request, params)))
+			response = (<-this.DapiPrivateGetForceOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 	} else {
@@ -18071,8 +18069,7 @@ func (this *Binance) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 
-	response := (<-this.EapiPublicGetMark(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.EapiPublicGetMark(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -18131,7 +18128,7 @@ func (this *Binance) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	response := (<-this.EapiPublicGetMark(this.Extend(request, params)))
+	response := (<-this.EapiPublicGetMark(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -18265,11 +18262,11 @@ func (this *Binance) fetchPositionModeBody(ch chan any, optionalArgs ...any) any
 	// thus we do not throw an error if the subType is not specified and default to linear for now
 	if IsEqual(subType, "inverse") {
 
-		response = (<-this.DapiPrivateGetPositionSideDual(params))
+		response = (<-this.DapiPrivateGetPositionSideDual(params)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.FapiPrivateGetPositionSideDual(params))
+		response = (<-this.FapiPrivateGetPositionSideDual(params)).Raw
 		PanicOnError(response)
 	}
 	//
@@ -18326,11 +18323,11 @@ func (this *Binance) fetchMarginModesBody(ch chan any, optionalArgs ...any) any 
 	var response any = nil
 	if IsEqual(subType, "linear") {
 
-		response = (<-this.FapiPrivateGetSymbolConfig(params))
+		response = (<-this.FapiPrivateGetSymbolConfig(params)).Raw
 		PanicOnError(response)
 	} else if IsEqual(subType, "inverse") {
 
-		response = (<-this.DapiPrivateGetAccount(params))
+		response = (<-this.DapiPrivateGetAccount(params)).Raw
 		PanicOnError(response)
 	} else {
 		panic(BadRequest(this.Id + " fetchMarginModes () supports linear and inverse subTypes only"))
@@ -18380,7 +18377,7 @@ func (this *Binance) fetchMarginModeBody(ch chan any, symbol any, optionalArgs .
 			"symbol": market["id"],
 		}
 
-		response = (<-this.FapiPrivateGetSymbolConfig(this.Extend(request, params)))
+		response = (<-this.FapiPrivateGetSymbolConfig(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(subType, "inverse") {
 
@@ -18458,8 +18455,7 @@ func (this *Binance) fetchOptionBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 
-	response := (<-this.EapiPublicGetTicker(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.EapiPublicGetTicker(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -18604,11 +18600,11 @@ func (this *Binance) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs 
 	var response any = nil
 	if GetValue(market, "linear") == true {
 
-		response = (<-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, params)))
+		response = (<-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, params)))
+		response = (<-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(BadRequest(Add(this.Id+" fetchMarginAdjustmentHistory () is not supported for markets of type ", market["type"])))
@@ -18660,8 +18656,7 @@ func (this *Binance) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.SapiGetConvertAssetInfo(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SapiGetConvertAssetInfo(params)).Raw))
 	//
 	//     [
 	//         {
@@ -19119,11 +19114,11 @@ func (this *Binance) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any)
 	var response any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		response = (<-this.FapiPublicGetFundingInfo(params))
+		response = (<-this.FapiPublicGetFundingInfo(params)).Raw
 		PanicOnError(response)
 	} else if this.IsInverse(typeVar, subType) {
 
-		response = (<-this.DapiPublicGetFundingInfo(params))
+		response = (<-this.DapiPublicGetFundingInfo(params)).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingIntervals() supports linear and inverse swap contracts only"))
@@ -19204,12 +19199,12 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ..
 	if IsEqual(subType, "linear") {
 		AddElementToObject(request, "symbol", market["id"])
 
-		response = (<-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(request, params)))
+		response = (<-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(subType, "inverse") {
 		AddElementToObject(request, "pair", GetValue(market["info"], "pair"))
 
-		response = (<-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(request, params)))
+		response = (<-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(BadRequest(this.Id + " fetchLongShortRatioHistory() supports linear and inverse subTypes only"))
@@ -19288,7 +19283,7 @@ func (this *Binance) fetchADLRankBody(ch chan any, symbol any, optionalArgs ...a
 	var response any = nil
 	if IsEqual(subType, "linear") {
 
-		response = (<-this.FapiPublicGetSymbolAdlRisk(this.Extend(request, params)))
+		response = (<-this.FapiPublicGetSymbolAdlRisk(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(BadRequest(this.Id + " fetchADLRank() supports linear subTypes only"))
@@ -19344,21 +19339,21 @@ func (this *Binance) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any)
 	if IsEqual(subType, "linear") {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetUmAdlQuantile(params))
+			response = (<-this.PapiGetUmAdlQuantile(params)).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.FapiPrivateGetAdlQuantile(params))
+			response = (<-this.FapiPrivateGetAdlQuantile(params)).Raw
 			PanicOnError(response)
 		}
 	} else if IsEqual(subType, "inverse") {
 		if isPortfolioMargin == true {
 
-			response = (<-this.PapiGetCmAdlQuantile(params))
+			response = (<-this.PapiGetCmAdlQuantile(params)).Raw
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.DapiPrivateGetAdlQuantile(params))
+			response = (<-this.DapiPrivateGetAdlQuantile(params)).Raw
 			PanicOnError(response)
 		}
 	} else {

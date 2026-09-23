@@ -1887,7 +1887,7 @@ func (this *Bingx) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any 
 
 			ccxt.PanicOnError((<-this.UserAuthPrivatePutUserDataStream(map[string]any{
 				"listenKey": listenKey,
-			}))) // extend the expiry
+			})).Raw) // extend the expiry
 			return nil
 		}(this)
 
@@ -1952,8 +1952,7 @@ func (this *Bingx) authenticateBody(ch chan any, optionalArgs ...any) any {
 				}()
 				// try block:
 
-				response := (<-this.UserAuthPrivatePostUserDataStream())
-				ccxt.PanicOnError(response)
+				var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.UserAuthPrivatePostUserDataStream()).Raw))
 				var listenKey *string = this.SafeString(response, "listenKey")
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))

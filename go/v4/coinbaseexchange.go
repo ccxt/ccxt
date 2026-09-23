@@ -674,7 +674,7 @@ func (this *Coinbaseexchange) fetchCurrenciesBody(ch chan any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetCurrencies(params))
+	response := (<-this.PublicGetCurrencies(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -802,8 +802,7 @@ func (this *Coinbaseexchange) fetchMarketsBody(ch chan any, optionalArgs ...any)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetProducts(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetProducts(params)).Raw))
 	//
 	//     [
 	//         {
@@ -949,8 +948,7 @@ func (this *Coinbaseexchange) fetchAccountsBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccounts(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccounts(params)).Raw))
 	//
 	//     [
 	//         {
@@ -1037,7 +1035,7 @@ func (this *Coinbaseexchange) fetchBalanceBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccounts(params))
+	response := (<-this.PrivateGetAccounts(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseBalance(response)
@@ -1078,7 +1076,7 @@ func (this *Coinbaseexchange) fetchOrderBookBody(ch chan any, symbol any, option
 		"level": 2,
 	}
 
-	response := (<-this.PublicGetProductsIdBook(this.Extend(request, params)))
+	response := (<-this.PublicGetProductsIdBook(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1216,7 +1214,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 
-	response := (<-this.PublicGetProductsSparkLines(this.Extend(request, params)))
+	response := (<-this.PublicGetProductsSparkLines(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1286,11 +1284,11 @@ func (this *Coinbaseexchange) fetchTickerBody(ch chan any, symbol any, optionalA
 	var response any = nil
 	if method != nil && *method == "publicGetProductsIdStats" {
 
-		response = (<-this.PublicGetProductsIdStats(this.Extend(request, params)))
+		response = (<-this.PublicGetProductsIdStats(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PublicGetProductsIdTicker(this.Extend(request, params)))
+		response = (<-this.PublicGetProductsIdTicker(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1472,7 +1470,7 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan any, optionalArgs ...any
 		request["end_date"] = this.Iso8601(until)
 	}
 
-	response := (<-this.PrivateGetFills(this.Extend(request, params)))
+	response := (<-this.PrivateGetFills(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTrades(response, market, since, limit)
@@ -1516,7 +1514,7 @@ func (this *Coinbaseexchange) fetchTradesBody(ch chan any, symbol any, optionalA
 		request["limit"] = limit // default 100
 	}
 
-	response := (<-this.PublicGetProductsIdTrades(this.Extend(request, params)))
+	response := (<-this.PublicGetProductsIdTrades(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1557,7 +1555,7 @@ func (this *Coinbaseexchange) fetchTradingFeesBody(ch chan any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetFees(params))
+	response := (<-this.PrivateGetFees(params)).Raw
 	PanicOnError(response)
 	//
 	//    {
@@ -1677,8 +1675,7 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol any, optionalAr
 		}
 	}
 
-	response := (<-this.PublicGetProductsIdCandles(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetProductsIdCandles(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1709,8 +1706,7 @@ func (this *Coinbaseexchange) fetchTimeBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetTime(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTime(params)).Raw))
 
 	//
 	//     {
@@ -1841,13 +1837,13 @@ func (this *Coinbaseexchange) fetchOrderBody(ch chan any, id any, optionalArgs .
 	if clientOrderId == nil {
 		request["id"] = id
 
-		response = (<-this.PrivateGetOrdersId(this.Extend(request, params)))
+		response = (<-this.PrivateGetOrdersId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["client_oid"] = clientOrderId
 		params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_oid"}))
 
-		response = (<-this.PrivateGetOrdersClientClientOid(this.Extend(request, params)))
+		response = (<-this.PrivateGetOrdersClientClientOid(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1894,7 +1890,7 @@ func (this *Coinbaseexchange) fetchOrderTradesBody(ch chan any, id any, optional
 		"order_id": id,
 	}
 
-	response := (<-this.PrivateGetFills(this.Extend(request, params)))
+	response := (<-this.PrivateGetFills(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseTrades(response, market, since, limit)
@@ -2000,7 +1996,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 		request["end_date"] = this.Iso8601(until)
 	}
 
-	response := (<-this.PrivateGetOrders(this.Extend(request, params)))
+	response := (<-this.PrivateGetOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -2116,7 +2112,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan any, symbol any, typeVar a
 		}
 	}
 
-	response := (<-this.PrivatePostOrders(this.Extend(request, params)))
+	response := (<-this.PrivatePostOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2184,11 +2180,11 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan any, id any, optionalArgs 
 	var response any = nil
 	if clientOrderId == nil {
 
-		response = (<-this.PrivateDeleteOrdersId(this.Extend(request, params)))
+		response = (<-this.PrivateDeleteOrdersId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateDeleteOrdersClientClientOid(this.Extend(request, params)))
+		response = (<-this.PrivateDeleteOrdersClientClientOid(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -2230,7 +2226,7 @@ func (this *Coinbaseexchange) cancelAllOrdersBody(ch chan any, optionalArgs ...a
 		request["product_id"] = GetValue(market, "symbol") // the request will be more performant if you include it
 	}
 
-	response := (<-this.PrivateDeleteOrders(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteOrders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- []any{this.SafeOrder(map[string]any{
@@ -2249,7 +2245,7 @@ func (this *Coinbaseexchange) fetchPaymentMethodsBody(ch chan any, optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes171715 := (<-this.PrivateGetPaymentMethods(params))
+	retRes171715 := (<-this.PrivateGetPaymentMethods(params)).Raw
 	PanicOnError(retRes171715)
 	ch <- retRes171715
 	return nil
@@ -2296,11 +2292,11 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code any, amount any, ad
 	var response any = nil
 	if InOp(params, "payment_method_id") {
 
-		response = (<-this.PrivatePostWithdrawalsPaymentMethod(this.Extend(request, params)))
+		response = (<-this.PrivatePostWithdrawalsPaymentMethod(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if InOp(params, "coinbase_account_id") {
 
-		response = (<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, params)))
+		response = (<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["crypto_address"] = address
@@ -2308,7 +2304,7 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code any, amount any, ad
 			request["destination_tag"] = tag
 		}
 
-		response = (<-this.PrivatePostWithdrawalsCrypto(this.Extend(request, params)))
+		response = (<-this.PrivatePostWithdrawalsCrypto(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	if response == nil {
@@ -2462,8 +2458,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 		request["end_date"] = this.Iso8601(until)
 	}
 
-	response := (<-this.PrivateGetAccountsIdLedger(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetAccountsIdLedger(this.Extend(request, params))).Raw))
 	var entries []any = this.ToArray(response)
 	for i := 0; i < len(entries); i++ {
 		AddElementToObject(GetValue(entries, i), "currency", code)
@@ -2531,8 +2526,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 	var response []any = nil
 	if IsEqual(id, nil) {
 
-		transfers := (<-this.PrivateGetTransfers(this.Extend(request, params)))
-		PanicOnError(transfers)
+		var transfers []any = ListTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
 		//
 		//    [
 		//        {
@@ -2570,8 +2564,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 		}
 	} else {
 
-		accountTransfers := (<-this.PrivateGetAccountsIdTransfers(this.Extend(request, params)))
-		PanicOnError(accountTransfers)
+		var accountTransfers []any = ListTyped(PanicOnError((<-this.PrivateGetAccountsIdTransfers(this.Extend(request, params))).Raw))
 		//
 		//    [
 		//        {
@@ -2806,7 +2799,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 	var accounts any = this.SafeValue(this.Options, "coinbaseAccounts")
 	if IsEqual(accounts, nil) {
 
-		accounts = (<-this.PrivateGetCoinbaseAccounts())
+		accounts = (<-this.PrivateGetCoinbaseAccounts()).Raw
 		PanicOnError(accounts)
 		this.Options.Store("coinbaseAccounts", accounts) // cache it
 		this.Options.Store("coinbaseAccountsByCurrencyId", this.IndexBy(accounts, "currency"))
@@ -2820,7 +2813,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 		"id": GetValue(account, "id"),
 	}
 
-	response := (<-this.PrivatePostCoinbaseAccountsIdAddresses(this.Extend(request, params)))
+	response := (<-this.PrivatePostCoinbaseAccountsIdAddresses(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var address *string = this.SafeString(response, "address")
 	var tag *string = this.SafeString(response, "destination_tag")

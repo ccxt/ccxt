@@ -541,8 +541,7 @@ func (this *Bydfi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetV1FapiMarketExchangeInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1FapiMarketExchangeInfo(params)).Raw))
 	//
 	//     {
 	//         "code": "200",
@@ -731,8 +730,7 @@ func (this *Bydfi) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		request["limit"] = this.GetClosestLimit(limit)
 	}
 
-	response := (<-this.PublicGetV1FapiMarketDepth(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1FapiMarketDepth(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -829,8 +827,7 @@ func (this *Bydfi) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		request["limit"] = mathMin(limit, 1000)
 	}
 
-	response := (<-this.PublicGetV1FapiMarketTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1FapiMarketTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -919,8 +916,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetV1FapiTradeHistoryTrade(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradeHistoryTrade(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -1111,8 +1107,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetV1FapiMarketKlines(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1FapiMarketKlines(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -1180,8 +1175,7 @@ func (this *Bydfi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetV1FapiMarketTicker24hr(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1FapiMarketTicker24hr(params)).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -1234,8 +1228,7 @@ func (this *Bydfi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetV1FapiMarketTicker24hr(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1FapiMarketTicker24hr(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var ticker map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
@@ -1315,8 +1308,7 @@ func (this *Bydfi) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetV1FapiMarketFundingRate(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1FapiMarketFundingRate(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -1425,8 +1417,7 @@ func (this *Bydfi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 		request["endTime"] = until
 	}
 
-	response := (<-this.PublicGetV1FapiMarketFundingRateHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1FapiMarketFundingRateHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -1520,8 +1511,7 @@ func (this *Bydfi) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		"wallet": wallet,
 	})
 
-	response := (<-this.PrivatePostV1FapiTradePlaceOrder(orderRequest))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1FapiTradePlaceOrder(orderRequest)).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -1739,8 +1729,7 @@ func (this *Bydfi) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		"orders": ordersRequests,
 	}
 
-	response := (<-this.PrivatePostV1FapiTradeBatchPlaceOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1FapiTradeBatchPlaceOrder(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data)
@@ -1788,8 +1777,7 @@ func (this *Bydfi) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	params = GetValue(walletparamsVariable, 1)
 	AddElementToObject(request, "wallet", wallet)
 
-	response := (<-this.PrivatePostV1FapiTradeEditOrder(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1FapiTradeEditOrder(request)).Raw))
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data)
@@ -1845,8 +1833,7 @@ func (this *Bydfi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		"editOrders": ordersRequests,
 	}
 
-	response := (<-this.PrivatePostV1FapiTradeBatchEditOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1FapiTradeBatchEditOrder(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data)
@@ -1919,8 +1906,7 @@ func (this *Bydfi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"wallet": wallet,
 	}
 
-	response := (<-this.PrivatePostV1FapiTradeCancelAllOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1FapiTradeCancelAllOrder(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -2044,11 +2030,11 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetV1FapiTradePlanOrder(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1FapiTradePlanOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -2112,11 +2098,11 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	params = GetValue(triggerparamsVariable, 1)
 	if !(trigger == true) {
 
-		response = (<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateGetV1FapiTradePlanOrder(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1FapiTradePlanOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -2191,8 +2177,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetV1FapiTradeHistoryOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradeHistoryOrder(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -2481,8 +2466,7 @@ func (this *Bydfi) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 		"wallet":   wallet,
 	}
 
-	response := (<-this.PrivatePostV1FapiTradeLeverage(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1FapiTradeLeverage(this.Extend(request, params))).Raw))
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- data
@@ -2526,8 +2510,7 @@ func (this *Bydfi) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 		"wallet": wallet,
 	}
 
-	response := (<-this.PrivateGetV1FapiTradeLeverage(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradeLeverage(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -2593,8 +2576,7 @@ func (this *Bydfi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"contractType": contractType,
 	}
 
-	response := (<-this.PrivateGetV1FapiTradePositions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradePositions(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -2658,8 +2640,7 @@ func (this *Bydfi) fetchPositionsForSymbolBody(ch chan any, symbol any, optional
 		"symbol":       market["id"],
 	}
 
-	response := (<-this.PrivateGetV1FapiTradePositions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradePositions(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParsePositions(data, []any{market["symbol"]})
@@ -2825,8 +2806,7 @@ func (this *Bydfi) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetV1FapiTradePositionHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradePositionHistory(this.Extend(request, params))).Raw))
 	//
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -2882,8 +2862,7 @@ func (this *Bydfi) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetV1FapiTradePositionHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradePositionHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -2973,8 +2952,7 @@ func (this *Bydfi) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 		"wallet":       wallet,
 	}
 
-	response := (<-this.PrivateGetV1FapiUserDataAssetsMargin(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1FapiUserDataAssetsMargin(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -3054,7 +3032,7 @@ func (this *Bydfi) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 		"wallet":       wallet,
 	}
 
-	retRes242415 := (<-this.PrivatePostV1FapiUserDataMarginType(this.Extend(request, params)))
+	retRes242415 := (<-this.PrivatePostV1FapiUserDataMarginType(this.Extend(request, params))).Raw
 	PanicOnError(retRes242415)
 	ch <- retRes242415
 	return nil
@@ -3117,7 +3095,7 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 		"settleCoin":   settleCoin,
 	}
 
-	retRes246715 := (<-this.PrivatePostV1FapiUserDataPositionSideDual(this.Extend(request, params)))
+	retRes246715 := (<-this.PrivatePostV1FapiUserDataPositionSideDual(this.Extend(request, params))).Raw
 	PanicOnError(retRes246715)
 	//
 	//     {
@@ -3181,7 +3159,7 @@ func (this *Bydfi) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 		"wallet":       wallet,
 	}
 
-	response := (<-this.PrivateGetV1FapiUserDataPositionSideDual(this.Extend(request, params)))
+	response := (<-this.PrivateGetV1FapiUserDataPositionSideDual(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -3267,7 +3245,7 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.PrivateGetV1AccountAssets(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1AccountAssets(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["wallet"] = wallet
@@ -3300,7 +3278,7 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//         "success": true
 		//     }
 
-		response = (<-this.PrivateGetV1FapiAccountBalance(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1FapiAccountBalance(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -3365,7 +3343,7 @@ func (this *Bydfi) transferBody(ch chan any, code any, amount any, fromAccount a
 		"toType":   toId,
 	}
 
-	response := (<-this.PrivatePostV1AccountTransfer(this.Extend(request, params)))
+	response := (<-this.PrivatePostV1AccountTransfer(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -3456,8 +3434,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["rows"] = limit
 	}
 
-	response := (<-this.PrivateGetV1AccountTransferRecords(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1AccountTransferRecords(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -3693,14 +3670,14 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code an
 		//     }
 		//
 
-		response = (<-this.PrivateGetV1SpotDepositRecords(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1SpotDepositRecords(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		//
 		// todo check after withdrawal
 		//
 
-		response = (<-this.PrivateGetV1SpotWithdrawRecords(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1SpotWithdrawRecords(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})

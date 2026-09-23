@@ -932,7 +932,7 @@ func (this *Woo) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V3PublicGetSystemInfo(params))
+	response := (<-this.V3PublicGetSystemInfo(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -984,8 +984,7 @@ func (this *Woo) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V3PublicGetSystemInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetSystemInfo(params)).Raw))
 
 	//
 	//     {
@@ -1025,8 +1024,7 @@ func (this *Woo) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 
-	response := (<-this.V3PublicGetInstruments(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetInstruments(params)).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -1189,8 +1187,7 @@ func (this *Woo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 
-	response := (<-this.V3PublicGetMarketTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetMarketTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -1360,8 +1357,7 @@ func (this *Woo) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 
-	response := (<-this.V3PrivateGetTradeTradingFee(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetTradeTradingFee(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -1402,7 +1398,7 @@ func (this *Woo) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V3PrivateGetAccountInfo(params))
+	response := (<-this.V3PrivateGetAccountInfo(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1480,7 +1476,7 @@ func (this *Woo) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var result map[string]any = map[string]any{}
-	var tokenResponsePromise any = this.V1PublicGetToken(params)
+	var tokenResponsePromise any = EndpointRaw(this.V1PublicGetToken(params))
 	//
 	//    {
 	//      "rows": [
@@ -1526,7 +1522,7 @@ func (this *Woo) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	// only make one request for currencies...
-	var tokenNetworkResponsePromise any = this.V1PublicGetTokenNetwork(params)
+	var tokenNetworkResponsePromise any = EndpointRaw(this.V1PublicGetTokenNetwork(params))
 	//
 	// {
 	//     "rows": [
@@ -1989,11 +1985,11 @@ func (this *Woo) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	var response any = nil
 	if isConditional {
 
-		response = (<-this.V3PrivatePostTradeAlgoOrder(this.Extend(request, params)))
+		response = (<-this.V3PrivatePostTradeAlgoOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V3PrivatePostTradeOrder(this.Extend(request, params)))
+		response = (<-this.V3PrivatePostTradeOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
@@ -2095,7 +2091,7 @@ func (this *Woo) editOrderBody(ch chan any, id any, symbol any, typeVar any, sid
 			request["algoOrderId"] = id
 		}
 
-		response = (<-this.V3PrivatePutTradeAlgoOrder(this.Extend(request, params)))
+		response = (<-this.V3PrivatePutTradeAlgoOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if isByClientOrder {
@@ -2104,7 +2100,7 @@ func (this *Woo) editOrderBody(ch chan any, id any, symbol any, typeVar any, sid
 			request["orderId"] = id
 		}
 
-		response = (<-this.V3PrivatePutTradeOrder(this.Extend(request, params)))
+		response = (<-this.V3PrivatePutTradeOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -2178,7 +2174,7 @@ func (this *Woo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			request["algoOrderId"] = id
 		}
 
-		response = (<-this.V3PrivateDeleteTradeAlgoOrder(this.Extend(request, params)))
+		response = (<-this.V3PrivateDeleteTradeAlgoOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["symbol"] = this.SafeString(market, "id")
@@ -2188,7 +2184,7 @@ func (this *Woo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			request["orderId"] = id
 		}
 
-		response = (<-this.V3PrivateDeleteTradeOrder(this.Extend(request, params)))
+		response = (<-this.V3PrivateDeleteTradeOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -2249,12 +2245,12 @@ func (this *Woo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if trigger != nil && *trigger == true {
 
-		response = (<-this.V3PrivateDeleteTradeAlgoOrders(params))
+		response = (<-this.V3PrivateDeleteTradeAlgoOrders(params)).Raw
 		PanicOnError(response)
 	} else {
 		// cancels both regular and algo orders
 
-		response = (<-this.V3PrivateDeleteTradeAllOrders(this.Extend(request, params)))
+		response = (<-this.V3PrivateDeleteTradeAllOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -2306,7 +2302,7 @@ func (this *Woo) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs
 		}(),
 	}
 
-	response := (<-this.V3PrivatePostTradeCancelAllAfter(this.Extend(request, params)))
+	response := (<-this.V3PrivatePostTradeCancelAllAfter(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2366,7 +2362,7 @@ func (this *Woo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			request["algoOrderId"] = id
 		}
 
-		response = (<-this.V3PrivateGetTradeAlgoOrder(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetTradeAlgoOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if clientOrderId != nil {
@@ -2375,7 +2371,7 @@ func (this *Woo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			request["orderId"] = id
 		}
 
-		response = (<-this.V3PrivateGetTradeOrder(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetTradeOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
@@ -2453,11 +2449,11 @@ func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if trigger != nil && *trigger == true {
 
-		response = (<-this.V3PrivateGetTradeAlgoOrders(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetTradeAlgoOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V3PrivateGetTradeOrders(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetTradeOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -2788,8 +2784,7 @@ func (this *Woo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		request["maxLevel"] = limit
 	}
 
-	response := (<-this.V3PublicGetOrderbook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetOrderbook(this.Extend(request, params))).Raw))
 	//
 	// }
 	//     {
@@ -2897,8 +2892,7 @@ func (this *Woo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 		"symbol": market["id"],
 	}
 
-	response := (<-this.V3PublicGetFutures(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetFutures(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -2988,8 +2982,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	response := (<-this.V3PublicGetFutures(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetFutures(params)).Raw))
 	//
 	// same as fetchTicker, with multiple rows
 	//
@@ -3071,8 +3064,7 @@ func (this *Woo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		request["before"] = until
 	}
 
-	response := (<-this.V3PublicGetKlineHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetKlineHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -3147,8 +3139,7 @@ func (this *Woo) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 		"oid": id,
 	}
 
-	response := (<-this.V1PrivateGetOrderOidTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetOrderOidTrades(this.Extend(request, params))).Raw))
 	// {
 	//     "success": true,
 	//     "rows": [
@@ -3234,8 +3225,7 @@ func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.V3PrivateGetTradeTransactionHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetTradeTransactionHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -3291,7 +3281,7 @@ func (this *Woo) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var mainAccountPromise any = this.V3PrivateGetAccountInfo(params)
+	var mainAccountPromise any = EndpointRaw(this.V3PrivateGetAccountInfo(params))
 	//
 	//     {
 	//         "success": true,
@@ -3321,7 +3311,7 @@ func (this *Woo) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1752062807915
 	//     }
 	//
-	var subAccountPromise any = this.V3PrivateGetAccountSubAccountsAll(params)
+	var subAccountPromise any = EndpointRaw(this.V3PrivateGetAccountSubAccountsAll(params))
 	//
 	//     {
 	//         "success": true,
@@ -3413,8 +3403,7 @@ func (this *Woo) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V3PrivateGetAssetBalances(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetAssetBalances(params)).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -3500,8 +3489,7 @@ func (this *Woo) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 		"network": this.NetworkCodeToId(networkCode, currency["code"]),
 	}
 
-	response := (<-this.V3PrivateGetAssetWalletDeposit(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetAssetWalletDeposit(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -3597,8 +3585,7 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) any {
 		request["type"] = transactionType
 	}
 
-	response := (<-this.V3PrivateGetAssetWalletHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetAssetWalletHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -3974,8 +3961,7 @@ func (this *Woo) transferBody(ch chan any, code any, amount any, fromAccount any
 		},
 	}
 
-	response := (<-this.V3PrivatePostAssetTransfer(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostAssetTransfer(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -4044,8 +4030,7 @@ func (this *Woo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 
-	response := (<-this.V3PrivateGetAssetTransferHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetAssetTransferHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -4198,8 +4183,7 @@ func (this *Woo) withdrawBody(ch chan any, code any, amount any, address any, op
 	request["token"] = currency["id"]
 	request["network"] = this.NetworkCodeToId(network, currency["code"])
 
-	response := (<-this.V3PrivatePostAssetWalletWithdraw(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostAssetWalletWithdraw(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -4261,7 +4245,7 @@ func (this *Woo) repayMarginBody(ch chan any, code any, amount any, optionalArgs
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
 
-	response := (<-this.V1PrivatePostInterestRepay(this.Extend(request, params)))
+	response := (<-this.V1PrivatePostInterestRepay(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -4503,8 +4487,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 		request["size"] = mathMin(limit, 500)
 	}
 
-	response := (<-this.V3PrivateGetFuturesFundingFeeHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetFuturesFundingFeeHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -4647,8 +4630,7 @@ func (this *Woo) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	response := (<-this.V3PublicGetFundingRate(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetFundingRate(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -4704,8 +4686,7 @@ func (this *Woo) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.V3PublicGetFundingRate(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetFundingRate(params)).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -4792,8 +4773,7 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.V3PublicGetFundingRateHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetFundingRateHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -4874,7 +4854,7 @@ func (this *Woo) setPositionModeBody(ch chan any, hedged any, optionalArgs ...an
 		"positionMode": hedgeMode,
 	}
 
-	response := (<-this.V3PrivatePutFuturesPositionMode(this.Extend(request, params)))
+	response := (<-this.V3PrivatePutFuturesPositionMode(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -4917,7 +4897,7 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 	var response any = nil
 	if GetValue(market, "spot") == true {
 
-		response = (<-this.V3PrivateGetAccountInfo(params))
+		response = (<-this.V3PrivateGetAccountInfo(params)).Raw
 		PanicOnError(response)
 	} else if GetValue(market, "swap") == true {
 		var request map[string]any = map[string]any{
@@ -4929,7 +4909,7 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 		params = GetValue(marginModeparamsVariable, 1)
 		request["marginMode"] = this.EncodeMarginMode(marginMode)
 
-		response = (<-this.V3PrivateGetFuturesLeverage(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetFuturesLeverage(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" fetchLeverage() is not supported for ", market["type"]), " markets")))
@@ -5012,7 +4992,7 @@ func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 	}
 	if (symbol == nil) || (IsEqual(this.SafeBool(market, "spot"), true)) {
 
-		retRes410319 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params)))
+		retRes410319 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params))).Raw
 		PanicOnError(retRes410319)
 		ch <- retRes410319
 		return nil
@@ -5024,7 +5004,7 @@ func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 		params = GetValue(marginModeparamsVariable, 1)
 		request["marginMode"] = this.EncodeMarginMode(marginMode)
 
-		retRes410919 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params)))
+		retRes410919 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params))).Raw
 		PanicOnError(retRes410919)
 		ch <- retRes410919
 		return nil
@@ -5110,7 +5090,7 @@ func (this *Woo) modifyMarginHelperBody(ch chan any, symbol any, amount any, typ
 		"action":        typeVar,
 	}
 
-	retRes415615 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params)))
+	retRes415615 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params))).Raw
 	PanicOnError(retRes415615)
 	ch <- retRes415615
 	return nil
@@ -5405,8 +5385,7 @@ func (this *Woo) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, op
 		"sellQuantity": this.NumberToString(amount),
 	}
 
-	response := (<-this.V3PrivateGetConvertRfq(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetConvertRfq(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -5465,8 +5444,7 @@ func (this *Woo) createConvertTradeBody(ch chan any, id any, fromCode any, toCod
 		"quoteId": id,
 	}
 
-	response := (<-this.V3PrivatePostConvertRft(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostConvertRft(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -5513,8 +5491,7 @@ func (this *Woo) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...any)
 		"quoteId": id,
 	}
 
-	response := (<-this.V3PrivateGetConvertTrade(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetConvertTrade(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -5588,8 +5565,7 @@ func (this *Woo) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any) 
 		AddElementToObject(request, "size", limit)
 	}
 
-	response := (<-this.V3PrivateGetConvertTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetConvertTrades(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,
@@ -5698,8 +5674,7 @@ func (this *Woo) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V3PrivateGetConvertAssetInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetConvertAssetInfo(params)).Raw))
 	//
 	//     {
 	//         "success": true,

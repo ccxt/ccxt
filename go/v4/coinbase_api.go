@@ -238,256 +238,256 @@ func (this *Coinbase) V2PrivateDeleteAccountsAccountIdTransactionsTransactionId(
 }
 
 // V3PublicGetBrokerageTime returns a channel that yields a JSON object.
-func (this *Coinbase) V3PublicGetBrokerageTime(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/time", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PublicGetBrokerageTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/time", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PublicGetBrokerageMarketProductBook returns a channel that yields a JSON object.
-func (this *Coinbase) V3PublicGetBrokerageMarketProductBook(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/market/product_book", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PublicGetBrokerageMarketProductBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/market/product_book", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PublicGetBrokerageMarketProducts returns a channel that yields a JSON object.
-func (this *Coinbase) V3PublicGetBrokerageMarketProducts(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/market/products", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PublicGetBrokerageMarketProducts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/market/products", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PublicGetBrokerageMarketProductsProductId returns a channel that yields a JSON object.
-func (this *Coinbase) V3PublicGetBrokerageMarketProductsProductId(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/market/products/{product_id}", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PublicGetBrokerageMarketProductsProductId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/market/products/{product_id}", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PublicGetBrokerageMarketProductsProductIdCandles returns a channel that yields a JSON object.
-func (this *Coinbase) V3PublicGetBrokerageMarketProductsProductIdCandles(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/market/products/{product_id}/candles", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PublicGetBrokerageMarketProductsProductIdCandles(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/market/products/{product_id}/candles", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PublicGetBrokerageMarketProductsProductIdTicker returns a channel that yields a JSON object.
-func (this *Coinbase) V3PublicGetBrokerageMarketProductsProductIdTicker(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/market/products/{product_id}/ticker", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PublicGetBrokerageMarketProductsProductIdTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/market/products/{product_id}/ticker", []string{"v3", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PrivateGetBrokerageAccounts returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageAccounts(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/accounts", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/accounts", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageAccountsAccountUuid returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageAccountsAccountUuid(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/accounts/{account_uuid}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageAccountsAccountUuid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/accounts/{account_uuid}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageOrdersHistoricalBatch returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageOrdersHistoricalBatch(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/orders/historical/batch", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageOrdersHistoricalBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/orders/historical/batch", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageOrdersHistoricalFills returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageOrdersHistoricalFills(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/orders/historical/fills", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageOrdersHistoricalFills(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/orders/historical/fills", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageOrdersHistoricalOrderId returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageOrdersHistoricalOrderId(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/orders/historical/{order_id}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageOrdersHistoricalOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/orders/historical/{order_id}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageProducts returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageProducts(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/products", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PrivateGetBrokerageProducts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/products", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PrivateGetBrokerageProductsProductId returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageProductsProductId(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/products/{product_id}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PrivateGetBrokerageProductsProductId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/products/{product_id}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PrivateGetBrokerageProductsProductIdCandles returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageProductsProductIdCandles(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/products/{product_id}/candles", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PrivateGetBrokerageProductsProductIdCandles(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/products/{product_id}/candles", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PrivateGetBrokerageProductsProductIdTicker returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageProductsProductIdTicker(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/products/{product_id}/ticker", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PrivateGetBrokerageProductsProductIdTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/products/{product_id}/ticker", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PrivateGetBrokerageBestBidAsk returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageBestBidAsk(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/best_bid_ask", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PrivateGetBrokerageBestBidAsk(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/best_bid_ask", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PrivateGetBrokerageProductBook returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageProductBook(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/product_book", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PrivateGetBrokerageProductBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/product_book", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PrivateGetBrokerageTransactionSummary returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageTransactionSummary(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/transaction_summary", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Coinbase) V3PrivateGetBrokerageTransactionSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/transaction_summary", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // V3PrivateGetBrokeragePortfolios returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokeragePortfolios(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/portfolios", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokeragePortfolios(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/portfolios", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokeragePortfoliosPortfolioUuid returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokeragePortfoliosPortfolioUuid(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/portfolios/{portfolio_uuid}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokeragePortfoliosPortfolioUuid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/portfolios/{portfolio_uuid}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageConvertTradeTradeId returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageConvertTradeTradeId(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/convert/trade/{trade_id}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageConvertTradeTradeId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/convert/trade/{trade_id}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageCfmBalanceSummary returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageCfmBalanceSummary(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/cfm/balance_summary", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageCfmBalanceSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/cfm/balance_summary", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageCfmPositions returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageCfmPositions(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/cfm/positions", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageCfmPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/cfm/positions", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageCfmPositionsProductId returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageCfmPositionsProductId(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/cfm/positions/{product_id}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageCfmPositionsProductId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/cfm/positions/{product_id}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageCfmSweeps returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageCfmSweeps(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/cfm/sweeps", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageCfmSweeps(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/cfm/sweeps", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageCfmIntradayCurrentMarginWindow returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageCfmIntradayCurrentMarginWindow(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/cfm/intraday/current_margin_window", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageCfmIntradayCurrentMarginWindow(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/cfm/intraday/current_margin_window", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageCfmIntradayMarginSetting returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageCfmIntradayMarginSetting(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/cfm/intraday/margin_setting", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageCfmIntradayMarginSetting(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/cfm/intraday/margin_setting", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageIntxBalancesPortfolioUuid returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageIntxBalancesPortfolioUuid(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/intx/balances/{portfolio_uuid}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageIntxBalancesPortfolioUuid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/intx/balances/{portfolio_uuid}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageIntxPortfolioPortfolioUuid returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageIntxPortfolioPortfolioUuid(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/intx/portfolio/{portfolio_uuid}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageIntxPortfolioPortfolioUuid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/intx/portfolio/{portfolio_uuid}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageIntxPositionsPortfolioUuid returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageIntxPositionsPortfolioUuid(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/intx/positions/{portfolio_uuid}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageIntxPositionsPortfolioUuid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/intx/positions/{portfolio_uuid}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/intx/positions/{portfolio_uuid}/{symbol}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/intx/positions/{portfolio_uuid}/{symbol}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokeragePaymentMethods returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokeragePaymentMethods(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/payment_methods", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokeragePaymentMethods(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/payment_methods", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokeragePaymentMethodsPaymentMethodId returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokeragePaymentMethodsPaymentMethodId(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/payment_methods/{payment_method_id}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokeragePaymentMethodsPaymentMethodId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/payment_methods/{payment_method_id}", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateGetBrokerageKeyPermissions returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateGetBrokerageKeyPermissions(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/key_permissions", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateGetBrokerageKeyPermissions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/key_permissions", []string{"v3", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageOrders returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageOrders(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/orders", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/orders", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageOrdersBatchCancel returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageOrdersBatchCancel(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/orders/batch_cancel", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageOrdersBatchCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/orders/batch_cancel", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageOrdersEdit returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageOrdersEdit(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/orders/edit", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageOrdersEdit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/orders/edit", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageOrdersEditPreview returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageOrdersEditPreview(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/orders/edit_preview", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageOrdersEditPreview(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/orders/edit_preview", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageOrdersPreview returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageOrdersPreview(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/orders/preview", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageOrdersPreview(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/orders/preview", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokeragePortfolios returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokeragePortfolios(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/portfolios", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokeragePortfolios(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/portfolios", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokeragePortfoliosMoveFunds returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokeragePortfoliosMoveFunds(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/portfolios/move_funds", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokeragePortfoliosMoveFunds(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/portfolios/move_funds", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageConvertQuote returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageConvertQuote(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/convert/quote", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageConvertQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/convert/quote", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageConvertTradeTradeId returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageConvertTradeTradeId(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/convert/trade/{trade_id}", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageConvertTradeTradeId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/convert/trade/{trade_id}", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageCfmSweepsSchedule returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageCfmSweepsSchedule(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/cfm/sweeps/schedule", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageCfmSweepsSchedule(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/cfm/sweeps/schedule", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageCfmIntradayMarginSetting returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageCfmIntradayMarginSetting(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/cfm/intraday/margin_setting", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageCfmIntradayMarginSetting(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/cfm/intraday/margin_setting", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageIntxAllocate returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageIntxAllocate(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/intx/allocate", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageIntxAllocate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/intx/allocate", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageIntxMultiAssetCollateral returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageIntxMultiAssetCollateral(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/intx/multi_asset_collateral", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageIntxMultiAssetCollateral(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/intx/multi_asset_collateral", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePostBrokerageOrdersClosePosition returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePostBrokerageOrdersClosePosition(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/orders/close_position", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePostBrokerageOrdersClosePosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/orders/close_position", []string{"v3", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivatePutBrokeragePortfoliosPortfolioUuid returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivatePutBrokeragePortfoliosPortfolioUuid(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/portfolios/{portfolio_uuid}", []string{"v3", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivatePutBrokeragePortfoliosPortfolioUuid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/portfolios/{portfolio_uuid}", []string{"v3", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateDeleteBrokeragePortfoliosPortfolioUuid returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateDeleteBrokeragePortfoliosPortfolioUuid(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/portfolios/{portfolio_uuid}", []string{"v3", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateDeleteBrokeragePortfoliosPortfolioUuid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/portfolios/{portfolio_uuid}", []string{"v3", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V3PrivateDeleteBrokerageCfmSweeps returns a channel that yields a JSON object.
-func (this *Coinbase) V3PrivateDeleteBrokerageCfmSweeps(args ...any) <-chan any {
-	return this.Fetch2Async("brokerage/cfm/sweeps", []string{"v3", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Coinbase) V3PrivateDeleteBrokerageCfmSweeps(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "brokerage/cfm/sweeps", []string{"v3", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

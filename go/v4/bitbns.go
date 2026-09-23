@@ -323,7 +323,7 @@ func (this *Bitbns) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V1GetPlatformStatus(params))
+	response := (<-this.V1GetPlatformStatus(params)).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -369,8 +369,7 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.WwwGetOrderFetchMarkets(params))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.WwwGetOrderFetchMarkets(params)).Raw))
 	//
 	//     [
 	//         {
@@ -510,7 +509,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		request["limit"] = limit // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
 	}
 
-	response := (<-this.WwwGetOrderFetchOrderbook(this.Extend(request, params)))
+	response := (<-this.WwwGetOrderFetchOrderbook(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -620,7 +619,7 @@ func (this *Bitbns) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.WwwGetOrderFetchTickers(params))
+	response := (<-this.WwwGetOrderFetchTickers(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -711,7 +710,7 @@ func (this *Bitbns) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V1PostCurrentCoinBalanceEVERYTHING(params))
+	response := (<-this.V1PostCurrentCoinBalanceEVERYTHING(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -888,11 +887,11 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var response any = nil
 	if IsEqual(typeVar, "limit") {
 
-		response = (<-this.V2PostOrders(this.Extend(request, params)))
+		response = (<-this.V2PostOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V1PostPlaceMarketOrderQntySymbol(this.Extend(request, params)))
+		response = (<-this.V1PostPlaceMarketOrderQntySymbol(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -969,7 +968,7 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	quoteSide = Add(quoteSide, tail)
 	request["side"] = quoteSide
 
-	response = (<-this.V2PostCancel(this.Extend(request, params)))
+	response = (<-this.V2PostCancel(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var parsed any = func() any {
 		if response == nil {
@@ -1021,8 +1020,7 @@ func (this *Bitbns) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		panic(BadRequest(this.Id + " fetchOrder cannot fetch stop orders"))
 	}
 
-	response := (<-this.V1PostOrderStatusSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PostOrderStatusSymbol(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "data":[
@@ -1111,8 +1109,7 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		}(),
 	}
 
-	response := (<-this.V2PostGetordersnew(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PostGetordersnew(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "data":[
@@ -1263,8 +1260,7 @@ func (this *Bitbns) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["since"] = this.Iso8601(since)
 	}
 
-	response := (<-this.V1PostListExecutedOrdersSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PostListExecutedOrdersSymbol(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "data": [
@@ -1349,7 +1345,7 @@ func (this *Bitbns) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"market": market["quoteId"],
 	}
 
-	response := (<-this.WwwGetExchangeDataTradedetails(this.Extend(request, params)))
+	response := (<-this.WwwGetExchangeDataTradedetails(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1402,8 +1398,7 @@ func (this *Bitbns) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"page":   0,
 	}
 
-	response := (<-this.V1PostDepositHistorySymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PostDepositHistorySymbol(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "data":[
@@ -1472,8 +1467,7 @@ func (this *Bitbns) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		"page":   0,
 	}
 
-	response := (<-this.V1PostWithdrawHistorySymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PostWithdrawHistorySymbol(this.Extend(request, params))).Raw))
 	//
 	//     ...
 	//
@@ -1608,7 +1602,7 @@ func (this *Bitbns) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		"symbol": currency["id"],
 	}
 
-	response := (<-this.V1PostGetCoinAddressSymbol(this.Extend(request, params)))
+	response := (<-this.V1PostGetCoinAddressSymbol(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {

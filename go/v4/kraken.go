@@ -695,7 +695,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promises []any = []any{}
-	promises = append(promises, this.PublicGetAssetPairs(params))
+	promises = append(promises, EndpointRaw(this.PublicGetAssetPairs(params)))
 	if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
 		promises = append(promises, this.LoadTimeDifferenceAsync())
 	}
@@ -894,7 +894,7 @@ func (this *Kraken) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetSystemStatus(params))
+	response := (<-this.PublicGetSystemStatus(params)).Raw
 	PanicOnError(response)
 	//
 	// {
@@ -939,8 +939,7 @@ func (this *Kraken) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetAssets(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAssets(params)).Raw))
 	//
 	//     {
 	//         "error": [],
@@ -1127,8 +1126,7 @@ func (this *Kraken) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		"fee-info": true,
 	}
 
-	response := (<-this.PrivatePostTradeVolume(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeVolume(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//        "error": [],
@@ -1349,8 +1347,7 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["pair"] = Join(marketIds, ",")
 	}
 
-	response := (<-this.PublicGetTicker(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTicker(this.Extend(request, params))).Raw))
 	var tickers map[string]any = SafeMapTyped(response, "result")
 	var ids []string = ObjectKeys(tickers)
 	var result map[string]any = map[string]any{}
@@ -1394,8 +1391,7 @@ func (this *Kraken) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetTicker(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTicker(this.Extend(request, params))).Raw))
 	var tickerResult map[string]any = SafeMapTyped(response, "result")
 	var ticker any = this.SafeValue(tickerResult, market["id"])
 
@@ -1621,8 +1617,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["end"] = this.ParseToInt(Precise.StringAdd(untilDivided, "1"))
 	}
 
-	response := (<-this.PrivatePostLedgers(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostLedgers(this.Extend(request, params))).Raw))
 	// {  error: [],
 	//   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
 	//                                                   "time":  1520103488.314,
@@ -1668,8 +1663,7 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan any, ids any, optionalAr
 		"id": ids,
 	}, params)
 
-	response := (<-this.PrivatePostQueryLedgers(request))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostQueryLedgers(request)).Raw))
 	// {  error: [],
 	//   "result": { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
 	//                                         "time":  1520103488.314,
@@ -1996,7 +1990,7 @@ func (this *Kraken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostBalanceEx(params))
+	response := (<-this.PrivatePostBalanceEx(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -2140,8 +2134,7 @@ func (this *Kraken) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		return strings.Index(*flags, "viqc")
 	}() > -1)
 
-	response := (<-this.PrivatePostAddOrder(this.Extend(GetValue(orderRequest, 0), GetValue(orderRequest, 1))))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAddOrder(this.Extend(GetValue(orderRequest, 0), GetValue(orderRequest, 1)))).Raw))
 	//
 	//     {
 	//         "error": [],
@@ -2222,7 +2215,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	}
 	request = this.Extend(request, params)
 
-	response = (<-this.PrivatePostAddOrderBatch(request))
+	response = (<-this.PrivatePostAddOrderBatch(request)).Raw
 	PanicOnError(response)
 	//
 	//         {
@@ -2857,8 +2850,7 @@ func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		}
 	}
 
-	response := (<-this.PrivatePostAmendOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAmendOrder(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "error": [],
@@ -2910,8 +2902,7 @@ func (this *Kraken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		query = this.Omit(params, []any{"userref", "clientOrderId"})
 	}
 
-	response := (<-this.PrivatePostQueryOrders(this.Extend(request, query)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostQueryOrders(this.Extend(request, query))).Raw))
 	//
 	//     {
 	//         "error":[],
@@ -3027,8 +3018,7 @@ func (this *Kraken) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 			"txid": Join(requestIds, ","),
 		}
 
-		response := (<-this.PrivatePostQueryTrades(request))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostQueryTrades(request)).Raw))
 		//
 		//     {
 		//         "error": [],
@@ -3091,11 +3081,10 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostQueryOrders(this.Extend(map[string]any{
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostQueryOrders(this.Extend(map[string]any{
 		"trades": true,
 		"txid":   Join(ids, ","),
-	}, params)))
-	PanicOnError(response)
+	}, params))).Raw))
 	var result map[string]any = SafeMapTyped(response, "result")
 	var orders []any = []any{}
 	var orderIds []string = ObjectKeys(result)
@@ -3156,8 +3145,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["end"] = this.ParseToInt(Precise.StringAdd(untilDivided, "1"))
 	}
 
-	response := (<-this.PrivatePostTradesHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradesHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "error": [],
@@ -3264,7 +3252,7 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 			}()
 			// try block:
 
-			response = (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
+			response = (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 			return nil
 		}(this)
@@ -3303,7 +3291,7 @@ func (this *Kraken) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		"orders": ids,
 	}
 
-	response := (<-this.PrivatePostCancelOrderBatch(this.Extend(request, params)))
+	response := (<-this.PrivatePostCancelOrderBatch(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3346,7 +3334,7 @@ func (this *Kraken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostCancelAll(params))
+	response := (<-this.PrivatePostCancelAll(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -3404,7 +3392,7 @@ func (this *Kraken) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalA
 		}(),
 	}
 
-	response := (<-this.PrivatePostCancelAllOrdersAfter(this.Extend(request, params)))
+	response := (<-this.PrivatePostCancelAllOrdersAfter(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3468,8 +3456,7 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		params = MapTyped(this.Omit(params, "clientOrderId"))
 	}
 
-	response := (<-this.PrivatePostOpenOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "error": [],
@@ -3579,8 +3566,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
-	response := (<-this.PrivatePostClosedOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostClosedOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "error":[],
@@ -3833,8 +3819,7 @@ func (this *Kraken) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["end"] = Precise.StringAdd(untilDivided, "1")
 	}
 
-	response := (<-this.PrivatePostDepositStatus(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDepositStatus(this.Extend(request, params))).Raw))
 	//
 	//     {  error: [],
 	//       "result": [ { "method": "Ether (Hex)",
@@ -3874,8 +3859,7 @@ func (this *Kraken) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetTime(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTime(params)).Raw))
 	//
 	//    {
 	//        "error": [],
@@ -3952,8 +3936,7 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["end"] = Precise.StringAdd(untilDivided, "1")
 	}
 
-	response := (<-this.PrivatePostWithdrawStatus(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawStatus(this.Extend(request, params))).Raw))
 	//
 	// with no pagination
 	//     {  error: [],
@@ -4072,8 +4055,7 @@ func (this *Kraken) fetchDepositMethodsBody(ch chan any, code any, optionalArgs 
 		"asset": currency["id"],
 	}
 
-	response := (<-this.PrivatePostDepositMethods(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDepositMethods(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -4165,8 +4147,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		"method": depositMethod,
 	}
 
-	response := (<-this.PrivatePostDepositAddresses(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDepositAddresses(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "error":[],
@@ -4247,8 +4228,7 @@ func (this *Kraken) withdrawBody(ch chan any, code any, amount any, address any,
 			this.CheckAddress(address)
 		}
 
-		response := (<-this.PrivatePostWithdraw(this.Extend(request, params)))
-		PanicOnError(response)
+		var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdraw(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "error": [],
@@ -4295,8 +4275,7 @@ func (this *Kraken) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"consolidation": "market",
 	}
 
-	response := (<-this.PrivatePostOpenPositions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenPositions(this.Extend(request, params))).Raw))
 	//
 	// no consolidation
 	//
@@ -4479,7 +4458,7 @@ func (this *Kraken) transferBody(ch chan any, code any, amount any, fromAccount 
 		panic(BadRequest(this.Id + " transfer cannot transfer from " + *fromAccountParsed + " to " + *toAccountParsed + ". Use krakenfutures instead to transfer from the futures account."))
 	}
 
-	response := (<-this.PrivatePostWalletTransfer(this.Extend(request, params)))
+	response := (<-this.PrivatePostWalletTransfer(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//   {

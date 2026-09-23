@@ -649,11 +649,11 @@ func (this *Coinspot) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if (method != nil && *method == "private_post_ro_my_balances") || (method != nil && *method == "privatePostRoMyBalances") {
 
-		response = (<-this.PrivatePostRoMyBalances(params))
+		response = (<-this.PrivatePostRoMyBalances(params)).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostMyBalances(params))
+		response = (<-this.PrivatePostMyBalances(params)).Raw
 		PanicOnError(response)
 	}
 
@@ -708,7 +708,7 @@ func (this *Coinspot) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"cointype": market["id"],
 	}
 
-	orderbook := (<-this.PrivatePostOrders(this.Extend(request, params)))
+	orderbook := (<-this.PrivatePostOrders(this.Extend(request, params))).Raw
 	PanicOnError(orderbook)
 
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "buyorders", "sellorders", "rate", "amount")
@@ -777,8 +777,7 @@ func (this *Coinspot) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 
-	response := (<-this.PublicGetLatest(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetLatest(params)).Raw))
 	var id any = DerefScalar(this.SafeString(market, "id", ""))
 	id = ToLower(id)
 	var prices map[string]any = SafeMapTyped(response, "prices")
@@ -826,8 +825,7 @@ func (this *Coinspot) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetLatest(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetLatest(params)).Raw))
 	//
 	//    {
 	//        "status": "ok",
@@ -896,8 +894,7 @@ func (this *Coinspot) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"cointype": market["id"],
 	}
 
-	response := (<-this.PrivatePostOrdersHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrdersHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "status":"ok",
@@ -952,8 +949,7 @@ func (this *Coinspot) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["startdate"] = this.Yyyymmdd(since)
 	}
 
-	response := (<-this.PrivatePostRoMyTransactions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostRoMyTransactions(this.Extend(request, params))).Raw))
 	//  {
 	//      "status": "ok",
 	//      "buyorders": [
@@ -1110,11 +1106,11 @@ func (this *Coinspot) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var response any = nil
 	if sideUpper == "BUY" {
 
-		response = (<-this.PrivatePostMyBuy(this.Extend(request, params)))
+		response = (<-this.PrivatePostMyBuy(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if sideUpper == "SELL" {
 
-		response = (<-this.PrivatePostMySell(this.Extend(request, params)))
+		response = (<-this.PrivatePostMySell(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " createOrder only support buy/sell side"))
@@ -1163,11 +1159,11 @@ func (this *Coinspot) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var response any = nil
 	if side != nil && *side == "buy" {
 
-		response = (<-this.PrivatePostMyBuyCancel(this.Extend(request, params)))
+		response = (<-this.PrivatePostMyBuyCancel(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostMySellCancel(this.Extend(request, params)))
+		response = (<-this.PrivatePostMySellCancel(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 

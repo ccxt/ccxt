@@ -1086,8 +1086,7 @@ func (this *Hashkey) authenticateBody(ch chan any, optionalArgs ...any) any {
 			}()
 			// try block:
 
-			response := (<-this.PrivatePostApiV1UserDataStream(params))
-			ccxt.PanicOnError(response)
+			var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostApiV1UserDataStream(params)).Raw))
 			//
 			//    {
 			//        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
@@ -1153,7 +1152,7 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan any, listenKey any, optional
 			}()
 			// try block:
 
-			ccxt.PanicOnError((<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params))))
+			ccxt.PanicOnError((<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params))).Raw)
 			var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, listenKey, params)
 			return nil

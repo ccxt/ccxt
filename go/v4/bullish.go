@@ -615,8 +615,7 @@ func (this *Bullish) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetV1Time(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1Time(params)).Raw))
 
 	//
 	//     {
@@ -647,7 +646,7 @@ func (this *Bullish) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetV1Assets(params))
+	response := (<-this.PublicGetV1Assets(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -750,7 +749,7 @@ func (this *Bullish) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 
-	response := (<-this.PublicGetV1Markets(params))
+	response := (<-this.PublicGetV1Markets(params)).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseMarkets(response)
@@ -1137,7 +1136,7 @@ func (this *Bullish) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetV1MarketsSymbolOrderbookHybrid(this.Extend(request, params)))
+	response := (<-this.PublicGetV1MarketsSymbolOrderbookHybrid(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1217,7 +1216,7 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 
-	response := (<-this.PublicGetV1HistoryMarketsSymbolTrades(this.Extend(request, params)))
+	response := (<-this.PublicGetV1HistoryMarketsSymbolTrades(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1287,7 +1286,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if clientOrderId != nil {
 
-		response = (<-this.PrivateGetV1TradesClientOrderIdClientOrderId(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1TradesClientOrderIdClientOrderId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		var paginate bool = false
@@ -1326,7 +1325,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		//     ]
 		//
 
-		response = (<-this.PrivateGetV1HistoryTrades(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1HistoryTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -1501,7 +1500,7 @@ func (this *Bullish) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetV1MarketsSymbolTick(this.Extend(request, params)))
+	response := (<-this.PublicGetV1MarketsSymbolTick(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1773,8 +1772,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(startTime))
 	AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
 
-	response := (<-this.PublicGetV1MarketsSymbolCandle(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetV1MarketsSymbolCandle(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -1858,8 +1856,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	params = this.HandleSinceAndUntil(since, params, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]")
 
-	response := (<-this.PublicGetV1HistoryMarketsSymbolFundingRate(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetV1HistoryMarketsSymbolFundingRate(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -1991,11 +1988,11 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		//     ]
 		//
 
-		response = (<-this.PrivateGetV2Orders(this.Extend(request, params)))
+		response = (<-this.PrivateGetV2Orders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if IsEqual(method, "privateGetV2HistoryOrders") {
 
-		response = (<-this.PrivateGetV2HistoryOrders(this.Extend(request, params)))
+		response = (<-this.PrivateGetV2HistoryOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		panic(BadRequest(this.Id + " fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\""))
@@ -2260,7 +2257,7 @@ func (this *Bullish) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"tradingAccountId": tradingAccountId,
 	}
 
-	response := (<-this.PrivateGetV2OrdersOrderId(this.Extend(request, params)))
+	response := (<-this.PrivateGetV2OrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2365,7 +2362,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	}
 	request["type"] = ToUpper(typeVar)
 
-	response := (<-this.PrivatePostV2Orders(this.Extend(request, params)))
+	response := (<-this.PrivatePostV2Orders(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2441,7 +2438,7 @@ func (this *Bullish) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 
-	response := (<-this.PrivatePostV2Command(this.Extend(request, params)))
+	response := (<-this.PrivatePostV2Command(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response, market)
@@ -2488,7 +2485,7 @@ func (this *Bullish) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"orderId":          id,
 	}
 
-	response := (<-this.PrivatePostV2Command(this.Extend(request, params)))
+	response := (<-this.PrivatePostV2Command(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2542,7 +2539,7 @@ func (this *Bullish) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["commandType"] = "V1CancelAllOrders"
 	}
 
-	response := (<-this.PrivatePostV2Command(this.Extend(request, params)))
+	response := (<-this.PrivatePostV2Command(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -2720,8 +2717,7 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 		AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(since))
 	}
 
-	response := (<-this.PrivateGetV1WalletsTransactions(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1WalletsTransactions(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "data": [
@@ -2815,7 +2811,7 @@ func (this *Bullish) withdrawBody(ch chan any, code any, amount any, address any
 		panic(ArgumentsRequired(this.Id + " withdraw() requires a network parameter"))
 	}
 
-	response := (<-this.PrivatePostV1WalletsWithdrawal(this.Extend(request, params)))
+	response := (<-this.PrivatePostV1WalletsWithdrawal(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2939,8 +2935,7 @@ func (this *Bullish) loadAccountBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(tradingAccountIdparamsVariable, 1)
 	if IsEqual(tradingAccountId, nil) {
 
-		response := (<-this.PrivateGetV1AccountsTradingAccounts(params))
-		PanicOnError(response)
+		var response []any = ListTyped(PanicOnError((<-this.PrivateGetV1AccountsTradingAccounts(params)).Raw))
 		var accounts []any = this.ToArray(response)
 		for i := 0; i < len(accounts); i++ {
 			var account any = func() any {
@@ -2986,7 +2981,7 @@ func (this *Bullish) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	response := (<-this.PrivateGetV1AccountsTradingAccounts(params))
+	response := (<-this.PrivateGetV1AccountsTradingAccounts(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -3107,8 +3102,7 @@ func (this *Bullish) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		"symbol": currency["id"],
 	}
 
-	response := (<-this.PrivateGetV1WalletsDepositInstructionsCryptoSymbol(this.Extend(request, params)))
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetV1WalletsDepositInstructionsCryptoSymbol(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -3201,14 +3195,14 @@ func (this *Bullish) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		request["symbol"] = GetValue(this.Currency(code), "id")
 
-		response = (<-this.PrivateGetV1AccountsAssetSymbol(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1AccountsAssetSymbol(this.Extend(request, params))).Raw
 		PanicOnError(response)
 
 		ch <- this.ParseBalanceForSingleCurrency(response, code)
 		return nil
 	} else {
 
-		response = (<-this.PrivateGetV1AccountsAsset(this.Extend(request, params)))
+		response = (<-this.PrivateGetV1AccountsAsset(this.Extend(request, params))).Raw
 		PanicOnError(response)
 
 		//
@@ -3290,7 +3284,7 @@ func (this *Bullish) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"tradingAccountId": tradingAccountId,
 	}
 
-	response := (<-this.PrivateGetV1DerivativesPositions(this.Extend(request, params)))
+	response := (<-this.PrivateGetV1DerivativesPositions(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     [
@@ -3451,7 +3445,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 
-	response := (<-this.PrivateGetV1HistoryTransfer(this.Extend(request, params)))
+	response := (<-this.PrivateGetV1HistoryTransfer(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3508,7 +3502,7 @@ func (this *Bullish) transferBody(ch chan any, code any, amount any, fromAccount
 		"toTradingAccountId":   toAccount,
 	}
 
-	response := (<-this.PrivatePostV2Command(this.Extend(request, params)))
+	response := (<-this.PrivatePostV2Command(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -3634,7 +3628,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(startTimestamp))
 	AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
 
-	response := (<-this.PrivateGetV1HistoryBorrowInterest(this.Extend(request, params)))
+	response := (<-this.PrivateGetV1HistoryBorrowInterest(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3708,7 +3702,7 @@ func (this *Bullish) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetV1MarketsSymbolTick(this.Extend(request, params)))
+	response := (<-this.PublicGetV1MarketsSymbolTick(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -3903,8 +3897,7 @@ func (this *Bullish) signInBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PrivateGetV1UsersHmacLogin(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1UsersHmacLogin(params)).Raw))
 	//
 	//     {
 	//         "authorizer": "113363EFA2CA00007368524E02000000",

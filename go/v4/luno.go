@@ -510,8 +510,7 @@ func (this *Luno) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	response := (<-this.PrivateGetSendNetworks(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetSendNetworks(params)).Raw))
 	//
 	//     {
 	//         "networks": [
@@ -606,8 +605,7 @@ func (this *Luno) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.ExchangeGetMarkets(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ExchangeGetMarkets(params)).Raw))
 	//
 	//     {
 	//         "markets":[
@@ -744,8 +742,7 @@ func (this *Luno) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PrivateGetBalance(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetBalance(params)).Raw))
 	var wallets []any = SafeListTyped(response, "balance")
 	var result []any = []any{}
 	for i := 0; i < len(wallets); i++ {
@@ -842,7 +839,7 @@ func (this *Luno) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetBalance(params))
+	response := (<-this.PrivateGetBalance(params)).Raw
 	PanicOnError(response)
 
 	//
@@ -893,11 +890,11 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var response any = nil
 	if (limit != nil) && IsLessThanOrEqual(limit, 100) {
 
-		response = (<-this.PublicGetOrderbookTop(this.Extend(request, params)))
+		response = (<-this.PublicGetOrderbookTop(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PublicGetOrderbook(this.Extend(request, params)))
+		response = (<-this.PublicGetOrderbook(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
@@ -1022,7 +1019,7 @@ func (this *Luno) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		"id": id,
 	}
 
-	response := (<-this.PrivateGetOrdersId(this.Extend(request, params)))
+	response := (<-this.PrivateGetOrdersId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	ch <- this.ParseOrder(response)
@@ -1058,8 +1055,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ..
 		request["pair"] = GetValue(market, "id")
 	}
 
-	response := (<-this.PrivateGetListorders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetListorders(this.Extend(request, params))).Raw))
 	var orders []any = SafeListTypedDefault(response, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -1234,8 +1230,7 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetTickers(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
 	var rawTickers []any = SafeListTyped(response, "tickers")
 	var tickers map[string]any = this.IndexBy(rawTickers, "pair")
 	var ids []string = ObjectKeys(tickers)
@@ -1280,7 +1275,7 @@ func (this *Luno) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetTicker(this.Extend(request, params)))
+	response := (<-this.PublicGetTicker(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	// {
@@ -1429,8 +1424,7 @@ func (this *Luno) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["since"] = since
 	}
 
-	response := (<-this.PublicGetTrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTrades(this.Extend(request, params))).Raw))
 	//
 	//      {
 	//          "trades":[
@@ -1494,8 +1488,7 @@ func (this *Luno) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		request["since"] = Subtract(this.Milliseconds(), duration)
 	}
 
-	response := (<-this.ExchangePrivateGetCandles(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ExchangePrivateGetCandles(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//          "candles": [
@@ -1576,8 +1569,7 @@ func (this *Luno) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetListtrades(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetListtrades(this.Extend(request, params))).Raw))
 	//
 	//      {
 	//          "trades":[
@@ -1633,7 +1625,7 @@ func (this *Luno) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		"pair": market["id"],
 	}
 
-	response := (<-this.PrivateGetFeeInfo(this.Extend(request, params)))
+	response := (<-this.PrivateGetFeeInfo(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1701,7 +1693,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 			request["base_volume"] = this.AmountToPrecision(market["symbol"], amount)
 		}
 
-		response = (<-this.PrivatePostMarketorder(this.Extend(request, params)))
+		response = (<-this.PrivatePostMarketorder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["volume"] = this.AmountToPrecision(market["symbol"], amount)
@@ -1713,7 +1705,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 			return "ASK"
 		}()
 
-		response = (<-this.PrivatePostPostorder(this.Extend(request, params)))
+		response = (<-this.PrivatePostPostorder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	if response == nil {
@@ -1757,7 +1749,7 @@ func (this *Luno) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		"order_id": id,
 	}
 
-	response := (<-this.PrivatePostStoporder(this.Extend(request, params)))
+	response := (<-this.PrivatePostStoporder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -1876,8 +1868,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		"max_row": max_row,
 	}
 
-	response := (<-this.PrivateGetAccountsIdTransactions(this.Extend(params, request)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountsIdTransactions(this.Extend(params, request))).Raw))
 	var entries []any = SafeListTypedDefault(response, "transactions", []any{})
 
 	ch <- this.ParseLedger(entries, currency, since, limit)
@@ -2001,7 +1992,7 @@ func (this *Luno) createDepositAddressBody(ch chan any, code any, optionalArgs .
 		"asset": currency["id"],
 	}
 
-	response := (<-this.PrivatePostFundingAddress(this.Extend(request, params)))
+	response := (<-this.PrivatePostFundingAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2058,7 +2049,7 @@ func (this *Luno) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 		"asset": currency["id"],
 	}
 
-	response := (<-this.PrivateGetFundingAddress(this.Extend(request, params)))
+	response := (<-this.PrivateGetFundingAddress(this.Extend(request, params))).Raw
 	PanicOnError(response)
 
 	//
@@ -2149,7 +2140,7 @@ func (this *Luno) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalArg
 		"currency": currency["id"],
 	}
 
-	response := (<-this.PrivateGetSendFee(this.Extend(request, params)))
+	response := (<-this.PrivateGetSendFee(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {

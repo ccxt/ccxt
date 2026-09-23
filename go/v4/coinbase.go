@@ -709,7 +709,7 @@ func (this *Coinbase) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 		response = this.SafeDict(response, "data", map[string]any{})
 	} else {
 
-		response = (<-this.V3PublicGetBrokerageTime(params))
+		response = (<-this.V3PublicGetBrokerageTime(params)).Raw
 		PanicOnError(response)
 	}
 
@@ -870,8 +870,7 @@ func (this *Coinbase) fetchAccountsV3Body(ch chan any, optionalArgs ...any) any 
 		"limit": 250,
 	}
 
-	response := (<-this.V3PrivateGetBrokerageAccounts(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageAccounts(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "accounts": [
@@ -935,8 +934,7 @@ func (this *Coinbase) fetchPortfoliosBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V3PrivateGetBrokeragePortfolios(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetBrokeragePortfolios(params)).Raw))
 	var portfolios []any = SafeListTyped(response, "portfolios")
 	var result []any = []any{}
 	for i := 0; i < len(portfolios); i++ {
@@ -1910,9 +1908,9 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	params = GetValue(usePrivateparamsVariable, 1)
 	var spotUnresolvedPromises []any = []any{}
 	if usePrivate {
-		spotUnresolvedPromises = append(spotUnresolvedPromises, this.V3PrivateGetBrokerageProducts(params))
+		spotUnresolvedPromises = append(spotUnresolvedPromises, EndpointRaw(this.V3PrivateGetBrokerageProducts(params)))
 	} else {
-		spotUnresolvedPromises = append(spotUnresolvedPromises, this.V3PublicGetBrokerageMarketProducts(params))
+		spotUnresolvedPromises = append(spotUnresolvedPromises, EndpointRaw(this.V3PublicGetBrokerageMarketProducts(params)))
 	}
 	//
 	//    {
@@ -1960,7 +1958,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	if this.CheckRequiredCredentials(false) {
-		spotUnresolvedPromises = append(spotUnresolvedPromises, this.V3PrivateGetBrokerageTransactionSummary(params))
+		spotUnresolvedPromises = append(spotUnresolvedPromises, EndpointRaw(this.V3PrivateGetBrokerageTransactionSummary(params)))
 	}
 	//
 	//    {
@@ -2005,12 +2003,12 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 				}
 			}()
 			// try block:
-			unresolvedContractPromises = []any{this.V3PublicGetBrokerageMarketProducts(this.Extend(params, map[string]any{
+			unresolvedContractPromises = []any{EndpointRaw(this.V3PublicGetBrokerageMarketProducts(this.Extend(params, map[string]any{
 				"product_type": "FUTURE",
-			})), this.V3PublicGetBrokerageMarketProducts(this.Extend(params, map[string]any{
+			}))), EndpointRaw(this.V3PublicGetBrokerageMarketProducts(this.Extend(params, map[string]any{
 				"product_type":         "FUTURE",
 				"contract_expiry_type": "PERPETUAL",
-			}))}
+			})))}
 			return nil
 		}(this)
 
@@ -2766,11 +2764,11 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	params = GetValue(usePrivateparamsVariable, 1)
 	if usePrivate {
 
-		response = (<-this.V3PrivateGetBrokerageProducts(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetBrokerageProducts(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V3PublicGetBrokerageMarketProducts(this.Extend(request, params)))
+		response = (<-this.V3PublicGetBrokerageMarketProducts(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -2939,11 +2937,11 @@ func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol any, optionalArgs ..
 	var response any = nil
 	if usePrivate {
 
-		response = (<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V3PublicGetBrokerageMarketProductsProductIdTicker(this.Extend(request, params)))
+		response = (<-this.V3PublicGetBrokerageMarketProductsProductIdTicker(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -3211,12 +3209,12 @@ func (this *Coinbase) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var method *string = this.SafeString(this.Options, "fetchBalance", "v3PrivateGetBrokerageAccounts")
 	if IsEqual(marketType, "future") {
 
-		response = (<-this.V3PrivateGetBrokerageCfmBalanceSummary(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetBrokerageCfmBalanceSummary(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if (isV3 != nil && *isV3 == true) || (method != nil && *method == "v3PrivateGetBrokerageAccounts") {
 		request["limit"] = 250
 
-		response = (<-this.V3PrivateGetBrokerageAccounts(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetBrokerageAccounts(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		request["limit"] = 250
@@ -4058,11 +4056,11 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 		params = this.Omit(params, []any{"preview", "test"})
 		request = this.Omit(request, "client_order_id")
 
-		response = (<-this.V3PrivatePostBrokerageOrdersPreview(this.Extend(request, params)))
+		response = (<-this.V3PrivatePostBrokerageOrdersPreview(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V3PrivatePostBrokerageOrders(this.Extend(request, params)))
+		response = (<-this.V3PrivatePostBrokerageOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -4361,8 +4359,7 @@ func (this *Coinbase) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		"order_ids": ids,
 	}
 
-	response := (<-this.V3PrivatePostBrokerageOrdersBatchCancel(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostBrokerageOrdersBatchCancel(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "results": [
@@ -4439,11 +4436,11 @@ func (this *Coinbase) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	if preview != nil && *preview == true {
 		params = MapTyped(this.Omit(params, []any{"preview", "test"}))
 
-		response = (<-this.V3PrivatePostBrokerageOrdersEditPreview(this.Extend(request, params)))
+		response = (<-this.V3PrivatePostBrokerageOrdersEditPreview(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V3PrivatePostBrokerageOrdersEdit(this.Extend(request, params)))
+		response = (<-this.V3PrivatePostBrokerageOrdersEdit(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 
@@ -4494,8 +4491,7 @@ func (this *Coinbase) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"order_id": id,
 	}
 
-	response := (<-this.V3PrivateGetBrokerageOrdersHistoricalOrderId(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageOrdersHistoricalOrderId(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "order": {
@@ -4604,8 +4600,7 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["end_date"] = this.Iso8601(until)
 	}
 
-	response := (<-this.V3PrivateGetBrokerageOrdersHistoricalBatch(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageOrdersHistoricalBatch(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "orders": [
@@ -4702,8 +4697,7 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan any, status any, optionalA
 		request["end_date"] = this.Iso8601(until)
 	}
 
-	response := (<-this.V3PrivateGetBrokerageOrdersHistoricalBatch(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageOrdersHistoricalBatch(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "orders": [
@@ -4976,11 +4970,11 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	params = GetValue(usePrivateparamsVariable, 1)
 	if usePrivate {
 
-		response = (<-this.V3PrivateGetBrokerageProductsProductIdCandles(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetBrokerageProductsProductIdCandles(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V3PublicGetBrokerageMarketProductsProductIdCandles(this.Extend(request, params)))
+		response = (<-this.V3PublicGetBrokerageMarketProductsProductIdCandles(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -5077,11 +5071,11 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	params = GetValue(usePrivateparamsVariable, 1)
 	if usePrivate {
 
-		response = (<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V3PublicGetBrokerageMarketProductsProductIdTicker(this.Extend(request, params)))
+		response = (<-this.V3PublicGetBrokerageMarketProductsProductIdTicker(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -5169,8 +5163,7 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["end_sequence_timestamp"] = this.Iso8601(until)
 	}
 
-	response := (<-this.V3PrivateGetBrokerageOrdersHistoricalFills(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageOrdersHistoricalFills(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "fills": [
@@ -5248,11 +5241,11 @@ func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	params = GetValue(usePrivateparamsVariable, 1)
 	if usePrivate {
 
-		response = (<-this.V3PrivateGetBrokerageProductBook(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetBrokerageProductBook(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.V3PublicGetBrokerageMarketProductBook(this.Extend(request, params)))
+		response = (<-this.V3PublicGetBrokerageMarketProductBook(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -5314,8 +5307,7 @@ func (this *Coinbase) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		request["product_ids"] = this.MarketIds(symbols)
 	}
 
-	response := (<-this.V3PrivateGetBrokerageBestBidAsk(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageBestBidAsk(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "pricebooks": [
@@ -5843,8 +5835,7 @@ func (this *Coinbase) fetchDepositMethodIdsBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V3PrivateGetBrokeragePaymentMethods(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetBrokeragePaymentMethods(params)).Raw))
 	//
 	//     {
 	//         "payment_methods": [
@@ -5897,8 +5888,7 @@ func (this *Coinbase) fetchDepositMethodIdBody(ch chan any, id any, optionalArgs
 		"payment_method_id": id,
 	}
 
-	response := (<-this.V3PrivateGetBrokeragePaymentMethodsPaymentMethodId(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetBrokeragePaymentMethodsPaymentMethodId(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "payment_method": {
@@ -5977,8 +5967,7 @@ func (this *Coinbase) fetchConvertQuoteBody(ch chan any, fromCode any, toCode an
 		"amount":       this.NumberToString(amount),
 	}
 
-	response := (<-this.V3PrivatePostBrokerageConvertQuote(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostBrokerageConvertQuote(this.Extend(request, params))).Raw))
 	var data map[string]any = MapTyped(this.SafeDict(response, "trade", map[string]any{}))
 
 	ch <- this.ParseConversion(data)
@@ -6019,8 +6008,7 @@ func (this *Coinbase) createConvertTradeBody(ch chan any, id any, fromCode any, 
 		"to_account":   toCode,
 	}
 
-	response := (<-this.V3PrivatePostBrokerageConvertTradeTradeId(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostBrokerageConvertTradeTradeId(this.Extend(request, params))).Raw))
 	var data map[string]any = MapTyped(this.SafeDict(response, "trade", map[string]any{}))
 
 	ch <- this.ParseConversion(data)
@@ -6068,8 +6056,7 @@ func (this *Coinbase) fetchConvertTradeBody(ch chan any, id any, optionalArgs ..
 		"to_account":   toCode,
 	}
 
-	response := (<-this.V3PrivateGetBrokerageConvertTradeTradeId(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageConvertTradeTradeId(this.Extend(request, params))).Raw))
 	var data map[string]any = MapTyped(this.SafeDict(response, "trade", map[string]any{}))
 
 	ch <- this.ParseConversion(data)
@@ -6135,7 +6122,7 @@ func (this *Coinbase) transferBody(ch chan any, code any, amount any, fromAccoun
 		"target_portfolio_uuid": toAccount,
 	}
 
-	response := (<-this.V3PrivatePostBrokeragePortfoliosMoveFunds(this.Extend(request, params)))
+	response := (<-this.V3PrivatePostBrokeragePortfoliosMoveFunds(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -6212,8 +6199,7 @@ func (this *Coinbase) closePositionBody(ch chan any, symbol any, optionalArgs ..
 	}
 	request["client_order_id"] = clientOrderId
 
-	response := (<-this.V3PrivatePostBrokerageOrdersClosePosition(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostBrokerageOrdersClosePosition(this.Extend(request, params))).Raw))
 	var order map[string]any = MapTyped(this.SafeDict(response, "success_response", map[string]any{}))
 
 	ch <- this.ParseOrder(order)
@@ -6259,7 +6245,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(typeVar, "future") {
 
-		response = (<-this.V3PrivateGetBrokerageCfmPositions(params))
+		response = (<-this.V3PrivateGetBrokerageCfmPositions(params)).Raw
 		PanicOnError(response)
 	} else {
 		var portfolio any = nil
@@ -6273,7 +6259,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			"portfolio_uuid": portfolio,
 		}
 
-		response = (<-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuid(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuid(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var positions []any = SafeListTypedDefault(response, "positions", []any{})
@@ -6319,7 +6305,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 			"product_id": productId,
 		}
 
-		response = (<-this.V3PrivateGetBrokerageCfmPositionsProductId(this.Extend(futureRequest, params)))
+		response = (<-this.V3PrivateGetBrokerageCfmPositionsProductId(this.Extend(futureRequest, params))).Raw
 		PanicOnError(response)
 	} else {
 		var portfolio any = nil
@@ -6334,7 +6320,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 			"portfolio_uuid": portfolio,
 		}
 
-		response = (<-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.Extend(request, params)))
+		response = (<-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	var position map[string]any = MapTyped(this.SafeDict(response, "position", map[string]any{}))
@@ -6529,7 +6515,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 		"product_type": productType,
 	}
 
-	response := (<-this.V3PrivateGetBrokerageTransactionSummary(this.Extend(request, params)))
+	response := (<-this.V3PrivateGetBrokerageTransactionSummary(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	//
 	// {
@@ -6603,7 +6589,7 @@ func (this *Coinbase) fetchPortfolioDetailsBody(ch chan any, portfolioUuid any, 
 		"portfolio_uuid": portfolioUuid,
 	}
 
-	response := (<-this.V3PrivateGetBrokeragePortfoliosPortfolioUuid(this.Extend(request, params)))
+	response := (<-this.V3PrivateGetBrokeragePortfoliosPortfolioUuid(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var result any = this.ParsePortfolioDetails(response)
 

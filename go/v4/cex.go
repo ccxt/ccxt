@@ -380,7 +380,7 @@ func (this *Cex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promises []any = []any{}
-	promises = append(promises, this.PublicPostGetCurrenciesInfo(params))
+	promises = append(promises, EndpointRaw(this.PublicPostGetCurrenciesInfo(params)))
 	//
 	//    {
 	//        "ok": "ok",
@@ -395,7 +395,7 @@ func (this *Cex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//            ...
 	//
-	promises = append(promises, this.PublicPostGetProcessingInfo(params))
+	promises = append(promises, EndpointRaw(this.PublicPostGetProcessingInfo(params)))
 	//
 	//    {
 	//        "ok": "ok",
@@ -516,8 +516,7 @@ func (this *Cex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicPostGetPairsInfo(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetPairsInfo(params)).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -623,8 +622,7 @@ func (this *Cex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicPostGetServerTime(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetServerTime(params)).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -701,8 +699,7 @@ func (this *Cex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["pairs"] = this.MarketIds(symbols)
 	}
 
-	response := (<-this.PublicPostGetTicker(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetTicker(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -810,8 +807,7 @@ func (this *Cex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		request["pageSize"] = mathMin(limit, 10000) // has a bug, still returns more trades
 	}
 
-	response := (<-this.PublicPostGetTradeHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetTradeHistory(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -898,8 +894,7 @@ func (this *Cex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicPostGetOrderBook(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetOrderBook(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -993,8 +988,7 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicPostGetCandles(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetCandles(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -1046,8 +1040,7 @@ func (this *Cex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostGetMyCurrentFee(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetMyCurrentFee(params)).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -1117,8 +1110,7 @@ func (this *Cex) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostGetMyAccountStatusV3(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetMyAccountStatusV3(params)).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -1186,7 +1178,7 @@ func (this *Cex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var accountBalance any = nil
 	if IsEqual(method, "privatePostGetMyAccountStatusV3") {
 
-		response := (<-this.PrivatePostGetMyAccountStatusV3(params))
+		response := (<-this.PrivatePostGetMyAccountStatusV3(params)).Raw
 		PanicOnError(response)
 		//
 		//    {
@@ -1206,7 +1198,7 @@ func (this *Cex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		accountBalance = this.SafeDict(balances, accountName, map[string]any{})
 	} else {
 
-		response := (<-this.PrivatePostGetMyWalletBalance(params))
+		response := (<-this.PrivatePostGetMyWalletBalance(params)).Raw
 		PanicOnError(response)
 		//
 		//    {
@@ -1306,8 +1298,7 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs .
 		request["serverCreateTimestampTo"] = until
 	}
 
-	response := (<-this.PrivatePostGetMyOrders(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetMyOrders(this.Extend(request, params))).Raw))
 	//
 	// if called without `pair`
 	//
@@ -1658,8 +1649,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		request["stopPrice"] = triggerPrice
 	}
 
-	response := (<-this.PrivatePostDoMyNewOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDoMyNewOrder(this.Extend(request, params))).Raw))
 	//
 	// on success
 	//
@@ -1746,8 +1736,7 @@ func (this *Cex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		"timestamp":       this.Milliseconds(),
 	}
 
-	response := (<-this.PrivatePostDoCancelMyOrder(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDoCancelMyOrder(this.Extend(request, params))).Raw))
 	//
 	//      {"ok":"ok","data":{}}
 	//
@@ -1783,8 +1772,7 @@ func (this *Cex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostDoCancelAllOrders(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDoCancelAllOrders(params)).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -1866,8 +1854,7 @@ func (this *Cex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["dateTo"] = until
 	}
 
-	response := (<-this.PrivatePostGetMyTransactionHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetMyTransactionHistory(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -1982,8 +1969,7 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) 
 		request["dateTo"] = until
 	}
 
-	response := (<-this.PrivatePostGetMyFundingHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetMyFundingHistory(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -2129,11 +2115,11 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan any, code any, amo
 	var response any = nil
 	if fromMain {
 
-		response = (<-this.PrivatePostDoDepositFundsFromWallet(this.Extend(request, params)))
+		response = (<-this.PrivatePostDoDepositFundsFromWallet(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostDoWithdrawalFundsToWallet(this.Extend(request, params)))
+		response = (<-this.PrivatePostDoWithdrawalFundsToWallet(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
 	// both endpoints return the same structure, the only difference is that
@@ -2176,8 +2162,7 @@ func (this *Cex) transferBetweenSubAccountsBody(ch chan any, code any, amount an
 		"toAccountId":   toAccount,
 	}
 
-	response := (<-this.PrivatePostDoMyInternalTransfer(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDoMyInternalTransfer(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "ok": "ok",
@@ -2273,8 +2258,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 		"blockchain": this.NetworkCodeToId(networkCode, currency["code"]),
 	}
 
-	response := (<-this.PrivatePostGetDepositAddress(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetDepositAddress(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "ok": "ok",
