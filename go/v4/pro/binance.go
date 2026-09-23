@@ -2108,11 +2108,11 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		wsUrlType = typeVar
 	}
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
-	var timezone any = nil
+	var timezone *string = nil
 	var timezoneparamsVariable []any = this.HandleParamString(params, "timezone")
-	timezone = ccxt.GetValue(timezoneparamsVariable, 0)
+	timezone = ccxt.SafeStringPtr(ccxt.GetValue(timezoneparamsVariable, 0))
 	params = ccxt.GetValue(timezoneparamsVariable, 1)
-	var isUtc8 bool = (timezone != nil) && ((ccxt.IsEqual(timezone, "+08:00")) || ccxt.Precise.StringEq(timezone, "8"))
+	var isUtc8 bool = (timezone != nil) && ((timezone != nil && *timezone == "+08:00") || ccxt.Precise.StringEq(timezone, "8"))
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
@@ -2225,11 +2225,11 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 		wsUrlType = typeVar
 	}
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
-	var timezone any = nil
+	var timezone *string = nil
 	var timezoneparamsVariable []any = this.HandleParamString(params, "timezone")
-	timezone = ccxt.GetValue(timezoneparamsVariable, 0)
+	timezone = ccxt.SafeStringPtr(ccxt.GetValue(timezoneparamsVariable, 0))
 	params = ccxt.GetValue(timezoneparamsVariable, 1)
-	var isUtc8 bool = (timezone != nil) && ((ccxt.IsEqual(timezone, "+08:00")) || ccxt.Precise.StringEq(timezone, "8"))
+	var isUtc8 bool = (timezone != nil) && ((timezone != nil && *timezone == "+08:00") || ccxt.Precise.StringEq(timezone, "8"))
 	var rawHashes []any = []any{}
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
@@ -3008,18 +3008,18 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 		firstMarket = this.Market(ccxt.GetValue(symbols, 0))
 	}
 	var userDefaultType *string = this.SafeString(this.Options, "defaultType")
-	var defaultMarket any = func() any {
+	var defaultMarket *string = func() *string {
 		if isMarkPrice && (userDefaultType == nil || *userDefaultType != "option") {
-			return "swap"
+			return ccxt.SafeStringPtr("swap")
 		}
 		return nil
 	}()
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams(methodName, firstMarket, params)
-	subType = ccxt.GetValue(subTypeparamsVariable, 0)
+	subType = ccxt.SafeStringPtr(ccxt.GetValue(subTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(subTypeparamsVariable, 1))
 	// use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
 	var isOptionMarkPrice bool = (isMarkPrice && (ccxt.IsEqual(marketType, "option")))
@@ -4656,19 +4656,19 @@ func (this *Binance) ResolveAuthType(methodName any, optionalArgs ...any) any {
 	_ = market
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
-	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
+	typeVar = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams(methodName, market, params)
-	subType = ccxt.GetValue(subTypeparamsVariable, 0)
+	subType = ccxt.SafeStringPtr(ccxt.GetValue(subTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(subTypeparamsVariable, 1))
-	if (!ccxt.IsEqual(typeVar, "option")) && (!ccxt.IsEqual(typeVar, "stock")) {
+	if (typeVar == nil || *typeVar != "option") && (typeVar == nil || *typeVar != "stock") {
 		if this.IsLinear(typeVar, subType) {
-			typeVar = "future"
+			typeVar = ccxt.SafeStringPtr("future")
 		} else if this.IsInverse(typeVar, subType) {
-			typeVar = "delivery"
+			typeVar = ccxt.SafeStringPtr("delivery")
 		}
 	}
 	// sites consuming every element unpack this; the two that skip subType
@@ -4682,9 +4682,9 @@ func (this *Binance) GetMarketType(method any, market any, optionalArgs ...any) 
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(method, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams(method, market, params)
-	subType = ccxt.GetValue(subTypeparamsVariable, 0)
+	subType = ccxt.SafeStringPtr(ccxt.GetValue(subTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(subTypeparamsVariable, 1))
 	if this.IsLinear(typeVar, subType) {
 		typeVar = "future"

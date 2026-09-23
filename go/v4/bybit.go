@@ -2537,15 +2537,15 @@ func (this *Bybit) SafeMarket(optionalArgs ...any) any {
 func (this *Bybit) GetBybitType(method any, market any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(method, market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams(method, market, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	if (IsEqual(typeVar, "option")) || (IsEqual(typeVar, "spot")) {
+	if (typeVar != nil && *typeVar == "option") || (typeVar != nil && *typeVar == "spot") {
 		return []any{typeVar, params}
 	}
 	return []any{subType, params}
@@ -3208,11 +3208,11 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 		if !IsEqual(expiry, nil) {
 			symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 		}
-		var contractSize any = func() any {
+		var contractSize *float64 = func() *float64 {
 			if inverse {
 				return this.SafeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty")
 			}
-			return this.ParseNumber("1")
+			return Float64PtrTyped(this.ParseNumber("1"))
 		}()
 		var parsedMarket any = this.SafeMarketStructure(map[string]any{
 			"id":             id,
@@ -8223,14 +8223,14 @@ func (this *Bybit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchLedger", nil, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var response any = nil
 	if IsEqual(GetValue(enableUnified, 1), true) {
 		var unifiedMarginStatus *int64 = this.SafeInteger(this.Options, "unifiedMarginStatus", 5) // 3/4 uta 1.0, 5/6 uta 2.0
-		if (IsEqual(subType, "inverse")) && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
+		if (subType != nil && *subType == "inverse") && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
 
 			response = (<-this.PrivateGetV5AccountContractTransactionLog(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -11340,9 +11340,9 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan any, optionalArgs ...an
 		ch <- BoxAbsent(retRes888519)
 		return nil
 	}
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("getLeverageTiersPaginated", market, params, "linear")
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"category": subType,
@@ -11869,7 +11869,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var subType any = nil
+	var subType *string = nil
 	var symbolsLength int = 0
 	if symbols != nil {
 		symbolsLength = GetArrayLength(symbols)
@@ -11879,7 +11879,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositionsHistory", market, params, "linear")
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, "until"))
 	var request map[string]any = map[string]any{

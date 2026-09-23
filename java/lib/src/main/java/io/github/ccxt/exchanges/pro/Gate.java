@@ -1329,10 +1329,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String rawMarketType = this.safeString(parts, 0);
         String marketType = (((java.util.Objects.equals(rawMarketType, "futures")))) ? "contract" : "spot";
         Object result = this.safeValue(message, "result");
-        Object results = new ArrayList<Object>(Arrays.asList());
+        List<Object> results = new ArrayList<Object>(Arrays.asList());
         if ((result instanceof List))
         {
-            results = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+            results = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         } else
         {
             Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
@@ -1341,7 +1341,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Boolean isTicker = (java.util.Objects.equals(objectName, "ticker")); // whether ticker or bid-ask
         for (var i = 0; i < ((List<?>)results).size(); i++)
         {
-            Object rawTicker = (results == null || i < 0 || i >= ((List<?>)results).size() ? null : ((List<?>)results).get(i));
+            Object rawTicker = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
             String marketId = this.safeString(rawTicker, "s");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_", marketType);
             Map<String, Object> parsedItem = (Map<String, Object>) this.parseTicker(rawTicker, market);

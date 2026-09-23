@@ -401,13 +401,13 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Boolean isSwap = (!java.util.Objects.equals(unrealizedPnl, null));
         Object info = null;
         String account = null;
-        Object rawBalances = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawBalances = new ArrayList<Object>(Arrays.asList());
         if (Boolean.TRUE.equals(isSpot))
         {
             account = "spot";
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                rawBalances = this.arrayConcat(rawBalances, balances);
+                rawBalances = (List<Object>) this.arrayConcat(rawBalances, balances);
             }
             info = rawBalances;
         }
@@ -416,13 +416,13 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             account = "swap";
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                rawBalances = this.arrayConcat(rawBalances, balances);
+                rawBalances = (List<Object>) this.arrayConcat(rawBalances, balances);
             }
             info = rawBalances;
         }
         for (var i = 0; i < ((List<?>)rawBalances).size(); i++)
         {
-            Object entry = (rawBalances == null || i < 0 || i >= ((List<?>)rawBalances).size() ? null : ((List<?>)rawBalances).get(i));
+            Object entry = (rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i));
             this.parseWsBalance((Map<String, Object>) (entry), account);
         }
         String messageHash = null;

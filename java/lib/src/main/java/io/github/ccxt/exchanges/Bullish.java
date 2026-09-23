@@ -2037,7 +2037,7 @@ public class Bullish extends BullishApi
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "method", method);
             method = ((List<Object>) methodparametersVariable).get(0);
             parameters = ((List<Object>) methodparametersVariable).get(1);
-            Object response = new ArrayList<Object>(Arrays.asList());
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(method, "privateGetV2Orders"))
             {
                 //

@@ -1143,24 +1143,24 @@ func (this *Digifinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
 	query := GetValue(marginModequeryVariable, 1)
 	var response any = nil
-	if !IsEqual(marginMode, nil) || (IsEqual(marketType, "margin")) {
-		marketType = "margin"
+	if !IsEqual(marginMode, nil) || (marketType != nil && *marketType == "margin") {
+		marketType = SafeStringPtr("margin")
 
 		response = (<-this.PrivateSpotGetMarginAssets(query)).Raw
 		PanicOnError(response)
-	} else if IsEqual(marketType, "spot") {
+	} else if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.PrivateSpotGetSpotAssets(query)).Raw
 		PanicOnError(response)
-	} else if IsEqual(marketType, "swap") {
+	} else if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.PrivateSwapGetAccountBalance(query)).Raw
 		PanicOnError(response)
@@ -1204,7 +1204,7 @@ func (this *Digifinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var balanceRequest string = func() string {
-		if IsEqual(marketType, "swap") {
+		if marketType != nil && *marketType == "swap" {
 			return "data"
 		}
 		return "list"
@@ -1346,13 +1346,13 @@ func (this *Digifinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if first != nil {
 		market = this.Market(first)
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if IsEqual(typeVar, "swap") {
+	if typeVar != nil && *typeVar == "swap" {
 
 		response = (<-this.PublicSwapGetPublicTickers(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -4611,7 +4611,7 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	var marketType any = nil
+	var marketType *string = nil
 	if symbols != nil {
 		var symbol any = nil
 		if IsArray(symbols) {
@@ -4626,17 +4626,17 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 	}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositions", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchPositions", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
 	query := GetValue(marginModequeryVariable, 1)
 	if !IsEqual(marginMode, nil) {
-		marketType = "margin"
+		marketType = SafeStringPtr("margin")
 	}
 	if !IsEqual(market, nil) {
 		var marketIdRequest string = func() string {
-			if IsEqual(marketType, "swap") {
+			if marketType != nil && *marketType == "swap" {
 				return "instrument_id"
 			}
 			return "symbol"
@@ -4644,11 +4644,11 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 		request[marketIdRequest] = GetValue(market, "id")
 	}
 	var response any = nil
-	if (IsEqual(marketType, "spot")) || (IsEqual(marketType, "margin")) {
+	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
 		response = (<-this.PrivateSpotGetMarginPositions(this.Extend(request, query))).Raw
 		PanicOnError(response)
-	} else if IsEqual(marketType, "swap") {
+	} else if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.PrivateSwapGetAccountPositions(this.Extend(request, query))).Raw
 		PanicOnError(response)
@@ -4709,7 +4709,7 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var positionRequest string = func() string {
-		if IsEqual(marketType, "swap") {
+		if marketType != nil && *marketType == "swap" {
 			return "data"
 		}
 		return "positions"
@@ -4755,29 +4755,29 @@ func (this *Digifinex) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPosition", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchPosition", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
 	query := GetValue(marginModequeryVariable, 1)
 	if !IsEqual(marginMode, nil) {
-		marketType = "margin"
+		marketType = SafeStringPtr("margin")
 	}
 	var marketIdRequest string = func() string {
-		if IsEqual(marketType, "swap") {
+		if marketType != nil && *marketType == "swap" {
 			return "instrument_id"
 		}
 		return "symbol"
 	}()
 	request[marketIdRequest] = market["id"]
 	var response any = nil
-	if (IsEqual(marketType, "spot")) || (IsEqual(marketType, "margin")) {
+	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
 		response = (<-this.PrivateSpotGetMarginPositions(this.Extend(request, query))).Raw
 		PanicOnError(response)
-	} else if IsEqual(marketType, "swap") {
+	} else if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.PrivateSwapGetAccountPositions(this.Extend(request, query))).Raw
 		PanicOnError(response)
@@ -4836,7 +4836,7 @@ func (this *Digifinex) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	//     }
 	//
 	var dataRequest string = func() string {
-		if IsEqual(marketType, "swap") {
+		if marketType != nil && *marketType == "swap" {
 			return "data"
 		}
 		return "positions"
@@ -4848,7 +4848,7 @@ func (this *Digifinex) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 		}
 		return nil
 	}(), market))
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 
 		ch <- position
 		return nil

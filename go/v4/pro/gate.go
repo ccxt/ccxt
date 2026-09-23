@@ -1576,7 +1576,7 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var subType any = nil
+	var subType *string = nil
 	var typeVar any = nil
 	var marketId any = "!" + "all"
 	var market map[string]any = nil
@@ -1588,7 +1588,7 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("watchMyTrades", market, params)
-	subType = ccxt.GetValue(subTypeparamsVariable, 0)
+	subType = ccxt.SafeStringPtr(ccxt.GetValue(subTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(subTypeparamsVariable, 1))
 	var messageType any = this.GetSupportedMapping(typeVar, map[string]any{
 		"spot":   "spot",
@@ -1602,7 +1602,7 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
-	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
+	var isInverse bool = (subType != nil && *subType == "inverse")
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
 	var payload []any = []any{marketId}
 	// uid required for non spot markets
@@ -1693,14 +1693,14 @@ func (this *Gate) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var typeVar any = nil
-	var subType any = nil
+	var subType *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("watchBalance", nil, params)
-	subType = ccxt.GetValue(subTypeparamsVariable, 0)
+	subType = ccxt.SafeStringPtr(ccxt.GetValue(subTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(subTypeparamsVariable, 1))
-	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
+	var isInverse bool = (subType != nil && *subType == "inverse")
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
 	var requiresUid bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var channelType any = this.GetSupportedMapping(typeVar, map[string]any{
@@ -1872,11 +1872,11 @@ func (this *Gate) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
 	}
 	var channel any = ccxt.Add(typeId, ".positions")
-	var subType any = nil
+	var subType *string = nil
 	var subTypequeryVariable []any = this.HandleSubTypeAndParams("watchPositions", market, query)
-	subType = ccxt.GetValue(subTypequeryVariable, 0)
+	subType = ccxt.SafeStringPtr(ccxt.GetValue(subTypequeryVariable, 0))
 	query = ccxt.GetValue(subTypequeryVariable, 1)
-	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
+	var isInverse bool = (subType != nil && *subType == "inverse")
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, typeVar, symbols)
@@ -2128,11 +2128,11 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			payload = []any{mid}
 		}
 	}
-	var subType any = nil
+	var subType *string = nil
 	var subTypequeryVariable []any = this.HandleSubTypeAndParams("watchOrders", market, query)
-	subType = ccxt.GetValue(subTypequeryVariable, 0)
+	subType = ccxt.SafeStringPtr(ccxt.GetValue(subTypequeryVariable, 0))
 	query = ccxt.GetValue(subTypequeryVariable, 1)
-	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
+	var isInverse bool = (subType != nil && *subType == "inverse")
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
 	// uid required for non spot markets
 	var requiresUid bool = (!ccxt.IsEqual(typeVar, "spot"))
@@ -2334,11 +2334,11 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, op
 		"swap":   "futures",
 		"option": "options",
 	})
-	var subType any = nil
+	var subType *string = nil
 	var subTypequeryVariable []any = this.HandleSubTypeAndParams("watchMyLiquidationsForSymbols", market, query)
-	subType = ccxt.GetValue(subTypequeryVariable, 0)
+	subType = ccxt.SafeStringPtr(ccxt.GetValue(subTypequeryVariable, 0))
 	query = ccxt.GetValue(subTypequeryVariable, 1)
-	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
+	var isInverse bool = (subType != nil && *subType == "inverse")
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
 	var payload []any = []any{}
 	var messageHash any = ""

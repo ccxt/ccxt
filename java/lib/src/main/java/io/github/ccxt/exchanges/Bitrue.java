@@ -1348,17 +1348,17 @@ public class Bitrue extends BitrueApi
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> response = null;
-            Object result = null;
+            Map<String, Object> result = null;
             if (java.util.Objects.equals(type, "swap"))
             {
                 if (!java.util.Objects.equals(subType, null) && java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.dapiV2PrivateGetAccount(parameters)).join();
-                    result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 } else
                 {
                     response = (this.fapiV2PrivateGetAccount(parameters)).join();
-                    result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 }
             } else
             {
@@ -1957,7 +1957,7 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets()).join();
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            Object response = new ArrayList<Object>(Arrays.asList());
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
             List<Object> data = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String type = null;
@@ -2190,7 +2190,7 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object response = new ArrayList<Object>(Arrays.asList());
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3087,7 +3087,7 @@ public class Bitrue extends BitrueApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> response = null;
-            Object data = new ArrayList<Object>(Arrays.asList());
+            List<Object> data = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3100,7 +3100,7 @@ public class Bitrue extends BitrueApi
                 {
                     response = (this.dapiV2PrivatePostAllOpenOrders(this.extend(request, parameters))).join();
                 }
-                data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 throw new NotSupported((this.id + " cancelAllOrders only support future markets")) ;

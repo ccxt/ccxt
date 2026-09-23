@@ -1435,7 +1435,7 @@ public class Latoken extends LatokenApi
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100
             }
-            Object response = new ArrayList<Object>(Arrays.asList());
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);

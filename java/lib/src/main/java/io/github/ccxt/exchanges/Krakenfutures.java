@@ -1322,7 +1322,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
             method = ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
-            Object rawTrades = new ArrayList<Object>(Arrays.asList());
+            List<Object> rawTrades = new ArrayList<Object>(Arrays.asList());
             Boolean isFullHistoryEndpoint = (java.util.Objects.equals(method, "historyGetMarketSymbolExecutions"));
             if (Boolean.TRUE.equals(isFullHistoryEndpoint))
             {
@@ -1425,7 +1425,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 //        "serverTime": "2022-03-18T06:39:18.056Z"
                 //    }
                 //
-                rawTrades = this.safeList(response, "history", new ArrayList<Object>(Arrays.asList()));
+                rawTrades = (List<Object>) this.safeList(response, "history", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseTrades(rawTrades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));

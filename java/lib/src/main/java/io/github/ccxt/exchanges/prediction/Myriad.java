@@ -4256,14 +4256,14 @@ final Object finalNetworkId = networkId;
             // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
             // an eventId does a direct lookup, and tags map to server-side keyword searches (the
             // markets listing ignores tag filter params, but tag slugs match through keyword=)
-            Object rawMarkets = new ArrayList<Object>(Arrays.asList());
-            Object rawQuestions = new ArrayList<Object>(Arrays.asList());
+            List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
+            List<Object> rawQuestions = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isGreaterThan(queriesLength, 0))
             {
                 // some markets are only discoverable through the questions search endpoint
                 Object responses = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsBySearch(queries, rest), this.fetchRawQuestionsBySearch(queries, rest))))).join();
-                rawMarkets = this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
-                rawQuestions = this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
+                rawMarkets = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
+                rawQuestions = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
             } else if (!java.util.Objects.equals(eventId, null))
             {
                 if (Helpers.isGreaterThan(((String)eventId).indexOf(":"), -1))
@@ -4283,8 +4283,8 @@ final Object finalNetworkId = networkId;
                 {
                     // unscoped mode: fetch bounded open lists from both sources and merge
                     Object listResponses = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsList(rest), this.fetchRawQuestionsList(rest))))).join();
-                    rawMarkets = this.safeList(listResponses, 0, new ArrayList<Object>(Arrays.asList()));
-                    rawQuestions = this.safeList(listResponses, 1, new ArrayList<Object>(Arrays.asList()));
+                    rawMarkets = (List<Object>) this.safeList(listResponses, 0, new ArrayList<Object>(Arrays.asList()));
+                    rawQuestions = (List<Object>) this.safeList(listResponses, 1, new ArrayList<Object>(Arrays.asList()));
                 } else
                 {
                     List<Object> tagQueries = new ArrayList<Object>(Arrays.asList());
@@ -4297,8 +4297,8 @@ final Object finalNetworkId = networkId;
                     // run both searches in parallel; some events are only discoverable from questions,
                     // while market search is still the primary source for market-level data
                     Object responses = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsBySearch(tagQueries, rest), this.fetchRawQuestionsBySearch(tagQueries, rest))))).join();
-                    rawMarkets = this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
-                    rawQuestions = this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
+                    rawMarkets = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
+                    rawQuestions = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
                 }
             }
             if (java.util.Objects.equals(this.markets, null))
@@ -4310,7 +4310,7 @@ final Object finalNetworkId = networkId;
             Integer rawQuestionsLength = ((List<?>)rawQuestions).size();
             for (var i = 0; Helpers.isLessThan(i, rawQuestionsLength); i++)
             {
-                Object rawQuestion = (rawQuestions == null || i < 0 || i >= ((List<?>)rawQuestions).size() ? null : ((List<?>)rawQuestions).get(i));
+                Object rawQuestion = (rawQuestions == null || i < 0 || i >= rawQuestions.size() ? null : rawQuestions.get(i));
                 Object ev = this.parseEvent((Map<String, Object>) (rawQuestion));
                 List<Object> evMarkets = (List<Object>) this.safeList(ev, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer evMarketsLength = ((List<?>)evMarkets).size();
@@ -4342,7 +4342,7 @@ final Object finalNetworkId = networkId;
             Integer rawMarketsLength = ((List<?>)rawMarkets).size();
             for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
             {
-                Object raw = (rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i));
+                Object raw = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                 Object m = this.parseMyriadMarket((Map<String, Object>) (raw));
                 String marketHandle = this.safeString(m, "market");
                 if ((!java.util.Objects.equals(marketHandle, null)) && (seenMarketHandles.containsKey(marketHandle)))

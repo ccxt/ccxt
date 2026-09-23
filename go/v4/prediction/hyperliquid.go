@@ -2166,9 +2166,9 @@ func (this *Hyperliquid) ParseOrderType(status *string) *string {
 		"stop limit":  "limit",
 		"stop market": "market",
 	}
-	var statusLower any = func() any {
+	var statusLower *string = func() *string {
 		if (status != nil) && (status == nil || *status != "") {
-			return ccxt.ToLower(status)
+			return ccxt.SafeStringPtr(ccxt.ToLower(status))
 		}
 		return nil
 	}()
@@ -2181,9 +2181,9 @@ func (this *Hyperliquid) ParseTimeInForce(timeInForce *string) *string {
 		"fok": "FOK",
 		"alo": "PO",
 	}
-	var tifLower any = func() any {
+	var tifLower *string = func() *string {
 		if (timeInForce != nil) && (timeInForce == nil || *timeInForce != "") {
-			return ccxt.ToLower(timeInForce)
+			return ccxt.SafeStringPtr(ccxt.ToLower(timeInForce))
 		}
 		return nil
 	}()

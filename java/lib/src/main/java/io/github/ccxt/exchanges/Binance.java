@@ -5188,7 +5188,7 @@ public class Binance extends BinanceApi
                 }
             }
             Object results = (Helpers.promiseAll(promisesRaw)).join();
-            Object markets = new ArrayList<Object>(Arrays.asList());
+            List<Object> markets = new ArrayList<Object>(Arrays.asList());
             Helpers.addElementToObject(this.options, "crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(this.options, "isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)results).size(); i++)
@@ -5209,7 +5209,7 @@ public class Binance extends BinanceApi
                 } else
                 {
                     List<Object> resultMarkets = (List<Object>) this.safeList2(res, "symbols", "optionSymbols", new ArrayList<Object>(Arrays.asList()));
-                    markets = this.arrayConcat(markets, resultMarkets);
+                    markets = (List<Object>) this.arrayConcat(markets, resultMarkets);
                 }
             }
             //
@@ -5460,7 +5460,7 @@ public class Binance extends BinanceApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                ((List<Object>)result).add(this.parseMarket((markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i))));
+                ((List<Object>)result).add(this.parseMarket((markets == null || i < 0 || i >= markets.size() ? null : markets.get(i))));
             }
             return result;
         });

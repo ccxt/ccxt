@@ -7787,7 +7787,7 @@ func (this *Gate) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var defaultSettle any = func() any {
 		if IsEqual(market, nil) {
 			return "usdt"
@@ -7796,9 +7796,9 @@ func (this *Gate) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	}()
 	var settle *string = this.SafeStringLower(params, "settle", defaultSettle)
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrders", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var isSpot bool = (IsEqual(typeVar, "spot"))
+	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	if isSpot && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrders requires a symbol argument for spot markets"))
 	}
@@ -9688,11 +9688,11 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if !IsEqual(typeVar, "option") {
+	if typeVar == nil || *typeVar != "option" {
 		panic(NotSupported(this.Id + " fetchSettlementHistory() supports option markets only"))
 	}
 	var marketId *string = SafeStringPtr(market["id"])
@@ -9979,22 +9979,22 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes767919)
 		return nil
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var currency map[string]any = nil
 	var response any = nil
 	var request any = map[string]any{}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin")) {
+	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 		if code != nil {
 			currency = MapTyped(this.Currency(code))
 			AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
 		}
 	}
-	if (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
+	if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
 		var defaultSettle string = func() string {
-			if IsEqual(typeVar, "swap") {
+			if typeVar != nil && *typeVar == "swap" {
 				return "usdt"
 			}
 			return "btc"
@@ -10012,23 +10012,23 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
-	if IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 
 		response = (<-this.PrivateSpotGetAccountBook(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "margin") {
+	} else if typeVar != nil && *typeVar == "margin" {
 
 		response = (<-this.PrivateMarginGetAccountBook(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "swap") {
+	} else if typeVar != nil && *typeVar == "swap" {
 
 		response = (<-this.PrivateFuturesGetSettleAccountBook(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "future") {
+	} else if typeVar != nil && *typeVar == "future" {
 
 		response = (<-this.PrivateDeliveryGetSettleAccountBook(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "option") {
+	} else if typeVar != nil && *typeVar == "option" {
 
 		response = (<-this.PrivateOptionsGetAccountBook(this.Extend(request, params)))
 		PanicOnError(response)
@@ -10280,14 +10280,14 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	if (marketType == nil) || (IsEqual(marketType, "spot")) {
-		marketType = "option"
+	if (marketType == nil) || (marketType != nil && *marketType == "spot") {
+		marketType = SafeStringPtr("option")
 	}
-	if !IsEqual(marketType, "option") {
+	if marketType == nil || *marketType != "option" {
 		panic(NotSupported(this.Id + " fetchUnderlyingAssets() supports option markets only"))
 	}
 

@@ -4959,7 +4959,7 @@ public class Gate extends GateApi
                 }
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = new ArrayList<Object>(Arrays.asList());
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 Boolean isMark = (java.util.Objects.equals(price, "mark"));
@@ -8001,12 +8001,12 @@ final Object finalRebate = rebate;
             Object result = response;
             if (Boolean.TRUE.equals(openSpotOrders))
             {
-                Object spotResult = new ArrayList<Object>(Arrays.asList());
+                List<Object> spotResult = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
                     Map<String, Object> responseEntry = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                     Object ordersInner = this.safeValue(responseEntry, "orders");
-                    spotResult = this.arrayConcat(spotResult, ordersInner);
+                    spotResult = (List<Object>) this.arrayConcat(spotResult, ordersInner);
                 }
                 result = spotResult;
             }

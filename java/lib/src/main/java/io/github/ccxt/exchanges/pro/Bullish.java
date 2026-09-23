@@ -598,14 +598,14 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         String type = this.safeString(message, "type");
-        Object rawOrders = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawOrders = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(type, "update"))
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             ((List<Object>)rawOrders).add(data); // update is a single order
         } else
         {
-            rawOrders = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList())); // snapshot is a list of orders
+            rawOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList())); // snapshot is a list of orders
         }
         Integer numRawOrders = ((List<?>)rawOrders).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (Helpers.isGreaterThan(numRawOrders, 0))
@@ -619,7 +619,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
             {
-                Object rawOrder = (rawOrders == null || i < 0 || i >= ((List<?>)rawOrders).size() ? null : ((List<?>)rawOrders).get(i));
+                Object rawOrder = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
                 Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder);
                 Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
                 String symbol = this.safeString(parsedOrder, "symbol");
@@ -747,14 +747,14 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         String type = this.safeString(message, "type");
-        Object rawTrades = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawTrades = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(type, "update"))
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             ((List<Object>)rawTrades).add(data); // update is a single trade
         } else
         {
-            rawTrades = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList())); // snapshot is a list of trades
+            rawTrades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList())); // snapshot is a list of trades
         }
         Integer numRawTrades = ((List<?>)rawTrades).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (Helpers.isGreaterThan(numRawTrades, 0))
@@ -768,7 +768,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
             {
-                Object rawTrade = (rawTrades == null || i < 0 || i >= ((List<?>)rawTrades).size() ? null : ((List<?>)rawTrades).get(i));
+                Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
                 Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(rawTrade);
                 Helpers.callDynamically(trades, "append", new Object[]{parsedTrade});
                 String symbol = this.safeString(parsedTrade, "symbol");
@@ -975,14 +975,14 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
         String messageType = this.safeString(message, "type");
-        Object rawPositions = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawPositions = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(messageType, "update"))
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             ((List<Object>)rawPositions).add(data);
         } else
         {
-            rawPositions = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         }
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -992,7 +992,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = (rawPositions == null || i < 0 || i >= ((List<?>)rawPositions).size() ? null : ((List<?>)rawPositions).get(i));
+            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
             Helpers.callDynamically(positions, "append", new Object[]{position});
             ((List<Object>)newPositions).add(position);

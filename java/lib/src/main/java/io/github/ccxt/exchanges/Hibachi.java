@@ -772,7 +772,7 @@ public class Hibachi extends HibachiApi
             // }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
-            Object tradesList = new ArrayList<Object>(Arrays.asList());
+            List<Object> tradesList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(trades, null))
             {
                 tradesList = trades;
@@ -1956,7 +1956,7 @@ public class Hibachi extends HibachiApi
             // }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "trades");
-            Object tradesList = new ArrayList<Object>(Arrays.asList());
+            List<Object> tradesList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(trades, null))
             {
                 tradesList = trades;

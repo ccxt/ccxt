@@ -3178,7 +3178,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String messageHash = "balance";
         String topic = this.safeString(message, "topic");
         Object info = null;
-        Object rawBalances = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawBalances = new ArrayList<Object>(Arrays.asList());
         String account = null;
         if (java.util.Objects.equals(topic, "outboundAccountInfo"))
         {
@@ -3187,7 +3187,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 List<Object> B = (List<Object>) this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "B", new ArrayList<Object>(Arrays.asList()));
-                rawBalances = this.arrayConcat(rawBalances, B);
+                rawBalances = (List<Object>) this.arrayConcat(rawBalances, B);
             }
             info = rawBalances;
         }
@@ -3198,13 +3198,13 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 account = this.safeStringLower(result, "accountType");
-                rawBalances = this.arrayConcat(rawBalances, this.safeList(result, "coin", new ArrayList<Object>(Arrays.asList())));
+                rawBalances = (List<Object>) this.arrayConcat(rawBalances, this.safeList(result, "coin", new ArrayList<Object>(Arrays.asList())));
             }
             info = data;
         }
         for (var i = 0; i < ((List<?>)rawBalances).size(); i++)
         {
-            this.parseWsBalance((Map<String, Object>) ((rawBalances == null || i < 0 || i >= ((List<?>)rawBalances).size() ? null : ((List<?>)rawBalances).get(i))), account);
+            this.parseWsBalance((Map<String, Object>) ((rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i))), account);
         }
         if (!java.util.Objects.equals(account, null))
         {

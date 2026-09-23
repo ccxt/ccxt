@@ -1115,9 +1115,9 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var marginBuyEnabled *bool = this.SafeBool(market, "margin_buy_enabled")
 		var marginSellEnabled *bool = this.SafeBool(market, "margin_sell_enabled")
 		var expiryString any = this.OmitZero(this.SafeString(market, "expiry_timestamp_ms"))
-		var expiry any = func() any {
+		var expiry *int64 = func() *int64 {
 			if expiryString != nil {
-				return ParseInt(expiryString)
+				return Int64PtrTyped(ParseInt(expiryString))
 			}
 			return nil
 		}()
@@ -1873,17 +1873,17 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	}
 	var broker *string = this.SafeString(this.Options, "broker", "CCXT")
 	request["broker_id"] = broker
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	marginModeparamsVariable := this.CustomHandleMarginModeAndParams("createOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	if (IsEqual(marketType, "margin")) || (marginMode != nil) {
+	if (marketType != nil && *marketType == "margin") || (marginMode != nil) {
 		request["spot_margin"] = "MARGIN"
-	} else if IsEqual(marketType, "spot") {
+	} else if marketType != nil && *marketType == "spot" {
 		request["spot_margin"] = "SPOT"
 	}
 	var timeInForce *string = this.SafeStringUpper2(params, "timeInForce", "time_in_force")

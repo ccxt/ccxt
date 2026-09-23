@@ -12863,7 +12863,7 @@ final Map<String, Object> finalMarket = market;
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
             List<Object> rawPositions = (List<Object>) this.safeList(result, "list");
-            Object rawPositionsList = new ArrayList<Object>(Arrays.asList());
+            List<Object> rawPositionsList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(rawPositions, null))
             {
                 rawPositionsList = rawPositions;

@@ -1224,14 +1224,14 @@ public class Indodax extends IndodaxApi
             }
             // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
             List<Object> marketIds = Helpers.objectKeys(rawOrders);
-            Object exchangeOrders = new ArrayList<Object>(Arrays.asList());
+            List<Object> exchangeOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Object marketOrders = Helpers.GetValue(rawOrders, marketId);
                 market = (Map<String, Object>) this.safeMarket(marketId);
                 List<Object> parsedOrders = this.parseOrders(marketOrders, market, since, limit);
-                exchangeOrders = this.arrayConcat(exchangeOrders, parsedOrders);
+                exchangeOrders = (List<Object>) this.arrayConcat(exchangeOrders, parsedOrders);
             }
             return exchangeOrders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1694,7 +1694,7 @@ public class Indodax extends IndodaxApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Map<String, Object> withdraw = (Map<String, Object>) this.safeDict(data, "withdraw", new HashMap<String, Object>() {{}});
             Map<String, Object> deposit = (Map<String, Object>) this.safeDict(data, "deposit", new HashMap<String, Object>() {{}});
-            Object transactions = new ArrayList<Object>(Arrays.asList());
+            List<Object> transactions = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> currency = null;
             if (java.util.Objects.equals(code, null))
             {
@@ -1702,20 +1702,20 @@ public class Indodax extends IndodaxApi
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
                     Object key = (keys == null || i < 0 || i >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(i));
-                    transactions = this.arrayConcat(transactions, (withdraw == null || key == null ? null : withdraw.get(key)));
+                    transactions = (List<Object>) this.arrayConcat(transactions, (withdraw == null || key == null ? null : withdraw.get(key)));
                 }
                 keys = new ArrayList<Object>(deposit.keySet());
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
                     Object key = (keys == null || i < 0 || i >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(i));
-                    transactions = this.arrayConcat(transactions, (deposit == null || key == null ? null : deposit.get(key)));
+                    transactions = (List<Object>) this.arrayConcat(transactions, (deposit == null || key == null ? null : deposit.get(key)));
                 }
             } else
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
                 List<Object> withdraws = (List<Object>) this.safeList(withdraw, ((Map<String, Object>)currency).get("id"), new ArrayList<Object>(Arrays.asList()));
                 List<Object> deposits = (List<Object>) this.safeList(deposit, ((Map<String, Object>)currency).get("id"), new ArrayList<Object>(Arrays.asList()));
-                transactions = this.arrayConcat(withdraws, deposits);
+                transactions = (List<Object>) this.arrayConcat(withdraws, deposits);
             }
             return this.parseTransactions(transactions, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));

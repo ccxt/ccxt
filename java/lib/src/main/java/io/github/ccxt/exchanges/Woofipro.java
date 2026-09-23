@@ -4225,7 +4225,7 @@ public class Woofipro extends WoofiproApi
             //         "success":true
             //     }
             //
-            Object rowsList = new ArrayList<Object>(Arrays.asList());
+            List<Object> rowsList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(rows, null))
             {
                 rowsList = rows;

@@ -2018,18 +2018,18 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.GetValue(utaparamsVariable, 1)
 	var productType *string = this.SafeString(params, "productType")
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
-	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
+	typeVar = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsVariable, 0))
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var subType any = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("watchOrders", market, params, "linear")
 	subType = ccxt.GetValue(subTypeparamsVariable, 0)
 	params = ccxt.GetValue(subTypeparamsVariable, 1)
-	if ((ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(typeVar, "margin"))) && (symbol == nil) {
+	if ((typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")) && (symbol == nil) {
 		marketId = "default"
 	}
-	if (productType == nil) && (!ccxt.IsEqual(typeVar, "spot")) && (symbol == nil) {
+	if (productType == nil) && (typeVar == nil || *typeVar != "spot") && (symbol == nil) {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), subType)
 	} else if productType != nil && *productType == "USDT-FUTURES" {
 		messageHash = ccxt.Add(messageHash, ":linear")
@@ -2039,21 +2039,21 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ":usdcfutures") // non unified channel
 	}
 	var instType any = nil
-	if ccxt.IsEqual(market, nil) && (ccxt.IsEqual(typeVar, "spot")) {
+	if ccxt.IsEqual(market, nil) && (typeVar != nil && *typeVar == "spot") {
 		instType = "SPOT"
 	} else {
 		instTypeparamsVariable := this.GetInstType("watchOrders", market, uta, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
 		params = ccxt.GetValue(instTypeparamsVariable, 1)
 	}
-	if (ccxt.IsEqual(typeVar, "spot")) && (symbol != nil) {
+	if (typeVar != nil && *typeVar == "spot") && (symbol != nil) {
 		subscriptionHash = ccxt.Add(ccxt.Add(subscriptionHash, ":"), symbol)
 	}
 	if isTrigger == true {
 		subscriptionHash = ccxt.Add(subscriptionHash, ":stop") // we don't want to re-use the same subscription hash for stop orders
 	}
 	var instId any = func() any {
-		if (ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(typeVar, "margin")) {
+		if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 			return marketId
 		}
 		return "default"
@@ -2586,16 +2586,16 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		symbol = ccxt.GetValue(market, "symbol")
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
-	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
+	typeVar = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var instType any = nil
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
-	if ccxt.IsEqual(market, nil) && (ccxt.IsEqual(typeVar, "spot")) {
+	if ccxt.IsEqual(market, nil) && (typeVar != nil && *typeVar == "spot") {
 		instType = "SPOT"
 	} else {
 		instTypeparamsVariable := this.GetInstType("watchMyTrades", market, uta, params)
@@ -2811,9 +2811,9 @@ func (this *Bitget) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
-	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
+	typeVar = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("watchBalance", params)
@@ -2821,7 +2821,7 @@ func (this *Bitget) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.MapTyped(ccxt.GetValue(marginModeparamsVariable, 1))
 	var instType any = nil
 	var channel string = "account"
-	if (ccxt.IsEqual(typeVar, "swap")) || (ccxt.IsEqual(typeVar, "future")) {
+	if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
 		instType = "USDT-FUTURES"
 	} else if marginMode != nil {
 		instType = "MARGIN"

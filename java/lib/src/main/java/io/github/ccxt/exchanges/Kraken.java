@@ -3250,7 +3250,7 @@ final String finalId = id;
             Integer numTradeIds = ((List<?>)tradeIds).size();
             Object numBatches = this.parseToInt((((double) numTradeIds) / ((double) batchSize)));
             numBatches = this.sum(numBatches, 1);
-            Object result = new ArrayList<Object>(Arrays.asList());
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var j = 0; Helpers.isLessThan(j, numBatches); j++)
             {
                 Object requestIds = new ArrayList<Object>(Arrays.asList());
@@ -3295,7 +3295,7 @@ final String finalId = id;
                 }
                 List<Object> trades = this.parseTrades(rawTrades, null, since, limit);
                 Object tradesFilteredBySymbol = this.filterBySymbol(trades, symbol);
-                result = this.arrayConcat(result, tradesFilteredBySymbol);
+                result = (List<Object>) this.arrayConcat(result, tradesFilteredBySymbol);
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));

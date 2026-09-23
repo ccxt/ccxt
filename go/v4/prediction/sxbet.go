@@ -1039,9 +1039,9 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 	}, "latest"}))
 	ccxt.PanicOnError(nonceResult)
 	var nonceHex any = this.HexToRlpBytes(nonceResult)
-	var nonce any = func() any {
+	var nonce *string = func() *string {
 		if ccxt.IsEqual(nonceHex, "") {
-			return "0"
+			return ccxt.SafeStringPtr("0")
 		}
 		return this.NumberToString(this.HexToInt(nonceHex))
 	}()
@@ -1626,9 +1626,9 @@ func (this *Sxbet) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	var oneDenom string = "100000000000000000000"
 	var usdcDecimals string = "1000000"
 	var percentageOdds *string = this.SafeString(order, "percentageOdds")
-	var price any = func() any {
+	var price *float64 = func() *float64 {
 		if percentageOdds != nil {
-			return this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom))
+			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom)))
 		}
 		return nil
 	}()
@@ -1992,9 +1992,9 @@ func (this *Sxbet) ParseSxbetV3Fill(fill any, optionalArgs ...any) any {
 	var oneDenom string = "100000000000000000000"
 	var usdcDecimals string = "1000000"
 	var fillOdds *string = this.SafeString(fill, "fillOdds")
-	var price any = func() any {
+	var price *float64 = func() *float64 {
 		if fillOdds != nil {
-			return this.ParseNumber(ccxt.Precise.StringDiv(fillOdds, oneDenom))
+			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(fillOdds, oneDenom)))
 		}
 		return nil
 	}()
@@ -2208,9 +2208,9 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 		}
 		return this.SafeString(odds, "outcomeTwo")
 	}()
-	var entryPrice any = func() any {
+	var entryPrice *float64 = func() *float64 {
 		if ownOdds != nil {
-			return this.ParseNumber(ccxt.Precise.StringDiv(ownOdds, oneDenom))
+			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ownOdds, oneDenom)))
 		}
 		return nil
 	}()
@@ -2678,25 +2678,25 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	var oneDenom string = "100000000000000000000"
 	var ownPercentage *string = this.SafeString(ownOdds, "percentageOdds")
 	var oppositePercentage *string = this.SafeString(oppositeOdds, "percentageOdds")
-	var bid any = func() any {
+	var bid *float64 = func() *float64 {
 		if ownPercentage != nil {
-			return this.ParseNumber(ccxt.Precise.StringDiv(ownPercentage, oneDenom))
+			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ownPercentage, oneDenom)))
 		}
 		return nil
 	}()
-	var ask any = func() any {
+	var ask *float64 = func() *float64 {
 		if oppositePercentage != nil {
-			return this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(oppositePercentage, oneDenom)))
+			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(oppositePercentage, oneDenom))))
 		}
 		return nil
 	}()
 	var updatedAt *int64 = this.SafeInteger(ownOdds, "updatedAt")
 	var now int64 = this.Milliseconds()
-	var timestamp any = func() any {
+	var timestamp *int64 = func() *int64 {
 		if updatedAt != nil {
 			return updatedAt
 		}
-		return now
+		return ccxt.Int64PtrTyped(now)
 	}()
 	var average any = nil
 	if (!ccxt.IsEqual(bid, nil)) && (!ccxt.IsEqual(ask, nil)) {
@@ -3410,9 +3410,9 @@ func (this *Sxbet) ParseSxbetV3PublicTrade(trade any) any {
 	var oneDenom string = "100000000000000000000"
 	var usdcDecimals string = "1000000"
 	var odds *string = this.SafeString(trade, "weightedAverageOdds")
-	var price any = func() any {
+	var price *float64 = func() *float64 {
 		if odds != nil {
-			return this.ParseNumber(ccxt.Precise.StringDiv(odds, oneDenom))
+			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(odds, oneDenom)))
 		}
 		return nil
 	}()

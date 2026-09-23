@@ -4554,9 +4554,9 @@ func (this *Pacifica) revokeBuilderCodeBody(ch chan any, builderCode any, option
 	return nil
 }
 func (this *Pacifica) HandleOriginAndSingleAddress(methodName any, params any) any {
-	var address any = nil
+	var address *string = nil
 	var addressparamsVariable []any = this.HandleParamString2(params, "account", "address", nil)
-	address = GetValue(addressparamsVariable, 0)
+	address = SafeStringPtr(GetValue(addressparamsVariable, 0))
 	params = GetValue(addressparamsVariable, 1) // this is for get endpoints that accept account or address
 	if address != nil {
 		return []any{address, params}

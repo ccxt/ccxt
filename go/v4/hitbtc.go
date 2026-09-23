@@ -1568,11 +1568,11 @@ func (this *Hitbtc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["from"] = since
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var response any = []any{}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchMyTrades", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -1583,15 +1583,15 @@ func (this *Hitbtc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "spot") {
+		if marketType != nil && *marketType == "spot" {
 
 			response = (<-this.PrivateGetSpotHistoryTrade(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.PrivateGetFuturesHistoryTrade(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "margin") {
+		} else if marketType != nil && *marketType == "margin" {
 
 			response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -2389,10 +2389,10 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchClosedOrders", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2404,15 +2404,15 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "spot") {
+		if marketType != nil && *marketType == "spot" {
 
 			response = (<-this.PrivateGetSpotHistoryOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "margin") {
+		} else if marketType != nil && *marketType == "margin" {
 
 			response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -2463,10 +2463,10 @@ func (this *Hitbtc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{
 		"client_order_id": id,
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2478,15 +2478,15 @@ func (this *Hitbtc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "spot") {
+		if marketType != nil && *marketType == "spot" {
 
 			response = (<-this.PrivateGetSpotHistoryOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "margin") {
+		} else if marketType != nil && *marketType == "margin" {
 
 			response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -2562,10 +2562,10 @@ func (this *Hitbtc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOrderTrades", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2577,15 +2577,15 @@ func (this *Hitbtc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 		response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "spot") {
+		if marketType != nil && *marketType == "spot" {
 
 			response = (<-this.PrivateGetSpotHistoryTrade(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.PrivateGetFuturesHistoryTrade(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "margin") {
+		} else if marketType != nil && *marketType == "margin" {
 
 			response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -2677,10 +2677,10 @@ func (this *Hitbtc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOpenOrders", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2692,15 +2692,15 @@ func (this *Hitbtc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetMarginOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "spot") {
+		if marketType != nil && *marketType == "spot" {
 
 			response = (<-this.PrivateGetSpotOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.PrivateGetFuturesOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "margin") {
+		} else if marketType != nil && *marketType == "margin" {
 
 			response = (<-this.PrivateGetMarginOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -2769,10 +2769,10 @@ func (this *Hitbtc) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"client_order_id": id,
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrder", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOpenOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2784,15 +2784,15 @@ func (this *Hitbtc) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any)
 		response = (<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "spot") {
+		if marketType != nil && *marketType == "spot" {
 
 			response = (<-this.PrivateGetSpotOrderClientOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.PrivateGetFuturesOrderClientOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "margin") {
+		} else if marketType != nil && *marketType == "margin" {
 
 			response = (<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -2840,10 +2840,10 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelAllOrders", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2855,15 +2855,15 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateDeleteMarginOrder(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "spot") {
+		if marketType != nil && *marketType == "spot" {
 
 			response = (<-this.PrivateDeleteSpotOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.PrivateDeleteFuturesOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "margin") {
+		} else if marketType != nil && *marketType == "margin" {
 
 			response = (<-this.PrivateDeleteMarginOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -2913,10 +2913,10 @@ func (this *Hitbtc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2928,15 +2928,15 @@ func (this *Hitbtc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		response = (<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "spot") {
+		if marketType != nil && *marketType == "spot" {
 
 			response = (<-this.PrivateDeleteSpotOrderClientOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.PrivateDeleteFuturesOrderClientOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "margin") {
+		} else if marketType != nil && *marketType == "margin" {
 
 			response = (<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -2980,10 +2980,10 @@ func (this *Hitbtc) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("editOrder", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("editOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2995,15 +2995,15 @@ func (this *Hitbtc) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		response = (<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "spot") {
+		if marketType != nil && *marketType == "spot" {
 
 			response = (<-this.PrivatePatchSpotOrderClientOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.PrivatePatchFuturesOrderClientOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "margin") {
+		} else if marketType != nil && *marketType == "margin" {
 
 			response = (<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -3313,16 +3313,16 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 		symbols = this.MarketSymbols(symbols)
 		market = this.Market(GetValue(symbols, 0))
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMarginMode", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
-	if IsEqual(marketType, "margin") {
+	if marketType != nil && *marketType == "margin" {
 
 		response = (<-this.PrivateGetMarginConfig(params)).Raw
 		PanicOnError(response)
-	} else if IsEqual(marketType, "swap") {
+	} else if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.PrivateGetFuturesConfig(params)).Raw
 		PanicOnError(response)
@@ -3746,13 +3746,13 @@ func (this *Hitbtc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositions", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	if IsEqual(marketType, "spot") {
-		marketType = "swap"
+	if marketType != nil && *marketType == "spot" {
+		marketType = SafeStringPtr("swap")
 	}
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchPositions", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -3764,11 +3764,11 @@ func (this *Hitbtc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetMarginAccount(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "swap") {
+		if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.PrivateGetFuturesAccount(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "margin") {
+		} else if marketType != nil && *marketType == "margin" {
 
 			response = (<-this.PrivateGetMarginAccount(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -3847,10 +3847,10 @@ func (this *Hitbtc) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPosition", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchPosition", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -3862,11 +3862,11 @@ func (this *Hitbtc) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "swap") {
+		if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.PrivateGetFuturesAccountIsolatedSymbol(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "margin") {
+		} else if marketType != nil && *marketType == "margin" {
 
 			response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -4280,20 +4280,20 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 	if leverage != nil {
 		request["leverage"] = leverage
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("modifyMarginHelper", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("modifyMarginHelper", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var response any = nil
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if (IsEqual(marketType, "margin")) || (IsEqual(marketType, "spot")) || (IsEqual(marginMode, "isolated")) {
+	} else if (marketType != nil && *marketType == "margin") || (marketType != nil && *marketType == "spot") || (IsEqual(marginMode, "isolated")) {
 
 		response = (<-this.PrivatePutMarginAccountIsolatedSymbol(this.Extend(request, params))).Raw
 		PanicOnError(response)

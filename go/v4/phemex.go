@@ -2009,21 +2009,21 @@ func (this *Phemex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var first *string = this.SafeString(symbols, 0)
 		market = this.Market(first)
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchTickers", market, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var query map[string]any = MapTyped(this.Omit(params, "type"))
 	var response any = nil
-	if IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 
 		response = (<-this.V1GetMdSpotTicker24hrAll(query)).Raw
 		PanicOnError(response)
-	} else if (IsEqual(subType, "inverse")) || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USD") {
+	} else if (subType != nil && *subType == "inverse") || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USD") {
 
 		response = (<-this.V1GetMdTicker24hrAll(query)).Raw
 		PanicOnError(response)
@@ -3241,15 +3241,15 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			var triggerType *string = this.SafeString(params, "triggerType", "ByMarkPrice")
 			request["triggerType"] = triggerType
 			// set direction & exchange specific order type
-			var triggerDirection any = nil
+			var triggerDirection *string = nil
 			var triggerDirectionparamsVariable []any = this.HandleParamString(params, "triggerDirection")
-			triggerDirection = GetValue(triggerDirectionparamsVariable, 0)
+			triggerDirection = SafeStringPtr(GetValue(triggerDirectionparamsVariable, 0))
 			params = GetValue(triggerDirectionparamsVariable, 1)
 			if triggerDirection == nil {
 				panic(ArgumentsRequired(this.Id + " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value"))
 			}
 			// the flow defined per https://phemex-docs.github.io/#more-order-type-examples
-			if (IsEqual(triggerDirection, "ascending")) || (IsEqual(triggerDirection, "up")) {
+			if (triggerDirection != nil && *triggerDirection == "ascending") || (triggerDirection != nil && *triggerDirection == "up") {
 				if IsEqual(side, "sell") {
 					request["ordType"] = func() string {
 						if IsEqual(typeVar, "Market") {
@@ -3265,7 +3265,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 						return "StopLimit"
 					}()
 				}
-			} else if (IsEqual(triggerDirection, "descending")) || (IsEqual(triggerDirection, "down")) {
+			} else if (triggerDirection != nil && *triggerDirection == "descending") || (triggerDirection != nil && *triggerDirection == "down") {
 				if IsEqual(side, "sell") {
 					request["ordType"] = func() string {
 						if IsEqual(typeVar, "Market") {
@@ -4067,16 +4067,16 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var request map[string]any = map[string]any{}
 	if limit != nil {
 		limit = Int64PtrTyped(mathMin(200, limit))
 		request["limit"] = limit
 	}
-	var isUSDTSettled bool = (!IsEqual(typeVar, "spot")) && ((symbol == nil) || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USDT"))
+	var isUSDTSettled bool = (typeVar == nil || *typeVar != "spot") && ((symbol == nil) || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USDT"))
 	if isUSDTSettled {
 		request["currency"] = "USDT"
 		request["offset"] = 0
@@ -4094,7 +4094,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.PrivateGetExchangeOrderV2TradingList(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "swap") {
+	} else if typeVar != nil && *typeVar == "swap" {
 		request["tradeType"] = "Trade"
 
 		response = (<-this.PrivateGetExchangeOrderTrade(this.Extend(request, params))).Raw
@@ -4585,7 +4585,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
-	var subType any = nil
+	var subType *string = nil
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
 	params = MapTyped(this.Omit(params, []any{"currency", "code"}))
 	var settle any = nil
@@ -4601,7 +4601,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		params = MapTyped(GetValue(settleparamsVariable, 1))
 	}
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositions", market, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isUSDTSettled bool = (IsEqual(settle, "USDT"))
 	if isUSDTSettled {
@@ -4610,7 +4610,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		code = "BTC"
 	} else if IsEqual(code, nil) {
 		code = func() string {
-			if IsEqual(subType, "linear") {
+			if subType != nil && *subType == "linear" {
 				return "USD"
 			}
 			return "BTC"
@@ -6598,7 +6598,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	var subType any = nil
+	var subType *string = nil
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
 	params = MapTyped(this.Omit(params, []any{"currency", "code"}))
 	var settle any = nil
@@ -6614,7 +6614,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 		params = MapTyped(GetValue(settleparamsVariable, 1))
 	}
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositionsADLRank", market, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isUSDTSettled bool = (IsEqual(settle, "USDT"))
 	if isUSDTSettled {
@@ -6623,7 +6623,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 		code = "BTC"
 	} else if IsEqual(code, nil) {
 		code = func() string {
-			if IsEqual(subType, "linear") {
+			if subType != nil && *subType == "linear" {
 				return "USD"
 			}
 			return "BTC"

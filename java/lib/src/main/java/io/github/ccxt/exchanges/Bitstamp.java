@@ -3624,7 +3624,7 @@ public class Bitstamp extends BitstampApi
             {
                 market = this.getMarketFromTrade((Map<String, Object>) (item));
             }
-            Object direction = (((java.util.Objects.equals(((Map<String, Object>)parsedTrade).get("side"), "buy")))) ? "in" : "out";
+            String direction = (((java.util.Objects.equals(((Map<String, Object>)parsedTrade).get("side"), "buy")))) ? "in" : "out";
             final String finalType = type;
             final Object finalMarket = market;
             return this.safeLedgerEntry(new HashMap<String, Object>() {{
@@ -4244,7 +4244,7 @@ public class Bitstamp extends BitstampApi
         Object error = this.safeValue(response, "error");
         if ((java.util.Objects.equals(status, "error")) || (!java.util.Objects.equals(error, null)))
         {
-            Object errors = new ArrayList<Object>(Arrays.asList());
+            List<Object> errors = new ArrayList<Object>(Arrays.asList());
             if ((error instanceof String))
             {
                 ((List<Object>)errors).add(error);
@@ -4257,7 +4257,7 @@ public class Bitstamp extends BitstampApi
                     Object value = this.safeValue(error, key);
                     if ((value instanceof List))
                     {
-                        errors = this.arrayConcat(errors, value);
+                        errors = (List<Object>) this.arrayConcat(errors, value);
                     } else
                     {
                         ((List<Object>)errors).add(value);
@@ -4284,7 +4284,7 @@ public class Bitstamp extends BitstampApi
             String feedback = ((this.id + " ") + body);
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
-                Object value = (errors == null || i < 0 || i >= ((List<?>)errors).size() ? null : ((List<?>)errors).get(i));
+                Object value = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), value, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), value, feedback);
             }

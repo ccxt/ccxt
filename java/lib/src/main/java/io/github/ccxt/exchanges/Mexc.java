@@ -2120,7 +2120,7 @@ public class Mexc extends MexcApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object trades = new ArrayList<Object>(Arrays.asList());
+            List<Object> trades = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 Long until = (Long) this.safeInteger2(parameters, "endTime", "until");
@@ -2175,7 +2175,7 @@ public class Mexc extends MexcApi
                 //         ]
                 //     }
                 //
-                trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -5375,7 +5375,7 @@ public class Mexc extends MexcApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object trades = new ArrayList<Object>(Arrays.asList());
+            List<Object> trades = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (!java.util.Objects.equals(since, null))
@@ -5432,7 +5432,7 @@ public class Mexc extends MexcApi
                 //         ]
                 //     }
                 //
-                trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -5487,7 +5487,7 @@ public class Mexc extends MexcApi
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
             String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
-            Object trades = new ArrayList<Object>(Arrays.asList());
+            List<Object> trades = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (java.util.Objects.equals(symbol, null))
@@ -5524,7 +5524,7 @@ public class Mexc extends MexcApi
                 //         ]
                 //     }
                 //
-                trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseTrades(trades, market, since, limit, query);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));

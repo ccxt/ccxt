@@ -960,7 +960,7 @@ public class Alpaca extends AlpacaApi
             {
                 throw new NotSupported((((this.id + " fetchTrades() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
             }
-            Object symbolTradesList = new ArrayList<Object>(Arrays.asList());
+            List<Object> symbolTradesList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbolTrades, null))
             {
                 symbolTradesList = symbolTrades;

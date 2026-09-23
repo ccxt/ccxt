@@ -1659,14 +1659,14 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String topic = this.safeString(message, "channel");
         String messageHash = (topic + "::balance");
         Object info = null;
-        Object rawBalances = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawBalances = new ArrayList<Object>(Arrays.asList());
         String account = null;
         Long timestamp = null;
         Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(topic, "spotState"))
         {
             Map<String, Object> spotState = (Map<String, Object>) this.safeDict(data, "spotState");
-            rawBalances = this.safeList(spotState, "balances", new ArrayList<Object>(Arrays.asList()));
+            rawBalances = (List<Object>) this.safeList(spotState, "balances", new ArrayList<Object>(Arrays.asList()));
             account = "spot";
             info = rawBalances;
         }
@@ -1681,7 +1681,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         for (var i = 0; i < ((List<?>)rawBalances).size(); i++)
         {
-            this.parseWsBalance((Map<String, Object>) ((rawBalances == null || i < 0 || i >= ((List<?>)rawBalances).size() ? null : ((List<?>)rawBalances).get(i))), account);
+            this.parseWsBalance((Map<String, Object>) ((rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i))), account);
         }
         if (java.util.Objects.equals(this.safeValue(this.balance, account), null))
         {

@@ -3842,7 +3842,7 @@ public class Bitget extends BitgetApi
                 }
             }
             Object results = (Helpers.promiseAll(promises)).join();
-            Object markets = new ArrayList<Object>(Arrays.asList());
+            List<Object> markets = new ArrayList<Object>(Arrays.asList());
             Helpers.addElementToObject(this.options, "crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(this.options, "isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)results).size(); i++)
@@ -3879,7 +3879,7 @@ public class Bitget extends BitgetApi
                     Helpers.addElementToObject(this.options, "isolatedMarginPairsData", isolatedKeys);
                 } else
                 {
-                    markets = this.arrayConcat(markets, data);
+                    markets = (List<Object>) this.arrayConcat(markets, data);
                 }
             }
             //
@@ -3942,7 +3942,7 @@ public class Bitget extends BitgetApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String marketId = this.safeString(market, "symbol");
                 String quoteId = this.safeString(market, "quoteCoin");
                 String baseId = this.safeString(market, "baseCoin");
@@ -4139,12 +4139,12 @@ public class Bitget extends BitgetApi
                 ((List<Object>)promises).add(this.publicUtaGetV3MarketInstruments(req));
             }
             Object results = (Helpers.promiseAll(promises)).join();
-            Object markets = new ArrayList<Object>(Arrays.asList());
+            List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
                 Map<String, Object> res = (Map<String, Object>) this.safeDict(results, i);
                 List<Object> data = (List<Object>) this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
-                markets = this.arrayConcat(markets, data);
+                markets = (List<Object>) this.arrayConcat(markets, data);
             }
             //
             // spot uta
@@ -4238,7 +4238,7 @@ public class Bitget extends BitgetApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
+                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String category = this.safeString(market, "category");
                 String marketId = this.safeString(market, "symbol");
                 String quoteId = this.safeString(market, "quoteCoin");
@@ -9503,11 +9503,11 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object order = new HashMap<String, Object>() {{}};
+            Map<String, Object> order = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isContractTriggerEndpoint))
             {
                 List<Object> orderInfo = (List<Object>) this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
-                order = this.safeDict(orderInfo, 0, new HashMap<String, Object>() {{}});
+                order = (Map<String, Object>) this.safeDict(orderInfo, 0, new HashMap<String, Object>() {{}});
             } else
             {
                 if ((java.util.Objects.equals(uta, true)) && (java.util.Objects.equals(trigger, true)))
@@ -9862,10 +9862,10 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             List<Object> resultList = (List<Object>) this.safeListN(data, new ArrayList<Object>(Arrays.asList("resultList", "successList", "list")));
             List<Object> failureList = (List<Object>) this.safeList2(data, "failure", "failureList");
-            Object responseList = null;
+            List<Object> responseList = null;
             if ((!java.util.Objects.equals(resultList, null)) && (!java.util.Objects.equals(failureList, null)))
             {
-                responseList = this.arrayConcat(resultList, failureList);
+                responseList = (List<Object>) this.arrayConcat(resultList, failureList);
             } else
             {
                 responseList = resultList;
@@ -12474,19 +12474,19 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object position = new ArrayList<Object>(Arrays.asList());
+            List<Object> position = new ArrayList<Object>(Arrays.asList());
             if ((java.util.Objects.equals(uta, true)) || Boolean.TRUE.equals(isHistory))
             {
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                position = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+                position = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                position = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                position = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)position).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((position == null || i < 0 || i >= ((List<?>)position).size() ? null : ((List<?>)position).get(i))), market));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((position == null || i < 0 || i >= position.size() ? null : position.get(i))), market));
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             return this.filterByArrayPositions(result, "symbol", symbols, false);

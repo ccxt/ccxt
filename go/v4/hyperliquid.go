@@ -732,11 +732,11 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 				data["collateralTokenName"] = collateralTokenCode
 				// eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
 				var safeCode *string = this.SafeCurrencyCode(name)
-				var hip3Code any = func() any {
+				var hip3Code *string = func() *string {
 					if safeCode == nil {
 						return name
 					}
-					return Replace(safeCode, ":", "-")
+					return SafeStringPtr(Replace(safeCode, ":", "-"))
 				}()
 				AddElementToObject(GetValue(this.Options, "hip3TokensByName"), name, map[string]any{
 					"quote": collateralTokenCode,
@@ -1236,9 +1236,9 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	userAddressparamsVariable := this.HandlePublicAddress("fetchBalance", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = GetValue(typeVarparamsVariable, 1)
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
@@ -1249,7 +1249,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	isUnifiedEnabled = GetValue(isUnifiedEnabledparamsVariable, 0)
 	params = GetValue(isUnifiedEnabledparamsVariable, 1)
 	var dex *string = this.SafeString(params, "dex")
-	var isSpot bool = ((IsEqual(typeVar, "spot")) || (isUnifiedEnabled == true)) && (dex == nil)
+	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (isUnifiedEnabled == true)) && (dex == nil)
 	var request map[string]any = map[string]any{
 		"type": func() string {
 			if isSpot == true {

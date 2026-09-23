@@ -3566,9 +3566,9 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 	_ = market
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("handleProductTypeAndParams", nil, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var defaultProductType any = nil
 	if (subType != nil) && (market == nil) {
@@ -3578,7 +3578,7 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 		//     defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
 		// } else {
 		defaultProductType = func() string {
-			if IsEqual(subType, "linear") {
+			if subType != nil && *subType == "linear" {
 				return "USDT-FUTURES"
 			}
 			return "COIN-FUTURES"
@@ -5932,9 +5932,9 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var response any = nil
 	var request map[string]any = map[string]any{}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = GetValue(typeVarparamsVariable, 1)
 	// Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
 	// as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
@@ -5960,7 +5960,7 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.PublicUtaGetV3MarketTickers(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if (IsEqual(typeVar, "spot")) && (passedSubType == nil) {
+	} else if (typeVar != nil && *typeVar == "spot") && (passedSubType == nil) {
 
 		response = (<-this.PublicSpotGetV2SpotMarketTickers(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -6953,18 +6953,18 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	// make request
 	var response any = nil
 	var productType any = nil
-	var priceType any = nil
+	var priceType *string = nil
 	var priceTypeparamsVariable []any = this.HandleParamString(params, "price")
-	priceType = GetValue(priceTypeparamsVariable, 0)
+	priceType = SafeStringPtr(GetValue(priceTypeparamsVariable, 0))
 	params = GetValue(priceTypeparamsVariable, 1)
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	if uta == true {
 		if priceType != nil {
-			if IsEqual(priceType, "mark") {
+			if priceType != nil && *priceType == "mark" {
 				request["type"] = "MARK"
-			} else if IsEqual(priceType, "index") {
+			} else if priceType != nil && *priceType == "index" {
 				request["type"] = "INDEX"
 			}
 		}
@@ -6990,7 +6990,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	} else {
 		request["productType"] = productType
 		var extended map[string]any = this.Extend(request, params)
-		if !historicalEndpointNeeded && ((IsEqual(priceType, "mark")) || (IsEqual(priceType, "index"))) {
+		if !historicalEndpointNeeded && ((priceType != nil && *priceType == "mark") || (priceType != nil && *priceType == "index")) {
 			if !limitDefined {
 				extended["limit"] = 1000
 				limit = 1000
@@ -7002,11 +7002,11 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 				"kLineType": priceType,
 			}, extended)))
 			PanicOnError(response)
-		} else if IsEqual(priceType, "mark") {
+		} else if priceType != nil && *priceType == "mark" {
 
 			response = (<-this.PublicMixGetV2MixMarketHistoryMarkCandles(extended))
 			PanicOnError(response)
-		} else if IsEqual(priceType, "index") {
+		} else if priceType != nil && *priceType == "index" {
 
 			response = (<-this.PublicMixGetV2MixMarketHistoryIndexCandles(extended))
 			PanicOnError(response)
@@ -10168,9 +10168,9 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = GetValue(marketTypeparamsVariable, 1)
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchCanceledAndClosedOrders", params)
@@ -10182,7 +10182,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 		var cursorReceived any = nil
-		if IsEqual(marketType, "spot") {
+		if marketType != nil && *marketType == "spot" {
 			if marginMode != nil {
 				cursorReceived = "minId"
 			}
@@ -10207,7 +10207,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	if (IsEqual(marketType, "swap")) || (IsEqual(marketType, "future")) || (marginMode != nil) {
+	if (marketType != nil && *marketType == "swap") || (marketType != nil && *marketType == "future") || (marginMode != nil) {
 		var clientOrderId *string = this.SafeString2(params, "clientOid", "clientOrderId")
 		params = this.Omit(params, "clientOrderId")
 		if clientOrderId != nil {
@@ -10215,7 +10215,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 		}
 	}
 	var now int64 = this.Milliseconds()
-	if IsEqual(marketType, "spot") {
+	if marketType != nil && *marketType == "spot" {
 		if marginMode != nil {
 			if since == nil {
 				since = now - 7776000000
@@ -10455,7 +10455,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	if IsEqual(marketType, "spot") {
+	if marketType != nil && *marketType == "spot" {
 		if (marginMode != nil) || (trigger != nil && *trigger == true) {
 
 			ch <- this.ParseOrders(this.SafeList(data, "orderList"), market, since, limit)
@@ -10681,9 +10681,9 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchLedger", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = GetValue(marketTypeparamsVariable, 1)
 	var uta any = nil
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchLedger", false))))
@@ -10711,7 +10711,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}
 		var cursorReceived any = nil
-		if !IsEqual(marketType, "spot") {
+		if marketType == nil || *marketType != "spot" {
 			cursorReceived = "endId"
 		}
 		params = this.Extend(params, map[string]any{
@@ -10744,7 +10744,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var response any = nil
 	if uta == true {
-		if IsEqual(marketType, "funding") {
+		if marketType != nil && *marketType == "funding" {
 
 			response = (<-this.PrivateUtaGetV3AccountFundingFinancialRecords(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -10753,7 +10753,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 			var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchLedger", params)
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
-			if IsEqual(marketType, "spot") {
+			if marketType != nil && *marketType == "spot" {
 				if marginMode != nil {
 					AddElementToObject(request, "category", "MARGIN")
 				} else {
@@ -10779,7 +10779,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		ch <- this.ParseLedger(list, currency, since, limit)
 		return nil
 	}
-	if IsEqual(marketType, "spot") {
+	if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.PrivateSpotGetV2SpotAccountBills(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -10841,7 +10841,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeValue(response, "data")
-	if (IsEqual(marketType, "swap")) || (IsEqual(marketType, "future")) {
+	if (marketType != nil && *marketType == "swap") || (marketType != nil && *marketType == "future") {
 		var bills []any = SafeListTypedDefault(data, "bills", []any{})
 
 		ch <- this.ParseLedger(bills, currency, since, limit)
@@ -13821,11 +13821,11 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyLiquidations", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if !IsEqual(typeVar, "spot") {
+	if typeVar == nil || *typeVar != "spot" {
 		panic(NotSupported(this.Id + " fetchMyLiquidations() supports spot margin markets only"))
 	}
 	var request any = map[string]any{}

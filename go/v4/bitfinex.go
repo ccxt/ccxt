@@ -1207,9 +1207,9 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 	var pool []any = SafeListTypedDefault(indexed["pool"], id, []any{})
 	var rawType *string = this.SafeString(pool, 1)
 	var isCryptoCoin bool = (rawType != nil) || (InOp(indexed["explorer"], id)) // "hacky" solution
-	var typeVar any = func() any {
+	var typeVar *string = func() *string {
 		if isCryptoCoin {
-			return "crypto"
+			return SafeStringPtr("crypto")
 		}
 		return nil
 	}()

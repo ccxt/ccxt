@@ -3150,9 +3150,9 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 	if (postOnly == true) && (IsEqual(typeVar, "LIMIT")) {
 		request["type"] = "LIMIT_MAKER"
 	}
-	var clientOrderId any = nil
+	var clientOrderId *string = nil
 	var clientOrderIdparamsVariable []any = this.HandleParamString(params, "clientOrderId")
-	clientOrderId = GetValue(clientOrderIdparamsVariable, 0)
+	clientOrderId = SafeStringPtr(GetValue(clientOrderIdparamsVariable, 0))
 	params = GetValue(clientOrderIdparamsVariable, 1)
 	if clientOrderId != nil {
 		AddElementToObject(params, "newClientOrderId", clientOrderId)

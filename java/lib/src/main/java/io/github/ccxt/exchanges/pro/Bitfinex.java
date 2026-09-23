@@ -339,7 +339,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //   ]
         //
         List<Object> data = (List<Object>) this.safeList(message, 1, new ArrayList<Object>(Arrays.asList()));
-        Object ohlcvs = new ArrayList<Object>(Arrays.asList());
+        List<Object> ohlcvs = new ArrayList<Object>(Arrays.asList());
         List<Object> first = (List<Object>) this.safeList(data, 0);
         if ((first instanceof List))
         {

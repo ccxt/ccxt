@@ -2049,12 +2049,12 @@ func (this *Kucoin) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
-	if (!IsEqual(typeVar, "spot")) && (!IsEqual(typeVar, "margin")) {
+	if (typeVar == nil || *typeVar != "spot") && (typeVar == nil || *typeVar != "margin") {
 		//
 		//    {
 		//        "code": "200000",
@@ -2108,9 +2108,9 @@ func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "fetchStatus", "uta", uta)
 	uta = GetValue(utaparamsVariable, 0)
 	params = MapTyped(GetValue(utaparamsVariable, 1))
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchStatus", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
 	if uta == true {
@@ -2128,7 +2128,7 @@ func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.UtaGetServerStatus(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if (!IsEqual(typeVar, "spot")) && (!IsEqual(typeVar, "margin")) {
+	} else if (typeVar == nil || *typeVar != "spot") && (typeVar == nil || *typeVar != "margin") {
 
 		response = (<-this.FuturesPublicGetStatus(params)).Raw
 		PanicOnError(response)
@@ -4138,11 +4138,11 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		request["startAt"] = this.ParseToInt(MathFloor(Divide(since, denominator)))
 	}
 	request["endAt"] = this.ParseToInt(MathFloor(Divide(endAt, denominator)))
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOHLCV", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin")) {
+	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 		request["tradeType"] = "SPOT"
 	} else {
 		request["tradeType"] = "FUTURES"
@@ -4722,9 +4722,9 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	uta = GetValue(utaparamsVariable, 0)
 	params = MapTyped(GetValue(utaparamsVariable, 1))
 	var response any = nil
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	if uta == true {
 		var limitString string = "20"
@@ -4735,7 +4735,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		}
 		request["limit"] = limitString
 		request["symbol"] = market["id"]
-		if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin")) {
+		if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 			request["tradeType"] = "SPOT"
 		} else {
 			request["tradeType"] = "FUTURES"
@@ -4743,7 +4743,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 		response = (<-this.UtaPrivateGetMarketOrderbook(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if (!IsEqual(typeVar, "spot")) && (!IsEqual(typeVar, "margin")) {
+	} else if (typeVar == nil || *typeVar != "spot") && (typeVar == nil || *typeVar != "margin") {
 		if (level == nil || *level != 2) && (level != nil) {
 			panic(BadRequest(this.Id + " fetchOrderBook() can only return level 2"))
 		}
@@ -6149,15 +6149,15 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		ch <- BoxAbsent(retRes495719)
 		return nil
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	if (IsEqual(marketType, "spot")) || (IsEqual(marketType, "margin")) {
+	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
 		var retRes496619 map[string]any = MapTyped(PanicOnError((<-this.CancelSpotOrderAsync(id, symbol, params))))
 		ch <- BoxAbsent(retRes496619)
@@ -6541,15 +6541,15 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes525619)
 		return nil
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	if (IsEqual(marketType, "spot")) || (IsEqual(marketType, "margin")) {
+	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
 		var retRes526519 []any = ListTyped(PanicOnError((<-this.CancelAllSpotOrdersAsync(symbol, params))))
 		ch <- BoxAbsent(retRes526519)
@@ -8437,13 +8437,13 @@ func (this *Kucoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 
 	uta := (<-this.IsUTAEnabledAsync())
@@ -8460,7 +8460,7 @@ func (this *Kucoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes678119)
 		return nil
 	}
-	if (IsEqual(marketType, "spot")) || (IsEqual(marketType, "margin")) {
+	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
 		var retRes678419 []any = ListTyped(PanicOnError((<-this.FetchMySpotTradesAsync(symbol, since, limit, params))))
 		ch <- BoxAbsent(retRes678419)
@@ -8924,12 +8924,12 @@ func (this *Kucoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	params = MapTyped(GetValue(utaparamsVariable, 1))
 	var response any = nil
 	var trades any = nil
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTrades", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	if uta == true {
-		if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin")) {
+		if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 			request["tradeType"] = "SPOT"
 		} else {
 			request["tradeType"] = "FUTURES"
@@ -8957,7 +8957,7 @@ func (this *Kucoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		//
 		var data map[string]any = SafeMapTyped(response, "data")
 		trades = this.SafeList(data, "list", []any{})
-	} else if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin")) {
+	} else if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 
 		response = (<-this.PublicGetMarketHistories(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -12325,11 +12325,11 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("setLeverage", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	if (symbol != nil) || ((!IsEqual(marketType, "spot")) && (!IsEqual(marketType, "margin"))) {
+	if (symbol != nil) || ((marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "margin")) {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " setLeverage requires a symbol argument for contract markets"))
 		}

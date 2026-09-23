@@ -1176,12 +1176,12 @@ func (this *Cex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var accountNameparamsVariable []any = this.HandleParamString(params, "account", "")
 	accountName = GetValue(accountNameparamsVariable, 0)
 	params = GetValue(accountNameparamsVariable, 1) // default is empty string
-	var method any = nil
+	var method *string = nil
 	var methodparamsVariable []any = this.HandleParamString(params, "method", "privatePostGetMyWalletBalance")
-	method = GetValue(methodparamsVariable, 0)
+	method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 	params = GetValue(methodparamsVariable, 1)
 	var accountBalance any = nil
-	if IsEqual(method, "privatePostGetMyAccountStatusV3") {
+	if method != nil && *method == "privatePostGetMyAccountStatusV3" {
 
 		response := (<-this.PrivatePostGetMyAccountStatusV3(params)).Raw
 		PanicOnError(response)

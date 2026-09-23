@@ -5600,6 +5600,9 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaJoinedAccumulatorTypes (transpiler);
     // (10) ternary locals whose arms print one Java type (section 14)
     patchJavaTernaryLocalTypes (transpiler);
+    // (11) literal/null locals joined over copies, ternaries and producer writes (section 16)
+    patchJavaConcreteInitLocalTypes (transpiler);
+    patchJavaConcreteTernaryStringTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -10440,4 +10443,216 @@ export function installJavaStringListParamTypes (transpiler) {
         return type === 'java.util.List<String>' ? type : undefined;
     };
     printer._javaStringListParamTypesPatched = true;
+}
+
+// ===== 17. concrete-initializer locals (r15-j11) =====
+// `Object x = {..}/[..]/null` still Object after sections 13/14: the join also admits literal
+// initializers, copies of a same-typed declared local and ternaries of admitted writes.
+function concreteDeclaredType (printer, node) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration)
+        || typeof printer.javaDeclaredLocalTypeResolver !== 'function') {
+        return undefined;
+    }
+    const printed = String (printer.javaDeclaredLocalTypeResolver (declaration) ?? '').replace (/^java\.util\./, '');
+    if (printed === 'Map<String, Object>') {
+        return JAVA_STRUCTURE_TYPE;
+    }
+    return printed === 'List<Object>' ? JAVA_ARRAY_TYPE : undefined;
+}
+
+function concreteWriteInfo (printer, node, depth = 0) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > 4) {
+        return undefined;
+    }
+    if (isNullishInitializer (value)) {
+        return { type: undefined, cast: '' };
+    }
+    if (ts.isIdentifier (value)) {
+        const type = concreteDeclaredType (printer, value);
+        return type === undefined ? undefined : { type, cast: '' };
+    }
+    if (ts.isConditionalExpression (value)) {
+        const a = concreteWriteInfo (printer, value.whenTrue, depth + 1);
+        const b = concreteWriteInfo (printer, value.whenFalse, depth + 1);
+        if (a === undefined || b === undefined || a.cast !== '' || b.cast !== ''
+            || (a.type !== undefined && b.type !== undefined && a.type !== b.type)) {
+            return undefined;
+        }
+        return { type: a.type ?? b.type, cast: '' };
+    }
+    if ((ts.isObjectLiteralExpression (value) && !literalObjectLiteralIsPlain (value))
+        || (ts.isArrayLiteralExpression (value) && !literalArrayLiteralIsPlain (value))) {
+        return undefined;
+    }
+    return accumulatorWriteInfo (printer, value);
+}
+
+function concreteInitLocalTypeOf (printer, declaration) {
+    const initial = concreteWriteInfo (printer, declaration.initializer);
+    if (initial === undefined || initial.cast !== '' || declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement
+        || (initial.type !== undefined && !(ts.isObjectLiteralExpression (unwrapParens (declaration.initializer))
+            || ts.isArrayLiteralExpression (unwrapParens (declaration.initializer))))) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const index = dataflowIndex (printer, scope);
+    const name = dataflowCanonicalName (printer, declaration.name);
+    const declarations = index.declarations.get (name);
+    if (declarations === undefined || declarations.length !== 1 || declarations[0] !== declaration
+        || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || (index.bindingCounts.get (String (declaration.name.escapedText)) ?? 0) !== 1) {
+        return undefined;
+    }
+    let type = initial.type;
+    for (const n of (index.identifiers.get (name) ?? [])) {
+        if (n === declaration.name || dataflowNotAUse (n)) {
+            continue;
+        }
+        if (enclosingFunction (n) !== scope || isClassThrowArgument (n)) {
+            return undefined;
+        }
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        if (parent !== undefined && (ts.isReturnStatement (parent)
+            || (ts.isConditionalExpression (parent) && parent.condition !== host))) {
+            return undefined; // returns / ternary arms move javac's inferred types
+        }
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host
+            && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            const written = concreteWriteInfo (printer, parent.right);
+            if (written === undefined || (type !== undefined && written.type !== undefined && written.type !== type)) {
+                return undefined;
+            }
+            type = type ?? written.type;
+        }
+    }
+    if (type === undefined || !AWAITED_ACCUMULATOR_TYPES.has (type) || dataflowTypeTokenCollides (index, type)) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const writeOk = (right) => {
+        const info = concreteWriteInfo (printer, right);
+        return info !== undefined && (info.type === undefined || info.type === type);
+    };
+    if (!isSafeToNarrow (printer, declaration, String (declaration.name.escapedText), type, isProFile, { noCastAssertions: true, writeOk })) {
+        return undefined;
+    }
+    return type;
+}
+
+export function patchJavaConcreteInitLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaConcreteInitPatched) {
+        return;
+    }
+    printer._javaConcreteInitPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined
+            || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        let type;
+        try {
+            type = concreteInitLocalTypeOf (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (type === undefined) {
+            return printed;
+        }
+        typed.set (declaration, type);
+        return printed.slice (0, at) + `${iden}${type} ${printedName} = ` + printed.slice (at + marker.length);
+    };
+    // Object-declared producer writes (safeList*/safeDict*/arrayConcat) take accumulatorWriteInfo's checkcast
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration;
+        } catch (e) {
+            return printed;
+        }
+        const type = declaration === undefined ? undefined : typed.get (declaration);
+        const info = type === undefined ? undefined : accumulatorWriteInfo (printer, node.right);
+        if (info === undefined || info.cast === '' || info.type !== type) {
+            return printed;
+        }
+        const marker = `${printer.printNode (node.left, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at === -1 || printed.startsWith (info.cast, at + marker.length)) {
+            return printed;
+        }
+        return printed.slice (0, at + marker.length) + info.cast + ' ' + printed.slice (at + marker.length);
+    };
+}
+
+// String ternaries section 14 declines only because a same-named local in a sibling block has
+// other writes: isSafeToNarrow audits writes per printed shape, not per binding type
+function concreteTernaryStringLocal (printer, declaration) {
+    const initializer = unwrapParens (declaration.initializer);
+    if (initializer === undefined || !ts.isConditionalExpression (initializer) || !ts.isIdentifier (declaration.name)
+        || declaration.parent?.declarations?.length !== 1 || declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement) {
+        return false;
+    }
+    const value = ternaryArmType (printer, initializer);
+    if (value === undefined || value.nullish === true || value.type !== LITERAL_STRING_TYPE || value.cast) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || literalTypeTokenShadowed (scope, LITERAL_STRING_TYPE)) {
+        return false;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    return isSafeToNarrow (printer, declaration, String (declaration.name.escapedText), LITERAL_STRING_TYPE, isProFile, { nonNull: false });
+}
+
+export function patchJavaConcreteTernaryStringTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaConcreteTernaryPatched) {
+        return;
+    }
+    printer._javaConcreteTernaryPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.lastIndexOf (marker);
+        let ok = false;
+        try {
+            ok = at !== -1 && concreteTernaryStringLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        return ok ? printed.slice (0, at) + `${iden}String ` + printed.slice (at + iden.length + printer.VAR_TOKEN.length + 1) : printed;
+    };
 }

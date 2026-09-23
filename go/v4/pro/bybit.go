@@ -2647,13 +2647,13 @@ func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var method string = "watchBalance"
 	var messageHash string = "balances"
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
-	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
+	typeVar = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("watchBalance", nil, params)
-	subType = ccxt.GetValue(subTypeparamsVariable, 0)
+	subType = ccxt.SafeStringPtr(ccxt.GetValue(subTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(subTypeparamsVariable, 1))
 
 	var unified []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.IsUnifiedEnabledAsync())))
@@ -2670,7 +2670,7 @@ func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	if isUnifiedAccount != nil && *isUnifiedAccount == true {
 		// unified account
-		if ccxt.IsEqual(subType, "inverse") {
+		if subType != nil && *subType == "inverse" {
 			messageHash += ":contract"
 		} else {
 			messageHash += ":unified"
@@ -2678,7 +2678,7 @@ func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	if (isUnifiedMargin == nil || *isUnifiedMargin != true) && (isUnifiedAccount == nil || *isUnifiedAccount != true) {
 		// normal account using v5
-		if ccxt.IsEqual(typeVar, "spot") {
+		if typeVar != nil && *typeVar == "spot" {
 			messageHash += ":spot"
 		} else {
 			messageHash += ":contract"
@@ -2686,10 +2686,10 @@ func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	if isUnifiedMargin != nil && *isUnifiedMargin == true {
 		// unified margin account using v5
-		if ccxt.IsEqual(typeVar, "spot") {
+		if typeVar != nil && *typeVar == "spot" {
 			messageHash += ":spot"
 		} else {
-			if ccxt.IsEqual(subType, "linear") {
+			if subType != nil && *subType == "linear" {
 				messageHash += ":unified"
 			} else {
 				messageHash += ":contract"

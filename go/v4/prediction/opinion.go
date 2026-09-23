@@ -1473,9 +1473,9 @@ func (this *Opinion) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	// a false result does NOT mean the order is still open — it may already be filled,
 	// already cancelled, or unknown; don't invent a status the venue didn't report.
 	// error responses with an errno never reach this line, handleErrors throws on them
-	var status any = func() any {
+	var status *string = func() *string {
 		if canceled != nil && *canceled == true {
-			return "canceled"
+			return ccxt.SafeStringPtr("canceled")
 		}
 		return nil
 	}()

@@ -2490,7 +2490,7 @@ public class Bithumb extends BithumbApi
             parameters = (Map<String, Object>) this.omit(parameters, "twap");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
-            Object data = null;
+            Map<String, Object> data = null;
             if (Helpers.isEqual(generation, 2))
             {
                 if (Boolean.TRUE.equals(twap))
@@ -2526,7 +2526,7 @@ public class Bithumb extends BithumbApi
                     //     }
                     //
                     List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-                    data = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
+                    data = (Map<String, Object>) this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
                 } else
                 {
                     String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
@@ -2607,7 +2607,7 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     }
                 //
-                data = this.safeDict(response, "data");
+                data = (Map<String, Object>) this.safeDict(response, "data");
             }
             Map<String, Object> orderData = new HashMap<String, Object>() {{
                 put( "order_id", id );

@@ -2438,7 +2438,7 @@ public class Whitebit extends WhitebitApi
                 return this.parseTrades(response, market, since, limit);
             } else
             {
-                Object results = new ArrayList<Object>(Arrays.asList());
+                List<Object> results = new ArrayList<Object>(Arrays.asList());
                 List<Object> keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
@@ -2446,7 +2446,7 @@ public class Whitebit extends WhitebitApi
                     Map<String, Object> marketNew = (Map<String, Object>) this.safeMarket(marketId, null, "_");
                     List<Object> rawTrades = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                     List<Object> parsed = this.parseTrades(rawTrades, marketNew, since, limit);
-                    results = this.arrayConcat(results, parsed);
+                    results = (List<Object>) this.arrayConcat(results, parsed);
                 }
                 results = this.sortBy2(results, "timestamp", "id");
                 return this.filterBySinceLimit(results, since, limit, "timestamp");
@@ -4797,7 +4797,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             List<Object> records = (List<Object>) this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
-            Object recordsList = new ArrayList<Object>(Arrays.asList());
+            List<Object> recordsList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(records, null))
             {
                 recordsList = records;
@@ -5335,7 +5335,7 @@ public class Whitebit extends WhitebitApi
             //    }
             //
             List<Object> records = (List<Object>) this.safeList(response, "records");
-            Object recordsList = new ArrayList<Object>(Arrays.asList());
+            List<Object> recordsList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(records, null))
             {
                 recordsList = records;
