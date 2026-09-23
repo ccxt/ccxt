@@ -58,6 +58,10 @@ export default class bybiteu extends bybit {
             },
             'options': {
                 'mica': true,
+                'defaultType': 'spot',
+                'fetchMarkets': {
+                    'types': [ 'spot' ],
+                },
             },
         });
     }
