@@ -5405,6 +5405,8 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaAwaitedAccumulatorTypes (transpiler);
     // (9) null accumulators joined over every provable write (section 13)
     patchJavaJoinedAccumulatorTypes (transpiler);
+    // (10) ternary locals whose arms print one Java type (section 14)
+    patchJavaTernaryLocalTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -9938,5 +9940,160 @@ export function patchJavaJoinedAccumulatorTypes (transpiler) {
         }
         const head = at + marker.length;
         return printed.slice (0, head) + info.cast + ' ' + printed.slice (head);
+    };
+}
+
+// ===== 14. ternary locals: `Object x = c ? a : b` whose arms print one Java type =====
+// Arms are typed from proofs other sections already own (literals, String-declared base
+// calls, String receiver methods, Map producers); a Map arm declared Object gets the
+// structure family's checkcast on the whole conditional. Uses pass literalIsSafeToRetype.
+const TERNARY_STRING_RECEIVER_METHODS = new Set ([
+    'toUpperCase', 'toLowerCase', 'trim', 'padStart', 'padEnd', 'replace', 'replaceAll', 'slice',
+]);
+
+// `recv.<m>(...)` on a checker-proven string receiver: every print (the ((String)recv) forms,
+// Helpers.slice/replace/padStart/padEnd and the native substring/replace/String.format
+// rewrites) is statically String
+function ternaryStringReceiverCall (printer, node) {
+    if (!ts.isCallExpression (node) || !ts.isPropertyAccessExpression (node.expression)) {
+        return false;
+    }
+    const callee = node.expression;
+    const name = String (callee.name.escapedText);
+    const entry = RECEIVER_METHOD_LOCAL_ENTRIES[name];
+    if (!TERNARY_STRING_RECEIVER_METHODS.has (name) || entry === undefined
+        || !entry.args.includes (node.arguments.length)) {
+        return false;
+    }
+    const receiver = callee.expression;
+    if (receiver.kind === ts.SyntaxKind.ThisKeyword || receiver.kind === ts.SyntaxKind.SuperKeyword) {
+        return false;
+    }
+    try {
+        const type = printer.getChecker ().getTypeAtLocation (receiver);
+        return (type.flags & ts.TypeFlags.StringLike) !== 0 && (type.flags & ts.TypeFlags.Union) === 0;
+    } catch (e) {
+        return false;
+    }
+}
+
+// { type, cast } for one arm, LITERAL_NULLISH for null/undefined, or undefined
+function ternaryArmType (printer, node, depth = 0) {
+    const arm = unwrapParens (node);
+    if (arm === undefined || depth > 4) {
+        return undefined;
+    }
+    if (ts.isConditionalExpression (arm)) {
+        return ternaryUnifyArms (ternaryArmType (printer, arm.whenTrue, depth + 1),
+            ternaryArmType (printer, arm.whenFalse, depth + 1));
+    }
+    const literal = literalTypeOfValue (printer, arm);
+    if (literal !== undefined) {
+        return literal.nullish === true ? LITERAL_NULLISH : { type: literal.type, cast: false };
+    }
+    if (ternaryStringReceiverCall (printer, arm)) {
+        return { type: LITERAL_STRING_TYPE, cast: false };
+    }
+    if (ts.isBinaryExpression (arm) && arm.operatorToken.kind === ts.SyntaxKind.PlusToken
+        && printedJavaIsString (printer, arm.left)) {
+        return { type: LITERAL_STRING_TYPE, cast: false };
+    }
+    if (ts.isCallExpression (arm) && ts.isPropertyAccessExpression (arm.expression)) {
+        const callee = arm.expression;
+        const name = String (callee.name.escapedText);
+        if (ts.isIdentifier (callee.expression) && callee.expression.escapedText === 'Precise') {
+            return PRECISE_STRING_STATICS.has (name) ? { type: LITERAL_STRING_TYPE, cast: false } : undefined;
+        }
+        if (callee.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+            return undefined;
+        }
+        if (STRUCTURE_THIS_RETURN_TYPES[name] !== undefined) {
+            return resolvesToMethodNamed (printer, arm, name) ? { type: LITERAL_MAP_TYPE, cast: true } : undefined;
+        }
+        if (safeDictLocalType (printer, arm, name) !== undefined) {
+            return { type: LITERAL_MAP_TYPE, cast: true };
+        }
+        // String-declared base calls only; safeCurrencyCode is Object-declared in Java
+        if (name !== 'safeCurrencyCode' && dataflowThisCallType (printer, arm) === LITERAL_STRING_TYPE) {
+            return { type: LITERAL_STRING_TYPE, cast: false };
+        }
+    }
+    return undefined;
+}
+
+function ternaryUnifyArms (a, b) {
+    if (a === undefined || b === undefined) {
+        return undefined;
+    }
+    if (a.nullish === true) {
+        return b;
+    }
+    if (b.nullish === true) {
+        return a;
+    }
+    return a.type === b.type ? { type: a.type, cast: a.cast || b.cast } : undefined;
+}
+
+// the ONE predicate the declaration rewrite uses: { type, cast } or undefined
+function ternaryLocalTypeOf (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement) {
+        return undefined;
+    }
+    const initializer = unwrapParens (declaration.initializer);
+    if (initializer === undefined
+        || !(ts.isConditionalExpression (initializer) || ternaryStringReceiverCall (printer, initializer))) {
+        return undefined;
+    }
+    const value = ternaryArmType (printer, initializer);
+    if (value === undefined || value.nullish === true || !LITERAL_TYPED_TYPES.has (value.type)) {
+        return undefined;
+    }
+    if (LITERAL_NUMERIC_TYPES.has (value.type) && integerLocalHasBoxedEquality (declaration)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    if (!literalIsSafeToRetype (printer, scope, declaration, declaration.name.escapedText, { type: value.type }, isProFile)) {
+        return undefined;
+    }
+    return value;
+}
+
+export function patchJavaTernaryLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaTernaryLocalsPatched) {
+        return;
+    }
+    printer._javaTernaryLocalsPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || declaration.initializer === undefined || node.declarations.length !== 1) {
+            return printed;
+        }
+        let info;
+        try {
+            info = ternaryLocalTypeOf (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        const value = printed.slice (at + marker.length);
+        const typed = info.cast ? `(${info.type}) (${value})` : value;
+        return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${typed}`;
     };
 }
