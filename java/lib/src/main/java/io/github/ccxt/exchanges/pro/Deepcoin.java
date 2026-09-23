@@ -1479,17 +1479,17 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols2, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object listenKey = (this.authenticate()).join();
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             String messageHash = "positions";
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbols, null))
@@ -1527,7 +1527,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
      */
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
-        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.watchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public void handlePosition(Client client, Map<String, Object> message)

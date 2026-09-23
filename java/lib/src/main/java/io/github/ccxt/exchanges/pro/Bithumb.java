@@ -175,12 +175,12 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -191,15 +191,15 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             generation = ((List<Object>) generationparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
-            symbols = this.marketSymbols(symbols, null, false, true, true);
-            Object symbolsLength = (((java.util.Objects.equals(symbols, null)))) ? 0 : ((List<?>)symbols).size();
-            if (Boolean.TRUE.equals(isGenerationTwo) && (Helpers.isEqual(symbolsLength, 0)))
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false, true, true));
+            Integer symbolsLength = (((java.util.Objects.equals(symbols, null)))) ? 0 : ((List<?>)symbols).size();
+            if (Boolean.TRUE.equals(isGenerationTwo) && ((symbolsLength != null && symbolsLength == 0)))
             {
                 throw new ArgumentsRequired((this.id + " watchTickers() requires symbols for the generation 2 API")) ;
             }
             if (java.util.Objects.equals(symbols, null))
             {
-                symbols = this.symbols;
+                symbols = Helpers.toStringListArg(this.symbols);
             }
             Integer symbolsLengthDefined = ((List<?>)symbols).size();
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
@@ -264,7 +264,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)

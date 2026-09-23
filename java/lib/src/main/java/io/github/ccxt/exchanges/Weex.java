@@ -1413,18 +1413,18 @@ public class Weex extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true));
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
@@ -1510,7 +1510,7 @@ public class Weex extends WeexApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1524,24 +1524,24 @@ public class Weex extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchBidsAsks(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true));
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.publicGetApiV3MarketTickerBookTicker(parameters)).join();
@@ -1556,7 +1556,7 @@ public class Weex extends WeexApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object rawTicker = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
+                Object rawTicker = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                 // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
                 String marketId = this.safeString(rawTicker, "symbol");
                 Map<String, Object> tickerMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
@@ -1579,7 +1579,7 @@ public class Weex extends WeexApi
      */
     public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
     {
-        return this.fetchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1695,18 +1695,18 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprice structures
      */
-    public CompletableFuture<LastPrices> fetchLastPrices(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<LastPrices> fetchLastPrices(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true));
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
@@ -1740,7 +1740,7 @@ public class Weex extends WeexApi
      */
     public CompletableFuture<LastPrices> fetchLastPrices(Object... optionalArgs)
     {
-        return this.fetchLastPrices(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchLastPrices(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLastPrice(Object entry, Map<String, Object> market)
@@ -1846,16 +1846,16 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchMarkPrices(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchMarkPrices(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, "swap"); // reject non-contract symbols instead of silently filtering the result to an empty dict
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, "swap")); // reject non-contract symbols instead of silently filtering the result to an empty dict
             List<Object> response = (this.contractGetCapiV3MarketPremiumIndex(parameters)).join();
             //
             //     [
@@ -1887,7 +1887,7 @@ public class Weex extends WeexApi
      */
     public CompletableFuture<Tickers> fetchMarkPrices(Object... optionalArgs)
     {
-        return this.fetchMarkPrices(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchMarkPrices(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2502,16 +2502,16 @@ public class Weex extends WeexApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -2555,7 +2555,7 @@ public class Weex extends WeexApi
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -2959,7 +2959,7 @@ public class Weex extends WeexApi
      * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2971,7 +2971,7 @@ public class Weex extends WeexApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
-                return (this.createContractOrder(symbol, type, side, amount, price, parameters)).join();
+                return (this.createContractOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
             } else
             {
                 Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -2979,7 +2979,7 @@ public class Weex extends WeexApi
                 {
                     throw new NotSupported((this.id + " createOrder() only supports swap markets in sandbox mode")) ;
                 }
-                return (this.createSpotOrder(symbol, type, side, amount, price, parameters)).join();
+                return (this.createSpotOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
             }
         }).thenApply(Order::new);
 
@@ -3002,7 +3002,7 @@ public class Weex extends WeexApi
      * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3022,7 +3022,7 @@ public class Weex extends WeexApi
      * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createSpotOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3065,7 +3065,7 @@ public class Weex extends WeexApi
      * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> createSpotOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createSpotOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3144,7 +3144,7 @@ public class Weex extends WeexApi
      * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createContractOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createContractOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3211,7 +3211,7 @@ public class Weex extends WeexApi
      * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createContractOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> createContractOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createContractOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -4838,7 +4838,7 @@ public class Weex extends WeexApi
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             accountType = this.safeString(accountsByType, accountType, accountType);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object items = null;
+            List<Object> items = null;
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -4862,7 +4862,7 @@ public class Weex extends WeexApi
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 Map<String, Object> contractResponse = (this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters))).join();
-                items = this.safeList(contractResponse, "items", new ArrayList<Object>(Arrays.asList()));
+                items = (List<Object>) this.safeList(contractResponse, "items", new ArrayList<Object>(Arrays.asList()));
             } else if (java.util.Objects.equals(accountType, "funding"))
             {
                 if (!java.util.Objects.equals(since, null))
@@ -4877,7 +4877,7 @@ public class Weex extends WeexApi
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 Map<String, Object> fundingResponse = (this.privatePostApiV3AccountFundingBills(this.extend(request, parameters))).join();
-                items = this.safeList(fundingResponse, "items", new ArrayList<Object>(Arrays.asList()));
+                items = (List<Object>) this.safeList(fundingResponse, "items", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 if (!java.util.Objects.equals(since, null))
@@ -5191,16 +5191,16 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             List<Object> response = null;
             if (java.util.Objects.equals(sandboxMode, true))
@@ -5226,7 +5226,7 @@ public class Weex extends WeexApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -5497,7 +5497,7 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<String, Object> parameters)
+    public CompletableFuture<Order> closePosition(Object symbol, String side, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5528,7 +5528,7 @@ public class Weex extends WeexApi
      */
     public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
     {
-        return this.closePosition(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -5671,16 +5671,16 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public CompletableFuture<MarginModes> fetchMarginModes(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<MarginModes> fetchMarginModes(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
             return this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap");
         }).thenApply(MarginModes::new);
@@ -5697,7 +5697,7 @@ public class Weex extends WeexApi
      */
     public CompletableFuture<MarginModes> fetchMarginModes(Object... optionalArgs)
     {
-        return this.fetchMarginModes(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchMarginModes(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
@@ -5836,16 +5836,16 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public CompletableFuture<Leverages> fetchLeverages(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Leverages> fetchLeverages(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
             return this.parseLeverages(this.toArray(response), symbols, "symbol", "swap");
         }).thenApply(Leverages::new);
@@ -5862,7 +5862,7 @@ public class Weex extends WeexApi
      */
     public CompletableFuture<Leverages> fetchLeverages(Object... optionalArgs)
     {
-        return this.fetchLeverages(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchLeverages(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)

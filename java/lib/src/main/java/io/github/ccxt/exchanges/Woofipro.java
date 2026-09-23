@@ -1549,16 +1549,16 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.v1PublicGetPublicFundingRates(parameters)).join();
             //
             // {
@@ -1594,7 +1594,7 @@ public class Woofipro extends WoofiproApi
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1725,16 +1725,16 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
             //
             // {
@@ -1792,7 +1792,7 @@ public class Woofipro extends WoofiproApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOpenInterest(Object interest, Map<String, Object> market)
@@ -1896,16 +1896,16 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public CompletableFuture<OpenInterests> fetchOpenInterests(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
             //
             // {
@@ -1955,7 +1955,7 @@ public class Woofipro extends WoofiproApi
      */
     public CompletableFuture<OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
-        return this.fetchOpenInterests(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchOpenInterests(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2757,7 +2757,7 @@ public class Woofipro extends WoofiproApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2810,7 +2810,7 @@ public class Woofipro extends WoofiproApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2913,14 +2913,14 @@ public class Woofipro extends WoofiproApi
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side2, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side2, Object amount2, Object price2, Map<String, Object> parameters2)
     {
-        final Object side3 = side2;
+        final String side3 = side2;
         final Object amount3 = amount2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object side = side3;
+            String side = side3;
             Object amount = amount3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
@@ -3021,7 +3021,7 @@ public class Woofipro extends WoofiproApi
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -3441,7 +3441,7 @@ public class Woofipro extends WoofiproApi
             }
             Boolean paginate = false;
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Object maxLimit = (((java.util.Objects.equals(isTrigger, true)))) ? 100 : 500;
+            Integer maxLimit = (((java.util.Objects.equals(isTrigger, true)))) ? 100 : 500;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
@@ -4250,7 +4250,7 @@ public class Woofipro extends WoofiproApi
         return this.fetchDepositsWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> getWithdrawNonce(Map<String, Object> parameters)
+    public CompletableFuture<Double> getWithdrawNonce(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4267,10 +4267,10 @@ public class Woofipro extends WoofiproApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeNumber(data, "withdraw_nonce");
-        });
+        }).thenApply(res -> (res instanceof Number n) ? n.doubleValue() : null);
 
     }
-    public CompletableFuture<Object> getWithdrawNonce(Object... optionalArgs)
+    public CompletableFuture<Double> getWithdrawNonce(Object... optionalArgs)
     {
         return this.getWithdrawNonce(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -4336,7 +4336,7 @@ public class Woofipro extends WoofiproApi
             {
                 throw new BadRequest((this.id + " withdraw() require chainId parameter")) ;
             }
-            Object withdrawNonce = (this.getWithdrawNonce(parameters)).join();
+            Double withdrawNonce = (this.getWithdrawNonce(parameters)).join();
             Object nonce = this.nonce();
             Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "chainId", chainId );
@@ -4450,16 +4450,16 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public CompletableFuture<MarginModes> fetchMarginModes(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<MarginModes> fetchMarginModes(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.v1PrivateGetClientMarginModes(parameters)).join();
             //
             // {
@@ -4490,7 +4490,7 @@ public class Woofipro extends WoofiproApi
      */
     public CompletableFuture<MarginModes> fetchMarginModes(Object... optionalArgs)
     {
-        return this.fetchMarginModes(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchMarginModes(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -5039,7 +5039,7 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5104,7 +5104,7 @@ public class Woofipro extends WoofiproApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object nonce()

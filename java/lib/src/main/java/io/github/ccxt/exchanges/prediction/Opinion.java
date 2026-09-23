@@ -1162,7 +1162,7 @@ final Object finalTokenId = tokenId;
      * @param {string} quoteTokenAddress the on-chain quote-token contract address, read from a 'quoteToken' field
      * @returns {object} the matching quote-token entry
      */
-    public CompletableFuture<Object> loadQuoteToken(String quoteTokenAddress2)
+    public CompletableFuture<Map<String, Object>> loadQuoteToken(String quoteTokenAddress2)
     {
         final String quoteTokenAddress3 = quoteTokenAddress2;
         return BaseExchange.supplyAsync(() -> {
@@ -1199,7 +1199,7 @@ final Object finalTokenId = tokenId;
                 throw new ExchangeError(((this.id + " loadQuoteToken() could not find quote token ") + quoteTokenAddress)) ;
             }
             return quoteToken;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -1210,7 +1210,7 @@ final Object finalTokenId = tokenId;
      * @description fetches and caches the per-wallet multi-signature address that owns order assets
      * @returns {string} the multi-sig wallet address for this.walletAddress on chain 56, or this.walletAddress itself if none exists yet
      */
-    public CompletableFuture<Object> loadMultiSignAddress()
+    public CompletableFuture<String> loadMultiSignAddress()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1226,7 +1226,7 @@ final Object finalTokenId = tokenId;
             String multiSignAddress = this.safeString(walletUsers, "56", this.walletAddress);
             Helpers.addElementToObject(this.options, "multiSignAddress", multiSignAddress);
             return multiSignAddress;
-        });
+        }).thenApply(res -> (String) res);
 
     }
 
@@ -1349,12 +1349,12 @@ final Object finalTokenId = tokenId;
      * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type2, Object side, Object amount, Object price2, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type2, String side, Object amount, Object price2, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         final Object price3 = price2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
+            String type = type3;
             Object price = price3;
             (this.loadApiKey()).join();
             this.checkRequiredCredentials();
@@ -1381,23 +1381,23 @@ final Object finalTokenId = tokenId;
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long topicId = this.safeInteger(info, "marketId");
             String quoteTokenAddress = this.safeString(info, "quoteToken");
-            Object quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
+            Map<String, Object> quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
             String exchangeAddress = this.safeString(quoteToken, "ctfExchangeAddress", "");
             Long decimals = this.safeInteger(quoteToken, "decimal", 18);
             Map<String, Object> amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
             String makerAmount = this.safeString(amounts, "makerAmount");
             String takerAmount = this.safeString(amounts, "takerAmount");
-            Object sideInt = (((java.util.Objects.equals(sideStr, "BUY")))) ? 0 : 1;
+            Integer sideInt = (((java.util.Objects.equals(sideStr, "BUY")))) ? 0 : 1;
             String salt = this.numberToString(this.milliseconds());
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly")));
-            Object maker = (this.loadMultiSignAddress()).join();
+            String maker = (this.loadMultiSignAddress()).join();
             // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
             // against a differently-cased walletAddress with strict equality would pick the wrong
             // signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
-            String makerLower = ((String)maker).toLowerCase();
+            String makerLower = maker.toLowerCase();
             String walletAddressLower = ((String)this.walletAddress).toLowerCase();
-            Object signatureType = (((java.util.Objects.equals(makerLower, walletAddressLower)))) ? 0 : 2;
+            Integer signatureType = (((java.util.Objects.equals(makerLower, walletAddressLower)))) ? 0 : 2;
             Map<String, Object> order = new HashMap<String, Object>() {{
                 put( "salt", salt );
                 put( "maker", maker );
@@ -1463,7 +1463,7 @@ final Object finalTokenId = tokenId;
      * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1972,7 +1972,7 @@ final Object finalTokenId = tokenId;
             {
                 Object rawBalance = (rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i));
                 String quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
-                Object quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
+                Map<String, Object> quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
                 Helpers.addElementToObject(rawBalance, "symbol", this.safeString(quoteToken, "symbol", "USDT"));
             }
             return this.parseBalance(response);
@@ -2149,8 +2149,8 @@ final Object finalTokenId = tokenId;
         // assign before padStart so the PHP str_pad regex matches
         Object rRaw = Helpers.GetValue(signature, "r");
         Object sRaw = Helpers.GetValue(signature, "s");
-        Object r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
-        Object s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
+        String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
+        String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
         return new HashMap<String, Object>() {{
             put( "r", ("0x" + r) );
             put( "s", ("0x" + s) );
@@ -2203,7 +2203,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters
      * @returns {object} the api credentials { apiKey, walletAddress }
      */
-    public CompletableFuture<Object> createApiKey(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createApiKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2211,7 +2211,7 @@ final Object finalTokenId = tokenId;
             Object response = (this.opinionPrivatePostAuthApiKey(parameters)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.setApiCredentials((Map<String, Object>) (result));
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -2224,7 +2224,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters
      * @returns {object} the api credentials { apiKey, walletAddress }
      */
-    public CompletableFuture<Object> createApiKey(Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> createApiKey(Object... optionalArgs)
     {
         return this.createApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -2237,7 +2237,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters
      * @returns {object} the api credentials { apiKey, walletAddress }
      */
-    public CompletableFuture<Object> fetchApiKey(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchApiKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2245,7 +2245,7 @@ final Object finalTokenId = tokenId;
             Object response = (this.opinionPrivateGetAuthApiKey(parameters)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.setApiCredentials((Map<String, Object>) (result));
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -2256,7 +2256,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters
      * @returns {object} the api credentials { apiKey, walletAddress }
      */
-    public CompletableFuture<Object> fetchApiKey(Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> fetchApiKey(Object... optionalArgs)
     {
         return this.fetchApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -2269,7 +2269,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters
      * @returns {object} raw response, result.deleted confirms revocation
      */
-    public CompletableFuture<Object> deleteApiKey(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> deleteApiKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2282,7 +2282,7 @@ final Object finalTokenId = tokenId;
             // sign() treats an empty key as absent
             this.apiKey = "";
             return response;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -2293,7 +2293,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters
      * @returns {object} raw response, result.deleted confirms revocation
      */
-    public CompletableFuture<Object> deleteApiKey(Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> deleteApiKey(Object... optionalArgs)
     {
         return this.deleteApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -2307,7 +2307,7 @@ final Object finalTokenId = tokenId;
      * the wallet has no key yet; freshly created keys can take ~15 seconds to activate venue-side
      * @returns {string} the apiKey
      */
-    public CompletableFuture<Object> loadApiKey()
+    public CompletableFuture<String> loadApiKey()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2326,7 +2326,7 @@ final Object finalTokenId = tokenId;
             {
                 throw new AuthenticationError((this.id + " private endpoints require an apiKey, or a walletAddress and privateKey to self-issue one")) ;
             }
-            Object creds = null;
+            Map<String, Object> creds = null;
             try
             {
                 creds = (this.fetchApiKey()).join();
@@ -2337,7 +2337,7 @@ final Object finalTokenId = tokenId;
                 creds = (this.createApiKey()).join();
             }
             return this.safeString(creds, "apiKey");
-        });
+        }).thenApply(res -> (String) res);
 
     }
 
@@ -2464,7 +2464,7 @@ final Object finalTokenId = tokenId;
             if (Helpers.isEqual(this.safeInteger(info, "marketId"), marketId))
             {
                 List<Object> outcomes = (List<Object>) this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
-                Object index = (((Helpers.isEqual(outcomeSide, 2)))) ? 1 : 0;
+                Integer index = (((Helpers.isEqual(outcomeSide, 2)))) ? 1 : 0;
                 return this.safeDict(outcomes, index);
             }
         }

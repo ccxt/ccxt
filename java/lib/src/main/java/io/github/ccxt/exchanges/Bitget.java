@@ -4006,8 +4006,8 @@ public class Bitget extends BitgetApi
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = (yearPart == null ? null : ((String)yearPart).substring(Math.min(2, ((String)yearPart).length()), Math.min(4, ((String)yearPart).length())));
                         String month = this.safeString(expiryParts, 1);
-                        Object day = (dayPart == null ? null : ((String)dayPart).substring(0, Math.min(2, ((String)dayPart).length())));
-                        String expiryString = Helpers.add((year + month), day);
+                        String day = (dayPart == null ? null : ((String)dayPart).substring(0, Math.min(2, ((String)dayPart).length())));
+                        String expiryString = ((year + month) + day);
                         type = "future";
                         future = true;
                         symbol = ((((symbol + ":") + settle) + "-") + expiryString);
@@ -4045,7 +4045,7 @@ public class Bitget extends BitgetApi
                 {
                     minCost = this.safeNumber(market, "minTradeUSDT");
                 }
-                Object contractSize = ((Boolean.TRUE.equals(contract))) ? 1 : null;
+                Integer contractSize = ((Boolean.TRUE.equals(contract))) ? 1 : null;
     final String finalSymbol = symbol;
                 final String finalBase = base;
                 final String finalQuote = quote;
@@ -4310,8 +4310,8 @@ public class Bitget extends BitgetApi
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = (yearPart == null ? null : ((String)yearPart).substring(Math.min(2, ((String)yearPart).length()), Math.min(4, ((String)yearPart).length())));
                         String month = this.safeString(expiryParts, 1);
-                        Object day = (dayPart == null ? null : ((String)dayPart).substring(0, Math.min(2, ((String)dayPart).length())));
-                        String expiryString = Helpers.add((year + month), day);
+                        String day = (dayPart == null ? null : ((String)dayPart).substring(0, Math.min(2, ((String)dayPart).length())));
+                        String expiryString = ((year + month) + day);
                         type = "future";
                         future = true;
                         symbol = ((((symbol + ":") + settle) + "-") + expiryString);
@@ -4332,7 +4332,7 @@ public class Bitget extends BitgetApi
                 {
                     active = ((java.util.Objects.equals(status, "online")) || (java.util.Objects.equals(status, "normal")));
                 }
-                Object contractSize = ((Boolean.TRUE.equals(contract))) ? 1 : null;
+                Integer contractSize = ((Boolean.TRUE.equals(contract))) ? 1 : null;
     final String finalSymbol = symbol;
                 final String finalBase = base;
                 final String finalSettle = settle;
@@ -6091,12 +6091,12 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -6284,7 +6284,7 @@ final Object finalMinNotional = minNotional;
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -7012,7 +7012,7 @@ final Object finalMinNotional = minNotional;
         //     ]
         //
         Boolean inverse = (Boolean) this.safeBool(market, "inverse");
-        Object volumeIndex = (((java.util.Objects.equals(inverse, true)))) ? 6 : 5;
+        Integer volumeIndex = (((java.util.Objects.equals(inverse, true)))) ? 6 : 5;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));
     }
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
@@ -7341,16 +7341,16 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                Object assets = null;
+                List<Object> assets = null;
                 if (java.util.Objects.equals(marketType, "funding"))
                 {
                     response = (this.privateUtaGetV3AccountFundingAssets(this.extend(request, parameters))).join();
-                    assets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                    assets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 } else
                 {
                     response = (this.privateUtaGetV3AccountAssets(this.extend(request, parameters))).join();
                     Map<String, Object> results = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                    assets = this.safeList(results, "assets", new ArrayList<Object>(Arrays.asList()));
+                    assets = (List<Object>) this.safeList(results, "assets", new ArrayList<Object>(Arrays.asList()));
                 }
                 return this.parseUtaBalance(assets);
             } else if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
@@ -8060,7 +8060,7 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "createMarketBuyOrderRequiresPrice", false );
             }};
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+            return (this.createOrder((Object)(symbol), "market", "buy", (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(Order::new);
 
     }
@@ -8126,7 +8126,7 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -8255,7 +8255,7 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -9020,16 +9020,16 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type2, Object side2, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type2, String side2, Object amount2, Object price2, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         final Object amount3 = amount2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
+            String type = type3;
+            String side = side3;
             Object amount = amount3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
@@ -9309,7 +9309,7 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -12157,7 +12157,7 @@ final Object finalMinNotional = minNotional;
             }};
             Map<String, Object> response = null;
             Object uta = null;
-            Object result = null;
+            List<Object> result = null;
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchPosition", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
@@ -12204,7 +12204,7 @@ final Object finalMinNotional = minNotional;
                 //     }
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                result = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+                result = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
@@ -12240,7 +12240,7 @@ final Object finalMinNotional = minNotional;
                 //         ]
                 //     }
                 //
-                result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
             return this.parsePosition((Map<String, Object>) (first), market);
@@ -12280,12 +12280,12 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -12488,7 +12488,7 @@ final Object finalMinNotional = minNotional;
             {
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((position == null || i < 0 || i >= ((List<?>)position).size() ? null : ((List<?>)position).get(i))), market));
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -12512,7 +12512,7 @@ final Object finalMinNotional = minNotional;
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -12799,7 +12799,7 @@ final Object finalMinNotional = minNotional;
             Object productType = null;
             Object uta = null;
             Map<String, Object> response = null;
-            Object result = null;
+            List<Object> result = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
@@ -12831,7 +12831,7 @@ final Object finalMinNotional = minNotional;
                 //     }
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                result = this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
+                result = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 Boolean paginate = false;
@@ -12862,12 +12862,12 @@ final Object finalMinNotional = minNotional;
                 //         ]
                 //     }
                 //
-                result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object entry = (result == null || i < 0 || i >= ((List<?>)result).size() ? null : ((List<?>)result).get(i));
+                Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 String symbolInner = this.safeSymbol(marketId, market);
                 Long timestamp = (Long) this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
@@ -12995,12 +12995,12 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -13079,7 +13079,7 @@ final Object finalMinNotional = minNotional;
                 //
                 response = (this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, parameters))).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         }).thenApply(FundingRates::new);
@@ -13099,7 +13099,7 @@ final Object finalMinNotional = minNotional;
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -13112,7 +13112,7 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingIntervals(Object symbols, Map<String, Object> parameters2)
+    public CompletableFuture<FundingRates> fetchFundingIntervals(List<String> symbols, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -13140,7 +13140,7 @@ final Object finalMinNotional = minNotional;
      */
     public CompletableFuture<FundingRates> fetchFundingIntervals(Object... optionalArgs)
     {
-        return this.fetchFundingIntervals(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingIntervals(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -15445,12 +15445,12 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, Object side2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> closePosition(Object symbol, String side2, Map<String, Object> parameters2)
     {
-        final Object side3 = side2;
+        final String side3 = side2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object side = side3;
+            String side = side3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -15506,7 +15506,7 @@ final Object finalMinNotional = minNotional;
      */
     public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
     {
-        return this.closePosition(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -15678,14 +15678,14 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositionsHistory(Object symbols2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Long since3 = since2;
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Long since = since3;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
@@ -15756,7 +15756,7 @@ final Object finalMinNotional = minNotional;
      */
     public CompletableFuture<List<Position>> fetchPositionsHistory(Object... optionalArgs)
     {
-        return this.fetchPositionsHistory(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.fetchPositionsHistory(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**

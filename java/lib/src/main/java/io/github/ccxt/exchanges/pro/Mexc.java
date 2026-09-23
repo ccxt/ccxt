@@ -257,18 +257,18 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             String firstSymbol = this.safeString(symbols, 0);
             Map<String, Object> market = null;
@@ -314,7 +314,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTickers(Client client, Map<String, Object> message)
@@ -487,18 +487,18 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchBidsAsks(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, false, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, false, true));
             String marketType = null;
             if (java.util.Objects.equals(symbols, null))
             {
@@ -551,7 +551,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      */
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
     {
-        return this.watchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleBidAsk(Client client, Map<String, Object> message)
@@ -2222,18 +2222,18 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTickers(Object symbols2, Object parameters2)
+    public CompletableFuture<Object> unWatchTickers(List<String> symbols2, Object parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             String firstSymbol = this.safeString(symbols, 0);
             Map<String, Object> market = null;
@@ -2274,9 +2274,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      */
     public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
     {
-        return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+        return this.unWatchTickers(Helpers.getArgStringList(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
     {
         return this.unWatchTickers(symbols, (Object) (parameters));
     }
@@ -2289,18 +2289,18 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchBidsAsks(Object symbols2, Object parameters2)
+    public CompletableFuture<Object> unWatchBidsAsks(List<String> symbols2, Object parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, false, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, false, true));
             String marketType = null;
             if (java.util.Objects.equals(symbols, null))
             {
@@ -2348,9 +2348,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      */
     public CompletableFuture<Object> unWatchBidsAsks(Object... optionalArgs)
     {
-        return this.unWatchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+        return this.unWatchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<Object> unWatchBidsAsks(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
         return this.unWatchBidsAsks(symbols, (Object) (parameters));
     }

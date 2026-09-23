@@ -240,16 +240,16 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> subscribe(Object name2, Object access2, Object methodName, Map<String, Object> market, Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> subscribe(Object name2, Object access2, Object methodName, Map<String, Object> market, List<String> symbols2, Map<String, Object> parameters2)
     {
         final Object name3 = name2;
         final Object access3 = access2;
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object name = name3;
             Object access = access3;
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             Boolean privateAccess = java.util.Objects.equals(access, "private");
             String type = null;
@@ -314,7 +314,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      */
     public CompletableFuture<Object> subscribe(Object name, Object access, Object methodName, Object... optionalArgs)
     {
-        return this.subscribe(name, access, methodName, Helpers.getArgMap(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+        return this.subscribe(name, access, methodName, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgStringList(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -334,7 +334,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> unSubscribe(Object messageHash, Object name2, Object access2, Object methodName, Object topic, Map<String, Object> market, Object symbols, Object parameters2, Object subscriptionParams2)
+    public CompletableFuture<Object> unSubscribe(Object messageHash, Object name2, Object access2, Object methodName, Object topic, Map<String, Object> market, List<String> symbols, Object parameters2, Object subscriptionParams2)
     {
         final Object name3 = name2;
         final Object access3 = access2;
@@ -418,7 +418,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      */
     public CompletableFuture<Object> unSubscribe(Object messageHash, Object name, Object access, Object methodName, Object topic, Object... optionalArgs)
     {
-        return this.unSubscribe(messageHash, name, access, methodName, topic, Helpers.getArgMap(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}});
+        return this.unSubscribe(messageHash, name, access, methodName, topic, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgStringList(optionalArgs, 1, null), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -523,11 +523,11 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -562,7 +562,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -576,11 +576,11 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -615,7 +615,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      */
     public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
     {
-        return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.unWatchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1071,7 +1071,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1114,7 +1114,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      */
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
-        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.watchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**

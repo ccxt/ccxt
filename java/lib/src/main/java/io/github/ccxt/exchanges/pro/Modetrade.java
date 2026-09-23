@@ -337,16 +337,16 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             String name = "tickers";
             String topic = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -370,7 +370,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTickers(Client client, Map<String, Object> message)
@@ -420,16 +420,16 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchBidsAsks(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             String name = "bbos";
             String topic = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -453,7 +453,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
      */
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
     {
-        return this.watchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleBidAsk(Client client, Map<String, Object> message)
@@ -1248,7 +1248,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             Object cachedOrders = this.orders;
             Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-            Object order = (((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId);
+            Map<String, Object> order = (Map<String, Object>) ((((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId));
             if (!java.util.Objects.equals(order, null))
             {
                 Object fee = this.safeValue(order, "fee");
@@ -1331,17 +1331,17 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols2, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -1389,10 +1389,10 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
      */
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
-        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.watchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public void setPositionsCache(Client client, Object type, Object symbols)
+    public void setPositionsCache(Client client, Object type, List<String> symbols)
     {
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
@@ -1410,7 +1410,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
     }
     public void setPositionsCache(Client client, Object type, Object... optionalArgs)
     {
-        this.setPositionsCache(client, type, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+        this.setPositionsCache(client, type, Helpers.getArgStringList(optionalArgs, 0, null));
     }
 
     public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash2)

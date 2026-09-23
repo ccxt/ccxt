@@ -1272,7 +1272,7 @@ public class Pacifica extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} Dict repacked from list by symbol key
      */
-    public CompletableFuture<Object> fetchAccountSettings(Map<String, Object> parameters2)
+    public CompletableFuture<Map<String, Object>> fetchAccountSettings(Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -1301,7 +1301,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             return this.parseAccountSettings(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -1313,7 +1313,7 @@ public class Pacifica extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} Dict repacked from list by symbol key
      */
-    public CompletableFuture<Object> fetchAccountSettings(Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> fetchAccountSettings(Object... optionalArgs)
     {
         return this.fetchAccountSettings(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -1551,7 +1551,7 @@ public class Pacifica extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1594,7 +1594,7 @@ public class Pacifica extends PacificaApi
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingRate(Object info, Map<String, Object> market)
@@ -2087,7 +2087,7 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -2169,7 +2169,7 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2816,7 +2816,7 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -2863,7 +2863,7 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -3022,16 +3022,16 @@ public class Pacifica extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
             //
             //  {
@@ -3081,7 +3081,7 @@ public class Pacifica extends PacificaApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -3804,12 +3804,12 @@ public class Pacifica extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3819,7 +3819,7 @@ public class Pacifica extends PacificaApi
             List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchPositions", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             final Object finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", finalUserAddress );
@@ -3866,7 +3866,7 @@ public class Pacifica extends PacificaApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -4220,16 +4220,16 @@ public class Pacifica extends PacificaApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public CompletableFuture<OpenInterests> fetchOpenInterests(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOpenInterests(data, symbols);
@@ -4247,7 +4247,7 @@ public class Pacifica extends PacificaApi
      */
     public CompletableFuture<OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
-        return this.fetchOpenInterests(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchOpenInterests(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4841,7 +4841,7 @@ public class Pacifica extends PacificaApi
         return this.createSubAccount(name, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> bindAgentWallet(Object agentAddress, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> bindAgentWallet(Object agentAddress, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4852,15 +4852,15 @@ public class Pacifica extends PacificaApi
             }};
             Object request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
             return (this.privatePostAgentBind(this.extend(request, parameters))).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> bindAgentWallet(Object agentAddress, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> bindAgentWallet(Object agentAddress, Object... optionalArgs)
     {
         return this.bindAgentWallet(agentAddress, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> createApiKey(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createApiKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4869,15 +4869,15 @@ public class Pacifica extends PacificaApi
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{}};
             Object request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
             return (this.privatePostAccountApiKeysCreate(this.extend(request, parameters))).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> createApiKey(Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> createApiKey(Object... optionalArgs)
     {
         return this.createApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> revokeApiKey(Object apiKey, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> revokeApiKey(Object apiKey, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4888,15 +4888,15 @@ public class Pacifica extends PacificaApi
             }};
             Object request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
             return (this.privatePostAccountApiKeysRevoke(this.extend(request, parameters))).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> revokeApiKey(Object apiKey, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> revokeApiKey(Object apiKey, Object... optionalArgs)
     {
         return this.revokeApiKey(apiKey, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> fetchApiKeys(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchApiKeys(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4905,15 +4905,15 @@ public class Pacifica extends PacificaApi
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{}};
             Object request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
             return (this.privatePostAccountApiKeys(this.extend(request, parameters))).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> fetchApiKeys(Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> fetchApiKeys(Object... optionalArgs)
     {
         return this.fetchApiKeys(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> approveBuilderCode(Object builderCode, Object maxFeeRate, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> approveBuilderCode(Object builderCode, Object maxFeeRate, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4925,10 +4925,10 @@ public class Pacifica extends PacificaApi
             }};
             Object request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
             return (this.privatePostAccountBuilderCodesApprove(this.extend(request, parameters))).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> approveBuilderCode(Object builderCode, Object maxFeeRate, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> approveBuilderCode(Object builderCode, Object maxFeeRate, Object... optionalArgs)
     {
         return this.approveBuilderCode(builderCode, maxFeeRate, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -4946,7 +4946,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public CompletableFuture<Object> revokeBuilderCode(Object builderCode, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> revokeBuilderCode(Object builderCode, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4957,10 +4957,10 @@ public class Pacifica extends PacificaApi
             }};
             Object request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
             return (this.privatePostAccountBuilderCodesRevoke(this.extend(request, parameters))).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> revokeBuilderCode(Object builderCode, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> revokeBuilderCode(Object builderCode, Object... optionalArgs)
     {
         return this.revokeBuilderCode(builderCode, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }

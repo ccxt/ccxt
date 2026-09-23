@@ -1318,7 +1318,7 @@ public class Btcmarkets extends BtcmarketsApi
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
@@ -1330,7 +1330,7 @@ public class Btcmarkets extends BtcmarketsApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalSide = side;
+            final String finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", ((Map<String, Object>)market).get("id") );
                 put( "amount", Btcmarkets.this.amountToPrecision(symbol, amount) );
@@ -1427,7 +1427,7 @@ public class Btcmarkets extends BtcmarketsApi
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

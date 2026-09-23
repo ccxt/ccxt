@@ -588,7 +588,7 @@ public class Latoken extends LatokenApi
                     {
                         continue;
                     }
-                    Object lowercaseQuote = quote.toLowerCase();
+                    String lowercaseQuote = quote.toLowerCase();
                     String capitalizedQuote = this.capitalize(lowercaseQuote);
                     String status = this.safeString(market, "status");
     final String finalBase = base;
@@ -1072,7 +1072,7 @@ public class Latoken extends LatokenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1119,7 +1119,7 @@ public class Latoken extends LatokenApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1920,12 +1920,12 @@ public class Latoken extends LatokenApi
      * @param {string} [params.clientOrderId] [ 0 .. 50 ] characters, client's custom order id (free field for your convenience)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side2, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side2, Object amount, Object price, Map<String, Object> parameters2)
     {
-        final Object side3 = side2;
+        final String side3 = side2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object side = side3;
+            String side = side3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1937,7 +1937,7 @@ public class Latoken extends LatokenApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
             }
-            final Object finalSide = side;
+            final String finalSide = side;
             final String finalUppercaseType = uppercaseType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "baseCurrency", ((Map<String, Object>)market).get("baseId") );
@@ -1999,7 +1999,7 @@ public class Latoken extends LatokenApi
      * @param {string} [params.clientOrderId] [ 0 .. 50 ] characters, client's custom order id (free field for your convenience)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

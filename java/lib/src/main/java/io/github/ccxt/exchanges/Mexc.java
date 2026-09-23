@@ -2559,11 +2559,11 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2642,7 +2642,7 @@ public class Mexc extends MexcApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2874,11 +2874,11 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchBidsAsks(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2894,7 +2894,7 @@ public class Mexc extends MexcApi
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
-            Object tickers = null;
+            List<Object> tickers = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 tickers = (this.spotPublicGetTickerBookTicker(query)).join();
@@ -2922,7 +2922,7 @@ public class Mexc extends MexcApi
      */
     public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
     {
-        return this.fetchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2952,7 +2952,7 @@ public class Mexc extends MexcApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+            return (this.createOrder((Object)(symbol), "market", "buy", (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(Order::new);
 
     }
@@ -2998,7 +2998,7 @@ public class Mexc extends MexcApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+            return (this.createOrder((Object)(symbol), "market", "sell", (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(Order::new);
 
     }
@@ -3044,7 +3044,7 @@ public class Mexc extends MexcApi
      * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3059,7 +3059,7 @@ public class Mexc extends MexcApi
             var query = ((List<Object>) marginModequeryVariable).get(1);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                return (this.createSpotOrder(market, type, side, amount, price, marginMode, query)).join();
+                return (this.createSpotOrder(market, (String) (type), side, amount, price, marginMode, query)).join();
             } else
             {
                 return (this.createSwapOrder(market, type, side, amount, price, marginMode, query)).join();
@@ -3094,7 +3094,7 @@ public class Mexc extends MexcApi
      * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3195,7 +3195,7 @@ public class Mexc extends MexcApi
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object market, Object type, Object side, Object amount, Object price, String marginMode, Object parameters2)
+    public CompletableFuture<Object> createSpotOrder(Object market, String type, Object side, Object amount, Object price, String marginMode, Object parameters2)
     {
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -3265,7 +3265,7 @@ public class Mexc extends MexcApi
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object market, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> createSpotOrder(Object market, String type, Object side, Object amount, Object... optionalArgs)
     {
         return this.createSpotOrder(market, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgString(optionalArgs, 1, null), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}});
     }
@@ -4403,7 +4403,7 @@ public class Mexc extends MexcApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
+            Map<String, Object> market = (Map<String, Object>) ((((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null);
             List<Object> marketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
             String marketType = (String) ((List<Object>) marketTypeVariable).get(0);
             if (java.util.Objects.equals(marketType, "spot"))
@@ -5087,16 +5087,16 @@ public class Mexc extends MexcApi
         //         "tradeEnabled": true
         //     }
         //
-        Object wallet = null;
+        List<Object> wallet = null;
         if (java.util.Objects.equals(marketType, "margin"))
         {
-            wallet = this.safeList(response, "assets", new ArrayList<Object>(Arrays.asList()));
+            wallet = (List<Object>) this.safeList(response, "assets", new ArrayList<Object>(Arrays.asList()));
         } else if (java.util.Objects.equals(marketType, "swap"))
         {
-            wallet = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            wallet = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         } else
         {
-            wallet = this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
+            wallet = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
         }
         Object result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -5678,7 +5678,7 @@ public class Mexc extends MexcApi
             {
                 Double openType = this.safeNumber(parameters, "openType"); // 1 or 2
                 Double positionType = this.safeNumber(parameters, "positionType"); // 1 or 2
-                Object market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
+                Map<String, Object> market = (Map<String, Object>) ((((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null);
                 if ((java.util.Objects.equals(openType, null)) || (java.util.Objects.equals(positionType, null)) || (java.util.Objects.equals(market, null)))
                 {
                     throw new ArgumentsRequired((this.id + " setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions")) ;
@@ -6073,16 +6073,16 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<LeverageTiers> fetchLeverageTiers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, "swap", true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, "swap", true, true));
             Map<String, Object> response = (this.contractPublicGetDetail(parameters)).join();
             //
             //     {
@@ -6145,7 +6145,7 @@ public class Mexc extends MexcApi
      */
     public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
-        return this.fetchLeverageTiers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchLeverageTiers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
@@ -6297,7 +6297,7 @@ final String finalRiskIncrVol = riskIncrVol;
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
                 {
-                    Object network = (((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}});
+                    Map<String, Object> network = (Map<String, Object>) ((((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}}));
                     Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(network, "info", new HashMap<String, Object>() {{}});
                     networkId = this.safeString(networkInfo, "network");
                 } else
@@ -6375,7 +6375,7 @@ final String finalRiskIncrVol = riskIncrVol;
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
             if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
             {
-                Object network = (((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}});
+                Map<String, Object> network = (Map<String, Object>) ((((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}}));
                 Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(network, "info", new HashMap<String, Object>() {{}});
                 networkId = this.safeString(networkInfo, "network");
             } else
@@ -6902,7 +6902,7 @@ final String finalRiskIncrVol = riskIncrVol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -6958,7 +6958,7 @@ final String finalRiskIncrVol = riskIncrVol;
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -8068,12 +8068,12 @@ final String finalRiskIncrVol = riskIncrVol;
      * @param {int} [params.page_num] current page number, default is 1
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositionsHistory(Object symbols2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols2, Long since, Long limit2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -8157,7 +8157,7 @@ final String finalRiskIncrVol = riskIncrVol;
      */
     public CompletableFuture<List<Position>> fetchPositionsHistory(Object... optionalArgs)
     {
-        return this.fetchPositionsHistory(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.fetchPositionsHistory(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**

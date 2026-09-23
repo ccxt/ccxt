@@ -127,16 +127,16 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true));
             String name = "instrument";
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -183,7 +183,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
@@ -926,11 +926,11 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols2, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -940,7 +940,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             String messageHash = "positions";
             if (!this.isEmpty(symbols))
             {
-                symbols = this.marketSymbols(symbols);
+                symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                 messageHash = ("positions::" + String.join(",", (List<String>)(List<String>)(symbols)));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -970,7 +970,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
      */
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
-        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.watchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public void handlePositions(Client client, Map<String, Object> message)

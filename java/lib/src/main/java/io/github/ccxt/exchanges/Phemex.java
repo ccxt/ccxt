@@ -2121,12 +2121,12 @@ public class Phemex extends PhemexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2176,7 +2176,7 @@ public class Phemex extends PhemexApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3334,15 +3334,15 @@ public class Phemex extends PhemexApi
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
+            String type = type3;
+            String side = side3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -3352,7 +3352,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String requestSide = this.capitalize(side);
             type = this.capitalize(type);
-            final Object finalType = type;
+            final String finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "side", requestSide );
@@ -3447,7 +3447,7 @@ public class Phemex extends PhemexApi
                         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
                         if (java.util.Objects.equals(reduceOnly, true))
                         {
-                            side = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
+                            side = (String) ((((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy");
                             parameters = (Map<String, Object>) this.omit(parameters, "reduceOnly");
                         }
                         posSide = (((java.util.Objects.equals(side, "buy")))) ? "Long" : "Short";
@@ -3701,7 +3701,7 @@ public class Phemex extends PhemexApi
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3721,7 +3721,7 @@ public class Phemex extends PhemexApi
      * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount2, Object price2, Map<String, Object> parameters2)
     {
         final Object amount3 = amount2;
         final Object price3 = price2;
@@ -3822,7 +3822,7 @@ public class Phemex extends PhemexApi
      * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -4936,18 +4936,18 @@ public class Phemex extends PhemexApi
      * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             String subType = null;
             Object code = this.safeString2(parameters, "currency", "code", "USDT");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
@@ -5104,7 +5104,7 @@ public class Phemex extends PhemexApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -5892,11 +5892,11 @@ public class Phemex extends PhemexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<LeverageTiers> fetchLeverageTiers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6005,7 +6005,7 @@ public class Phemex extends PhemexApi
      */
     public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
-        return this.fetchLeverageTiers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchLeverageTiers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
@@ -7165,18 +7165,18 @@ final Object finalI = i;
      * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    public CompletableFuture<List<ADL>> fetchPositionsADLRank(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<List<ADL>> fetchPositionsADLRank(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
             String subType = null;
             Object code = this.safeString2(parameters, "currency", "code", "USDT");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
@@ -7257,7 +7257,7 @@ final Object finalI = i;
      */
     public CompletableFuture<List<ADL>> fetchPositionsADLRank(Object... optionalArgs)
     {
-        return this.fetchPositionsADLRank(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositionsADLRank(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseADLRank(Map<String, Object> info, Map<String, Object> market)

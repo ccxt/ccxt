@@ -134,7 +134,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -238,7 +238,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -261,7 +261,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -337,7 +337,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrderWs(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -850,17 +850,17 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             this.setupApiKeyHeaders();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true));
             String messageHash = "tickers";
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
@@ -891,7 +891,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -903,16 +903,16 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTickers(Object symbols2, Object parameters)
+    public CompletableFuture<Object> unWatchTickers(List<String> symbols2, Object parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true));
             String subMessageHash = "tickers";
             String messageHash = ("unsubscribe:" + subMessageHash);
             Object isTestnet = this.isSandboxModeEnabled;
@@ -939,9 +939,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
     {
-        return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+        return this.unWatchTickers(Helpers.getArgStringList(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
     {
         return this.unWatchTickers(symbols, (Object) (parameters));
     }

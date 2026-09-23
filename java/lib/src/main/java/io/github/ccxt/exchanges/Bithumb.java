@@ -949,7 +949,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
-            Object data = null;
+            Map<String, Object> data = null;
             Long timestamp = null;
             if (Helpers.isEqual(generation, 2))
             {
@@ -1023,7 +1023,7 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     }
                 //
-                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(data, "timestamp");
             }
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
@@ -1209,12 +1209,12 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1429,7 +1429,7 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2043,7 +2043,7 @@ public class Bithumb extends BithumbApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+                Object orderRequest = this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -2089,7 +2089,7 @@ public class Bithumb extends BithumbApi
         return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public Object createOrderRequest(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -2192,7 +2192,7 @@ public class Bithumb extends BithumbApi
         }
         return this.extend(request, parameters);
     }
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2219,14 +2219,14 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount, Object price, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
+            String type = type3;
+            String side = side3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2241,7 +2241,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> response = null;
             if (Helpers.isEqual(generation, 2))
             {
-                request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+                request = this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, parameters);
                 response = (this.privatePostV2Orders(request)).join();
             } else
             {
@@ -2275,8 +2275,8 @@ public class Bithumb extends BithumbApi
                 throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
             }
             final Map<String, Object> finalResponse = response;
-            final Object finalType = type;
-            final Object finalSide = side;
+            final String finalType = type;
+            final String finalSide = side;
             final String finalId = id;
             return this.extend(this.parseOrder(response, market), new HashMap<String, Object>() {{
                 put( "info", finalResponse );
@@ -2310,7 +2310,7 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2344,7 +2344,7 @@ public class Bithumb extends BithumbApi
                 throw new BadRequest((this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
             }
             ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "market", "buy", (Object)(cost), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -2379,13 +2379,13 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createTwapOrder(String symbol, Object side2, Object amount2, Object duration, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createTwapOrder(String symbol, String side2, Object amount2, Object duration, Map<String, Object> parameters2)
     {
-        final Object side3 = side2;
+        final String side3 = side2;
         final Object amount3 = amount2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object side = side3;
+            String side = side3;
             Object amount = amount3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -2445,7 +2445,7 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createTwapOrder(String symbol, Object side, Object amount, Object duration, Object... optionalArgs)
+    public CompletableFuture<Order> createTwapOrder(String symbol, String side, Object amount, Object duration, Object... optionalArgs)
     {
         return this.createTwapOrder(symbol, side, amount, duration, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }

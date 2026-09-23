@@ -233,19 +233,19 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             if (java.util.Objects.equals(symbols, null))
             {
-                symbols = new ArrayList<Object>(Arrays.asList());
+                symbols = Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList()));
             }
             Object subscriptionHash = "MARKET_TICKER";
             String messageHash = "tickers";
@@ -272,7 +272,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -1576,7 +1576,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return message;
     }
 
-    public CompletableFuture<Object> watchMany(Object messageHash, Map<String, Object> request, Object subscriptionHash, Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMany(Object messageHash, Map<String, Object> request, Object subscriptionHash, List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1632,7 +1632,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
     }
     public CompletableFuture<Object> watchMany(Object messageHash, Map<String, Object> request, Object subscriptionHash, Object... optionalArgs)
     {
-        return this.watchMany(messageHash, request, subscriptionHash, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList()), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchMany(messageHash, request, subscriptionHash, Helpers.getArgStringList(optionalArgs, 0, new ArrayList<String>()), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Object> authenticate(Map<String, Object> parameters)

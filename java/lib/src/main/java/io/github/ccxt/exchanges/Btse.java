@@ -1318,7 +1318,7 @@ public class Btse extends BtseApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters, type);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 Map<String, Object> walletResponse = (this.privateGetPublicApiWalletV1UserAssets(parameters)).join();
@@ -1340,7 +1340,7 @@ public class Btse extends BtseApi
                 //         "time": 1624989977940
                 //     }
                 //
-                response = this.safeList(walletResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                response = (List<Object>) this.safeList(walletResponse, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 Object wallet = null;
@@ -1446,13 +1446,13 @@ public class Btse extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<LeverageTiers> fetchLeverageTiers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             (this.loadMarkets()).join();
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -1556,7 +1556,7 @@ public class Btse extends BtseApi
      */
     public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
-        return this.fetchLeverageTiers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchLeverageTiers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1607,15 +1607,15 @@ public class Btse extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
-            symbols = this.marketSymbols(symbols, null, true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true));
             // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
             parameters = (Map<String, Object>) this.omit(parameters, "type");
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
@@ -1635,7 +1635,7 @@ public class Btse extends BtseApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1825,13 +1825,13 @@ public class Btse extends BtseApi
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public CompletableFuture<OpenInterests> fetchOpenInterests(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             (this.loadMarkets()).join();
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
@@ -1859,7 +1859,7 @@ public class Btse extends BtseApi
      */
     public CompletableFuture<OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
-        return this.fetchOpenInterests(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchOpenInterests(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOpenInterest(Object interest, Map<String, Object> market)
@@ -1946,13 +1946,13 @@ public class Btse extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             (this.loadMarkets()).join();
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
@@ -1980,7 +1980,7 @@ public class Btse extends BtseApi
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -2517,7 +2517,7 @@ public class Btse extends BtseApi
      * @param {string} [params.stopLoss.priceType] *contract markets only* 'markPrice' or 'lastPrice', default is 'markPrice'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2526,10 +2526,10 @@ public class Btse extends BtseApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                return (this.createSpotOrder(symbol, type, side, amount, price, parameters)).join();
+                return (this.createSpotOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
             } else
             {
-                return (this.createContractOrder(symbol, type, side, amount, price, parameters)).join();
+                return (this.createContractOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
             }
         }).thenApply(Order::new);
 
@@ -2569,7 +2569,7 @@ public class Btse extends BtseApi
      * @param {string} [params.stopLoss.priceType] *contract markets only* 'markPrice' or 'lastPrice', default is 'markPrice'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2601,18 +2601,18 @@ public class Btse extends BtseApi
      * @param {float} [params.stopPrice] *NB - It is NOT stopLossPrice or triggerPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object symbol, Object type2, Object side, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> createSpotOrder(Object symbol, String type2, String side, Object amount, Object price2, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
+            String type = type3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            type = ((String)type).toUpperCase();
+            type = (String) (((String)type).toUpperCase());
             String upperSide = ((String)((String)side)).toUpperCase();
             final String finalUpperSide = upperSide;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2836,7 +2836,7 @@ public class Btse extends BtseApi
      * @param {float} [params.stopPrice] *NB - It is NOT stopLossPrice or triggerPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> createSpotOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createSpotOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2877,18 +2877,18 @@ public class Btse extends BtseApi
      * @param {float} [params.stopPrice] *NB - It is NOT the stopLossPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createContractOrder(Object symbol, Object type2, Object side, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> createContractOrder(Object symbol, String type2, String side, Object amount, Object price2, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
+            String type = type3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            type = ((String)type).toUpperCase();
+            type = (String) (((String)type).toUpperCase());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Btse.this.futuresRequestId(market) );
                 put( "orderSide", ((String)((String)side)).toUpperCase() );
@@ -3135,7 +3135,7 @@ public class Btse extends BtseApi
      * @param {float} [params.stopPrice] *NB - It is NOT the stopLossPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createContractOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> createContractOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createContractOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3257,7 +3257,7 @@ public class Btse extends BtseApi
      * @param {bool} [params.slide] *contract markets only* if true and only the price is amended, the price slides to the best available price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id2, String symbol, Object type, Object side, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id2, String symbol, String type, String side, Object amount2, Object price2, Map<String, Object> parameters2)
     {
         final String id3 = id2;
         final Object amount3 = amount2;
@@ -3355,7 +3355,7 @@ public class Btse extends BtseApi
      * @param {bool} [params.slide] *contract markets only* if true and only the price is amended, the price slides to the best available price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -4477,13 +4477,13 @@ public class Btse extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             (this.loadMarkets()).join();
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             List<Object> response = (this.privateGetFuturesApiV3TradePositions(parameters)).join();
             //
             // the response is a bare array of position rows
@@ -4508,7 +4508,7 @@ public class Btse extends BtseApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4939,7 +4939,7 @@ public class Btse extends BtseApi
      * @param {bool} [params.postOnly] true if the order should be post only
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<String, Object> parameters2)
+    public CompletableFuture<Order> closePosition(Object symbol, String side, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -4996,7 +4996,7 @@ public class Btse extends BtseApi
      */
     public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
     {
-        return this.closePosition(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**

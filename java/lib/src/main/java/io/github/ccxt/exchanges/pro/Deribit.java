@@ -277,18 +277,18 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String interval = this.safeString(parameters, "interval", "100ms");
             parameters = (Map<String, Object>) this.omit(parameters, "interval");
@@ -338,7 +338,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -391,16 +391,16 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchBidsAsks(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
@@ -439,7 +439,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
     {
-        return this.watchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleBidAsk(Client client, Map<String, Object> message)

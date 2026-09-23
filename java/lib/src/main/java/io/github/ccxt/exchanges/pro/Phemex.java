@@ -689,16 +689,16 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             Object first = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
             Map<String, Object> market = (Map<String, Object>) this.market(first);
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
@@ -747,7 +747,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**

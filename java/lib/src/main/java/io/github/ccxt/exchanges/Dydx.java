@@ -1574,7 +1574,7 @@ public class Dydx extends DydxApi
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -1641,7 +1641,7 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object hashMessage(Object message)
@@ -1906,7 +1906,7 @@ public class Dydx extends DydxApi
             }
             goodTillBlockTime = Helpers.add(this.seconds(), goodTillBlockTimeInSeconds);
         }
-        Object sideNumber = (((java.util.Objects.equals(orderSide, "BUY")))) ? 1 : 2;
+        Integer sideNumber = (((java.util.Objects.equals(orderSide, "BUY")))) ? 1 : 2;
         Object defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
         Long clientOrderId = this.safeInteger(parameters, "clientOrderId", defaultClientOrderId);
         final Object finalSubaccountId = subaccountId;
@@ -1970,7 +1970,7 @@ public class Dydx extends DydxApi
         return this.uuid5(nameSp, orderInfo);
     }
 
-    public CompletableFuture<Object> fetchLatestBlockHeight(Object parameters)
+    public CompletableFuture<Long> fetchLatestBlockHeight(Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1998,10 +1998,10 @@ public class Dydx extends DydxApi
                 throw new ExchangeError((this.id + " fetchLatestBlockHeight() could not parse last_block_height")) ;
             }
             return height;
-        });
+        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
-    public CompletableFuture<Object> fetchLatestBlockHeight(Object... optionalArgs)
+    public CompletableFuture<Long> fetchLatestBlockHeight(Object... optionalArgs)
     {
         return this.fetchLatestBlockHeight(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
@@ -2028,7 +2028,7 @@ public class Dydx extends DydxApi
      * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2039,7 +2039,7 @@ public class Dydx extends DydxApi
             }
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
-            Object lastBlockHeight = (this.fetchLatestBlockHeight()).join();
+            Long lastBlockHeight = (this.fetchLatestBlockHeight()).join();
             // params['latestBlockHeight'] = lastBlockHeight;
             Map<String, Object> newParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "latestBlockHeight", lastBlockHeight );
@@ -2098,7 +2098,7 @@ public class Dydx extends DydxApi
      * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2155,7 +2155,7 @@ public class Dydx extends DydxApi
             goodTillBlockTimeInSeconds = ((List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(1); // default is 30 days
             Object goodTillBlockTime = null;
-            Object defaultOrderFlags = (((java.util.Objects.equals(isTrigger, true)))) ? 32 : 64;
+            Integer defaultOrderFlags = (((java.util.Objects.equals(isTrigger, true)))) ? 32 : 64;
             Long orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
             Object subAccountId = 0;
             List<Object> subAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);
@@ -2181,8 +2181,8 @@ public class Dydx extends DydxApi
             {
                 if (java.util.Objects.equals(goodTillBlock, null))
                 {
-                    Object latestBlockHeight = (this.fetchLatestBlockHeight()).join();
-                    goodTillBlock = Helpers.add(latestBlockHeight, 20);
+                    Long latestBlockHeight = (this.fetchLatestBlockHeight()).join();
+                    goodTillBlock = (latestBlockHeight + 20L);
                 }
             }
             Object credentials = this.retrieveCredentials();
@@ -2290,8 +2290,8 @@ public class Dydx extends DydxApi
             Object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
             if (java.util.Objects.equals(goodTillBlock, null))
             {
-                Object latestBlockHeight = (this.fetchLatestBlockHeight()).join();
-                goodTillBlock = Helpers.add(latestBlockHeight, 20);
+                Long latestBlockHeight = (this.fetchLatestBlockHeight()).join();
+                goodTillBlock = (latestBlockHeight + 20L);
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "goodTillBlock", "subaccountId")));
             Object credentials = this.retrieveCredentials();

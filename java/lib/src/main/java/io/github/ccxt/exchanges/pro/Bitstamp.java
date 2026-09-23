@@ -849,7 +849,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //
         String channel = this.safeString(message, "channel");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object subscription = (((java.util.Objects.equals(channel, null)))) ? null : this.safeDict(client.subscriptions, channel);
+        Map<String, Object> subscription = (Map<String, Object>) ((((java.util.Objects.equals(channel, null)))) ? null : this.safeDict(client.subscriptions, channel));
         String symbol = this.safeString(subscription, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -955,7 +955,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //
         String channel = this.safeString(message, "channel");
         Map<String, Object> order = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object subscription = (((java.util.Objects.equals(channel, null)))) ? null : this.safeDict(client.subscriptions, channel);
+        Map<String, Object> subscription = (Map<String, Object>) ((((java.util.Objects.equals(channel, null)))) ? null : this.safeDict(client.subscriptions, channel));
         String symbol = this.safeString(subscription, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {

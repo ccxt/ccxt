@@ -1787,16 +1787,16 @@ public class Coinex extends CoinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -1878,7 +1878,7 @@ public class Coinex extends CoinexApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2980,7 +2980,7 @@ public class Coinex extends CoinexApi
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "market", "buy", (Object)(cost), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -3169,7 +3169,7 @@ public class Coinex extends CoinexApi
      * @param {boolean} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3253,7 +3253,7 @@ public class Coinex extends CoinexApi
      * @param {boolean} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3521,7 +3521,7 @@ public class Coinex extends CoinexApi
      * @param {float} [params.triggerPrice] the price to trigger stop orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol2, Object type, Object side, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol2, String type, String side, Object amount2, Object price2, Map<String, Object> parameters2)
     {
         final String symbol3 = symbol2;
         final Object amount3 = amount2;
@@ -3618,7 +3618,7 @@ public class Coinex extends CoinexApi
      * @param {float} [params.triggerPrice] the price to trigger stop orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -3842,14 +3842,14 @@ public class Coinex extends CoinexApi
                     }
                 }
             }
-            Object data = null;
+            Map<String, Object> data = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                data = this.safeDict((rows == null || 0 >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(0)), "data", new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict((rows == null || 0 >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(0)), "data", new HashMap<String, Object>() {{}});
             } else
             {
-                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
@@ -4505,12 +4505,12 @@ public class Coinex extends CoinexApi
      * @param {string} [params.method] the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -4520,7 +4520,7 @@ public class Coinex extends CoinexApi
             List<Object> defaultMethodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
             defaultMethod = ((List<Object>) defaultMethodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) defaultMethodparametersVariable).get(1);
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_type", "FUTURES" );
             }};
@@ -4617,7 +4617,7 @@ public class Coinex extends CoinexApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4936,11 +4936,11 @@ public class Coinex extends CoinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<LeverageTiers> fetchLeverageTiers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4993,7 +4993,7 @@ public class Coinex extends CoinexApi
      */
     public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
-        return this.fetchLeverageTiers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchLeverageTiers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
@@ -5528,16 +5528,16 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbols, null))
@@ -5586,7 +5586,7 @@ final Object finalI = i;
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -7196,7 +7196,7 @@ final Object finalI = i;
      * @param {string} [params.clientOrderId] the client id of the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<String, Object> parameters2)
+    public CompletableFuture<Order> closePosition(Object symbol, String side, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -7268,7 +7268,7 @@ final Object finalI = i;
      */
     public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
     {
-        return this.closePosition(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, Object defaultValue)
