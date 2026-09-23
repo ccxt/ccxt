@@ -227,6 +227,21 @@ func ListTyped(v any) []any {
 	return nil
 }
 
+// BoxAbsent re-boxes a typed container for an `any` channel: a nil map/slice becomes untyped nil.
+func BoxAbsent(v any) any {
+	switch c := v.(type) {
+	case map[string]any:
+		if c == nil {
+			return nil
+		}
+	case []any:
+		if c == nil {
+			return nil
+		}
+	}
+	return v
+}
+
 func getValue(collection any, key any) any {
 	collection = derefScalar(collection)
 	key = derefScalar(key)
