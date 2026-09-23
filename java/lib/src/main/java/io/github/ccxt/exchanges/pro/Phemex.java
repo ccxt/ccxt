@@ -1245,7 +1245,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 ((Map<String, Object>)marketIds).put((String)symbol, true);
             }
         }
-        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
+        List<String> keys = new ArrayList<String>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object market = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

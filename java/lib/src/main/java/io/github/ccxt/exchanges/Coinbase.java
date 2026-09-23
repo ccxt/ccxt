@@ -1885,12 +1885,12 @@ public class Coinbase extends CoinbaseApi
             List<Object> data = (List<Object>) this.safeList(currencies, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> dataById = this.indexBy(data, "id");
             Map<String, Object> rates = (Map<String, Object>) this.safeDict(this.safeDict(exchangeRates, "data", new HashMap<String, Object>() {{}}), "rates", new HashMap<String, Object>() {{}});
-            List<Object> baseIds = new ArrayList<Object>(rates.keySet());
+            List<String> baseIds = new ArrayList<String>(rates.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {
-                Object baseId = (baseIds == null || i < 0 || i >= baseIds.size() ? null : baseIds.get(i));
-                String base = this.safeCurrencyCode((String) (baseId));
+                String baseId = (baseIds == null || i < 0 || i >= baseIds.size() ? null : baseIds.get(i));
+                String base = this.safeCurrencyCode(baseId);
                 String type = (((dataById.containsKey(baseId)))) ? "fiat" : "crypto";
                 // https://github.com/ccxt/ccxt/issues/6066
                 if (java.util.Objects.equals(type, "crypto"))
@@ -1900,7 +1900,7 @@ public class Coinbase extends CoinbaseApi
                         Object quoteCurrency = (data == null || j < 0 || j >= data.size() ? null : data.get(j));
                         String quoteId = this.safeString(quoteCurrency, "id");
                         String quote = this.safeCurrencyCode(quoteId);
-    final Object finalBaseId = baseId;
+    final String finalBaseId = baseId;
                         final String finalBase = base;
                                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                             put( "id", ((finalBaseId + "-") + quoteId) );
@@ -2551,7 +2551,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> cryptoData = (List<Object>) this.safeList(cryptoResponse, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> ratesData = (Map<String, Object>) this.safeDict(ratesResponse, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> rates = (Map<String, Object>) this.safeDict(ratesData, "rates", new HashMap<String, Object>() {{}});
-            List<Object> ratesIds = new ArrayList<Object>(rates.keySet());
+            List<String> ratesIds = new ArrayList<String>(rates.keySet());
             List<Object> currencies = (List<Object>) this.arrayConcat(fiatData, cryptoData);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -2612,8 +2612,8 @@ public class Coinbase extends CoinbaseApi
             // we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
             for (var i = 0; i < ((List<?>)ratesIds).size(); i++)
             {
-                Object currencyId = (ratesIds == null || i < 0 || i >= ratesIds.size() ? null : ratesIds.get(i));
-                String code = this.safeCurrencyCode((String) (currencyId));
+                String currencyId = (ratesIds == null || i < 0 || i >= ratesIds.size() ? null : ratesIds.get(i));
+                String code = this.safeCurrencyCode(currencyId);
                 if ((java.util.Objects.equals(code, null)) || !(result.containsKey(code)))
                 {
                     if (!java.util.Objects.equals(code, null))
@@ -2720,7 +2720,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> rates = (Map<String, Object>) this.safeDict(data, "rates", new HashMap<String, Object>() {{}});
             String quoteId = this.safeString(data, "currency");
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<Object> baseIds = new ArrayList<Object>(rates.keySet());
+            List<String> baseIds = new ArrayList<String>(rates.keySet());
             String delimiter = "-";
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {

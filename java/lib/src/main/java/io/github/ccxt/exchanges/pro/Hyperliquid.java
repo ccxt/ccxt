@@ -919,11 +919,11 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Map<String, Object> mids = (Map<String, Object>) this.safeDict(data, "mids", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(mids, null))
         {
-            List<Object> keys = new ArrayList<Object>(mids.keySet());
+            List<String> keys = new ArrayList<String>(mids.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object name = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object marketId = this.coinToMarketId((String) (name));
+                String name = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                Object marketId = this.coinToMarketId(name);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "swap");
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
                 final Map<String, Object> finalMids = mids;
@@ -2148,7 +2148,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String symbol = this.safeString(order, "symbol");
             ((Map<String, Object>)marketSymbols).put((String)symbol, true);
         }
-        List<Object> keys = new ArrayList<Object>(marketSymbols.keySet());
+        List<String> keys = new ArrayList<String>(marketSymbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -2497,10 +2497,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
             return;
         }
-        List<Object> keys = new ArrayList<Object>(methods.keySet());
+        List<String> keys = new ArrayList<String>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
             {
                 Object method = (methods == null || key == null ? null : methods.get(key));

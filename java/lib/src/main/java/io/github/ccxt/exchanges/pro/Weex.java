@@ -1827,7 +1827,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
         String messageHash = "myTrades";
-        List<Object> symbolKeys = new ArrayList<Object>(symbols.keySet());
+        List<String> symbolKeys = new ArrayList<String>(symbols.keySet());
         Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolKeys);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
         {
@@ -2117,7 +2117,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
         }
         String messageHash = "orders";
-        List<Object> symbolKeys = new ArrayList<Object>(symbols.keySet());
+        List<String> symbolKeys = new ArrayList<String>(symbols.keySet());
         Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolKeys);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
         {

@@ -2802,11 +2802,11 @@ public class Nado extends NadoApi
             //         }
             //     }
             //
-            List<Object> tickers = new ArrayList<Object>(response.keySet());
+            List<String> tickers = new ArrayList<String>(response.keySet());
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
+                String ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 ((List<Object>)rates).add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
             }
             return this.parseFundingRates(rates, symbols);
@@ -2935,11 +2935,11 @@ public class Nado extends NadoApi
             //         }
             //     }
             //
-            List<Object> tickers = new ArrayList<Object>(response.keySet());
+            List<String> tickers = new ArrayList<String>(response.keySet());
             List<Object> interests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
+                String ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 ((List<Object>)interests).add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
             }
             return this.parseOpenInterests(interests, symbols);

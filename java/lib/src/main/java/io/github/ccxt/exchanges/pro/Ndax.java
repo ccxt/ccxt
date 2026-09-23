@@ -264,7 +264,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 ((Map<String, Object>)updates).put((String)symbol, true);
             }
         }
-        List<Object> symbols = new ArrayList<Object>(updates.keySet());
+        List<String> symbols = new ArrayList<String>(updates.keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
@@ -445,7 +445,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }
         }
         String name = "SubscribeTicker";
-        List<Object> marketIds = new ArrayList<Object>(updates.keySet());
+        List<String> marketIds = new ArrayList<String>(updates.keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));

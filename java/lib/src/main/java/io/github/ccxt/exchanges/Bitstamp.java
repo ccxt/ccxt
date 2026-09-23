@@ -1756,10 +1756,10 @@ public class Bitstamp extends BitstampApi
             return currencyId;
         }
         transaction = (Map<String, Object>) (this.omit(transaction, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "type", "status", "id"))));
-        List<Object> ids = new ArrayList<Object>(transaction.keySet());
+        List<String> ids = new ArrayList<String>(transaction.keySet());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
-            Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
+            String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
             if (((String)id).indexOf("_") < 0)
             {
                 Long value = this.safeInteger(transaction, id);
@@ -1846,13 +1846,13 @@ public class Bitstamp extends BitstampApi
         String orderId = this.safeString(trade, "order_id");
         Object type = null;
         String costString = this.safeString(trade, "cost");
-        Object rawMarketId = null;
+        String rawMarketId = null;
         if (java.util.Objects.equals(market, null))
         {
-            List<Object> keys = new ArrayList<Object>(((Map<String, Object>)trade).keySet());
+            List<String> keys = new ArrayList<String>(((Map<String, Object>)trade).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object currentKey = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String currentKey = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 if (!java.util.Objects.equals(currentKey, "order_id") && ((String)currentKey).indexOf("_") >= 0)
                 {
                     rawMarketId = currentKey;
@@ -1868,7 +1868,7 @@ public class Bitstamp extends BitstampApi
         }
         String feeCostString = this.safeString(trade, "fee");
         String feeCurrency = this.safeString(market, "quote");
-        Object priceId = (((!java.util.Objects.equals(rawMarketId, null)))) ? rawMarketId : this.safeString(market, "id");
+        String priceId = (((!java.util.Objects.equals(rawMarketId, null)))) ? rawMarketId : this.safeString(market, "id");
         priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, this.safeString(market, "baseId"), amountString);
         costString = this.safeString(trade, this.safeString(market, "quoteId"), costString);
@@ -2449,12 +2449,12 @@ public class Bitstamp extends BitstampApi
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Map<String,Object> currencies = this.indexBy(response, "currency");
-        List<Object> ids = new ArrayList<Object>(currencies.keySet());
+        List<String> ids = new ArrayList<String>(currencies.keySet());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
-            Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
+            String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
-            String code = this.safeCurrencyCode((String) (id));
+            String code = this.safeCurrencyCode(id);
             if ((!java.util.Objects.equals(codes, null)) && !this.inArray(code, codes))
             {
                 continue;
@@ -3609,7 +3609,7 @@ public class Bitstamp extends BitstampApi
         {
             Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(item);
             Object market = null;
-            List<Object> keys = new ArrayList<Object>(item.keySet());
+            List<String> keys = new ArrayList<String>(item.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 if (((String)(keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))).indexOf("_") >= 0)

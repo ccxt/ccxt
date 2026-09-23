@@ -4391,7 +4391,7 @@ final Object finalSubHash = subHash;
         {
             return result;
         }
-        List<Object> handles = new ArrayList<Object>(((Map<String, Object>)cached).keySet());
+        List<String> handles = new ArrayList<String>(((Map<String, Object>)cached).keySet());
         Integer handlesLength = ((List<?>)handles).size();
         for (var i = 0; Helpers.isLessThan(i, handlesLength); i++)
         {

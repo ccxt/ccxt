@@ -531,10 +531,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> status = (Map<String, Object>) this.safeDict(result, "status");
         if (!java.util.Objects.equals(status, null))
         {
-            List<Object> topics = new ArrayList<Object>(status.keySet());
+            List<String> topics = new ArrayList<String>(status.keySet());
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
-                Object topic = (topics == null || i < 0 || i >= topics.size() ? null : topics.get(i));
+                String topic = (topics == null || i < 0 || i >= topics.size() ? null : topics.get(i));
                 if (((String)topic).indexOf("orderbook") >= 0)
                 {
                     this.handleOrderBookUnSubscription(client, topic);

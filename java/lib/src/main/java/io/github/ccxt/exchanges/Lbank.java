@@ -1723,7 +1723,7 @@ public class Lbank extends LbankApi
         {
             Map<String, Object> used = (Map<String, Object>) this.safeDict(data, "freeze", new HashMap<String, Object>() {{}});
             Map<String, Object> free = (Map<String, Object>) this.safeDict(data, "free", new HashMap<String, Object>() {{}});
-            List<Object> currencies = new ArrayList<Object>(free.keySet());
+            List<String> currencies = new ArrayList<String>(free.keySet());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
                 Object currencyId = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));

@@ -700,10 +700,10 @@ public class Bitbns extends BitbnsApi
             put( "datetime", Bitbns.this.iso8601(timestamp) );
         }};
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        List<Object> keys = new ArrayList<Object>(data.keySet());
+        List<String> keys = new ArrayList<String>(data.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("availableorder"))));
             Integer numParts = ((List<?>)parts).size();
             if (Helpers.isGreaterThan(numParts, 1))

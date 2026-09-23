@@ -1412,7 +1412,7 @@ public class Mexc extends MexcApi
                 //
                 //     {}
                 //
-                List<Object> keys = new ArrayList<Object>(response.keySet());
+                List<String> keys = new ArrayList<String>(response.keySet());
                 Integer length = ((List<?>)keys).size();
                 status = (((Helpers.isGreaterThan(length, 0)))) ? this.json(response) : "ok";
             } else if (java.util.Objects.equals(marketType, "swap"))
@@ -6444,7 +6444,7 @@ final String finalRiskIncrVol = riskIncrVol;
                     result = this.safeDict(addressStructures, defaultNetworkForCurrency);
                 } else
                 {
-                    List<Object> keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
+                    List<String> keys = new ArrayList<String>(((Map<String, Object>)addressStructures).keySet());
                     String key = this.safeString(keys, 0);
                     result = this.safeDict(addressStructures, key);
                 }

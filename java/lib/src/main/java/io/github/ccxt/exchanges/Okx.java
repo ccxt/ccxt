@@ -4981,7 +4981,7 @@ public class Okx extends OkxApi
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
             }
-            List<Object> attachOrdKeys = new ArrayList<Object>(attachAlgoOrd.keySet());
+            List<String> attachOrdKeys = new ArrayList<String>(attachAlgoOrd.keySet());
             Integer attachOrdLen = ((List<?>)attachOrdKeys).size();
             if (Helpers.isGreaterThan(attachOrdLen, 0))
             {
@@ -7707,7 +7707,7 @@ public class Okx extends OkxApi
                 return Helpers.GetValue(response, codeNetwork);
             }
             // if the network is not specified, return the first address
-            List<Object> keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+            List<String> keys = new ArrayList<String>(((Map<String, Object>)response).keySet());
             String first = this.safeString(keys, 0, "");
             return this.safeDict(response, first);
         }).thenApply(DepositAddress::new);
@@ -10204,7 +10204,7 @@ public class Okx extends OkxApi
                 ((List<Object>)borrrowRateCode).add(borrowRateStructure);
             }
         }
-        List<Object> keys = new ArrayList<Object>(borrowRateHistories.keySet());
+        List<String> keys = new ArrayList<String>(borrowRateHistories.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -11498,7 +11498,7 @@ public class Okx extends OkxApi
                 }
             }
         }
-        List<Object> depositWithdrawCodes = new ArrayList<Object>(depositWithdrawFees.keySet());
+        List<String> depositWithdrawCodes = new ArrayList<String>(depositWithdrawFees.keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
             Object code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));

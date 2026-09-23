@@ -1958,7 +1958,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> rawPositions = (Map<String, Object>) this.safeDict(data, "positions", new HashMap<String, Object>() {{}});
-        List<Object> postitionsIds = new ArrayList<Object>(rawPositions.keySet());
+        List<String> postitionsIds = new ArrayList<String>(rawPositions.keySet());
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
@@ -1967,7 +1967,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)postitionsIds).size(); i++)
         {
-            Object marketId = (postitionsIds == null || i < 0 || i >= postitionsIds.size() ? null : postitionsIds.get(i));
+            String marketId = (postitionsIds == null || i < 0 || i >= postitionsIds.size() ? null : postitionsIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object rawPosition = (rawPositions == null || marketId == null ? null : rawPositions.get(marketId));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), market);

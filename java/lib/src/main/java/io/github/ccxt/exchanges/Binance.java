@@ -17500,13 +17500,13 @@ final Map<String, Object> finalMarket = market;
         {
             return null;
         }
-        Object networkCode = null;
+        String networkCode = null;
         Map<String, Object> currency = (Map<String, Object>) this.currency((String) (currencyCode));
         Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
-        List<Object> networkCodes = new ArrayList<Object>(networks.keySet());
+        List<String> networkCodes = new ArrayList<String>(networks.keySet());
         for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
         {
-            Object currentNetworkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
+            String currentNetworkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
             Map<String, Object> info = (Map<String, Object>) this.safeDict((networks == null || currentNetworkCode == null ? null : networks.get(currentNetworkCode)), "info", new HashMap<String, Object>() {{}});
             String siteUrl = this.safeString(info, "contractAddressUrl");
             // check if url matches the field's value

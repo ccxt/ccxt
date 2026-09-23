@@ -760,7 +760,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)messageHashes).add(((((("multi:" + name) + "@") + ((Map<String, Object>)market).get("id")) + "_") + interval));
             }
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> intervals = new ArrayList<Object>(marketIdsByInterval.keySet());
+            List<String> intervals = new ArrayList<String>(marketIdsByInterval.keySet());
             for (var i = 0; i < ((List<?>)intervals).size(); i++)
             {
                 Object interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
@@ -882,7 +882,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)subMessageHashes).add(((((("multi:" + name) + "@") + ((Map<String, Object>)market).get("id")) + "_") + interval));
             }
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> intervals = new ArrayList<Object>(marketIdsByInterval.keySet());
+            List<String> intervals = new ArrayList<String>(marketIdsByInterval.keySet());
             for (var i = 0; i < ((List<?>)intervals).size(); i++)
             {
                 Object interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
@@ -2680,10 +2680,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "book", "handleOrderBookSubscriptions");
         }};
-        List<Object> names = new ArrayList<Object>(subscriptions.keySet());
+        List<String> names = new ArrayList<String>(subscriptions.keySet());
         for (var i = 0; i < ((List<?>)names).size(); i++)
         {
-            Object name = (names == null || i < 0 || i >= names.size() ? null : names.get(i));
+            String name = (names == null || i < 0 || i >= names.size() ? null : names.get(i));
             Object method = this.safeValue(methods, name);
             if (!java.util.Objects.equals(method, null))
             {

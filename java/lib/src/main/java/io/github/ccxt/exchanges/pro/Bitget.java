@@ -2402,7 +2402,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 ((Map<String, Object>)marketSymbols).put((String)symbol, true);
             }
         }
-        List<Object> keys = new ArrayList<Object>(marketSymbols.keySet());
+        List<String> keys = new ArrayList<String>(marketSymbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

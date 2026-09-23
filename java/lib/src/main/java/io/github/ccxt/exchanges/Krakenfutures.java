@@ -3919,12 +3919,12 @@ public class Krakenfutures extends KrakenfuturesApi
         Boolean isCash = (java.util.Objects.equals(accountType, "cashAccount"));
         Map<String, Object> balances = (Map<String, Object>) this.safeDict2(response, "balances", "currencies", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        List<Object> currencyIds = new ArrayList<Object>(balances.keySet());
+        List<String> currencyIds = new ArrayList<String>(balances.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+            String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Object balance = (balances == null || currencyId == null ? null : balances.get(currencyId));
-            String code = this.safeCurrencyCode((String) (currencyId));
+            String code = this.safeCurrencyCode(currencyId);
             if (java.util.Objects.equals(code, null))
             {
                 continue;

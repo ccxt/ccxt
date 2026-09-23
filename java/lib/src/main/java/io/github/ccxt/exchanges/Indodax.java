@@ -543,11 +543,11 @@ public class Indodax extends IndodaxApi
             put( "timestamp", timestamp );
             put( "datetime", Indodax.this.iso8601(timestamp) );
         }};
-        List<Object> currencyIds = new ArrayList<Object>(free.keySet());
+        List<String> currencyIds = new ArrayList<String>(free.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode((String) (currencyId));
+            String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+            String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(free, currencyId));
             ((Map<String, Object>)account).put("used", this.safeString(used, currencyId));
@@ -806,13 +806,13 @@ public class Indodax extends IndodaxApi
             //
             Map<String, Object> response = (this.publicGetApiTickerAll(parameters)).join();
             Map<String, Object> tickers = (Map<String, Object>) this.safeDict(response, "tickers", new HashMap<String, Object>() {{}});
-            List<Object> keys = new ArrayList<Object>(tickers.keySet());
+            List<String> keys = new ArrayList<String>(tickers.keySet());
             Map<String, Object> parsedTickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object rawTicker = (tickers == null || key == null ? null : tickers.get(key));
-                String marketId = Helpers.replace(((String)key), "_", "");
+                String marketId = Helpers.replace(key, (String)"_", (String)"");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(rawTicker, market);
                 ((Map<String, Object>)parsedTickers).put((String)marketId, parsed);
@@ -1971,14 +1971,14 @@ public class Indodax extends IndodaxApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return");
             Map<String, Object> addresses = (Map<String, Object>) this.safeDict(data, "address", new HashMap<String, Object>() {{}});
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(data, "network", new HashMap<String, Object>() {{}});
-            List<Object> addressKeys = new ArrayList<Object>(addresses.keySet());
+            List<String> addressKeys = new ArrayList<String>(addresses.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", data );
             }};
             for (var i = 0; i < ((List<?>)addressKeys).size(); i++)
             {
-                Object marketId = (addressKeys == null || i < 0 || i >= addressKeys.size() ? null : addressKeys.get(i));
-                String code = this.safeCurrencyCode((String) (marketId));
+                String marketId = (addressKeys == null || i < 0 || i >= addressKeys.size() ? null : addressKeys.get(i));
+                String code = this.safeCurrencyCode(marketId);
                 String address = this.safeString(addresses, marketId);
                 if ((!java.util.Objects.equals(address, null)) && ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes)))))
                 {

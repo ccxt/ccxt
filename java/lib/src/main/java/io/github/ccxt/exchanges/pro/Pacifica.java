@@ -1809,7 +1809,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 ((Map<String, Object>)marketSymbols).put((String)symbol, true);
             }
         }
-        List<Object> keys = new ArrayList<Object>(marketSymbols.keySet());
+        List<String> keys = new ArrayList<String>(marketSymbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -2021,10 +2021,10 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             this.handleWsPost(client, (Map<String, Object>) (message));
             return;
         }
-        List<Object> keys = new ArrayList<Object>(methods.keySet());
+        List<String> keys = new ArrayList<String>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
             {
                 Object method = (methods == null || key == null ? null : methods.get(key));

@@ -5645,6 +5645,8 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaConcreteTernaryStringTypes (transpiler);
     // (12) ws receive locals typed from the resolved cache class (section 18)
     patchJavaWsReceiveTypes (transpiler);
+    // (13) `Object.keys (m)` native key copies of String-keyed maps print List<String> (section 19)
+    patchJavaObjectKeysStringLists (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -10541,8 +10543,11 @@ export function installJavaStringListParamTypes (transpiler) {
     const upstream = printer.javaDeclaredLocalTypeResolver;
     printer.javaDeclaredLocalTypeResolver = function (declaration) {
         const own = (typeof upstream === 'function') ? upstream (declaration) : undefined;
-        if (own !== undefined || declaration === undefined || !ts.isParameter (declaration)) {
+        if (own !== undefined || declaration === undefined) {
             return own;
+        }
+        if (!ts.isParameter (declaration)) {
+            return objectKeysDeclaredType (printer, declaration); // section 19, before its print
         }
         let type;
         try {
@@ -10764,6 +10769,165 @@ export function patchJavaConcreteTernaryStringTypes (transpiler) {
             ok = false;
         }
         return ok ? printed.slice (0, at) + `${iden}String ` + printed.slice (at + iden.length + printer.VAR_TOKEN.length + 1) : printed;
+    };
+}
+
+// ===== 19. `Object.keys (m)` of a String-keyed map is a List<String> (r15-j14) =====
+// The native key copy `new java.util.ArrayList<Object>(<Map<String, Object>>.keySet())` copies a
+// Set<String>, so it prints as ArrayList<String>; the local only admits uses that compile and bind
+// alike on List<String>: element reads (not `+` operands), .length/indexOf/includes/join, tests, args.
+const OBJECT_KEYS_NATIVE_COPY = /^new java\.util\.ArrayList<Object>\(((?:\(\(java\.util\.Map<String, Object>\)[^;]*\))|[A-Za-z_$][\w$]*)\.keySet\(\)\)(;?\s*)$/;
+const OBJECT_KEYS_LIST_METHODS = new Set ([ 'indexOf', 'includes', 'join' ]);
+// hand-written list-taking helpers (List<Object> params) and methods with typed List<String> cores
+const OBJECT_KEYS_LIST_PARAM_CALLEES = /(?:N|^(?:omit|extend|deepExtend|arrayConcat|filterByArray|indexBy|groupBy|sortBy|sortBy2|toArray|marketSymbols|marketIds|marketCodes|getListFromObjectValues))$/;
+
+function objectKeysElementReadIsSafe (read) {
+    let node = read;
+    while (node.parent !== undefined && ts.isParenthesizedExpression (node.parent)) {
+        node = node.parent;
+    }
+    const parent = node.parent;
+    if (parent === undefined || ts.isDeleteExpression (parent) || ts.isSpreadElement (parent)
+        || ts.isPostfixUnaryExpression (parent) || (ts.isPrefixUnaryExpression (parent) && parent.operator !== ts.SyntaxKind.ExclamationToken)) {
+        return false;
+    }
+    if (ts.isBinaryExpression (parent)) {
+        const op = parent.operatorToken.kind;
+        if (parent.left === node && ASSIGNMENT_OPERATORS.includes (op)) {
+            return false; // element write
+        }
+        // Helpers.add / arithmetic helpers pick their overload from the static operand type
+        return op !== ts.SyntaxKind.PlusToken && op !== ts.SyntaxKind.PlusEqualsToken && op !== ts.SyntaxKind.MinusToken;
+    }
+    return true;
+}
+
+function objectKeysUseIsSafe (n) {
+    let node = n;
+    while (node.parent !== undefined && ts.isParenthesizedExpression (node.parent)) {
+        node = node.parent;
+    }
+    const parent = node.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    if (ts.isElementAccessExpression (parent) && parent.expression === node) {
+        return objectKeysElementReadIsSafe (parent);
+    }
+    if (ts.isPropertyAccessExpression (parent) && parent.expression === node) {
+        const name = String (parent.name.escapedText);
+        if (name === 'length') {
+            return !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent);
+        }
+        return OBJECT_KEYS_LIST_METHODS.has (name) && ts.isCallExpression (parent.parent) && parent.parent.expression === parent;
+    }
+    if (ts.isCallExpression (parent) && parent.arguments.indexOf (node) !== -1) {
+        const callee = parent.expression;
+        const name = ts.isPropertyAccessExpression (callee) ? String (callee.name.escapedText)
+            : ts.isIdentifier (callee) ? String (callee.escapedText) : undefined;
+        return name !== undefined && !OBJECT_KEYS_LIST_PARAM_CALLEES.test (name) && !javaStringParamPositions (name)?.length
+            && argumentCastIsSafe (name, parent.arguments.indexOf (node), JAVA_ARRAY_TYPE);
+    }
+    if (ts.isBinaryExpression (parent)) {
+        const op = parent.operatorToken.kind;
+        return op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken
+            || op === ts.SyntaxKind.EqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsToken;
+    }
+    if (ts.isPrefixUnaryExpression (parent)) {
+        return parent.operator === ts.SyntaxKind.ExclamationToken;
+    }
+    if (ts.isIfStatement (parent) || ts.isWhileStatement (parent)) {
+        return parent.expression === node;
+    }
+    return ts.isPropertyAssignment (parent) && parent.initializer === node;
+}
+
+function objectKeysStringListLocal (declaration) {
+    const initializer = unwrapParens (declaration.initializer);
+    if (initializer === undefined || !ts.isCallExpression (initializer) || initializer.arguments?.length !== 1
+        || !ts.isPropertyAccessExpression (initializer.expression) || initializer.expression.name.escapedText !== 'keys'
+        || !ts.isIdentifier (initializer.expression.expression) || initializer.expression.expression.escapedText !== 'Object'
+        || !ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const uses = identifierIndex (scope).get (declaration.name.escapedText) ?? [];
+    for (const n of uses) {
+        if (n === declaration.name) {
+            continue;
+        }
+        if (ts.isVariableDeclaration (n.parent) && n.parent.name === n) {
+            return false; // a same-named sibling binding: uses are only resolvable by name
+        }
+        if (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n) {
+            continue;
+        }
+        if (ts.isPropertyAssignment (n.parent) && n.parent.name === n) {
+            continue;
+        }
+        if (!objectKeysUseIsSafe (n)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// the section's decision from the AST alone, so reads printed BEFORE the declaration (a null-init
+// local joined over a later key element write) resolve the same type the declaration prints
+const objectKeysDecisions = new WeakMap ();
+function objectKeysDeclaredType (printer, declaration) {
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.initializer === undefined) {
+        return undefined;
+    }
+    if (!objectKeysDecisions.has (declaration)) {
+        let ok = false;
+        try {
+            const native = typeof printer.printNativeObjectKeysCall === 'function'
+                ? printer.printNativeObjectKeysCall (unwrapParens (declaration.initializer)) : undefined;
+            ok = typeof native === 'string' && OBJECT_KEYS_NATIVE_COPY.test (native) && objectKeysStringListLocal (declaration);
+        } catch (e) {
+            ok = false;
+        }
+        objectKeysDecisions.set (declaration, ok);
+    }
+    return objectKeysDecisions.get (declaration) ? 'java.util.List<String>' : undefined;
+}
+
+export function patchJavaObjectKeysStringLists (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaObjectKeysStringListsPatched) {
+        return;
+    }
+    printer._javaObjectKeysStringListsPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        let at = -1;
+        let head;
+        for (const token of [ JAVA_ARRAY_TYPE, printer.VAR_TOKEN ]) {
+            head = `${iden}${token} ${name} = `;
+            at = printed.lastIndexOf (head);
+            if (at !== -1) {
+                break;
+            }
+        }
+        if (at === -1) {
+            return printed;
+        }
+        const match = OBJECT_KEYS_NATIVE_COPY.exec (printed.slice (at + head.length));
+        if (match === null || objectKeysDeclaredType (printer, declaration) === undefined) {
+            return printed;
+        }
+        return printed.slice (0, at) + `${iden}java.util.List<String> ${name} = new java.util.ArrayList<String>(${match[1]}.keySet())${match[2]}`;
     };
 }
 

@@ -3774,10 +3774,10 @@ public class Gate extends GateApi
                     withdrawFees = this.safeNumber(entry, "withdraw_fix");
                 } else
                 {
-                    List<Object> networkIds = new ArrayList<Object>(withdrawFixOnChains.keySet());
+                    List<String> networkIds = new ArrayList<String>(withdrawFixOnChains.keySet());
                     for (var j = 0; j < ((List<?>)networkIds).size(); j++)
                     {
-                        Object networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
+                        String networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
                         String networkCode = this.networkIdToCode(networkId, code);
                         if (!java.util.Objects.equals(networkCode, null))
                         {
@@ -3902,10 +3902,10 @@ public class Gate extends GateApi
         }};
         if (!java.util.Objects.equals(withdrawFixOnChains, null))
         {
-            List<Object> chainKeys = new ArrayList<Object>(withdrawFixOnChains.keySet());
+            List<String> chainKeys = new ArrayList<String>(withdrawFixOnChains.keySet());
             for (var i = 0; i < ((List<?>)chainKeys).size(); i++)
             {
-                Object chainKey = (chainKeys == null || i < 0 || i >= chainKeys.size() ? null : chainKeys.get(i));
+                String chainKey = (chainKeys == null || i < 0 || i >= chainKeys.size() ? null : chainKeys.get(i));
                 String currencyId = this.safeString(fee, "currency");
                 String code = this.safeCurrencyCode(currencyId, currency);
                 String networkCode = this.networkIdToCode(chainKey, code);

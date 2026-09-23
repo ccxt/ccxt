@@ -4536,10 +4536,10 @@ public Object describe()
         {
             timeframes = this.timeframes;
         }
-        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)timeframes).keySet());
+        List<String> keys = new ArrayList<String>(((Map<String, Object>)timeframes).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.isEqual(Helpers.GetValue(timeframes, key), timeframe))
             {
                 return (String) (key);
@@ -6327,13 +6327,13 @@ public Object describe()
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
-        List<Object> keys = new ArrayList<Object>(networks.keySet());
+        List<String> keys = new ArrayList<String>(networks.keySet());
         Integer length = ((List<?>)keys).size();
         if (!java.util.Objects.equals(length, 0))
         {
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object network = (networks == null || key == null ? null : networks.get(key));
                 Boolean deposit = (Boolean) this.safeBool(network, "deposit");
                 Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit");
@@ -6637,11 +6637,11 @@ public Object describe()
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
             List<Object> allCurrencies = (List<Object>) this.arrayConcat(baseCurrencies, quoteCurrencies);
             Map<String,Object> groupedCurrencies = this.groupBy(allCurrencies, "code");
-            List<Object> codes = new ArrayList<Object>(groupedCurrencies.keySet());
+            List<String> codes = new ArrayList<String>(groupedCurrencies.keySet());
             List<Object> resultingCurrencies = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
-                Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+                String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 List<Object> groupedCurrenciesCode = (List<Object>) this.safeList(groupedCurrencies, code, new ArrayList<Object>(Arrays.asList()));
                 Object highestPrecisionCurrency = this.safeValue(groupedCurrenciesCode, 0);
                 for (var j = 1; j < (groupedCurrenciesCode == null ? 0 : ((List<?>)groupedCurrenciesCode).size()); j++)
@@ -6755,7 +6755,7 @@ public Object describe()
                 ((Map<String, Object>)debtBalance).put((String)code, Helpers.GetValue(Helpers.GetValue(balance, code), "debt"));
             }
         }
-        List<Object> debtBalanceArray = new ArrayList<Object>(debtBalance.keySet());
+        List<String> debtBalanceArray = new ArrayList<String>(debtBalance.keySet());
         Object length = ((List<?>)debtBalanceArray).size();
         if ((!java.util.Objects.equals(length, null)) && (!java.util.Objects.equals(length, 0)))
         {
@@ -7159,10 +7159,10 @@ public Object describe()
             }
         } else
         {
-            List<Object> ids = new ArrayList<Object>(((Map<String, Object>)orders).keySet());
+            List<String> ids = new ArrayList<String>(((Map<String, Object>)orders).keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
+                String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> idExtended = this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
                 }}, Helpers.GetValue(orders, id));
@@ -8301,10 +8301,10 @@ public Object describe()
             return null;
         }
         Map<String, Object> replacements = (Map<String, Object>) this.safeDict(this.options, "defaultNetworkCodeReplacements", new HashMap<String, Object>() {{}});
-        List<Object> keys = new ArrayList<Object>(replacements.keySet());
+        List<String> keys = new ArrayList<String>(replacements.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object baseCoin = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String baseCoin = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object entry = (replacements == null || baseCoin == null ? null : replacements.get(baseCoin));
             Object primary = Helpers.GetValue(entry, "primary");
             Object secondary = Helpers.GetValue(entry, "secondary");
@@ -9806,7 +9806,7 @@ public Object describe()
             return Helpers.GetValue(mapping, key);
         } else
         {
-            Object keys = new ArrayList<Object>(((Map<String, Object>)mapping).keySet());
+            List<String> keys = new ArrayList<String>(((Map<String, Object>)mapping).keySet());
             throw new NotSupported((((Helpers.add((this.id + " "), key) + " does not have a value in mapping") + ", must be one of ") + String.join(", ", (List<String>)keys))) ;
         }
     }
@@ -10736,7 +10736,7 @@ public Object describe()
                     return this.safeDict(addressStructures, network);
                 } else
                 {
-                    List<Object> keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
+                    List<String> keys = new ArrayList<String>(((Map<String, Object>)addressStructures).keySet());
                     Object key = (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0));
                     return this.safeDict(addressStructures, key);
                 }
@@ -12874,11 +12874,11 @@ public Object describe()
 
     public Object removeKeysFromDict(Map<String, Object> dict, Object removeKeys)
     {
-        List<Object> keys = new ArrayList<Object>(dict.keySet());
+        List<String> keys = new ArrayList<String>(dict.keySet());
         Map<String, Object> newDict = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!this.inArray(key, removeKeys))
             {
                 ((Map<String, Object>)newDict).put((String)key, (dict == null || key == null ? null : dict.get(key)));

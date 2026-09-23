@@ -805,10 +805,10 @@ public class Deepcoin extends DeepcoinApi
     public Object setMarkets(Object markets, Object currencies)
     {
         Object result = super.setMarkets(markets, currencies);
-        List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)result).keySet());
+        List<String> symbols = new ArrayList<String>(((Map<String, Object>)result).keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Object market = Helpers.GetValue(result, symbol);
             if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
             {

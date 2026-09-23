@@ -379,10 +379,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Map<String, Object> snapshot = (Map<String, Object>) this.safeDict(message, "snapshot");
         Map<String, Object> data = (Map<String, Object>) this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
         String type = (((!java.util.Objects.equals(snapshot, null) && !java.util.Objects.equals(snapshot, null)))) ? "snapshot" : "update";
-        List<Object> marketIds = new ArrayList<Object>(data.keySet());
+        List<String> marketIds = new ArrayList<String>(data.keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object item = (data == null || marketId == null ? null : data.get(marketId));
@@ -594,12 +594,12 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        List<Object> marketIds = new ArrayList<Object>(data.keySet());
+        List<String> marketIds = new ArrayList<String>(data.keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "tickers";
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((data == null || marketId == null ? null : data.get(marketId)), market);
@@ -756,12 +756,12 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        List<Object> marketIds = new ArrayList<Object>(data.keySet());
+        List<String> marketIds = new ArrayList<String>(data.keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "bidask";
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object ticker = this.parseWsBidAsk((Map<String, Object>) ((data == null || marketId == null ? null : data.get(marketId))), market);
@@ -891,10 +891,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
-        List<Object> marketIds = new ArrayList<Object>(data.keySet());
+        List<String> marketIds = new ArrayList<String>(data.keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
@@ -1057,7 +1057,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
-        List<Object> marketIds = new ArrayList<Object>(data.keySet());
+        List<String> marketIds = new ArrayList<String>(data.keySet());
         String channel = this.safeString(message, "ch", "");
         List<Object> splitChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("/"))));
         String period = this.safeString(splitChannel, 1);
@@ -1068,7 +1068,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         }
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));

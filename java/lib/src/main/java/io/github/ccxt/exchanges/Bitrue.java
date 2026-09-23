@@ -788,7 +788,7 @@ public class Bitrue extends BitrueApi
             //
             //     {}
             //
-            List<Object> keys = new ArrayList<Object>(response.keySet());
+            List<String> keys = new ArrayList<String>(response.keySet());
             Integer keysLength = ((List<?>)keys).size();
             String formattedStatus = (((Helpers.isGreaterThan(keysLength, 0)))) ? "maintenance" : "ok";
             return new HashMap<String, Object>() {{
@@ -4221,7 +4221,7 @@ public class Bitrue extends BitrueApi
                 Object signMessage = ((timestamp + method) + signPath);
                 if (java.util.Objects.equals(method, "GET"))
                 {
-                    List<Object> keys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());
+                    List<String> keys = new ArrayList<String>(((Map<String, Object>)parameters).keySet());
                     Integer keysLength = ((List<?>)keys).size();
                     if (Helpers.isGreaterThan(keysLength, 0))
                     {

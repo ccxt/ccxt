@@ -3305,17 +3305,17 @@ final Object finalI = i;
         }
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("wsBookVersions")), marketHash, version);
         Map<String, Object> watchedBooks = (Map<String, Object>) this.safeDict(this.options, "wsWatchedBooks", new HashMap<String, Object>() {{}});
-        List<Object> watchedSyms = new ArrayList<Object>(watchedBooks.keySet());
+        List<String> watchedSyms = new ArrayList<String>(watchedBooks.keySet());
         Long timestamp = this.milliseconds();
         Integer watchedSymsLength = ((List<?>)watchedSyms).size();
         for (var i = 0; Helpers.isLessThan(i, watchedSymsLength); i++)
         {
-            Object sym = (watchedSyms == null || i < 0 || i >= watchedSyms.size() ? null : watchedSyms.get(i));
+            String sym = (watchedSyms == null || i < 0 || i >= watchedSyms.size() ? null : watchedSyms.get(i));
             if (!java.util.Objects.equals(this.safeString(watchedBooks, sym), marketHash))
             {
                 continue;
             }
-            Map<String, Object> outcomeObj = this.outcome((String) (sym));
+            Map<String, Object> outcomeObj = this.outcome(sym);
             String outcomeId = this.safeString(outcomeObj, "outcomeId");
             Boolean isOutcomeOne = (java.util.Objects.equals(outcomeId, marketHash));
             Map<String, Object> sides = this.parseSxbetV3BookSides((Map<String, Object>) (snapshot), isOutcomeOne);
@@ -3444,7 +3444,7 @@ final Object finalI = i;
         //     }
         //
         Map<String, Object> watchedTickers = (Map<String, Object>) this.safeDict(this.options, "wsWatchedTickers", new HashMap<String, Object>() {{}});
-        List<Object> watchedSyms = new ArrayList<Object>(watchedTickers.keySet());
+        List<String> watchedSyms = new ArrayList<String>(watchedTickers.keySet());
         Integer rowsLength = ((List<?>)rows).size();
         for (var i = 0; Helpers.isLessThan(i, rowsLength); i++)
         {
@@ -3471,12 +3471,12 @@ final Object finalI = i;
             Integer watchedSymsLength = ((List<?>)watchedSyms).size();
             for (var j = 0; Helpers.isLessThan(j, watchedSymsLength); j++)
             {
-                Object sym = (watchedSyms == null || j < 0 || j >= watchedSyms.size() ? null : watchedSyms.get(j));
+                String sym = (watchedSyms == null || j < 0 || j >= watchedSyms.size() ? null : watchedSyms.get(j));
                 if (!java.util.Objects.equals(this.safeString(watchedTickers, sym), marketHash))
                 {
                     continue;
                 }
-                Object outcomeObj = ((Object)this.outcome((String) (sym)));
+                Object outcomeObj = ((Object)this.outcome(sym));
                 Object ticker = this.parsePredictionTicker((Map<String, Object>) (raw), outcomeObj);
                 Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
                 client.resolve(ticker, ("ticker::" + sym));

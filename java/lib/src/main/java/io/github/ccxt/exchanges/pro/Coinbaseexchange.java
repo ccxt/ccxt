@@ -1025,11 +1025,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                     {
                         Map<String, Object> info = this.extend(((Map<String, Object>)previousOrder).get("info"), message);
                         Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (info));
-                        List<Object> keys = new ArrayList<Object>(order.keySet());
+                        List<String> keys = new ArrayList<String>(order.keySet());
                         // update the reference
                         for (var i = 0; i < ((List<?>)keys).size(); i++)
                         {
-                            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                             if (!java.util.Objects.equals((order == null || key == null ? null : order.get(key)), null))
                             {
                                 ((Map<String, Object>)previousOrder).put((String)key, (order == null || key == null ? null : order.get(key)));

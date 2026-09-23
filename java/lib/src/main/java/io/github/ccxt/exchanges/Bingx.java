@@ -6688,7 +6688,7 @@ public class Bingx extends BingxApi
                     return this.safeDict(addressStructures, defaultNetworkForCurrency);
                 } else
                 {
-                    List<Object> keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
+                    List<String> keys = new ArrayList<String>(((Map<String, Object>)addressStructures).keySet());
                     String key = this.safeString(keys, 0);
                     return this.safeDict(addressStructures, key);
                 }
@@ -7541,7 +7541,7 @@ public class Bingx extends BingxApi
         // currencie structure
         //
         Map<String, Object> networks = (Map<String, Object>) this.safeDict(fee, "networks", new HashMap<String, Object>() {{}});
-        List<Object> networkCodes = new ArrayList<Object>(networks.keySet());
+        List<String> networkCodes = new ArrayList<String>(networks.keySet());
         Integer networksLength = ((List<?>)networkCodes).size();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", networks );
@@ -7559,7 +7559,7 @@ public class Bingx extends BingxApi
         {
             for (var i = 0; Helpers.isLessThan(i, networksLength); i++)
             {
-                Object networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
+                String networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
                 Object network = (networks == null || networkCode == null ? null : networks.get(networkCode));
                 Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
@@ -7605,10 +7605,10 @@ public class Bingx extends BingxApi
             }
             Object response = (this.fetchCurrencies((Object)(parameters))).join();
             Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
-            List<Object> responseCodes = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+            List<String> responseCodes = new ArrayList<String>(((Map<String, Object>)response).keySet());
             for (var i = 0; i < ((List<?>)responseCodes).size(); i++)
             {
-                Object code = (responseCodes == null || i < 0 || i >= responseCodes.size() ? null : responseCodes.get(i));
+                String code = (responseCodes == null || i < 0 || i >= responseCodes.size() ? null : responseCodes.get(i));
                 if ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes))))
                 {
                     Object entry = Helpers.GetValue(response, code);
@@ -7727,7 +7727,7 @@ public class Bingx extends BingxApi
     {
         // const sortedParams = this.keysort (params);
         Object copied = this.clone(parameters);
-        List<Object> rawKeys = new ArrayList<Object>(parameters.keySet());
+        List<String> rawKeys = new ArrayList<String>(parameters.keySet());
         Object keys = this.sort(rawKeys);
         for (var i = 0; i < Helpers.getArrayLength(keys); i++)
         {
@@ -8509,7 +8509,7 @@ public class Bingx extends BingxApi
     public Object customEncode(Map<String, Object> parameters)
     {
         // const sortedParams = this.keysort (params);
-        List<Object> rawKeys = new ArrayList<Object>(parameters.keySet());
+        List<String> rawKeys = new ArrayList<String>(parameters.keySet());
         Object keys = this.sort(rawKeys);
         String adjustedValue = null;
         Object result = null;

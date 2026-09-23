@@ -1230,10 +1230,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Helpers.addElementToObject(this.balance, balanceType, this.safeBalance(oldBalance));
             ((Map<String, Object>)updatedTypes).put((String)balanceType, true);
         }
-        List<Object> updatesKeys = new ArrayList<Object>(updatedTypes.keySet());
+        List<String> updatesKeys = new ArrayList<String>(updatedTypes.keySet());
         for (var i = 0; i < ((List<?>)updatesKeys).size(); i++)
         {
-            Object type = (updatesKeys == null || i < 0 || i >= updatesKeys.size() ? null : updatesKeys.get(i));
+            String type = (updatesKeys == null || i < 0 || i >= updatesKeys.size() ? null : updatesKeys.get(i));
             String messageHash = ("balance:" + type);
             client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);
         }
@@ -1534,7 +1534,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }
         String name = "orders";
         client.resolve(this.orders, name);
-        List<Object> keys = new ArrayList<Object>(symbolIds.keySet());
+        List<String> keys = new ArrayList<String>(symbolIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

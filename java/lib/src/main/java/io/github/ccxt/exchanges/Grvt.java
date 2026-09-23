@@ -4510,7 +4510,7 @@ public class Grvt extends GrvtApi
             }};
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            List<Object> paramsKeys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());
+            List<String> paramsKeys = new ArrayList<String>(((Map<String, Object>)parameters).keySet());
             Integer paramsKeysLength = ((List<?>)paramsKeys).size();
             if (java.util.Objects.equals(paramsKeysLength, 0))
             {

@@ -417,7 +417,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String channel = this.safeString(message, "channel");
         if (java.util.Objects.equals(channel, "market_stats:all"))
         {
-            List<Object> marketIds = new ArrayList<Object>(data.keySet());
+            List<String> marketIds = new ArrayList<String>(data.keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
@@ -1148,7 +1148,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String accountIndex = (String) Helpers.GetValue(parts, 1);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "trades", new HashMap<String, Object>() {{}});
-        List<Object> marketIds = new ArrayList<Object>(data.keySet());
+        List<String> marketIds = new ArrayList<String>(data.keySet());
         Integer idsLength = ((List<?>)marketIds).size();
         if (java.util.Objects.equals(idsLength, 0))
         {
@@ -1163,7 +1163,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String messageHash = this.getMessageHash("myTrades");
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             List<Object> trades = (List<Object>) this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             Integer tradesLength = ((List<?>)trades).size();
@@ -1593,10 +1593,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         if (java.util.Objects.equals(type, "spot"))
         {
             Map<String, Object> assets = (Map<String, Object>) this.safeDict(message, "assets", new HashMap<String, Object>() {{}});
-            List<Object> assetIds = new ArrayList<Object>(assets.keySet());
+            List<String> assetIds = new ArrayList<String>(assets.keySet());
             for (var i = 0; i < ((List<?>)assetIds).size(); i++)
             {
-                Object assetId = (assetIds == null || i < 0 || i >= assetIds.size() ? null : assetIds.get(i));
+                String assetId = (assetIds == null || i < 0 || i >= assetIds.size() ? null : assetIds.get(i));
                 Object asset = (assets == null || assetId == null ? null : assets.get(assetId));
                 String codeId = this.safeString(asset, "symbol");
                 String code = this.safeCurrencyCode((String) (codeId));
@@ -1978,7 +1978,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //    }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "orders", new HashMap<String, Object>() {{}});
-        List<Object> marketIds = new ArrayList<Object>(data.keySet());
+        List<String> marketIds = new ArrayList<String>(data.keySet());
         Integer idsLength = ((List<?>)marketIds).size();
         if (java.util.Objects.equals(idsLength, 0))
         {
@@ -1993,7 +1993,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String messageHash = this.getMessageHash("orders");
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             List<Object> orders = (List<Object>) this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)orders).size(); j++)

@@ -2585,11 +2585,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //
         Long timestamp = this.safeInteger(message, "time");
         Map<String, Object> bbos = (Map<String, Object>) this.safeDict(message, "bbos", new HashMap<String, Object>() {{}});
-        List<Object> marketIds = new ArrayList<Object>(bbos.keySet());
+        List<String> marketIds = new ArrayList<String>(bbos.keySet());
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Map<String, Object> bbo = (Map<String, Object>) this.safeDict(bbos, marketId, new HashMap<String, Object>() {{}});
             String bid = this.safeString(bbo, "bid");
@@ -2615,10 +2615,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     public void handleAllBidsAsks(Client client, Map<String, Object> message)
     {
         Object tickers = this.parseWsAllBidsAsks((Map<String, Object>) (message));
-        List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)tickers).keySet());
+        List<String> symbols = new ArrayList<String>(((Map<String, Object>)tickers).keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Object ticker = Helpers.GetValue(tickers, symbol);
             Helpers.addElementToObject(this.bidsasks, symbol, ticker);
             Helpers.addElementToObject(this.tickers, symbol, ticker);

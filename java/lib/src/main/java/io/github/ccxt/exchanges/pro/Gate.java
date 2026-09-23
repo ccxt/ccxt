@@ -1719,7 +1719,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             ((Map<String, Object>)marketIds).put((String)symbol, timeframe);
         }
-        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
+        List<String> keys = new ArrayList<String>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1866,10 +1866,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((Map<String, Object>)marketIds).put((String)symbol, true);
             }
         }
-        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
+        List<String> keys = new ArrayList<String>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object market = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String market = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             String hash = ("myTrades:" + market);
             client.resolve(cachedTrades, hash);
         }
@@ -3133,12 +3133,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             put( "delivery", "future" );
             put( "fx", "swap" );
         }};
-        List<Object> keys = new ArrayList<Object>(findBy.keySet());
+        List<String> keys = new ArrayList<String>(findBy.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = (findBy == null || key == null ? null : findBy.get(key));
-            if (((String)url).indexOf(((String)key)) >= 0)
+            if (((String)url).indexOf(key) >= 0)
             {
                 return value;
             }

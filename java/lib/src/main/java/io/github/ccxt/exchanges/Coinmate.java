@@ -622,11 +622,11 @@ public class Coinmate extends CoinmateApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> currencyIds = new ArrayList<Object>(balances.keySet());
+        List<String> currencyIds = new ArrayList<String>(balances.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode((String) (currencyId));
+            String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+            String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
@@ -817,7 +817,7 @@ public class Coinmate extends CoinmateApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> keys = new ArrayList<Object>(data.keySet());
+            List<String> keys = new ArrayList<String>(data.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1083,7 +1083,7 @@ public class Coinmate extends CoinmateApi
             String method = this.safeString(methods, code);
             if (java.util.Objects.equals(method, null))
             {
-                Object allowedCurrencies = new ArrayList<Object>(methods.keySet());
+                List<String> allowedCurrencies = new ArrayList<String>(methods.keySet());
                 throw new ExchangeError(((this.id + " withdraw() only allows withdrawing the following currencies: ") + String.join(", ", (List<String>)allowedCurrencies))) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{

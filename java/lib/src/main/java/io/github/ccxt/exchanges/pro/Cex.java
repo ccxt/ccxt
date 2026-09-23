@@ -150,14 +150,14 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", data );
         }};
-        List<Object> currencyIds = new ArrayList<Object>(freeBalance.keySet());
+        List<String> currencyIds = new ArrayList<String>(freeBalance.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+            String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(freeBalance, currencyId));
             ((Map<String, Object>)account).put("used", this.safeString(usedBalance, currencyId));
-            String code = this.safeCurrencyCode((String) (currencyId));
+            String code = this.safeCurrencyCode(currencyId);
             if (!java.util.Objects.equals(code, null))
             {
                 ((Map<String, Object>)result).put((String)code, account);

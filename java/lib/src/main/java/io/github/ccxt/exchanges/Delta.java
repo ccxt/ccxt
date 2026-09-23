@@ -850,10 +850,10 @@ public class Delta extends DeltaApi
         {
             return null;
         }
-        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)input).keySet());
+        List<String> keys = new ArrayList<String>(((Map<String, Object>)input).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object item = Helpers.GetValue(input, key);
             String numericIdString = this.safeString(item, "numericId");
             if (java.util.Objects.equals(numericIdString, null))

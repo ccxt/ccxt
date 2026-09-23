@@ -3631,11 +3631,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             this.handleOrderBook(client, (Map<String, Object>) (message));
             return;
         }
-        List<Object> keys = new ArrayList<Object>(methods.keySet());
+        List<String> keys = new ArrayList<String>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (((String)topic).indexOf(((String)key)) >= 0)
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            if (((String)topic).indexOf(key) >= 0)
             {
                 Object method = (methods == null || key == null ? null : methods.get(key));
                 Helpers.callDynamically(this, method, new Object[] {client, message});

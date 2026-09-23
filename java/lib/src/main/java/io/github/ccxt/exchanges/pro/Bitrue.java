@@ -533,7 +533,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return null;
         }
-        List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
+        List<String> symbols = new ArrayList<String>(((Map<String, Object>)markets).keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object candidate = Helpers.GetValue(markets, (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));

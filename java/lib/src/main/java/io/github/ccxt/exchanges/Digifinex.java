@@ -5833,7 +5833,7 @@ final Object finalI = i;
                 }
             }
         }
-        List<Object> depositWithdrawCodes = new ArrayList<Object>(depositWithdrawFees.keySet());
+        List<String> depositWithdrawCodes = new ArrayList<String>(depositWithdrawFees.keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
             Object code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));

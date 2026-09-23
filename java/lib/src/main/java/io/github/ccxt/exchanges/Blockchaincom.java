@@ -369,11 +369,11 @@ public class Blockchaincom extends BlockchaincomApi
             //     }
             //
             Map<String, Object> markets = (this.publicGetSymbols(parameters)).join();
-            List<Object> marketIds = new ArrayList<Object>(markets.keySet());
+            List<String> marketIds = new ArrayList<String>(markets.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, marketId);
                 String baseId = this.safeString(market, "base_currency");
                 String quoteId = this.safeString(market, "counter_currency");

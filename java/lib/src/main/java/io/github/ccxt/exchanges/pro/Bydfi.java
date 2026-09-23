@@ -418,10 +418,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Client client = this.client(url);
         Object subscriptions = client.subscriptions;
         List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
+        List<String> keys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if ((((String)key).indexOf("ticker::") == 0))
             {
                 ((List<Object>)messageHashes).add(key);

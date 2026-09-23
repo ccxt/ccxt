@@ -584,10 +584,10 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         }
         client.resolve(newLiquidations, "liquidations");
         Map<String,Object> liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
-        List<Object> symbols = new ArrayList<Object>(liquidationsBySymbol.keySet());
+        List<String> symbols = new ArrayList<String>(liquidationsBySymbol.keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             client.resolve((liquidationsBySymbol == null || symbol == null ? null : liquidationsBySymbol.get(symbol)), ("liquidations::" + symbol));
         }
     }
@@ -804,10 +804,10 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         String table = "trade";
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> dataByMarketIds = this.groupBy(data, "symbol");
-        List<Object> marketIds = new ArrayList<Object>(dataByMarketIds.keySet());
+        List<String> marketIds = new ArrayList<String>(dataByMarketIds.keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ((table + ":") + symbol);
@@ -1143,7 +1143,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 // the ArrayCacheBySymbolBySide index (see issue #29001).
                 String symbol = this.safeString(position, "symbol");
                 Map<String, Object> cachedBySide = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new HashMap<String, Object>() {{}});
-                List<Object> cachedSides = new ArrayList<Object>(cachedBySide.keySet());
+                List<String> cachedSides = new ArrayList<String>(cachedBySide.keySet());
                 Integer sidesLength = ((List<?>)cachedSides).size();
                 if (java.util.Objects.equals(sidesLength, 1))
                 {
@@ -1415,7 +1415,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             }
             client.resolve(this.orders, messageHash);
-            List<Object> keys = new ArrayList<Object>(symbols.keySet());
+            List<String> keys = new ArrayList<String>(symbols.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1898,7 +1898,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Helpers.callDynamically(stored, "append", new Object[]{result});
             ((Map<String, Object>)results).put((String)messageHash, stored);
         }
-        List<Object> messageHashes = new ArrayList<Object>(results.keySet());
+        List<String> messageHashes = new ArrayList<String>(results.keySet());
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -2051,7 +2051,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
                 Helpers.addElementToObject(orderbook, "datetime", datetime);
             }
-            List<Object> marketIds = new ArrayList<Object>(numUpdatesByMarketId.keySet());
+            List<String> marketIds = new ArrayList<String>(numUpdatesByMarketId.keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));

@@ -3396,7 +3396,7 @@ public class Kucoin extends KucoinApi
         String type = this.safeString(accountsByType, requestedType);
         if (java.util.Objects.equals(type, null))
         {
-            Object keys = new ArrayList<Object>(accountsByType.keySet());
+            List<String> keys = new ArrayList<String>(accountsByType.keySet());
             throw new ExchangeError(((this.id + " isFuturesMethod() type must be one of ") + String.join(", ", (List<String>)keys))) ;
         }
         parameters = (Map<String, Object>) (this.omit(parameters, "type"));
@@ -13033,7 +13033,7 @@ public class Kucoin extends KucoinApi
                 ((List<Object>)borrowRateHistoriesCode).add(borrowRateStructure);
             }
         }
-        List<Object> keys = new ArrayList<Object>(borrowRateHistories.keySet());
+        List<String> keys = new ArrayList<String>(borrowRateHistories.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

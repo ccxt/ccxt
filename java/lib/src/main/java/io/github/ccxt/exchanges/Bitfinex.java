@@ -1338,7 +1338,7 @@ public class Bitfinex extends BitfinexApi
             String accountType = this.safeString(accountsByType, requestedType, requestedType);
             if (java.util.Objects.equals(accountType, null))
             {
-                Object keys = new ArrayList<Object>(accountsByType.keySet());
+                List<String> keys = new ArrayList<String>(accountsByType.keySet());
                 throw new ExchangeError(((this.id + " fetchBalance() type parameter must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             Boolean isDerivative = java.util.Objects.equals(requestedType, "derivatives");

@@ -1702,11 +1702,11 @@ public class Coinone extends CoinoneApi
             //     }
             //
             Map<String, Object> walletAddress = (Map<String, Object>) this.safeDict(response, "walletAddress", new HashMap<String, Object>() {{}});
-            List<Object> keys = new ArrayList<Object>(walletAddress.keySet());
+            List<String> keys = new ArrayList<String>(walletAddress.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object value = (walletAddress == null || key == null ? null : walletAddress.get(key));
                 if ((java.util.Objects.equals(value, null)) || (java.util.Objects.equals(value, null)) || (java.util.Objects.equals(value, "")) || (java.util.Objects.equals(value, "-1")))
                 {

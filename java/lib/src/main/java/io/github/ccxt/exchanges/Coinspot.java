@@ -885,10 +885,10 @@ public class Coinspot extends CoinspotApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
-            List<Object> ids = new ArrayList<Object>(prices.keySet());
+            List<String> ids = new ArrayList<String>(prices.keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
+                String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
