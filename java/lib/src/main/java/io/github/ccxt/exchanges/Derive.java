@@ -1672,7 +1672,7 @@ public class Derive extends DeriveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<FundingRateHistory> response = (this.fetchFundingRateHistory((Object)(symbol), (Object)(null), (Object)(1), (Object)(parameters))).join();
+            List<FundingRateHistory> response = (this.fetchFundingRateHistory(symbol, null, 1, parameters)).join();
             //
             // [
             //     {

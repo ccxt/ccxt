@@ -2093,8 +2093,8 @@ public class Foxbit extends FoxbitApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Transaction> withdrawals = (this.fetchWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-            List<Transaction> deposits = (this.fetchDeposits((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            List<Transaction> withdrawals = (this.fetchWithdrawals(code, since, limit, parameters)).join();
+            List<Transaction> deposits = (this.fetchDeposits(code, since, limit, parameters)).join();
             List<Object> allTransactions = (List<Object>) this.arrayConcat(withdrawals, deposits);
             List<Object> result = this.sortBy(allTransactions, "timestamp");
             return result;

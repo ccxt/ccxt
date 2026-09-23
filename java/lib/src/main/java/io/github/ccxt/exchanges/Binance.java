@@ -18182,7 +18182,7 @@ final Map<String, Object> finalMarket = market;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", symbol );
             }};
-            IsolatedBorrowRates borrowRates = (this.fetchIsolatedBorrowRates((Object)(this.extend(request, parameters)))).join();
+            IsolatedBorrowRates borrowRates = (this.fetchIsolatedBorrowRates(this.extend(request, parameters))).join();
             return this.safeDict(borrowRates, symbol);
         }).thenApply(IsolatedBorrowRate::new);
 

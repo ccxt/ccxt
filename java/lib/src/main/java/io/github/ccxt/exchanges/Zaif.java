@@ -990,11 +990,15 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();

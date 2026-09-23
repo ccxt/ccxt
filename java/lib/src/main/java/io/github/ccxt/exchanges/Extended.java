@@ -2485,9 +2485,9 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactions((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(new HashMap<String, Object>() {{
+            return (this.fetchTransactions(code, since, limit, this.extend(new HashMap<String, Object>() {{
                 put( "type", "DEPOSIT" );
-            }}, parameters)))).join();
+            }}, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2525,9 +2525,9 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactions((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(new HashMap<String, Object>() {{
+            return (this.fetchTransactions(code, since, limit, this.extend(new HashMap<String, Object>() {{
                 put( "type", "WITHDRAWAL" );
-            }}, parameters)))).join();
+            }}, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

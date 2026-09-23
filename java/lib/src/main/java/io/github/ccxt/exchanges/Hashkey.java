@@ -5673,7 +5673,7 @@ final Object finalI = i;
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                response = (this.fetchTradingFees((Object)(parameters))).join();
+                response = (this.fetchTradingFees(parameters)).join();
                 return this.safeDict(response, symbol);
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {

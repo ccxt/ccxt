@@ -6145,7 +6145,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets()).join();
             }
-            List<Order> orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            List<Order> orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
             return this.filterBy(orders, "status", "closed");
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -6196,7 +6196,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets()).join();
             }
-            List<Order> orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            List<Order> orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
             return this.filterBy(orders, "status", "canceled");
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

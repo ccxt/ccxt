@@ -1748,7 +1748,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             ((Map<String, Object>)parameters).put("type", "WITHDRAW");
-            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1798,7 +1798,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             ((Map<String, Object>)parameters).put("type", "DEPOSIT");
-            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

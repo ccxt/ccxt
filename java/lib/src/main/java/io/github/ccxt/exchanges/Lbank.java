@@ -2065,9 +2065,9 @@ public class Lbank extends LbankApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            TradingFees result = (this.fetchTradingFees((Object)(this.extend(parameters, new HashMap<String, Object>() {{
+            TradingFees result = (this.fetchTradingFees(this.extend(parameters, new HashMap<String, Object>() {{
                 put( "category", ((Map<String, Object>)market).get("id") );
-            }})))).join();
+            }}))).join();
             return this.safeDict(result, symbol);
         }).thenApply(TradingFeeInterface::new);
 

@@ -7084,10 +7084,10 @@ public class Kucoin extends KucoinApi
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
-                return (this.cancelAllSpotOrders((Object)(symbol), (Object)(parameters))).join();
+                return (this.cancelAllSpotOrders(symbol, parameters)).join();
             } else
             {
-                return (this.cancelAllContractOrders((Object)(symbol), (Object)(parameters))).join();
+                return (this.cancelAllContractOrders(symbol, parameters)).join();
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

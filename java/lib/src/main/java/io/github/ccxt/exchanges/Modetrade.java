@@ -3775,7 +3775,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", "DEPOSIT" );
             }};
-            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3814,7 +3814,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", "WITHDRAW" );
             }};
-            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

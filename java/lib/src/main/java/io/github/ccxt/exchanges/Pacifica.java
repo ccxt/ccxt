@@ -3538,8 +3538,8 @@ public class Pacifica extends PacificaApi
             // }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            // return last state
-            List<Object> sorted = this.sortBy(data, "created_at", true);
+            // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
+            List<Object> sorted = this.sortBy(data, "history_id", true);
             Integer lastIdx = ((List<?>)sorted).size();
             Object lastInfo = new HashMap<String, Object>() {{}};
             if (Helpers.isGreaterThan(lastIdx, 0))
@@ -3719,7 +3719,15 @@ public class Pacifica extends PacificaApi
         String totalAmount = this.safeString2(order, "initial_amount", "a");
         String filledAmount = this.safeString2(order, "filled_amount", "f");
         String remaining = Precise.stringSub(totalAmount, filledAmount);
+        String average = this.safeString2(order, "average_filled_price", "p");
+        String eventType = this.safeString(order, "event_type");
+        boolean isFillEvent = this.inArray(eventType, new ArrayList<Object>(Arrays.asList("fulfill_market", "fulfill_limit")));
+        if ((java.util.Objects.equals(average, null)) && isFillEvent)
+        {
+            average = this.safeString(order, "price"); // on a matching event price is the fill price
+        }
         final String finalSide = side;
+        final String finalAverage = average;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Pacifica.this.safeString2(order, "order_id", "i") );
@@ -3738,7 +3746,7 @@ public class Pacifica extends PacificaApi
             put( "triggerPrice", Pacifica.this.safeNumber2(order, "stop_price", "sp") );
             put( "amount", totalAmount );
             put( "cost", null );
-            put( "average", Pacifica.this.safeString2(order, "average_filled_price", "p") );
+            put( "average", finalAverage );
             put( "filled", filledAmount );
             put( "remaining", remaining );
             put( "status", Pacifica.this.parseOrderStatus(status) );

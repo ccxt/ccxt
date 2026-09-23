@@ -1068,7 +1068,7 @@ public class Apex extends ApexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Long limit = limit3;
+            Object limit = limit3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1081,7 +1081,7 @@ public class Apex extends ApexApi
             }};
             if (java.util.Objects.equals(limit, null))
             {
-                limit = 200L; // default is 200 when requested with `since`
+                limit = 200; // default is 200 when requested with `since`
             }
             limit = Helpers.mathMin(limit, 200); // fix maxcap
             ((Map<String, Object>)request).put("limit", limit); // max 200, default 200

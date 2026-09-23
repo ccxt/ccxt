@@ -2392,7 +2392,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             {
                 throw new NotSupported((this.id + " fetchTradingFee() is not supported yet")) ;
             }
-            TradingFees fees = (this.fetchTradingFees((Object)(parameters))).join();
+            TradingFees fees = (this.fetchTradingFees(parameters)).join();
             return this.safeDict(fees, symbol);
         }).thenApply(TradingFeeInterface::new);
 
