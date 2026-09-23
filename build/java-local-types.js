@@ -5600,6 +5600,60 @@ function literalArrayLiteralIsPlain (node) {
 
 const LITERAL_NULLISH = { nullish: true, type: undefined, nonNull: false };
 
+// ===== LIT-W: values whose PRINTED Java is already one of this family's types =====
+//
+// The value typer below is deliberately reduced to literal-shaped nodes; every residual
+// site of this family declines because one value of the local is provably the family type
+// in the PRINT but is not a literal in the AST. Each class names the hand-written Java
+// proof of the printed type; none of them needs a checkcast.
+//   * `<x>.length`        -> Helpers.getArrayLength(x) (Helpers.java:353, primitive int) /
+//                            ((String)x).length() / ((List<?>)x).size()  => Integer
+//   * `Array.isArray(x)`  -> the printer folds a provably-scalar identifier operand to the
+//                            literal `false` (ast-transpiler/dist/transpiler.js:18066), and
+//                            otherwise prints `(x instanceof java.util.List)` or
+//                            Helpers.isArray(x) (Helpers.java:183, primitive boolean) => Boolean
+//   * `this.<m>(...)`     -> the hand-written BaseExchange methods below are declared String
+//                            on every path and no generated venue class redeclares them => String
+const LITERAL_PRINTED_STRING_ACCESSORS = new Set ([ 'urlencode', 'json', 'numberToString', 'safeString', 'safeString2', 'safeStringN' ]);
+
+function literalLengthReadValue (node) {
+    // every Java print of a TS `.length` read is a primitive int, so an Integer local
+    // accepts it by boxing alone
+    return (ts.isPropertyAccessExpression (node) && node.name !== undefined
+        && node.name.escapedText === 'length')
+        ? { type: LITERAL_INTEGER_TYPE, nonNull: true }
+        : undefined;
+}
+
+function literalArrayIsArrayValue (node) {
+    if (!ts.isCallExpression (node) || !ts.isPropertyAccessExpression (node.expression)) {
+        return undefined;
+    }
+    const callee = node.expression;
+    if (callee.expression === undefined || callee.expression.kind !== ts.SyntaxKind.Identifier
+        || callee.expression.escapedText !== 'Array' || callee.name.escapedText !== 'isArray'
+        || node.arguments.length !== 1) {
+        return undefined;
+    }
+    return { type: LITERAL_BOOLEAN_TYPE, nonNull: true };
+}
+
+function literalPrintedStringCallValue (printer, node) {
+    // `this.urlencode/json/numberToString(...)` (BaseExchange.java:795/:956/:1080) and the
+    // safeString accessors (:1101) are declared String. A venue override of the same name
+    // prints its own shape, so only a call resolving into ts/src/base/** classifies.
+    if (!ts.isCallExpression (node) || !ts.isPropertyAccessExpression (node.expression)) {
+        return undefined;
+    }
+    if (node.expression.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    if (!LITERAL_PRINTED_STRING_ACCESSORS.has (String (node.expression.name.escapedText))) {
+        return undefined;
+    }
+    return isBaseDeclaration (printer, node) ? { type: LITERAL_STRING_TYPE, nonNull: true } : undefined;
+}
+
 // the printed Java static type of `node`, when it is one of this slice's families —
 // returns { type, nonNull } or undefined (never narrowable / out of slice) or NULLISH.
 // Deliberately REDUCED versus the abandoned java-loc-literals module: no ternary unify,
@@ -5641,6 +5695,24 @@ function literalTypeOfValue (printer, node) {
             return literalObjectLiteralIsPlain (node) ? { type: LITERAL_MAP_TYPE, nonNull: true } : undefined;
         case ts.SyntaxKind.ArrayLiteralExpression:
             return literalArrayLiteralIsPlain (node) ? { type: LITERAL_LIST_TYPE, nonNull: true } : undefined;
+        case ts.SyntaxKind.PropertyAccessExpression: {
+            // LIT-W: `<x>.length` is a primitive int in every Java print of it
+            return literalLengthReadValue (node);
+        }
+        case ts.SyntaxKind.CallExpression: {
+            // LIT-W: printed-literal / printed-primitive / printed-String calls
+            const arrayIsArray = literalArrayIsArrayValue (node);
+            if (arrayIsArray !== undefined) {
+                return arrayIsArray;
+            }
+            // `x.toString()` prints `String.valueOf(x)` (LITERAL_OBJECT_RECEIVER_METHODS) — a
+            // non-null String on every path
+            if (ts.isPropertyAccessExpression (node.expression) && node.expression.name !== undefined
+                && node.expression.name.escapedText === 'toString' && node.arguments.length === 0) {
+                return { type: LITERAL_STRING_TYPE, nonNull: true };
+            }
+            return literalPrintedStringCallValue (printer, node);
+        }
         default:
             return undefined;
     }
@@ -5864,6 +5936,20 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                             return false;
                         }
                     } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
+                        // LIT-W: `x += <rhs>` on a String local. The printer lowers it to the
+                        // native concat `x = (x + rhs)` or `x = Helpers.add(x, rhs)`, and with x
+                        // statically a String Java picks add(String,String) (Helpers.java:284,
+                        // `a + b` -> String) — identical to the Object overload for every
+                        // provably-non-null String right operand — or the String concat, both
+                        // statically String and assignable to the local with no checkcast. The
+                        // right operand must be provably a non-null String for the same reason as
+                        // the `x + y` arm below: a Double-typed right operand would take
+                        // add(Object,Object)'s numeric branch in the baseline and diverge.
+                        if (op === ts.SyntaxKind.PlusEqualsToken && isString
+                            && literalIsProvablyStringValue (printer, parent.right)) {
+                            literalRecordPlusLeftAccepted (declaration, n, parent.right);
+                            break;
+                        }
                         return false; // x = Helpers.add(x, y) — Object result / different overload
                     } else if (op === ts.SyntaxKind.PlusToken) {
                         if (isString) {
