@@ -4771,9 +4771,9 @@ public class Binance extends BinanceApi
             String defaultType = this.safeString2(this.options, "fetchTime", "defaultType", "spot");
             String type = this.safeString(parameters, "type", defaultType);
             Object query = this.omit(parameters, "type");
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTime", null, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
@@ -5936,9 +5936,9 @@ public class Binance extends BinanceApi
             }
             String defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
             String type = this.safeString(parameters, "type", defaultType);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchBalance", null, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchBalance", "papi", "portfolioMargin", false);
@@ -6745,13 +6745,13 @@ public class Binance extends BinanceApi
             symbols = this.marketSymbols(symbols, null, true, true, true);
             this.checkNoStockSymbols(symbols, "fetchBidsAsks");
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if ((!java.util.Objects.equals(symbols, null)) && (Boolean.TRUE.equals(this.isLinear(type, subType)) || Boolean.TRUE.equals(this.isInverse(type, subType))))
@@ -6834,13 +6834,13 @@ public class Binance extends BinanceApi
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLastPrices", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
@@ -6953,13 +6953,13 @@ public class Binance extends BinanceApi
             symbols = this.marketSymbols(symbols, null, true, true, true);
             this.checkNoStockSymbols(symbols, "fetchTickers");
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
@@ -7057,13 +7057,13 @@ public class Binance extends BinanceApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrice", market, parameters, "swap");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarkPrice", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -7136,13 +7136,13 @@ public class Binance extends BinanceApi
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarkPrices", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(type, "option"))
@@ -10356,13 +10356,13 @@ public class Binance extends BinanceApi
             {
                 throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters, "spot");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrder", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", parameters);
@@ -10546,13 +10546,13 @@ public class Binance extends BinanceApi
             {
                 throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters, "spot");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrders", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrders", parameters);
@@ -10949,7 +10949,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
-            Object type = null;
+            String type = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", parameters);
@@ -10982,11 +10982,11 @@ public class Binance extends BinanceApi
                 }
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, "spot");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             List<Object> response = null;
@@ -11674,13 +11674,13 @@ public class Binance extends BinanceApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters, "spot");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
@@ -11889,13 +11889,13 @@ public class Binance extends BinanceApi
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, "spot");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isOptionType = java.util.Objects.equals(type, "option");
             boolean isLinearType = Helpers.isTrue(this.isLinear(type, subType));
@@ -12235,7 +12235,7 @@ public class Binance extends BinanceApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            Object type = null;
+            String type = null;
             Object marginMode = null;
             Object stock = null;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "stock", false);
@@ -12248,7 +12248,7 @@ public class Binance extends BinanceApi
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if ((!java.util.Objects.equals(stock, true)) && (!java.util.Objects.equals(type, "option")) && (java.util.Objects.equals(symbol, null)))
             {
@@ -14146,9 +14146,9 @@ public class Binance extends BinanceApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String type = (String) ((Map<String, Object>)market).get("type");
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchTradingFee", "papi", "portfolioMargin", false);
@@ -14255,13 +14255,13 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFees", null, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isSpotOrMargin = (java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin"));
             boolean isLinear = Helpers.isTrue(this.isLinear(type, subType));
@@ -14657,9 +14657,9 @@ public class Binance extends BinanceApi
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             parameters = (Map<String, Object>) this.omit(parameters, "type");
             if (!java.util.Objects.equals(since, null))
@@ -14767,9 +14767,9 @@ public class Binance extends BinanceApi
             symbols = this.marketSymbols(symbols);
             String defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "future");
             String type = this.safeString(parameters, "type", defaultType);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", null, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object query = this.omit(parameters, "type");
             List<Object> response = null;
@@ -15500,9 +15500,9 @@ public class Binance extends BinanceApi
                 String defaultType = this.safeString(this.options, "defaultType", "future");
                 String type = this.safeString(parameters, "type", defaultType);
                 Object query = this.omit(parameters, "type");
-                Object subType = null;
+                String subType = null;
                 List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("loadLeverageBrackets", null, parameters, "linear");
-                subType = ((List<Object>) subTypeparametersVariable).get(0);
+                subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
                 Object isPortfolioMargin = null;
                 List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "loadLeverageBrackets", "papi", "portfolioMargin", false);
@@ -15586,13 +15586,13 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLeverageTiers", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLeverageTiers", null, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchLeverageTiers", "papi", "portfolioMargin", false);
@@ -16069,9 +16069,9 @@ final Map<String, Object> finalMarket = market;
             String defaultType = this.safeString(this.options, "defaultType", "future");
             String type = this.safeString(parameters, "type", defaultType);
             parameters = (Map<String, Object>) this.omit(parameters, "type");
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchAccountPositions", null, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchAccountPositions", "papi", "portfolioMargin", false);
@@ -16183,9 +16183,9 @@ final Map<String, Object> finalMarket = market;
             String defaultType = "future";
             defaultType = this.safeString(this.options, "defaultType", defaultType);
             String type = this.safeString(parameters, "type", defaultType);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsRisk", null, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchPositionsRisk", "papi", "portfolioMargin", false);
@@ -16394,9 +16394,9 @@ final Map<String, Object> finalMarket = market;
                     throw new NotSupported((this.id + " fetchFundingHistory() supports swap contracts only")) ;
                 }
             }
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchFundingHistory", "papi", "portfolioMargin", false);
@@ -16699,13 +16699,13 @@ final Map<String, Object> finalMarket = market;
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("setPositionMode", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("setPositionMode", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "setPositionMode", "papi", "portfolioMargin", false);
@@ -16804,13 +16804,13 @@ final Map<String, Object> finalMarket = market;
                 (this.loadMarkets()).join();
             }
             (this.loadLeverageBrackets(false, parameters)).join();
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLeverages", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLeverages", null, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchLeverages", "papi", "portfolioMargin", false);
@@ -16939,9 +16939,9 @@ final Map<String, Object> finalMarket = market;
                 (this.loadMarkets()).join();
             }
             Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "option"))
             {
@@ -17022,9 +17022,9 @@ final Map<String, Object> finalMarket = market;
                 (this.loadMarkets()).join();
             }
             Object market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "option"))
             {
@@ -17193,9 +17193,9 @@ final Map<String, Object> finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedgerEntry", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "option"))
             {
@@ -17281,8 +17281,8 @@ final Map<String, Object> finalMarket = market;
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, null, false)).join();
             }
-            Object type = null;
-            Object subType = null;
+            String type = null;
+            String subType = null;
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -17290,10 +17290,10 @@ final Map<String, Object> finalMarket = market;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLedger", null, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
@@ -19317,13 +19317,13 @@ final Map<String, Object> finalMarket = market;
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyLiquidations", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMyLiquidations", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchMyLiquidations", "papi", "portfolioMargin", false);
@@ -19823,9 +19823,9 @@ final Map<String, Object> finalMarket = market;
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionMode", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             // we still have two working endpoints but positionMode is common for linear and inverse markets
@@ -19896,9 +19896,9 @@ final Map<String, Object> finalMarket = market;
                 symbols = this.marketSymbols(symbols);
                 market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(subType, "linear"))
@@ -19958,9 +19958,9 @@ final Map<String, Object> finalMarket = market;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(subType, "linear"))
@@ -20783,9 +20783,9 @@ final Map<String, Object> finalMarket = market;
                 market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             String type = "swap";
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingIntervals", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
@@ -20878,9 +20878,9 @@ final Map<String, Object> finalMarket = market;
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLongShortRatioHistory", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(subType, "linear"))
@@ -20979,9 +20979,9 @@ final Map<String, Object> finalMarket = market;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchADLRank", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "linear"))
@@ -21039,9 +21039,9 @@ final Map<String, Object> finalMarket = market;
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchPositionsADLRank", "papi", "portfolioMargin", false);

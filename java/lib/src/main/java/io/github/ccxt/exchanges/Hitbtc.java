@@ -1678,11 +1678,11 @@ public class Hitbtc extends HitbtcApi
             {
                 ((Map<String, Object>)request).put("from", since);
             }
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             Object response = new ArrayList<Object>(Arrays.asList());
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -2345,7 +2345,7 @@ public class Hitbtc extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -2596,10 +2596,10 @@ public class Hitbtc extends HitbtcApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchClosedOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -2683,10 +2683,10 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "client_order_id", id );
             }};
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -2790,10 +2790,10 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrderTrades", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -2915,10 +2915,10 @@ public class Hitbtc extends HitbtcApi
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -3020,10 +3020,10 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "client_order_id", id );
             }};
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -3103,10 +3103,10 @@ public class Hitbtc extends HitbtcApi
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -3187,10 +3187,10 @@ public class Hitbtc extends HitbtcApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -3272,10 +3272,10 @@ public class Hitbtc extends HitbtcApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("editOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("editOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -3341,9 +3341,9 @@ public class Hitbtc extends HitbtcApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = null;
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
@@ -3642,9 +3642,9 @@ public class Hitbtc extends HitbtcApi
                 symbols = this.marketSymbols(symbols);
                 market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarginMode", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "margin"))
@@ -3950,9 +3950,9 @@ public class Hitbtc extends HitbtcApi
                 Object queryMarketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("symbols", String.join(",", (List<String>)queryMarketIds));
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingRates", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "swap"))
             {
@@ -4147,10 +4147,10 @@ public class Hitbtc extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -4260,10 +4260,10 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchPosition", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -4747,10 +4747,10 @@ public class Hitbtc extends HitbtcApi
             {
                 ((Map<String, Object>)request).put("leverage", leverage);
             }
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("modifyMarginHelper", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("modifyMarginHelper", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);

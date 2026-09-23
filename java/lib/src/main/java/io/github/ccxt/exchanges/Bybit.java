@@ -2611,13 +2611,13 @@ public class Bybit extends BybitApi
 
     public Object getBybitType(Object method, Object market, Map<String, Object> parameters)
     {
-        Object type = null;
+        String type = null;
         List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(method, market, parameters);
-        type = ((List<Object>) typeparametersVariable).get(0);
+        type = (String) ((List<Object>) typeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-        Object subType = null;
+        String subType = null;
         List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams(method, market, parameters);
-        subType = ((List<Object>) subTypeparametersVariable).get(0);
+        subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
         if (java.util.Objects.equals(type, "option") || java.util.Objects.equals(type, "spot"))
         {
@@ -4257,18 +4257,18 @@ public class Bybit extends BybitApi
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingRates", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "swap"))
             {
                 throw new NotSupported((((this.id + " fetchFundingRates() does not support ") + type) + " markets")) ;
             } else
             {
-                Object subType = null;
+                String subType = null;
                 List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", market, parameters, "linear");
-                subType = ((List<Object>) subTypeparametersVariable).get(0);
+                subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("category", subType);
             }
@@ -5149,9 +5149,9 @@ public class Bybit extends BybitApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchBalance", null, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
             {
@@ -6866,9 +6866,9 @@ public class Bybit extends BybitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "timeWindow", Bybit.this.parseToInt(Helpers.divide(finalTimeout, 1000)) );
             }};
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters, "swap");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Map<String, Object> productMap = new HashMap<String, Object>() {{
                 put( "spot", "SPOT" );
@@ -8793,9 +8793,9 @@ public class Bybit extends BybitApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLedger", null, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (java.util.Objects.equals((enableUnified == null || 1 >= ((List<?>)enableUnified).size() ? null : ((List<?>)enableUnified).get(1)), true))
@@ -12212,11 +12212,11 @@ public class Bybit extends BybitApi
             {
                 return (this.fetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, null, null, parameters, "nextPageCursor", "cursor", null, 100)).join();
             }
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("getLeverageTiersPaginated", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            final Object finalSubType = subType;
+            final String finalSubType = subType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", finalSubType );
             }};
@@ -12792,7 +12792,7 @@ final Map<String, Object> finalMarket = market;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
-            Object subType = null;
+            String subType = null;
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -12804,10 +12804,10 @@ final Map<String, Object> finalMarket = market;
             }
             Long until = this.safeInteger(parameters, "until");
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             parameters = (Map<String, Object>) this.omit(parameters, "until");
-            final Object finalSubType = subType;
+            final String finalSubType = subType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", finalSubType );
             }};

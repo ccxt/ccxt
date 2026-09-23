@@ -1401,7 +1401,7 @@ public class Mexc extends MexcApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchStatus", null, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             Object status = null;
@@ -1467,7 +1467,7 @@ public class Mexc extends MexcApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -2579,7 +2579,7 @@ public class Mexc extends MexcApi
                 market = (Map<String, Object>) this.market(firstSymbol);
             }
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Object tickers = null;
             if (Boolean.TRUE.equals(isSingularMarket))
@@ -2666,7 +2666,7 @@ public class Mexc extends MexcApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTicker", market, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Object ticker = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2892,7 +2892,7 @@ public class Mexc extends MexcApi
                 market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Object tickers = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -3721,7 +3721,7 @@ public class Mexc extends MexcApi
             Long until = this.safeInteger(parameters, "until");
             parameters = (Map<String, Object>) this.omit(parameters, "until");
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3950,7 +3950,7 @@ public class Mexc extends MexcApi
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByIds", market, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -4033,13 +4033,13 @@ public class Mexc extends MexcApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            Object marketType = null;
+            String marketType = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -4239,7 +4239,7 @@ public class Mexc extends MexcApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             List<Object> marketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByState", market, parameters);
-            var marketType = ((List<Object>) marketTypeVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypeVariable).get(0);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 throw new NotSupported(((this.id + " fetchOrdersByState() is not supported for ") + marketType)) ;
@@ -4287,9 +4287,9 @@ public class Mexc extends MexcApi
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
             var marginMode = ((List<Object>) marginModequeryVariable).get(0);
@@ -4405,7 +4405,7 @@ public class Mexc extends MexcApi
             }
             Object market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
             List<Object> marketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
-            var marketType = ((List<Object>) marketTypeVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypeVariable).get(0);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 throw new BadRequest(((this.id + " cancelOrders() is not supported for ") + marketType)) ;
@@ -4475,9 +4475,9 @@ public class Mexc extends MexcApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -4922,7 +4922,7 @@ public class Mexc extends MexcApi
 
             // TODO: is the below endpoints suitable for fetchAccounts?
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchAccounts", null, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -5187,10 +5187,10 @@ public class Mexc extends MexcApi
             {
                 (this.loadMarkets()).join();
             }
-            Object marketType = null;
+            String marketType = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             String marginMode = this.safeString(parameters, "marginMode");
             Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
@@ -5315,7 +5315,7 @@ public class Mexc extends MexcApi
             //         ]
             //     }
             //
-            return this.customParseBalance((Map<String, Object>) (response), (String) (marketType));
+            return this.customParseBalance((Map<String, Object>) (response), marketType);
         }).thenApply(Balances::new);
 
     }
@@ -5368,9 +5368,9 @@ public class Mexc extends MexcApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -5485,7 +5485,7 @@ public class Mexc extends MexcApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Object trades = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(marketType, "spot"))
@@ -7086,7 +7086,7 @@ final String finalRiskIncrVol = riskIncrVol;
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTransfer", null, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -7161,9 +7161,9 @@ final String finalRiskIncrVol = riskIncrVol;
             Long since = since3;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTransfers", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {

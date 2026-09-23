@@ -1339,13 +1339,13 @@ public class Bitrue extends BitrueApi
             {
                 (this.loadMarkets()).join();
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchBalance", null, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             Object result = null;
@@ -1960,7 +1960,7 @@ public class Bitrue extends BitrueApi
             Object response = new ArrayList<Object>(Arrays.asList());
             List<Object> data = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object type = null;
+            String type = null;
             if (!java.util.Objects.equals(symbols, null))
             {
                 String first = this.safeString(symbols, 0);
@@ -1979,7 +1979,7 @@ public class Bitrue extends BitrueApi
             } else
             {
                 List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters);
-                type = ((List<Object>) typeparametersVariable).get(0);
+                type = (String) ((List<Object>) typeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
                 if (!java.util.Objects.equals(type, "spot"))
                 {

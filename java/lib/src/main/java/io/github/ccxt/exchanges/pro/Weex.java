@@ -1653,7 +1653,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 (this.loadMarkets()).join();
             }
-            Object marketType = null;
+            String marketType = null;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1661,7 +1661,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
             String messageHash = (String) (((Boolean.TRUE.equals(isContract))) ? "myContractTrades" : "myTrades");
@@ -1720,9 +1720,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 throw new NotSupported((this.id + " unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.")) ;
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("unWatchMyTrades", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
             String subHash = ((Boolean.TRUE.equals(isContract))) ? "myContractTrades" : "myTrades";
@@ -1950,9 +1950,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
             String messageHash = (String) (((Boolean.TRUE.equals(isContract))) ? "contractOrders" : "orders");
@@ -2010,9 +2010,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 throw new NotSupported((this.id + " unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.")) ;
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("unWatchOrders", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
             String subHash = ((Boolean.TRUE.equals(isContract))) ? "contractOrders" : "orders";

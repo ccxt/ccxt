@@ -259,11 +259,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     url = Helpers.GetValue(Helpers.GetValue(url, accessibility), "spot");
                 } else if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
                 {
-                    Object subType = null;
+                    String subType = null;
                     List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams(method, market, parameters, "linear");
-                    subType = ((List<Object>) subTypeparametersVariable).get(0);
+                    subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-                    url = Helpers.GetValue(Helpers.GetValue(url, accessibility), ((String)subType));
+                    url = Helpers.GetValue(Helpers.GetValue(url, accessibility), subType);
                 } else
                 {
                     // option
@@ -2953,13 +2953,13 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             Object method = "watchBalance";
             String messageHash = "balances";
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", null, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object unified = (this.isUnifiedEnabled()).join();
             Boolean isUnifiedMargin = (Boolean) this.safeBool(unified, 0, false);

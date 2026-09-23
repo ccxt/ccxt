@@ -1648,9 +1648,9 @@ public class Hashkey extends HashkeyApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = "spot";
+            String marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
@@ -2221,9 +2221,9 @@ public class Hashkey extends HashkeyApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String methodName = "fetchBalance";
-            Object marketType = "spot";
+            String marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, null, parameters, marketType);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -3793,9 +3793,9 @@ public class Hashkey extends HashkeyApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = "spot";
+            String marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -3947,9 +3947,9 @@ public class Hashkey extends HashkeyApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = "spot";
+            String marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -4028,9 +4028,9 @@ public class Hashkey extends HashkeyApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = "spot";
+            String marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -4119,9 +4119,9 @@ public class Hashkey extends HashkeyApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = "spot";
+            String marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             parameters = this.extend(new HashMap<String, Object>() {{
                 put( "methodName", methodName );
@@ -4403,9 +4403,9 @@ public class Hashkey extends HashkeyApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = "spot";
+            String marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
