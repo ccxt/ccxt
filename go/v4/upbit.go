@@ -1053,7 +1053,7 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var marketSymbols any = this.Symbols
 		for i := 0; i < GetArrayLength(marketSymbols); i++ {
 			var market map[string]any = MapTyped(this.Market(GetValue(marketSymbols, i)))
-			var quoteId any = market["quoteId"]
+			var quoteId *string = SafeStringPtr(market["quoteId"])
 			if !this.InArray(quoteId, quoteIds) {
 				quoteIds = append(quoteIds, quoteId)
 			}
@@ -1130,7 +1130,7 @@ func (this *Upbit) IdsQueryStrings(ids any, maxQueryLength any) any {
 	var idsString any = ""
 	var queries []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
-		var id any = GetValue(ids, i)
+		var id *string = SafeStringPtr(GetValue(ids, i))
 		if !IsEqual(idsString, "") {
 			idsString = Add(idsString, ",")
 		}

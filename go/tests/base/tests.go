@@ -387,12 +387,12 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 	// check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
 	var methodNames []any = []any{methodName, Add(Add(methodName, "."), this.Ext)}
 	for i := 0; i < len(methodNames); i++ {
-		var mName any = func() any {
+		var mName *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(methodNames) {
 				return DerefScalar(methodNames[i])
 			}
 			return nil
-		}()
+		}())
 		if InOp(this.SkippedMethods, mName) {
 			// if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
 			if IsString(GetValue(this.SkippedMethods, mName)) {
@@ -799,12 +799,12 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	// if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
 	if IsEqual(symbol, nil) {
 		for i := 0; i < len(codes); i++ {
-			var currentCode any = func() any {
+			var currentCode *string = SafeStringPtr(func() any {
 				if i >= 0 && i < len(codes) {
 					return DerefScalar(codes[i])
 				}
 				return nil
-			}()
+			}())
 			var marketsArrayForCurrentCode []any = exchange.FilterBy(currentTypeMarkets, "base", currentCode)
 			var indexedMkts map[string]any = exchange.IndexBy(marketsArrayForCurrentCode, "symbol")
 			var symbolsArrayForCurrentCode []string = ObjectKeys(indexedMkts)
@@ -881,7 +881,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 	// the statically chosen symbol, which keeps the volumes comparable (quote
 	// volumes denominated in different quote currencies are not) and keeps a
 	// per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
-	var defaultSymbol any = GetValue(defaultSymbols, 0)
+	var defaultSymbol *string = SafeStringPtr(GetValue(defaultSymbols, 0))
 	var defaultMarket any = exchange.SafeDict(exchange.GetMarkets(), defaultSymbol)
 	if IsEqual(defaultMarket, nil) {
 
@@ -1976,7 +1976,7 @@ func (this *testMainClass) UrlencodedToDict(url any) any {
 		if keysLength != 2 {
 			continue
 		}
-		var key any = GetValue(keyValue, 0)
+		var key *string = SafeStringPtr(GetValue(keyValue, 0))
 		var value any = GetValue(keyValue, 1)
 		if (value != nil) && ((StartsWith(value, "[")) || (StartsWith(value, "{"))) {
 			// some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI

@@ -106,7 +106,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 								ret_ = func() any {
 									// catch block:
 									var ohlcv any = nil
-									var tickerSymbol any = GetValue(ticker, "symbol")
+									var tickerSymbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 									if (tickerSymbol != nil) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
 
 										ohlcv = (<-exchange.FetchOHLCVAsync(tickerSymbol, "1d", nil, 5))

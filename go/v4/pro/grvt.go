@@ -227,9 +227,9 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		var marketId any = market["id"]
+		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(interval)))
 		messageHashes = append(messageHashes, ccxt.Add("ticker::", market["symbol"]))
 	}
@@ -333,10 +333,10 @@ func (this *Grvt) HandleTicker(client any, message map[string]any) {
 	var parts []string = ccxt.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var ticker any = this.ParseWsTicker(data, market)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-	client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add("ticker::", symbol))
+	client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*symbol)
 }
 func (this *Grvt) ParseWsTicker(message any, optionalArgs ...any) any {
 	// same dict as REST api
@@ -411,9 +411,9 @@ func (this *Grvt) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		var marketId any = market["id"]
+		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		var limitRaw *int64 = this.SafeInteger(params, "limit", 50) // 50, 200, 500, 1000
 		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(limitRaw)))
 		messageHashes = append(messageHashes, ccxt.Add("trade::", market["symbol"]))
@@ -462,7 +462,7 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 	var parts []string = ccxt.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
@@ -470,7 +470,7 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 	var parsed any = this.ParseWsTrade(data)
 	var stored any = ccxt.GetValue(this.Trades, symbol)
 	stored.(ccxt.Appender).Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trade::", symbol))
+	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+*symbol)
 }
 func (this *Grvt) ParseWsTrade(trade any, optionalArgs ...any) any {
 	// same as REST api
@@ -555,7 +555,7 @@ func (this *Grvt) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var symbolString *string = this.SafeString(data, 0)
 		var market map[string]any = ccxt.MapTyped(this.Market(symbolString))
-		var marketId any = market["id"]
+		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1")
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(ccxt.Add(marketId, "@"), timeframeId), "-TRADE"))
@@ -603,11 +603,11 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 	var parts []string = ccxt.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var secondPart *string = this.SafeString(parts, 1, "")
 	var timeframeId string = ccxt.Replace(secondPart, "-TRADE", "")
 	var timeframe any = this.FindTimeframe(timeframeId)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), timeframe)
+	var messageHash any = ccxt.Add("ohlcv::"+*symbol+"::", timeframe)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit any = this.HandleOption("watchOHLCV", "limit", 1000)
@@ -716,9 +716,9 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		var marketId any = market["id"]
+		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), extraPart))
 		messageHashes = append(messageHashes, ccxt.Add("orderbook::", market["symbol"]))
 	}
@@ -764,7 +764,7 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	var parts []string = ccxt.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerProduct(data, "event_time", 0.000001)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -794,7 +794,7 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	// unconditional assignment is correct for every language.
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	ccxt.AddElementToObject(orderbook, "nonce", sequenceNumber)
-	var messageHash any = ccxt.Add("orderbook::", symbol)
+	var messageHash string = "orderbook::" + *symbol
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -985,7 +985,7 @@ func (this *Grvt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 			var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 			rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), market["id"]))
 			messageHashes = append(messageHashes, ccxt.Add("positions::", market["symbol"]))

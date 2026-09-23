@@ -131,7 +131,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name any, optio
 	var messageHashes []any = []any{}
 	var productIds []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		market = this.Market(symbol)
 		productIds = append(productIds, ccxt.GetValue(market, "id"))
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(messageHashStart, ":"), ccxt.GetValue(market, "symbol")))
@@ -537,8 +537,8 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan any, symbols 
 	var marketIds any = this.MarketIds(symbols)
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
-		messageHashes = append(messageHashes, ccxt.Add(name+":", marketId))
+		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
+		messageHashes = append(messageHashes, name+":"+*marketId)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var subscribe map[string]any = map[string]any{
@@ -628,7 +628,7 @@ func (this *Coinbaseexchange) HandleTrade(client any, message any) any {
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
 		var trade any = this.ParseWsTrade(message)
-		var symbol any = ccxt.GetValue(trade, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 		// the exchange sends type = 'match'
 		// but requires 'matches' upon subscribing
 		// therefore we resolve 'matches' here instead of 'match'
@@ -729,7 +729,7 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 		feeRate = this.SafeString(trade, "taker_fee_rate")
 		// side always represents the maker side of the trade
 		// so if we're taker, we invert it
-		var currentSide any = ccxt.GetValue(parsed, "side")
+		var currentSide *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "side"))
 		ccxt.AddElementToObject(parsed, "side", this.SafeString(map[string]any{
 			"buy":  "sell",
 			"sell": "buy",
@@ -743,7 +743,7 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}()
 	ccxt.AddElementToObject(parsed, "order", this.SafeString(trade, idKey))
 	market = this.Market(ccxt.GetValue(parsed, "symbol"))
-	var feeCurrency any = ccxt.GetValue(market, "quote")
+	var feeCurrency *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "quote"))
 	var feeCost *string = nil
 	if (!ccxt.IsEqual(ccxt.GetValue(parsed, "cost"), nil)) && (!ccxt.IsEqual(feeRate, nil)) {
 		var cost *string = this.SafeString(parsed, "cost")
@@ -1015,7 +1015,7 @@ func (this *Coinbaseexchange) HandleTicker(client any, message map[string]any) a
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
 		var ticker any = this.ParseTicker(message)
-		var symbol any = ccxt.GetValue(ticker, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
@@ -1120,7 +1120,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 	var typeVar *string = this.SafeString(message, "type")
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-"))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "level2"
 	var messageHash any = ccxt.Add(name+":", marketId)
 	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

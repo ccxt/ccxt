@@ -1178,7 +1178,7 @@ func (this *Bitvavo) ParseTradingFees(fees any, optionalArgs ...any) map[string]
 	var taker *float64 = this.SafeNumber(feesValue, "taker")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
-		var symbol any = GetValue(this.Symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       fees,
 			"symbol":     symbol,
@@ -2626,7 +2626,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(order, "created")
 	var marketId *string = this.SafeString(order, "market")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "orderType")

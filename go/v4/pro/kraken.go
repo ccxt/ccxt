@@ -1105,7 +1105,7 @@ func (this *Kraken) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 		var symbols any = this.Symbols // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
 		if !ccxt.IsEqual(symbols, nil) {
 			for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-				var symbol any = ccxt.GetValue(symbols, i)
+				var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 				var market map[string]any = this.Market(symbol)
 				var info map[string]any = ccxt.SafeMapTyped(market, "info")
 				var wsName *string = this.SafeString(info, "wsname")
@@ -1247,12 +1247,12 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		orderbook = ccxt.GetValue(this.Orderbooks, symbol)
 		var keys []any = []any{"asks", "bids"}
 		for i := 0; i < len(keys); i++ {
-			var key any = func() any {
+			var key *string = ccxt.SafeStringPtr(func() any {
 				if i >= 0 && i < len(keys) {
 					return ccxt.DerefScalar(keys[i])
 				}
 				return nil
-			}()
+			}())
 			var bookside any = ccxt.GetValue(orderbook, key)
 			var deltas any = this.SafeList(first, key, []any{})
 			var deltasLength int = ccxt.GetArrayLength(deltas)
@@ -1573,7 +1573,7 @@ func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalA
 			var trade any = this.SafeDict(allTrades, i, map[string]any{})
 			var parsed any = this.ParseWsTrade(trade)
 			stored.(ccxt.Appender).Append(parsed)
-			var symbol any = ccxt.GetValue(parsed, "symbol")
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 			ccxt.AddElementToObject(symbols, symbol, true)
 		}
 		var name string = "myTrades"

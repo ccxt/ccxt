@@ -1899,7 +1899,7 @@ func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) any {
 func (this *Hyperliquid) PriceToPrecision(symbol any, price any) any {
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var priceStr *string = this.NumberToString(price)
-	var integerPart any = GetValue(Split(priceStr, "."), 0)
+	var integerPart *string = SafeStringPtr(GetValue(Split(priceStr, "."), 0))
 	var significantDigits any = mathMax(5, GetLength(integerPart))
 	var result string = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
 	var maxDecimals int = func() int {
@@ -2939,7 +2939,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var market map[string]any = MapTyped(this.Market(marketId))
-		var symbol any = market["symbol"]
+		var symbol *string = SafeStringPtr(market["symbol"])
 		var typeVar *string = this.SafeStringUpper(rawOrder, "type")
 		var side *string = this.SafeStringUpper(rawOrder, "side")
 		var amount *string = this.SafeString(rawOrder, "amount")
@@ -3502,7 +3502,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 		var id *string = this.SafeString(rawOrder, "id")
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var market map[string]any = MapTyped(this.Market(marketId))
-		var symbol any = market["symbol"]
+		var symbol *string = SafeStringPtr(market["symbol"])
 		var typeVar *string = this.SafeStringUpper(rawOrder, "type")
 		var isMarket bool = (typeVar != nil && *typeVar == "MARKET")
 		var side *string = this.SafeStringUpper(rawOrder, "side")
@@ -4422,7 +4422,7 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) any {
 	} else {
 		market = MapTyped(this.SafeMarket(marketId, market))
 	}
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 	var status *string = this.SafeString2(order, "status", "ccxtStatus")
 	order = this.Omit(order, []any{"ccxtStatus"})
@@ -4642,7 +4642,7 @@ func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) any {
 	var coin *string = this.SafeString(trade, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	market = MapTyped(this.SafeMarket(marketId))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var id *string = this.SafeString(trade, "tid")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil {
@@ -4877,7 +4877,7 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 	var coin *string = this.SafeString(entry, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	market = MapTyped(this.SafeMarket(marketId))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var leverage map[string]any = SafeMapTyped(entry, "leverage")
 	var marginMode *string = this.SafeString(leverage, "type")
 	var isIsolated bool = (marginMode != nil && *marginMode == "isolated")

@@ -1455,7 +1455,7 @@ func (this *Bitstamp) ParseCurrencies(rawCurrencies any) any {
 			panic(ExchangeError(this.Id + " parseCurrencies() missing minimumOrder"))
 		}
 		var parts []string = Split(minimumOrder, " ")
-		var cost any = GetValue(parts, 0)
+		var cost *string = SafeStringPtr(GetValue(parts, 0))
 		if (base != nil) && !(func() bool {
 			if base == nil {
 				return false
@@ -2205,7 +2205,7 @@ func (this *Bitstamp) ParseTradingFees(fees any) map[string]any {
 	}
 	for i := 0; i < GetArrayLength(fees); i++ {
 		var fee any = this.ParseTradingFee(GetValue(fees, i))
-		var symbol any = GetValue(fee, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(fee, "symbol"))
 		if symbol != nil {
 			AddElementToObject(result, symbol, fee)
 		}
@@ -3931,12 +3931,12 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 		}
 		var feedback any = Add(this.Id+" ", body)
 		for i := 0; i < len(errors); i++ {
-			var value any = func() any {
+			var value *string = SafeStringPtr(func() any {
 				if i >= 0 && i < len(errors) {
 					return DerefScalar(errors[i])
 				}
 				return nil
-			}()
+			}())
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], value, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], value, feedback)
 		}

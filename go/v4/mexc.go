@@ -6466,7 +6466,7 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	market = MapTyped(this.SafeMarket(this.SafeString(position, "symbol"), market, nil, "swap"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var contracts *string = this.SafeString(position, "holdVol")
 	var entryPrice *float64 = this.SafeNumber(position, "openAvgPrice")
 	var initialMargin *string = this.SafeString(position, "im")

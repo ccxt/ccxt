@@ -1271,7 +1271,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	for i := 0; i < len(currencyIds); i++ {
 		var entry string = GetValue(currencyIds, i).(string)
 		var splitEntry []string = strings.Split(entry, " ")
-		var currencyId any = GetValue(splitEntry, 0)
+		var currencyId *string = SafeStringPtr(GetValue(splitEntry, 0))
 		var feeInfo any = GetValue(response, entry)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
@@ -1372,7 +1372,7 @@ func (this *Whitebit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var fee map[string]any = MapTyped(this.SafeDict(response, market["baseId"], map[string]any{}))
 		var makerFee *string = this.SafeString(fee, "maker_fee")
@@ -2038,7 +2038,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var onlyContractSymbols bool = true
 	if symbols != nil {
 		for i := 0; i < GetArrayLength(symbols); i++ {
-			var symbol any = GetValue(symbols, i)
+			var symbol *string = SafeStringPtr(GetValue(symbols, i))
 			var market map[string]any = this.Market(symbol)
 			if market["contract"] != true {
 				onlyContractSymbols = false
@@ -2140,7 +2140,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var marketId string = GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var ticker any = this.ParseTicker(GetValue(response, marketId), market)
-		var symbol any = GetValue(ticker, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 		AddElementToObject(result, symbol, ticker)
 	}
 
@@ -2413,7 +2413,7 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(trade, "amount", "quote_volume")
 	var id *string = this.SafeString2(trade, "id", "tradeID")
 	var side *string = this.SafeString2(trade, "type", "side")
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var role *int64 = this.SafeInteger(trade, "role")
 	var takerOrMaker any = nil
 	if role != nil {
@@ -3445,7 +3445,7 @@ func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(order, "market")
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var side *string = this.SafeString(order, "side")
 	var filled *string = this.SafeString(order, "dealStock")
 	var remaining *string = this.SafeString(order, "left")
@@ -5606,7 +5606,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 				var errorKeys []string = ObjectKeys(errorObject)
 				var errorsLength int = len(errorKeys)
 				if errorsLength > 0 {
-					var errorKey any = GetValue(errorKeys, 0)
+					var errorKey *string = SafeStringPtr(GetValue(errorKeys, 0))
 					var errorMessageArray []any = SafeListTyped(errorObject, errorKey)
 					var errorMessageLength int = len(errorMessageArray)
 					errorInfo = func() any {
@@ -5634,7 +5634,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 			var errKeysLength int = len(errKeys)
 			var errorInfo any = body
 			if errKeysLength > 0 {
-				var errorKey any = GetValue(errKeys, 0)
+				var errorKey *string = SafeStringPtr(GetValue(errKeys, 0))
 				var errorMessageArray []any = SafeListTyped(errMsg, errorKey)
 				var errorMessageLength int = len(errorMessageArray)
 				errorInfo = func() any {

@@ -347,7 +347,7 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = this.Market(symbol)
 		var messageHash any = ccxt.Add("orderbook:", market["symbol"])
 		markets = append(markets, market)
@@ -1778,7 +1778,7 @@ func (this *Nado) watchPublicMultipleBody(ch chan any, streamType any, markets a
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "subscriptions")
 	var client ccxt.ClientInterface = this.Client(url)
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
-		var messageHash any = ccxt.GetValue(messageHashes, i)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, i))
 		var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		if ccxt.IsEqual(clientSubscription, nil) {
 			var market any = ccxt.GetValue(markets, i)
@@ -1855,9 +1855,9 @@ func (this *Nado) unWatchPublicMultipleBody(ch chan any, streamType any, markets
 	var client ccxt.ClientInterface = this.Client(url)
 	var results []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
-		var messageHash any = ccxt.GetValue(messageHashes, i)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, i))
 		var id any = this.RequestId()
-		var unsubscribeHash any = ccxt.Add("unsubscribe:", messageHash)
+		var unsubscribeHash string = "unsubscribe:" + *messageHash
 		var requestParams any = func() any {
 			if subscriptionParams == nil {
 				return params
@@ -2007,8 +2007,8 @@ func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 func (this *Nado) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("trade:", symbol)
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var messageHash string = "trade:" + *symbol
 	var trades any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(trades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -2027,7 +2027,7 @@ func (this *Nado) HandleMyTrade(client any, message map[string]any) {
 	}
 	var trades any = this.MyTrades
 	trades.(ccxt.Appender).Append(trade)
-	var symbol any = ccxt.GetValue(trade, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 	client.(ccxt.ClientInterface).Resolve(trades, "myTrades")
 	client.(ccxt.ClientInterface).Resolve(trades, ccxt.Add("myTrades:", symbol))
 }
@@ -2047,7 +2047,7 @@ func (this *Nado) HandleOHLCV(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "product_id")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var granularity *int64 = this.SafeInteger(message, "granularity")
 	var timeframe any = this.FindTimeframe(granularity)
 	if timeframe == nil {
@@ -2145,7 +2145,7 @@ func (this *Nado) HandleOrder(client any, message map[string]any) {
 	}
 	var orders any = this.Orders
 	orders.(ccxt.Appender).Append(order)
-	var symbol any = ccxt.GetValue(order, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(order, "symbol"))
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
 	client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add("orders:", symbol))
 }
@@ -2233,7 +2233,7 @@ func (this *Nado) HandlePosition(client any, message map[string]any) {
 	} else {
 		positions.(ccxt.Appender).Append(position)
 	}
-	var symbol any = ccxt.GetValue(position, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(position, "symbol"))
 	client.(ccxt.ClientInterface).Resolve(positions, "positions")
 	client.(ccxt.ClientInterface).Resolve(positions, ccxt.Add("positions:", symbol))
 }
@@ -2310,7 +2310,7 @@ func (this *Nado) ParseWsAllBidsAsks(message map[string]any) any {
 				"bid":       this.ParseX18(bid),
 				"info":      bbo,
 			}, market)
-			var symbol any = ccxt.GetValue(market, "symbol")
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 			ccxt.AddElementToObject(result, symbol, ticker)
 		}
 	}
@@ -2348,12 +2348,12 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		return
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash string = "orderbook:" + *symbol
 	var maxTimestamp *string = this.SafeString(orderbook, "maxTimestamp")
 	var lastMaxTimestamp *string = this.SafeString(message, "last_max_timestamp")
 	if (maxTimestamp != nil) && (lastMaxTimestamp != nil) && (maxTimestamp != lastMaxTimestamp && (maxTimestamp == nil || lastMaxTimestamp == nil || *maxTimestamp != *lastMaxTimestamp)) {
@@ -2363,7 +2363,7 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 			var streamType *string = this.SafeString(subscription, "streamType")
 			var subscriptionSymbol *string = this.SafeString(subscription, "symbol")
-			if (streamType != nil && *streamType == "book_depth") && (ccxt.IsEqual(subscriptionSymbol, symbol)) {
+			if (streamType != nil && *streamType == "book_depth") && (subscriptionSymbol == symbol || (subscriptionSymbol != nil && symbol != nil && *subscriptionSymbol == *symbol)) {
 				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 			}
 		}

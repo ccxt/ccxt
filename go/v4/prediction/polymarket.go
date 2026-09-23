@@ -683,7 +683,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 	var seen map[string]any = map[string]any{}
 	var rawEvents []any = []any{}
 	for qi := 0; qi < ccxt.GetArrayLength(queries); qi++ {
-		var q any = ccxt.GetValue(queries, qi)
+		var q *string = ccxt.SafeStringPtr(ccxt.GetValue(queries, qi))
 		var baseRequest map[string]any = map[string]any{
 			"q":              q,
 			"limit_per_type": pageSize,
@@ -1339,12 +1339,17 @@ func (this *Polymarket) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var tokenIds []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(outcomeSymbols); i++ {
-		var outcomeSymbol any = ccxt.GetValue(outcomeSymbols, i)
+		var outcomeSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeSymbols, i))
 		// only id-like symbols (no ':', no searchable words) belong in the by-id batch —
 		// see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
 		// maps that to `=== false`, while a literal `=== -1` passes through and never
 		// matches mb_strpos's false return
-		if (ccxt.GetIndexOf(outcomeSymbol, ":") < 0) && (ccxt.IsEqual(this.OutcomeSearchQuery(outcomeSymbol), nil)) {
+		if (func() int {
+			if outcomeSymbol == nil {
+				return -1
+			}
+			return strings.Index(*outcomeSymbol, ":")
+		}() < 0) && (ccxt.IsEqual(this.OutcomeSearchQuery(outcomeSymbol), nil)) {
 			tokenIds = append(tokenIds, outcomeSymbol)
 		}
 	}
@@ -3972,8 +3977,8 @@ func (this *Polymarket) EthChecksumAddress(address any) any {
 func (this *Polymarket) SignHash(hash any, privateKey any) any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-	var rRaw any = signature["r"]
-	var sRaw any = signature["s"]
+	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
+	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
 	var r string = ccxt.PadStart(rRaw, 64, "0")
 	var s string = ccxt.PadStart(sRaw, 64, "0")
 	return map[string]any{

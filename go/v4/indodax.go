@@ -990,13 +990,13 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	if market != nil {
 		symbol = GetValue(market, "symbol")
-		var quoteId any = GetValue(market, "quoteId")
-		var baseId any = GetValue(market, "baseId")
+		var quoteId *string = SafeStringPtr(GetValue(market, "quoteId"))
+		var baseId *string = SafeStringPtr(GetValue(market, "baseId"))
 		if (IsEqual(GetValue(market, "quoteId"), "idr")) && (InOp(order, "order_rp")) {
-			quoteId = "rp"
+			quoteId = SafeStringPtr("rp")
 		}
 		if (IsEqual(GetValue(market, "baseId"), "idr")) && (InOp(order, "remain_rp")) {
-			baseId = "rp"
+			baseId = SafeStringPtr("rp")
 		}
 		cost = this.SafeString(order, Add("order_", quoteId))
 		amount = this.SafeString(order, Add("order_", baseId))

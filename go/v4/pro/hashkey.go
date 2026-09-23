@@ -285,7 +285,7 @@ func (this *Hashkey) HandleTicker(client any, message any) {
 	//
 	var data any = this.SafeList(message, "data", []any{})
 	var ticker any = this.ParseTicker(this.SafeDict(data, 0, map[string]any{}))
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
@@ -362,7 +362,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
@@ -377,7 +377,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 			stored.(ccxt.Appender).Append(parsed)
 		}
 	}
-	var messageHash any = ccxt.Add("trades"+":", symbol)
+	var messageHash string = "trades" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
@@ -555,7 +555,7 @@ func (this *Hashkey) HandleOrder(client any, message any) {
 	orders.(ccxt.Appender).Append(parsed)
 	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)
 }
@@ -688,7 +688,7 @@ func (this *Hashkey) HandleMyTrade(client any, message any, optionalArgs ...any)
 	this.MyTrades = tradesArray
 	var messageHash string = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, symbolSpecificMessageHash)
 }
@@ -805,8 +805,8 @@ func (this *Hashkey) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, messageHash)
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
-			messageHashes = append(messageHashes, ccxt.Add(messageHash+":", symbol))
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+			messageHashes = append(messageHashes, messageHash+":"+*symbol)
 		}
 	}
 	var url any = this.GetPrivateUrl(listenKey)
@@ -852,7 +852,7 @@ func (this *Hashkey) HandlePosition(client any, message any) {
 	positions.(ccxt.Appender).Append(parsed)
 	var messageHash string = "positions"
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 	client.(ccxt.ClientInterface).Resolve(parsed, ccxt.Add(messageHash+":", symbol))
 }
 func (this *Hashkey) ParseWsPosition(position any, optionalArgs ...any) any {

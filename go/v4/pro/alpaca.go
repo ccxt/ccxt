@@ -126,7 +126,7 @@ func (this *Alpaca) HandleTicker(client any, message map[string]any) {
 	//    ]
 	//
 	var ticker any = this.ParseTicker(message)
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)

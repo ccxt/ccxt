@@ -1494,12 +1494,12 @@ func (this *Phemex) CustomParseOrderBook(orderbook any, symbol any, optionalArgs
 	}
 	var sides []any = []any{bidsKey, asksKey}
 	for i := 0; i < len(sides); i++ {
-		var side any = func() any {
+		var side *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(sides) {
 				return DerefScalar(sides[i])
 			}
 			return nil
-		}()
+		}())
 		var orders []any = []any{}
 		var bidasks any = this.SafeValue(orderbook, side)
 		for k := 0; k < GetArrayLength(bidasks); k++ {
@@ -1851,7 +1851,7 @@ func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.000001)
 	var last any = this.FromEp(this.SafeString2(ticker, "lastEp", "closeRp"), market)
 	var quoteVolume any = this.FromEr(this.SafeString2(ticker, "turnoverEv", "turnoverRv"), market)
@@ -2301,7 +2301,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeCurrencyCode any = nil
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var orderId *string = nil
 	var takerOrMaker any = nil
 	if IsArray(trade) {
@@ -2848,7 +2848,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var price any = this.FromEp(this.SafeString(order, "priceEp"), market)
 	var amount any = this.FromEv(this.SafeString(order, "baseQtyEv"), market)
 	var remaining any = this.OmitZero(this.FromEv(this.SafeString(order, "leavesBaseQtyEv"), market))
@@ -4510,7 +4510,7 @@ func (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var txid *string = this.SafeString(transaction, "txHash")
 	var currencyId *string = this.SafeString(transaction, "currency")
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
-	var code any = GetValue(currency, "code")
+	var code *string = SafeStringPtr(GetValue(currency, "code"))
 	var networkId *string = this.SafeString(transaction, "chainName")
 	var timestamp *int64 = this.SafeIntegerN(transaction, []any{"createdAt", "submitedAt", "submittedAt"})
 	var typeVar *string = this.SafeStringLower(transaction, "type")
@@ -4905,7 +4905,7 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var collateral *string = this.SafeString2(position, "positionMargin", "positionMarginRv")
 	var notionalString *string = this.SafeString2(position, "value", "valueRv")
 	var maintenanceMarginPercentageString *string = this.SafeString2(position, "maintMarginReq", "maintMarginReqRr")

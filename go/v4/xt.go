@@ -2376,7 +2376,7 @@ func (this *Xt) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}(), market)
-		var symbol any = GetValue(ticker, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
 		}
@@ -2500,7 +2500,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var marketInner any = this.SafeMarket(marketId, market, "_", marketType)
 		var ticker any = this.ParseTicker(rawTicker, marketInner)
-		var symbol any = GetValue(ticker, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
 		}
@@ -2574,7 +2574,7 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) any {
 		}()
 	}
 	market = MapTyped(this.SafeMarket(marketId, market, "_", marketType))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
 	var percentage *string = this.SafeString2(ticker, "cr", "r")
 	if percentage != nil {
@@ -6491,7 +6491,7 @@ func (this *Xt) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var matchesSubType any = func() any {
 			if isInverse {

@@ -327,7 +327,7 @@ func (this *Bingx) HandleTicker(client any, message any) {
 		return "spot"
 	}()
 	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	// the Coin-M stream is a distinct endpoint, so it identifies an inverse
 	// ticker even when the market id could not be resolved
 	var inverseUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "inverse")
@@ -641,7 +641,7 @@ func (this *Bingx) HandleTrades(client any, message any) {
 	//
 	var data any = this.SafeValue(message, "data", []any{})
 	var rawHash *string = this.SafeString(message, "dataType", "")
-	var marketId any = ccxt.GetValue(ccxt.Split(rawHash, "@"), 0)
+	var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.Split(rawHash, "@"), 0))
 	var isSwap bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
 	var marketType string = func() string {
 		if isSwap {
@@ -650,8 +650,8 @@ func (this *Bingx) HandleTrades(client any, message any) {
 		return "spot"
 	}()
 	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol any = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("trade::", symbol)
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var messageHash string = "trade::" + *symbol
 	var trades any = nil
 	if ccxt.IsArray(data) {
 		trades = this.ParseTrades(data, market)
@@ -862,8 +862,8 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var dataType *string = this.SafeString(message, "dataType", "")
 	var parts []string = ccxt.Split(dataType, "@")
-	var firstPart any = ccxt.GetValue(parts, 0)
-	var isAllEndpoint bool = (ccxt.IsEqual(firstPart, "all"))
+	var firstPart *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 0))
+	var isAllEndpoint bool = (firstPart != nil && *firstPart == "all")
 	var marketId *string = this.SafeString(data, "symbol", firstPart)
 	var isSwap bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
 	var marketType string = func() string {
@@ -873,7 +873,7 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 		return "spot"
 	}()
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		// const limit = [ 5, 10, 20, 50, 100 ]
@@ -1006,8 +1006,8 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 	var isSwap bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
 	var dataType *string = this.SafeString(message, "dataType", "")
 	var parts []string = ccxt.Split(dataType, "@")
-	var firstPart any = ccxt.GetValue(parts, 0)
-	var isAllEndpoint bool = (ccxt.IsEqual(firstPart, "all"))
+	var firstPart *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 0))
+	var isAllEndpoint bool = (firstPart != nil && *firstPart == "all")
 	var marketId *string = this.SafeString(message, "s", firstPart)
 	var marketType string = func() string {
 		if isSwap {
@@ -1027,9 +1027,9 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		candles = []any{this.SafeDict(data, "K", map[string]any{})}
 	}
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-	var rawTimeframe any = ccxt.GetValue(ccxt.Split(dataType, "_"), 1)
+	var rawTimeframe *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.Split(dataType, "_"), 1))
 	var marketOptions map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
 	var timeframes any = this.SafeDict(marketOptions, "timeframes", map[string]any{})
 	var unifiedTimeframe any = this.FindTimeframe(rawTimeframe, timeframes)
@@ -1776,14 +1776,14 @@ func (this *Bingx) HandlePositions(client any, message any) {
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "swap:positions::"))
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash any = func() any {
+		var messageHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(messageHashes) {
 				return ccxt.DerefScalar(messageHashes[i])
 			}
 			return nil
-		}()
+		}())
 		var parts []string = ccxt.Split(messageHash, "::")
-		var symbolsString any = ccxt.GetValue(parts, 1)
+		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 		var filteredSymbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", filteredSymbols, false)
 		if !this.IsEmpty(positions) {
@@ -1856,12 +1856,12 @@ func (this *Bingx) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any 
 						// catch block:
 						var types []any = []any{"spot", "linear", "inverse"}
 						for i := 0; i < len(types); i++ {
-							var typeVar any = func() any {
+							var typeVar *string = ccxt.SafeStringPtr(func() any {
 								if i >= 0 && i < len(types) {
 									return ccxt.DerefScalar(types[i])
 								}
 								return nil
-							}()
+							}())
 							var baseUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
 							if baseUrl == nil {
 								continue
@@ -2129,7 +2129,7 @@ func (this *Bingx) HandleOrder(client any, message any) {
 		}
 	}
 	stored.(ccxt.Appender).Append(parsedOrder)
-	var symbol any = ccxt.GetValue(parsedOrder, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsedOrder, "symbol"))
 	var spotHash string = "spot:order"
 	var swapHash string = "swap:order"
 	var messageHash string = func() string {
@@ -2215,7 +2215,7 @@ func (this *Bingx) HandleMyTrades(client any, message any) {
 	var marketId *string = this.SafeString(result, "s")
 	var market any = this.SafeMarket(marketId, nil, "-", typeVar)
 	var parsed any = this.ParseTrade(result, market)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 	var spotHash string = "spot:mytrades"
 	var swapHash string = "swap:mytrades"
 	var messageHash string = func() string {

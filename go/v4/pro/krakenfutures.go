@@ -178,7 +178,7 @@ func (this *Krakenfutures) subscribePublicBody(ch chan any, name any, symbols an
 		symbols = []any{}
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		marketIds = append(marketIds, this.MarketId(symbol))
 	}
 	var length int = ccxt.GetArrayLength(symbols)
@@ -550,14 +550,14 @@ func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash any = func() any {
+		var messageHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(messageHashes) {
 				return ccxt.DerefScalar(messageHashes[i])
 			}
 			return nil
-		}()
+		}())
 		var parts []string = ccxt.Split(messageHash, "::")
-		var symbolsString any = ccxt.GetValue(parts, 1)
+		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -819,7 +819,7 @@ func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
 		var market map[string]any = ccxt.MapTyped(this.Market(marketId))
-		var symbol any = market["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var messageHash any = this.GetMessageHash("trade", nil, symbol)
 		if ccxt.IsEqual(this.SafeList(this.Trades, symbol), nil) {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1189,7 +1189,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 			return nil
 		}()
 		var parsed any = this.ParseWsOrder(order)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 		if symbol != nil {
 			ccxt.AddElementToObject(symbols, symbol, true)
 		}
@@ -1328,7 +1328,7 @@ func (this *Krakenfutures) HandleTicker(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
 		var ticker any = this.ParseWsTicker(message)
-		var symbol any = ccxt.GetValue(ticker, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
@@ -1356,7 +1356,7 @@ func (this *Krakenfutures) HandleBidAsk(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
 		var ticker any = this.ParseWsTicker(message)
-		var symbol any = ccxt.GetValue(ticker, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		}
@@ -1418,7 +1418,7 @@ func (this *Krakenfutures) ParseWsTicker(ticker map[string]any, optionalArgs ...
 	var marketId *string = this.SafeString(ticker, "product_id")
 	var marketResolved any = this.SafeMarket(marketId, market)
 	market = marketResolved
-	var symbol any = ccxt.GetValue(marketResolved, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(marketResolved, "symbol"))
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "lastTime"))
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
@@ -1478,7 +1478,7 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 	//
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash any = this.GetMessageHash("orderbook", nil, symbol)
 	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
@@ -1526,7 +1526,7 @@ func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash any = this.GetMessageHash("orderbook", nil, symbol)
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var side *string = this.SafeString(message, "side")

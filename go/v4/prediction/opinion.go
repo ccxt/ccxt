@@ -342,23 +342,23 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
 	var outcomes []any = []any{}
 	var resolvedOutcome any = nil
 	for i := 0; i < len(outcomeLabels); i++ {
-		var label any = func() any {
+		var label *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(outcomeLabels) {
 				return ccxt.DerefScalar(outcomeLabels[i])
 			}
 			return nil
-		}()
-		var tokenId any = func() any {
+		}())
+		var tokenId *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(outcomeTokenIds) {
 				return ccxt.DerefScalar(outcomeTokenIds[i])
 			}
 			return nil
-		}()
+		}())
 		var outcomeHandle any = this.SlugToOutcomeSymbol(effectiveEventSlug, slug, label)
 		var winner any = nil
 		var settleFraction any = nil
 		if hasResult {
-			winner = (ccxt.IsEqual(tokenId, resultTokenId))
+			winner = (tokenId == resultTokenId || (tokenId != nil && resultTokenId != nil && *tokenId == *resultTokenId))
 			settleFraction = func() int {
 				if winner == true {
 					return 1
@@ -2054,8 +2054,8 @@ func (this *Opinion) HashMessage(message any) any {
 func (this *Opinion) SignHash(hash any, privateKey any) any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches
-	var rRaw any = signature["r"]
-	var sRaw any = signature["s"]
+	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
+	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
 	var r string = ccxt.PadStart(rRaw, 64, "0")
 	var s string = ccxt.PadStart(sRaw, 64, "0")
 	return map[string]any{

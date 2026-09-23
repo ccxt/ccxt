@@ -377,12 +377,12 @@ func (this *Sxbet) ParseSxbetMarket(raw any) any {
 	var outcomeIds []any = []any{marketHash, *marketHash + "-2"}
 	var outcomes []any = []any{}
 	for oi := 0; oi < len(outcomeLabels); oi++ {
-		var label any = func() any {
+		var label *string = ccxt.SafeStringPtr(func() any {
 			if oi >= 0 && oi < len(outcomeLabels) {
 				return ccxt.DerefScalar(outcomeLabels[oi])
 			}
 			return nil
-		}()
+		}())
 		var outcomeHandle any = this.SlugToOutcomeSymbol(eventSlug, marketSlug, label)
 		outcomes = append(outcomes, map[string]any{
 			"id": func() any {
@@ -583,13 +583,18 @@ func (this *Sxbet) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var result []any = []any{}
 	var orderLength int = len(order)
 	for i := 0; i < orderLength; i++ {
-		var fixtureId any = func() any {
+		var fixtureId *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(order) {
 				return ccxt.DerefScalar(order[i])
 			}
 			return nil
-		}()
-		var event any = this.ParseEvent(fixtureId, ccxt.GetValue(grouped, fixtureId))
+		}())
+		var event any = this.ParseEvent(fixtureId, func() any {
+			if fixtureId == nil {
+				return nil
+			}
+			return grouped[*fixtureId]
+		}())
 		var evMarkets []any = ccxt.SafeListTyped(event, "markets")
 		var evMarketsLength int = len(evMarkets)
 		for j := 0; j < evMarketsLength; j++ {
@@ -667,12 +672,12 @@ func (this *Sxbet) MatchesEventQuery(raw any, queries any) any {
 			continue
 		}
 		for fi := 0; fi < len(fields); fi++ {
-			var field any = func() any {
+			var field *string = ccxt.SafeStringPtr(func() any {
 				if fi >= 0 && fi < len(fields) {
 					return ccxt.DerefScalar(fields[fi])
 				}
 				return nil
-			}()
+			}())
 			if field == nil {
 				continue
 			}
@@ -831,8 +836,8 @@ func (this *Sxbet) SignDigest(digest any, privateKey any) any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(digest, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign to bare locals before padStart — the php transpiler's str_pad regex only
 	// matches a simple identifier, an expression form leaks a raw padStart() call
-	var rRaw any = signature["r"]
-	var sRaw any = signature["s"]
+	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
+	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
 	var r string = ccxt.PadStart(rRaw, 64, "0")
 	var s string = ccxt.PadStart(sRaw, 64, "0")
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -2537,12 +2542,12 @@ func (this *Sxbet) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var hasApiKey bool = !ccxt.EvalTruthy(this.IsEmptyString(this.ApiKey))
 	if !hasApiKey {
 		for i := 0; i < hashesLength; i++ {
-			var marketHash any = func() any {
+			var marketHash *string = ccxt.SafeStringPtr(func() any {
 				if i >= 0 && i < len(hashesOrder) {
 					return ccxt.DerefScalar(hashesOrder[i])
 				}
 				return nil
-			}()
+			}())
 
 			snapshot := (<-this.FetchSxbetBookSnapshotAsync(marketHash))
 			ccxt.PanicOnError(snapshot)
@@ -2972,7 +2977,7 @@ func (this *Sxbet) HandleMessage(client any, message any) {
 		var lines []string = ccxt.Split(message, "\n")
 		var linesLength int = len(lines)
 		for i := 0; i < linesLength; i++ {
-			var line string = lines[i]
+			var line *string = ccxt.SafeStringPtr(ccxt.GetValue(lines, i))
 			if ccxt.GetLength(line) > 0 {
 				var parsed any = ccxt.JsonParse(line)
 				this.HandleCentrifugoFrame(client, parsed)
@@ -3176,7 +3181,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) any {
 	var timestamp int64 = this.Milliseconds()
 	var watchedSymsLength int = len(watchedSyms)
 	for i := 0; i < watchedSymsLength; i++ {
-		var sym string = watchedSyms[i]
+		var sym *string = ccxt.SafeStringPtr(ccxt.GetValue(watchedSyms, i))
 		if this.SafeString(watchedBooks, sym) != marketHash && (this.SafeString(watchedBooks, sym) == nil || marketHash == nil || *this.SafeString(watchedBooks, sym) != *marketHash) {
 			continue
 		}
@@ -3215,8 +3220,8 @@ func (this *Sxbet) HandleOrderBook(client any, rows any) {
 		var refreshed any = this.ApplySxbetWsSnapshot(ccxt.GetValue(rows, i))
 		var refreshedLength int = ccxt.GetArrayLength(refreshed)
 		for j := 0; j < refreshedLength; j++ {
-			var sym any = ccxt.GetValue(refreshed, j)
-			client.(ccxt.ClientInterface).Resolve(this.SafeValue(this.Orderbooks, sym), ccxt.Add("orderbook::", sym))
+			var sym *string = ccxt.SafeStringPtr(ccxt.GetValue(refreshed, j))
+			client.(ccxt.ClientInterface).Resolve(this.SafeValue(this.Orderbooks, sym), "orderbook::"+*sym)
 		}
 	}
 }
@@ -3320,14 +3325,14 @@ func (this *Sxbet) HandleTicker(client any, rows any) {
 		}
 		var watchedSymsLength int = len(watchedSyms)
 		for j := 0; j < watchedSymsLength; j++ {
-			var sym string = watchedSyms[j]
+			var sym *string = ccxt.SafeStringPtr(ccxt.GetValue(watchedSyms, j))
 			if this.SafeString(watchedTickers, sym) != marketHash && (this.SafeString(watchedTickers, sym) == nil || marketHash == nil || *this.SafeString(watchedTickers, sym) != *marketHash) {
 				continue
 			}
 			var outcomeObj any = this.Outcome(sym)
 			var ticker any = this.ParsePredictionTicker(raw, outcomeObj)
 			ccxt.AddElementToObject(this.Tickers, sym, ticker)
-			client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add("ticker::", sym))
+			client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*sym)
 		}
 	}
 }

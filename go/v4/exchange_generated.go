@@ -1307,7 +1307,7 @@ func (this *BaseExchange) ParseCurrencies(rawCurrencies any) any {
 		if IsEqual(parsed, nil) {
 			continue
 		}
-		var code any = GetValue(parsed, "code")
+		var code *string = SafeStringPtr(GetValue(parsed, "code"))
 		AddElementToObject(result, code, parsed)
 	}
 	return result
@@ -1916,27 +1916,27 @@ func (this *BaseExchange) FeaturesGenerator() {
 	var subTypes []any = []any{"linear", "inverse"}
 	// atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
 	for i := 0; i < len(unifiedMarketTypes); i++ {
-		var marketType any = func() any {
+		var marketType *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(unifiedMarketTypes) {
 				return DerefScalar(unifiedMarketTypes[i])
 			}
 			return nil
-		}()
+		}())
 		// if marketType is not filled for this exchange, don't add that in `features`
 		if !(InOp(initialFeatures, marketType)) {
 			AddElementToObject(this.Features, marketType, nil)
 		} else {
-			if marketType == "spot" {
+			if marketType != nil && *marketType == "spot" {
 				AddElementToObject(this.Features, marketType, this.FeaturesMapper(initialFeatures, marketType))
 			} else {
 				AddElementToObject(this.Features, marketType, map[string]any{})
 				for j := 0; j < len(subTypes); j++ {
-					var subType any = func() any {
+					var subType *string = SafeStringPtr(func() any {
 						if j >= 0 && j < len(subTypes) {
 							return DerefScalar(subTypes[j])
 						}
 						return nil
-					}()
+					}())
 					AddElementToObject(GetValue(this.Features, marketType), subType, this.FeaturesMapper(initialFeatures, marketType, subType))
 				}
 			}
@@ -2093,7 +2093,7 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 		}()
 	}
 	var splited []string = Split(paramName, ".") // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
-	var parentKey any = GetValue(splited, 0)
+	var parentKey *string = SafeStringPtr(GetValue(splited, 0))
 	var subKey *string = this.SafeString(splited, 1)
 	if !(InOp(methodDict, parentKey)) {
 		return defaultValue // unsupported paramName, check "exchange.features" for details');
@@ -2209,8 +2209,13 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 	var length int = len(keys)
 	if length != 0 {
 		for i := 0; i < length; i++ {
-			var key string = keys[i]
-			var network map[string]any = MapTyped(GetValue(networks, key))
+			var key *string = SafeStringPtr(GetValue(keys, i))
+			var network map[string]any = MapTyped(func() any {
+				if key == nil {
+					return nil
+				}
+				return networks[*key]
+			}())
 			var deposit *bool = this.SafeBool(network, "deposit")
 			var currencyDeposit *bool = this.SafeBool(currency, "deposit")
 			if (currencyDeposit == nil) || (deposit != nil && *deposit == true) {
@@ -4110,13 +4115,25 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) any {
 	if IsEqual(chainPair, nil) {
 		return networkCode
 	}
-	var preferredChain any = GetValue(chainPair, 0)
-	var alternativeChain any = GetValue(chainPair, 1)
+	var preferredChain *string = SafeStringPtr(GetValue(chainPair, 0))
+	var alternativeChain *string = SafeStringPtr(GetValue(chainPair, 1))
 	// when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
 	// it disambiguates them — trust the direct id→code inversion instead of guessing
 	if currencyCode == nil {
 		var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
-		if (InOp(networkIdsByCodes, preferredChain)) && (InOp(networkIdsByCodes, alternativeChain)) {
+		if (func() bool {
+			if preferredChain == nil {
+				return false
+			}
+			_, ok := networkIdsByCodes[*preferredChain]
+			return ok
+		}()) && (func() bool {
+			if alternativeChain == nil {
+				return false
+			}
+			_, ok := networkIdsByCodes[*alternativeChain]
+			return ok
+		}()) {
 			return networkCode
 		}
 	}
@@ -4275,7 +4292,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 
 			var market any = this.DerivedExchange.SafeMarket(id, nil, nil, "swap")
 			PanicOnError(market)
-			var symbol any = GetValue(market, "symbol")
+			var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 			var contract *bool = this.SafeBool(market, "contract", false)
 			if (contract != nil && *contract == true) && (noSymbols || ((symbols != nil) && this.InArray(symbol, symbols))) {
 				AddElementToObject(tiers, symbol, this.DerivedExchange.ParseMarketLeverageTiers(item, market))
@@ -4289,7 +4306,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 
 			var market any = this.DerivedExchange.SafeMarket(marketId, nil, nil, "swap")
 			PanicOnError(market)
-			var symbol any = GetValue(market, "symbol")
+			var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 			var contract *bool = this.SafeBool(market, "contract", false)
 			if (contract != nil && *contract == true) && (noSymbols || ((symbols != nil) && this.InArray(symbol, symbols))) {
 				AddElementToObject(tiers, symbol, this.DerivedExchange.ParseMarketLeverageTiers(item, market))
@@ -6361,7 +6378,7 @@ func (this *BaseExchange) fetchDepositAddressBody(ch chan any, code any, optiona
 			return nil
 		} else {
 			var keys []string = ObjectKeys(addressStructures)
-			var key any = GetValue(keys, 0)
+			var key *string = SafeStringPtr(GetValue(keys, 0))
 
 			ch <- this.SafeDict(addressStructures, key)
 			return nil
@@ -6406,12 +6423,12 @@ func (this *BaseExchange) MergeBalanceAccount(result any, code any, account any)
 	}
 	var fields []any = []any{"free", "used", "total", "debt"}
 	for i := 0; i < len(fields); i++ {
-		var field any = func() any {
+		var field *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(fields) {
 				return DerefScalar(fields[i])
 			}
 			return nil
-		}()
+		}())
 		var current *string = this.SafeString(GetValue(result, code), field)
 		var incoming *string = this.SafeString(account, field)
 		if current == nil {
@@ -6484,12 +6501,12 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 	_ = existingCurrencies
 	var leverageSuffixes []any = []any{"2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"}
 	for i := 0; i < len(leverageSuffixes); i++ {
-		var leverageSuffix any = func() any {
+		var leverageSuffix *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(leverageSuffixes) {
 				return DerefScalar(leverageSuffixes[i])
 			}
 			return nil
-		}()
+		}())
 		var endsWithSuffix bool = EndsWith(currencyCode, leverageSuffix)
 		if endsWithSuffix {
 			if !(checkBaseCoin == true) {
@@ -7572,8 +7589,8 @@ func (this *BaseExchange) AssignDefaultDepositWithdrawFees(fee any, optionalArgs
 	}
 	var currencyCode *string = this.SafeString(currency, "code")
 	for i := 0; i < numNetworks; i++ {
-		var network string = networkKeys[i]
-		if IsEqual(network, currencyCode) {
+		var network *string = SafeStringPtr(GetValue(networkKeys, i))
+		if network == currencyCode || (network != nil && currencyCode != nil && *network == *currencyCode) {
 			AddElementToObject(fee, "withdraw", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, i)), "withdraw"))
 			AddElementToObject(fee, "deposit", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, i)), "deposit"))
 		}

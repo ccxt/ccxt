@@ -811,8 +811,8 @@ func (this *Lighter) HashMessage(message any) any {
 func (this *Lighter) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
-	var r any = signature["r"]
-	var s any = signature["s"]
+	var r *string = SafeStringPtr(signature["r"])
+	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
@@ -1950,7 +1950,7 @@ func (this *Lighter) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market_id")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var last *string = this.SafeString(ticker, "last_trade_price")
 	var high *string = this.SafeString(ticker, "daily_price_high")
 	var low *string = this.SafeString(ticker, "daily_price_low")

@@ -120,8 +120,8 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "m")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var messageHash string = "orderbook:" + *symbol
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var nonce *int64 = this.SafeInteger(message, "seq")
 	var typeVar *string = this.SafeString(message, "type", this.SafeString(data, "t"))
@@ -557,14 +557,14 @@ func (this *Extended) HandlePositions(client any, message any) {
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash any = func() any {
+		var messageHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(messageHashes) {
 				return ccxt.DerefScalar(messageHashes[i])
 			}
 			return nil
-		}()
+		}())
 		var parts []string = ccxt.Split(messageHash, "::")
-		var symbolsString any = ccxt.GetValue(parts, 1)
+		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var filtered any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(filtered) {
@@ -784,7 +784,7 @@ func (this *Extended) HandleMarkPrice(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "m")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	if (timestamp == nil) || (timestamp != nil && *timestamp == 0) {
 		timestamp = this.SafeInteger(message, "ts")
@@ -797,7 +797,7 @@ func (this *Extended) HandleMarkPrice(client any, message any) {
 		"info":      message,
 	}, market)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-	var messageHash any = ccxt.Add("markPrice:", symbol)
+	var messageHash string = "markPrice:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 
@@ -876,8 +876,8 @@ func (this *Extended) HandleTrades(client any, message any) {
 	}
 	var marketId *string = this.SafeString(first, "m")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var messageHash string = "trades:" + *symbol
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {

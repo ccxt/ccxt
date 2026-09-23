@@ -404,8 +404,8 @@ func (this *Cryptomus) ParseMarket(market any) any {
 		panic(ExchangeError(this.Id + " parseMarket() missing marketId"))
 	}
 	var parts []string = Split(marketId, "_")
-	var baseId any = GetValue(parts, 0)
-	var quoteId any = GetValue(parts, 1)
+	var baseId *string = SafeStringPtr(GetValue(parts, 0))
+	var quoteId *string = SafeStringPtr(GetValue(parts, 1))
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var fees map[string]any = SafeMapTyped(this.Fees, "trading")
@@ -614,7 +614,7 @@ func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "currency_pair")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var last *string = this.SafeString(ticker, "last_price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1387,7 +1387,7 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 		return nil
 	}
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,

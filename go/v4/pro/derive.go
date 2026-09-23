@@ -160,7 +160,7 @@ func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var topic *string = this.SafeString(params, "channel")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
@@ -319,7 +319,7 @@ func (this *Derive) HandleTicker(client any, message map[string]any) any {
 	} else {
 		ticker = this.ParseTicker(data)
 	}
-	var tickerSymbol any = ccxt.GetValue(ticker, "symbol")
+	var tickerSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 	if tickerSymbol != nil {
 		ccxt.AddElementToObject(this.Tickers, tickerSymbol, ticker)
 	}
@@ -440,14 +440,14 @@ func (this *Derive) HandleOrderBookUnSubscription(client any, topic any) {
 	var parsedTopic []string = ccxt.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if ccxt.InOp(this.Orderbooks, symbol) {
 		ccxt.Remove(this.Orderbooks, symbol)
 	}
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), topic) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
 	}
-	error := ccxt.UnsubscribeError(ccxt.Add(this.Id+" orderbook ", symbol))
+	error := ccxt.UnsubscribeError(this.Id + " orderbook " + *symbol)
 	client.(ccxt.ClientInterface).Reject(error, topic)
 	client.(ccxt.ClientInterface).Resolve(error, ccxt.Add("unwatch", topic))
 }
@@ -455,14 +455,14 @@ func (this *Derive) HandleTradesUnSubscription(client any, topic any) {
 	var parsedTopic []string = ccxt.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if ccxt.InOp(this.Orderbooks, symbol) {
 		ccxt.Remove(this.Trades, symbol)
 	}
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), topic) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
 	}
-	error := ccxt.UnsubscribeError(ccxt.Add(this.Id+" trades ", symbol))
+	error := ccxt.UnsubscribeError(this.Id + " trades " + *symbol)
 	client.(ccxt.ClientInterface).Reject(error, topic)
 	client.(ccxt.ClientInterface).Resolve(error, ccxt.Add("unwatch", topic))
 }
@@ -553,7 +553,7 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 	var parsedTopic []string = ccxt.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesArray, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

@@ -2704,7 +2704,7 @@ func (this *Coinbase) fetchTickersV2Body(ch chan any, optionalArgs ...any) any {
 		var baseId string = GetValue(baseIds, i).(string)
 		var marketId any = Add(baseId+delimiter, quoteId)
 		var market any = this.SafeMarket(marketId, nil, delimiter)
-		var symbol any = GetValue(market, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 		AddElementToObject(result, symbol, this.ParseTicker(rates[baseId], market))
 	}
 
@@ -2806,7 +2806,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 		}()
 		var marketId *string = this.SafeString(entry, "product_id")
 		var market any = this.SafeMarket(marketId, nil, "-")
-		var symbol any = GetValue(market, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 		AddElementToObject(result, symbol, this.ParseTicker(entry, market))
 	}
 
@@ -6525,7 +6525,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var maker_fee *float64 = this.SafeNumber(data, "maker_fee_rate")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
-		var symbol any = GetValue(this.Symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
 		if (isSpot && (GetValue(market, "spot") == true)) || (!isSpot && (GetValue(market, "spot") != true)) {
 			AddElementToObject(result, symbol, map[string]any{

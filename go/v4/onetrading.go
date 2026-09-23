@@ -823,7 +823,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var tierObject any = func() any {
 			if GetValue(market, "spot") == true {
@@ -909,7 +909,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	// const tiers = this.parseFeeTiers (feeTiers);
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var makerFee *string = func() *string {
 			if GetValue(market, "spot") == true {
@@ -1127,7 +1127,7 @@ func (this *Onetrading) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}())
-		var symbol any = GetValue(ticker, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
 		}

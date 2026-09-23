@@ -1214,7 +1214,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var marketId any = market["id"]
+	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var timeframeId any = this.SafeDict(timeframes, timeframe)
@@ -1485,7 +1485,7 @@ func (this *Onetrading) watchManyBody(ch chan any, messageHash any, request any,
 		subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 		if !ccxt.IsEqual(subscription, nil) {
 			for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
-				var marketId any = ccxt.GetValue(marketIds, i)
+				var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
 				var marketSubscribed *bool = this.SafeBool(subscription, marketId, false)
 				if marketSubscribed == nil || *marketSubscribed != true {
 					typeVar = "UPDATE_SUBSCRIPTION"
@@ -1497,7 +1497,7 @@ func (this *Onetrading) watchManyBody(ch chan any, messageHash any, request any,
 		}
 	}
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
+		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
 		ccxt.AddElementToObject(subscription, marketId, true)
 	}
 	ccxt.AddElementToObject(request, "type", typeVar)

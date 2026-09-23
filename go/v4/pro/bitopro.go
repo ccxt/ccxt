@@ -141,7 +141,7 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
@@ -218,7 +218,7 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var market any = this.SafeMarket(marketId, nil, "_")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
 	var rawData any = this.SafeList(message, "data", []any{})
@@ -459,7 +459,7 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 	}
 	// market-ids are lowercase in REST API and uppercase in WS API
 	var market any = this.SafeMarket(marketId, nil, "_")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
 	var result any = this.ParseTicker(message, market)

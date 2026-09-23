@@ -1208,7 +1208,7 @@ func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "executed_timestamp")
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var price *string = this.SafeString(trade, "executed_price")
 	var amount *string = this.SafeString(trade, "executed_quantity")
 	var order_id *string = this.SafeString(trade, "order_id")
@@ -2113,7 +2113,7 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -2314,7 +2314,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId any = this.OmitZero(this.SafeString2(order, "client_order_id", "clientOrderId")) // Somehow, this always returns 0 for limit order
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var price *string = this.SafeString2(order, "order_price", "price")
 	var amount *string = this.SafeString2(order, "order_quantity", "quantity") // This is base amount
 	var cost *string = this.SafeString2(order, "order_amount", "amount")       // This is quote amount
@@ -3939,8 +3939,8 @@ func (this *Woofipro) HashMessage(message any) any {
 }
 func (this *Woofipro) SignHash(hash any, privateKey any) any {
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
-	var r any = signature["r"]
-	var s any = signature["s"]
+	var r *string = SafeStringPtr(signature["r"])
+	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }

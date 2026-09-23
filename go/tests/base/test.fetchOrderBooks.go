@@ -16,7 +16,7 @@ func testFetchOrderBooksBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	var method string = "fetchOrderBooks"
 	var symbols any = exchange.GetSymbols()
 	Assert(!IsEqual(symbols, nil), Add(Add(Add(exchange.GetId(), " "), method), " requires exchange.Getsymbols() to be loaded"))
-	var symbol any = GetValue(symbols, 0)
+	var symbol *string = SafeStringPtr(GetValue(symbols, 0))
 
 	orderBooks := (<-exchange.FetchOrderBooksAsync([]any{symbol}))
 	PanicOnError(orderBooks)

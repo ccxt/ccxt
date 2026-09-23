@@ -221,7 +221,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		ccxt.AddElementToObject(ccxt.GetValue(params, "params"), "bookSubscriptionType", bookUpdateFrequency2)
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var currentTopic any = ccxt.Add(ccxt.Add(ccxt.Add("book"+".", market["id"]), "."), ccxt.ToString(limit))
 		var messageHash any = ccxt.Add("orderbook:", market["symbol"])
@@ -291,7 +291,7 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 		ccxt.AddElementToObject(ccxt.GetValue(params, "params"), "bookSubscriptionType", bookUpdateFrequency2)
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var currentTopic any = ccxt.Add(ccxt.Add(ccxt.Add("book"+".", market["id"]), "."), ccxt.ToString(limit))
 		var messageHash any = ccxt.Add("orderbook:", market["symbol"])
@@ -374,7 +374,7 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "instrument_name")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var data any = this.SafeValue(message, "data")
 	data = this.SafeDict(data, 0)
 	var timestamp *int64 = this.SafeInteger(data, "t")
@@ -407,7 +407,7 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(books, "bids", []any{}))
 	ccxt.AddElementToObject(orderbook, "nonce", nonce)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -501,7 +501,7 @@ func (this *Cryptocom) watchTradesForSymbolsBody(ch chan any, symbols any, optio
 	symbols = this.MarketSymbols(symbols)
 	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var currentTopic any = ccxt.Add("trade"+".", market["id"])
 		topics = append(topics, currentTopic)
@@ -546,7 +546,7 @@ func (this *Cryptocom) unWatchTradesForSymbolsBody(ch chan any, symbols any, opt
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var currentTopic any = ccxt.Add("trade"+".", market["id"])
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trades:", market["symbol"]))
@@ -588,7 +588,7 @@ func (this *Cryptocom) HandleTrades(client any, message any) {
 	var marketId *string = this.SafeString(message, "instrument_name")
 	var symbolSpecificMessageHash *string = this.SafeString(message, "subscription")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -757,8 +757,8 @@ func (this *Cryptocom) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	var marketIds any = this.MarketIds(symbols)
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
-		messageHashes = append(messageHashes, ccxt.Add("ticker.", marketId))
+		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
+		messageHashes = append(messageHashes, "ticker."+*marketId)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var id any = this.Nonce()
@@ -814,10 +814,10 @@ func (this *Cryptocom) unWatchTickersBody(ch chan any, optionalArgs ...any) any 
 	var subMessageHashes []any = []any{}
 	var marketIds any = this.MarketIds(symbols)
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
-		var symbol any = ccxt.GetValue(symbols, i)
-		subMessageHashes = append(subMessageHashes, ccxt.Add("ticker.", marketId))
-		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:ticker:", symbol))
+		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+		subMessageHashes = append(subMessageHashes, "ticker."+*marketId)
+		messageHashes = append(messageHashes, "unsubscribe:ticker:"+*symbol)
 	}
 
 	retRes57615 := (<-this.UnWatchPublicMultipleAsync("ticker", symbols, messageHashes, subMessageHashes, subMessageHashes, params))
@@ -863,7 +863,7 @@ func (this *Cryptocom) HandleTicker(client any, message map[string]any) {
 			return nil
 		}()
 		var parsed any = this.ParseWsTicker(ticker, market)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, parsed)
 		}
@@ -954,9 +954,9 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var topics []any = []any{}
 	var marketIds any = this.MarketIds(symbols)
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
+		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
 		messageHashes = append(messageHashes, ccxt.Add("bidask.", ccxt.GetValue(symbols, i)))
-		topics = append(topics, ccxt.Add("ticker.", marketId))
+		topics = append(topics, "ticker."+*marketId)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var id any = this.Nonce()
@@ -985,7 +985,7 @@ func (this *Cryptocom) HandleBidAsk(client any, message map[string]any) {
 	var data any = this.SafeList(message, "data", []any{})
 	var ticker any = this.SafeDict(data, 0, map[string]any{})
 	var parsedTicker any = this.ParseWsBidAsk(ticker)
-	var symbol any = ccxt.GetValue(parsedTicker, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsedTicker, "symbol"))
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Bidsasks, symbol, parsedTicker)
 	}
@@ -1112,7 +1112,7 @@ func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 	var messageHash *string = this.SafeString(message, "subscription")
 	var marketId *string = this.SafeString(message, "instrument_name")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var interval *string = this.SafeString(message, "interval")
 	var timeframe any = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -1409,14 +1409,14 @@ func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash any = func() any {
+		var messageHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(messageHashes) {
 				return ccxt.DerefScalar(messageHashes[i])
 			}
 			return nil
-		}()
+		}())
 		var parts []string = ccxt.Split(messageHash, "::")
-		var symbolsString any = ccxt.GetValue(parts, 1)
+		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {

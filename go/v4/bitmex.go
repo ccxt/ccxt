@@ -2097,7 +2097,7 @@ func (this *Bitmex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	if status != nil {
 		status = this.ParseTransactionStatus(status)
 	}
-	var code any = GetValue(currency, "code")
+	var code *string = SafeStringPtr(GetValue(currency, "code"))
 	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "transactID"),
@@ -2559,7 +2559,7 @@ func (this *Bitmex) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var qty *string = this.SafeString(order, "orderQty")
 	var cost any = nil
 	var amount any = nil
@@ -3462,7 +3462,7 @@ func (this *Bitmex) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	market = MapTyped(this.SafeMarket(this.SafeString(position, "symbol"), market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var datetime *string = this.SafeString(position, "timestamp")
 	var crossMargin *bool = this.SafeBool(position, "crossMargin")
 	var marginMode string = func() string {

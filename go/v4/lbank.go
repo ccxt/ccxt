@@ -719,8 +719,8 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var marketId *string = this.SafeString(market, "symbol")
 		var parts []string = Split(marketId, "_")
-		var baseId any = GetValue(parts, 0)
-		var quoteId any = GetValue(parts, 1)
+		var baseId *string = SafeStringPtr(GetValue(parts, 0))
+		var quoteId *string = SafeStringPtr(GetValue(parts, 1))
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var symbol any = Add(Add(base, "/"), quote)
@@ -1975,7 +1975,7 @@ func (this *Lbank) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}())
-		var symbol any = GetValue(fee, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(fee, "symbol"))
 		AddElementToObject(result, symbol, fee)
 	}
 

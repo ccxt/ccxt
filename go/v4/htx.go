@@ -2396,7 +2396,7 @@ func (this *Htx) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, (<-this.FetchTradingLimitsByIdAsync(this.MarketId(symbol), params)))
 	}
 
@@ -3576,7 +3576,7 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString2(trade, "contract_code", "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"ts", "created-at", "created_at", "create_date", "created_time"})
 	var order *string = this.SafeString2(trade, "order-id", "order_id")
 	var side any = DerefScalar(this.SafeString2(trade, "direction", "side"))
@@ -7851,7 +7851,7 @@ func (this *Htx) ParseCancelOrders(orders any) []any {
 		}))
 	}
 	for i := 0; i < GetArrayLength(success); i++ {
-		var order any = GetValue(success, i)
+		var order *string = SafeStringPtr(GetValue(success, i))
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
@@ -9270,9 +9270,9 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		var market map[string]any = MapTyped(this.Market(firstSymbol))
-		var isLinear any = market["linear"]
+		var isLinear *bool = SafeBoolPtr(market["linear"])
 		subType = func() string {
-			if isLinear == true {
+			if isLinear != nil && *isLinear == true {
 				return "linear"
 			}
 			return "inverse"
@@ -9985,7 +9985,7 @@ func (this *Htx) ParsePosition(position any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	market = this.SafeMarket(this.SafeString(position, "contract_code"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var contracts *string = this.SafeString(position, "volume")
 	var contractSize *float64 = this.SafeNumber(market, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)

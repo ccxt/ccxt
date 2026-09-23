@@ -79,7 +79,7 @@ func (this *Gemini) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("trades:", market["symbol"])
-	var marketId any = market["id"]
+	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	if marketId == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTrades() marketId is required"))
 	}
@@ -211,7 +211,7 @@ func (this *Gemini) HandleTrade(client any, message map[string]any) {
 	//     }
 	//
 	var trade any = this.ParseWsTrade(message)
-	var symbol any = ccxt.GetValue(trade, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -266,7 +266,7 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 	var market any = this.SafeMarket(marketId)
 	var trades any = this.SafeList(message, "trades")
 	if !ccxt.IsEqual(trades, nil) {
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
@@ -277,7 +277,7 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 			var trade any = this.ParseWsTrade(ccxt.GetValue(trades, i), market)
 			stored.(ccxt.Appender).Append(trade)
 		}
-		var messageHash any = ccxt.Add("trades:", symbol)
+		var messageHash string = "trades:" + *symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
@@ -288,7 +288,7 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp a
 		for i := 0; i < ccxt.GetArrayLength(trades); i++ {
 			var marketId any = ccxt.GetValue(ccxt.GetValue(trades, i), "symbol")
 			var market any = this.SafeMarket(ccxt.ToLower(marketId))
-			var symbol any = ccxt.GetValue(market, "symbol")
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 			var trade any = this.ParseWsTrade(ccxt.GetValue(trades, i), market)
 			ccxt.AddElementToObject(trade, "timestamp", timestamp)
 			ccxt.AddElementToObject(trade, "datetime", this.Iso8601(timestamp))
@@ -456,7 +456,7 @@ func (this *Gemini) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
-	var marketId any = market["id"]
+	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	if marketId == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBook() marketId is required"))
 	}
@@ -480,8 +480,8 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 	var changes []any = ccxt.SafeListTyped(message, "changes")
 	var marketId *string = this.SafeStringLower(message, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var messageHash string = "orderbook:" + *symbol
 	// let orderbook = this.safeValue (this.orderbooks, symbol)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -608,13 +608,13 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 		return nil
 	}(), "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(ccxt.ToLower(marketId)))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Bidsasks, symbol)) {
 		ccxt.AddElementToObject(this.Bidsasks, symbol, this.ParseTicker(map[string]any{}))
 		ccxt.AddElementToObject(ccxt.GetValue(this.Bidsasks, symbol), "symbol", symbol)
 	}
 	var currentBidAsk any = ccxt.GetValue(this.Bidsasks, symbol)
-	var messageHash any = ccxt.Add("bidsasks:", symbol)
+	var messageHash string = "bidsasks:" + *symbol
 	// last update always overwrites the previous state and is the latest state
 	for i := 0; i < len(rawBidAskChanges); i++ {
 		var entry map[string]any = ccxt.MapTyped(func() any {
@@ -673,7 +673,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 	var messageHashes []any = []any{}
 	var marketIds []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var messageHash any = ccxt.Add(ccxt.Add(itemHashName, ":"), symbol)
 		messageHashes = append(messageHashes, messageHash)
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
@@ -717,8 +717,8 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 		return nil
 	}(), "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(ccxt.ToLower(marketId)))
-	var symbol any = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var messageHash string = "orderbook:" + *symbol
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook()
 		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)

@@ -694,7 +694,7 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		}()
 		var marketId *string = this.SafeString(pair, "name")
 		var market map[string]any = MapTyped(this.SafeMarket(marketId))
-		var symbol any = market["symbol"]
+		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       pair,
 			"symbol":     symbol,

@@ -1792,7 +1792,7 @@ func (this *Poloniex) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"ts", "createTime", "cT", "cTime"})
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var side *string = this.SafeStringLower2(trade, "side", "takerSide")
 	var fee map[string]any = nil
 	var priceString *string = this.SafeString2(trade, "price", "px")
@@ -2166,7 +2166,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var resultingTrades any = this.SafeValue(order, "resultingTrades")
 	if !IsEqual(resultingTrades, nil) {
 		if !IsArray(resultingTrades) {
@@ -3279,7 +3279,7 @@ func (this *Poloniex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,

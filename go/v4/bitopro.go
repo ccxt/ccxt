@@ -992,7 +992,7 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var taker *float64 = this.SafeNumber(first, "takerFee")
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       first,
 			"symbol":     symbol,
@@ -1508,7 +1508,7 @@ func (this *Bitopro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var id any = market["uppercaseId"]
+	var id *string = SafeStringPtr(market["uppercaseId"])
 	var request map[string]any = map[string]any{}
 	if id != nil {
 		AddElementToObject(request, id, ids)

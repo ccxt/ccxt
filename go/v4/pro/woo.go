@@ -287,7 +287,7 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var topic *string = this.SafeString(message, "topic")
 	if topic == nil {
 		return
@@ -819,7 +819,7 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 		}
 		ccxt.AddElementToObject(ticker, "ts", timestamp)
 		var parsedTicker any = this.ParseWsBidAsk(ticker)
-		var symbol any = ccxt.GetValue(parsedTicker, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsedTicker, "symbol"))
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Bidsasks, symbol, parsedTicker)
 		}
@@ -965,7 +965,7 @@ func (this *Woo) HandleOHLCV(client any, message map[string]any) {
 	var topic any = this.SafeValue(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(data, "type")
 	var timeframe any = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeFloat(data, "open"), this.SafeFloat(data, "high"), this.SafeFloat(data, "low"), this.SafeFloat(data, "close"), this.SafeFloat(data, "volume")}
@@ -1081,7 +1081,7 @@ func (this *Woo) HandleTrade(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var trade any = this.ParseWsTrade(this.Extend(data, map[string]any{
 		"timestamp": timestamp,
 	}), market)
@@ -1138,7 +1138,7 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var price *string = this.SafeString2(trade, "executedPrice", "price")
 	var amount *string = this.SafeString2(trade, "executedQuantity", "size")
 	var cost *string = ccxt.Precise.StringMul(price, amount)
@@ -1476,7 +1476,7 @@ func (this *Woo) ParseWsOrder(order any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString2(order, "orderId", "algoOrderId")
 	var marketId *string = this.SafeString(order, "symbol")
 	market = this.Market(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),
@@ -1690,8 +1690,8 @@ func (this *Woo) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 			if symbols == nil {
 				panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 			}
-			var symbol any = ccxt.GetValue(symbols, i)
-			messageHashes = append(messageHashes, ccxt.Add("positions::", symbol))
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+			messageHashes = append(messageHashes, "positions::"+*symbol)
 		}
 	} else {
 		messageHashes = append(messageHashes, "positions")
@@ -1957,7 +1957,7 @@ func (this *Woo) HandleFundingRate(client any, message map[string]any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var fundingRate any = this.ParseFundingRate(data)
-	var symbol any = ccxt.GetValue(fundingRate, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 	if symbol != nil {
 		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 	}

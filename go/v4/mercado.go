@@ -903,7 +903,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 	var filled *string = this.SafeString(order, "executed_quantity")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "updated_timestamp")
 	var rawTrades []any = SafeListTypedDefault(order, "operations", []any{})
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,

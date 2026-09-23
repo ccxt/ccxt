@@ -610,7 +610,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var marketIds []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
-			var symbol any = GetValue(symbols, i)
+			var symbol *string = SafeStringPtr(GetValue(symbols, i))
 			var market map[string]any = MapTyped(this.Market(symbol))
 			marketIds = append(marketIds, market["id"])
 		}
@@ -650,9 +650,20 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var filtered map[string]any = map[string]any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
-			var s any = GetValue(symbols, i)
-			if InOp(result, s) {
-				AddElementToObject(filtered, s, GetValue(result, s))
+			var s *string = SafeStringPtr(GetValue(symbols, i))
+			if func() bool {
+				if s == nil {
+					return false
+				}
+				_, ok := result[*s]
+				return ok
+			}() {
+				AddElementToObject(filtered, s, func() any {
+					if s == nil {
+						return nil
+					}
+					return result[*s]
+				}())
 			}
 		}
 

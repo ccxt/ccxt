@@ -220,11 +220,11 @@ func (this *Paymium) ParseBalance(response any) any {
 	for i := 0; i < len(currencies); i++ {
 		var code string = GetValue(currencies, i).(string)
 		var currency map[string]any = MapTyped(this.Currency(code))
-		var currencyId any = currency["id"]
-		var free any = Add("balance_", currencyId)
+		var currencyId *string = SafeStringPtr(currency["id"])
+		var free string = "balance_" + *currencyId
 		if InOp(response, free) {
 			var account map[string]any = this.Account()
-			var used any = Add("locked_", currencyId)
+			var used string = "locked_" + *currencyId
 			account["free"] = this.SafeString(response, free)
 			account["used"] = this.SafeString(response, used)
 			result[code] = account

@@ -174,7 +174,7 @@ func (this *Modetrade) HandleOrderBook(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var topic *string = this.SafeString(message, "topic")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -447,7 +447,7 @@ func (this *Modetrade) HandleBidAsk(client any, message map[string]any) {
 		}(), map[string]any{
 			"ts": timestamp,
 		}))
-		var symbol any = ccxt.GetValue(ticker, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
@@ -551,7 +551,7 @@ func (this *Modetrade) HandleOHLCV(client any, message map[string]any) {
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(data, "type")
 	var timeframe any = this.FindTimeframe(interval)
 	if timeframe == nil {
@@ -635,7 +635,7 @@ func (this *Modetrade) HandleTrade(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var trade any = this.ParseWsTrade(this.Extend(data, map[string]any{
 		"timestamp": timestamp,
 	}), market)
@@ -690,7 +690,7 @@ func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var price *string = this.SafeString2(trade, "executedPrice", "price")
 	var amount *string = this.SafeString2(trade, "executedQuantity", "size")
 	var cost *string = ccxt.Precise.StringMul(price, amount)
@@ -1041,7 +1041,7 @@ func (this *Modetrade) ParseWsOrder(order any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(order, "orderId")
 	var marketId *string = this.SafeString(order, "symbol")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),
@@ -1222,7 +1222,7 @@ func (this *Modetrade) HandleMyTrade(client any, message any) {
 	var messageHash string = "myTrades"
 	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var trade any = this.ParseWsTrade(message, market)
 	var trades any = this.MyTrades
 	if ccxt.IsEqual(trades, nil) {
@@ -1232,7 +1232,7 @@ func (this *Modetrade) HandleMyTrade(client any, message any) {
 	}
 	trades.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
+	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)
 }
 
@@ -1271,8 +1271,8 @@ func (this *Modetrade) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 	symbols = this.MarketSymbols(symbols)
 	if (symbols != nil) && !this.IsEmpty(symbols) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
-			messageHashes = append(messageHashes, ccxt.Add("positions::", symbol))
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+			messageHashes = append(messageHashes, "positions::"+*symbol)
 		}
 	} else {
 		messageHashes = append(messageHashes, "positions")

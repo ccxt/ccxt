@@ -448,7 +448,7 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	var coin *string = this.SafeString(entry, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var rawData any = this.SafeList(entry, "levels", []any{})
 	var data map[string]any = map[string]any{
 		"bids": this.SafeList(rawData, 0, []any{}),
@@ -462,7 +462,7 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -806,7 +806,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) any
 			var name string = ccxt.GetValue(keys, i).(string)
 			var marketId any = this.CoinToMarketId(name)
 			var market any = this.SafeMarket(marketId, nil, nil, "swap")
-			var symbol any = ccxt.GetValue(market, "symbol")
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 			var ticker any = this.ParseWsTicker(map[string]any{
 				"price": this.SafeNumber(mids, name),
 			}, market)
@@ -848,11 +848,11 @@ func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any
 	var coin *string = this.SafeString(data, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var ctx any = this.SafeDict(data, "ctx", map[string]any{})
 	var ticker any = this.ParseWsTicker(ctx, market)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash string = "ticker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	return true
 }
@@ -910,7 +910,7 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 			return nil
 		}()
 		var parsed any = this.ParseWsTrade(rawTrade)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 		ccxt.AddElementToObject(symbols, symbol, true)
 		trades.(ccxt.Appender).Append(parsed)
 	}
@@ -1054,7 +1054,7 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	var coin *string = this.SafeString(first, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
@@ -1066,7 +1066,7 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 		var trade any = this.ParseWsTrade(data)
 		trades.(ccxt.Appender).Append(trade)
 	}
-	var messageHash any = ccxt.Add("trade:", symbol)
+	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
 func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -1111,7 +1111,7 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var coin *string = this.SafeString(trade, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	market = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var id *string = this.SafeString(trade, "tid")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil {
@@ -1690,12 +1690,12 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 	var baseMessageHash string = "clearinghouseState::positions"
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), baseMessageHash))
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash any = func() any {
+		var messageHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(messageHashes) {
 				return ccxt.DerefScalar(messageHashes[i])
 			}
 			return nil
-		}()
+		}())
 		var parts []string = ccxt.Split(messageHash, "::")
 		var symbolsString *string = this.SafeString(parts, 2)
 		if symbolsString == nil {

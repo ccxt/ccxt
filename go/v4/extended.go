@@ -1037,7 +1037,7 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var market any = this.SafeMarket(marketId)
 		var stats map[string]any = MapTyped(this.SafeDict(marketData, "marketStats", map[string]any{}))
 		var ticker any = this.ParseTicker(stats, market)
-		var symbol any = GetValue(ticker, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 		if symbol != nil {
 			AddElementToObject(tickers, symbol, ticker)
 		}

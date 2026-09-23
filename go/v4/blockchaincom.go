@@ -931,7 +931,7 @@ func (this *Blockchaincom) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":   response,
 			"symbol": symbol,
@@ -1106,11 +1106,11 @@ func (this *Blockchaincom) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
-		var feeCurrency any = GetValue(market, "quote")
+		var feeCurrency *string = SafeStringPtr(GetValue(market, "quote"))
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrency,

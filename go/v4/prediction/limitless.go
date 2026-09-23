@@ -338,12 +338,12 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var searchRest any = this.Omit(rest, []any{"limit"})
 		var seen map[string]any = map[string]any{}
 		for i := 0; i < len(queries); i++ {
-			var q any = func() any {
+			var q *string = ccxt.SafeStringPtr(func() any {
 				if i >= 0 && i < len(queries) {
 					return ccxt.DerefScalar(queries[i])
 				}
 				return nil
-			}()
+			}())
 
 			response := (<-this.LimitlessPublicGetMarketsSearch(this.Extend(map[string]any{
 				"query": q,
@@ -2861,8 +2861,8 @@ func (this *Limitless) HashMessage(message any) any {
 }
 func (this *Limitless) SignHash(hash any, privateKey any) any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
-	var r any = signature["r"]
-	var s any = signature["s"]
+	var r *string = ccxt.SafeStringPtr(signature["r"])
+	var s *string = ccxt.SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	var rPadded string = ccxt.PadStart(r, 64, "0")
 	var sPadded string = ccxt.PadStart(s, 64, "0")
@@ -3732,7 +3732,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			if ccxt.IsEqual(queries, nil) {
 				panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 			}
-			var q any = ccxt.GetValue(queries, i)
+			var q *string = ccxt.SafeStringPtr(ccxt.GetValue(queries, i))
 
 			response := (<-this.LimitlessPublicGetMarketsSearch(this.Extend(map[string]any{
 				"query": q,

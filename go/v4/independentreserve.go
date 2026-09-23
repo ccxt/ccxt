@@ -633,7 +633,7 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any
 		defaultMarketId = *baseId + "/" + *quoteId
 	}
 	market = MapTyped(this.SafeMarket(defaultMarketId, market, "/"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var last *string = this.SafeString(ticker, "LastPrice")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1201,7 +1201,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var fee map[string]any = SafeMapTyped(fees, market["base"])
 		AddElementToObject(result, symbol, map[string]any{

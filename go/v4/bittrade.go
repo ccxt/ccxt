@@ -683,7 +683,7 @@ func (this *Bittrade) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) a
 	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, (<-this.FetchTradingLimitsByIdAsync(this.MarketId(symbol), params)))
 	}
 
@@ -1161,7 +1161,7 @@ func (this *Bittrade) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}(), "symbol")
 		var market any = this.SafeMarket(marketId)
-		var symbol any = GetValue(market, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 		var ticker any = this.ParseTicker(func() any {
 			if i >= 0 && i < len(tickers) {
 				return DerefScalar(tickers[i])
@@ -2438,7 +2438,7 @@ func (this *Bittrade) ParseCancelOrders(orders any) any {
 	var failed []any = SafeList2Typed(orders, "errors", "failed")
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(success); i++ {
-		var order any = GetValue(success, i)
+		var order *string = SafeStringPtr(GetValue(success, i))
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
