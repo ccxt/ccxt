@@ -876,8 +876,7 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 		messageHashes = append(messageHashes, ccxt.Add("trade::", market["symbol"]))
 	}
 
-	trades := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -2027,8 +2026,7 @@ func (this *Aster) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var cache any = this.Positions
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (ccxt.IsEqual(cache, nil)) {
 
-		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
-		ccxt.PanicOnError(snapshot)
+		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))))
 
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil
@@ -2267,8 +2265,7 @@ func (this *Aster) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar)
 
-	orders := (<-this.WatchMultiple(url, []any{messageHash}, nil, []any{typeVar}))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiple(url, []any{messageHash}, nil, []any{typeVar}))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -2329,8 +2326,7 @@ func (this *Aster) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar)
 
-	trades := (<-this.WatchMultiple(url, []any{messageHash}, nil, []any{typeVar}))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiple(url, []any{messageHash}, nil, []any{typeVar}))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

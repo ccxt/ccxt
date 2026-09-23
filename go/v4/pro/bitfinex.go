@@ -206,8 +206,7 @@ func (this *Bitfinex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	// not using subscribe here because this message has a different format
 
-	ohlcv := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -376,8 +375,7 @@ func (this *Bitfinex) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	trades := (<-this.SubscribeAsync("trades", symbol, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeAsync("trades", symbol, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -445,8 +443,7 @@ func (this *Bitfinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 	}
 
-	trades := (<-this.SubscribePrivateAsync(messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1402,8 +1399,7 @@ func (this *Bitfinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 	}
 
-	orders := (<-this.SubscribePrivateAsync(messageHash))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

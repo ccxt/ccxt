@@ -196,8 +196,7 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	request = this.DeepExtend(request, params)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 
-	ohlcv := (<-this.Watch(url, messageHash, request, messageHash, request))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -415,8 +414,7 @@ func (this *Blockchaincom) watchTradesBody(ch chan any, symbol any, optionalArgs
 	}
 	request = this.DeepExtend(request, params)
 
-	trades := (<-this.Watch(url, messageHash, request, messageHash, request))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request))))
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
@@ -542,8 +540,7 @@ func (this *Blockchaincom) watchOrdersBody(ch chan any, optionalArgs ...any) any
 	var messageHash string = "orders"
 	var request map[string]any = this.DeepExtend(message, params)
 
-	orders := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

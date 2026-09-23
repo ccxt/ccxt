@@ -139,8 +139,7 @@ func (this *Hashkey) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var topic string = "kline_" + *interval
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
 
-	ohlcv := (<-this.WathPublicAsync(market, topic, messageHash, params))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WathPublicAsync(market, topic, messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -320,8 +319,7 @@ func (this *Hashkey) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var topic string = "trade"
 	var messageHash any = ccxt.Add("trades:", symbol)
 
-	trades := (<-this.WathPublicAsync(market, topic, messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WathPublicAsync(market, topic, messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -495,8 +493,7 @@ func (this *Hashkey) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
 
-	orders := (<-this.WatchPrivateAsync(messageHash))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -644,8 +641,7 @@ func (this *Hashkey) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
 
-	trades := (<-this.WatchPrivateAsync(messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

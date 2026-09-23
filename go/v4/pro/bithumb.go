@@ -747,8 +747,7 @@ func (this *Bithumb) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request = this.Extend(request, params)
 	}
 
-	trades := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1162,8 +1161,7 @@ func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
 
-	orders := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

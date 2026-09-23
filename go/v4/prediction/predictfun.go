@@ -3761,8 +3761,7 @@ func (this *Predictfun) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync()))
 	}
 
-	orders := (<-this.WatchWalletEventsAsync(messageHash, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchWalletEventsAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(outcome, limit)
 	}
@@ -3812,8 +3811,7 @@ func (this *Predictfun) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync()))
 	}
 
-	trades := (<-this.WatchWalletEventsAsync(messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchWalletEventsAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(outcome, limit)
 	}

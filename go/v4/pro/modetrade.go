@@ -515,8 +515,7 @@ func (this *Modetrade) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	ohlcv := (<-this.WatchPublicAsync(topic, message))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(market["symbol"], limit)
 	}
@@ -604,8 +603,7 @@ func (this *Modetrade) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	trades := (<-this.WatchPublicAsync(topic, message))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
 	}
@@ -888,8 +886,7 @@ func (this *Modetrade) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	orders := (<-this.WatchPrivateAsync(messageHash, message))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, message))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -951,8 +948,7 @@ func (this *Modetrade) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	orders := (<-this.WatchPrivateAsync(messageHash, message))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, message))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -1274,8 +1270,7 @@ func (this *Modetrade) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (ccxt.IsEqual(this.Positions, nil)) {
 
-		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
-		ccxt.PanicOnError(snapshot)
+		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))))
 
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil

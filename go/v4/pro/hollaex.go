@@ -176,8 +176,7 @@ func (this *Hollaex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("trade"+":", market["id"])
 
-	trades := (<-this.WatchPublicAsync(messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -260,8 +259,7 @@ func (this *Hollaex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
 	}
 
-	trades := (<-this.WatchPrivateAsync(messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -368,8 +366,7 @@ func (this *Hollaex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
 	}
 
-	orders := (<-this.WatchPrivateAsync(messageHash, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

@@ -190,8 +190,7 @@ func (this *Bittrade) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"params":      params,
 	}
 
-	trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -302,8 +301,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"params":      params,
 	}
 
-	ohlcv := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}

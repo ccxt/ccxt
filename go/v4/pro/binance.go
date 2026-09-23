@@ -1553,8 +1553,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		"id": requestId,
 	}
 
-	trades := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, query), messageHashes, subscribe))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, query), messageHashes, subscribe))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -4387,8 +4386,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan any, optionalArgs ...any) any 
 		"method": this.HandlePositionsWs,
 	}
 
-	result := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(result)
+	var result ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, subscription))))
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
 	return nil
@@ -5328,8 +5326,7 @@ func (this *Binance) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any {
 		"method": this.HandleOrdersWs,
 	}
 
-	orders := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, subscription))))
 
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
 	return nil
@@ -5434,8 +5431,7 @@ func (this *Binance) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any
 		"method": this.HandleOrdersWs,
 	}
 
-	orders := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, subscription))))
 
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
 	return nil
@@ -5512,8 +5508,7 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			"id": stockRequestId,
 		}
 
-		stockOrders := (<-this.Watch(stockUrl, stockMessageHash, this.Extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe))
-		ccxt.PanicOnError(stockOrders)
+		var stockOrders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(stockUrl, stockMessageHash, this.Extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe))))
 		if this.NewUpdates {
 			limit = ccxt.ToGetsLimit(stockOrders).GetLimit(symbol, limit)
 		}
@@ -5574,8 +5569,7 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	this.SetPositionsCache(client, typeVar, nil, isPortfolioMargin)
 	var message any = nil
 
-	orders := (<-this.Watch(url, messageHash, message, typeVar))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, typeVar))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -6242,8 +6236,7 @@ func (this *Binance) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var cache any = this.SafeValue(this.Positions, typeVar)
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (ccxt.IsEqual(cache, nil)) {
 
-		snapshot := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
-		ccxt.PanicOnError(snapshot)
+		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))))
 
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil
@@ -6571,8 +6564,7 @@ func (this *Binance) fetchMyTradesWsBody(ch chan any, optionalArgs ...any) any {
 		"method": this.HandleTradesWs,
 	}
 
-	trades := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, subscription))))
 
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit)
 	return nil
@@ -6638,8 +6630,7 @@ func (this *Binance) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...
 		"method": this.HandleTradesWs,
 	}
 
-	trades := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, subscription))))
 
 	ch <- this.FilterBySinceLimit(trades, since, limit)
 	return nil
@@ -6781,8 +6772,7 @@ func (this *Binance) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	this.SetPositionsCache(client, typeVar, nil, isPortfolioMargin)
 	var message any = nil
 
-	trades := (<-this.Watch(url, messageHash, message, typeVar))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, typeVar))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

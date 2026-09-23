@@ -253,8 +253,7 @@ func (this *Toobit) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		"event":  "sub",
 	}
 
-	trades := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -1060,8 +1059,7 @@ func (this *Toobit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var url any = this.GetUserStreamUrl()
 
-	orders := (<-this.Watch(url, messageHash, params, messageHash))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, params, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -1204,8 +1202,7 @@ func (this *Toobit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var url any = this.GetUserStreamUrl()
 
-	trades := (<-this.Watch(url, messageHash, params, messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, params, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1320,8 +1317,7 @@ func (this *Toobit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var cache any = this.SafeValue(this.Positions, typeVar)
 	if ccxt.IsEqual(cache, nil) {
 
-		snapshot := (<-client.(ccxt.ClientInterface).Future(typeVar + ":fetchPositionsSnapshot"))
-		ccxt.PanicOnError(snapshot)
+		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(typeVar + ":fetchPositionsSnapshot"))))
 
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil

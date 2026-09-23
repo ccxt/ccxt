@@ -497,8 +497,7 @@ func (this *Cryptocom) watchTradesForSymbolsBody(ch chan any, symbols any, optio
 		topics = append(topics, currentTopic)
 	}
 
-	trades := (<-this.WatchPublicMultipleAsync(topics, topics, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicMultipleAsync(topics, topics, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -641,8 +640,7 @@ func (this *Cryptocom) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return messageHash
 	}()
 
-	trades := (<-this.WatchPrivateSubscribeAsync(messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateSubscribeAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1030,8 +1028,7 @@ func (this *Cryptocom) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add("candlestick"+"."+*interval+".", market["id"])
 
-	ohlcv := (<-this.WatchPublicAsync(messageHash, params))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -1157,8 +1154,7 @@ func (this *Cryptocom) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return messageHash
 	}()
 
-	orders := (<-this.WatchPrivateSubscribeAsync(messageHash, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateSubscribeAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -1281,8 +1277,7 @@ func (this *Cryptocom) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (ccxt.IsEqual(this.Positions, nil)) {
 
-		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
-		ccxt.PanicOnError(snapshot)
+		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))))
 
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil

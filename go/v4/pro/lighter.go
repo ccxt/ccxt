@@ -819,8 +819,7 @@ func (this *Lighter) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var messageHash any = this.GetMessageHash("trade", market["symbol"])
 
-	trades := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))))
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
@@ -1087,8 +1086,7 @@ func (this *Lighter) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"channel": ccxt.Add("account_all_trades/", this.NumberToString(accountIndex)),
 	}
 
-	trades := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1482,8 +1480,7 @@ func (this *Lighter) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["channel"] = ccxt.Add("account_all_orders/", this.NumberToString(accountIndex))
 	}
 
-	orders := (<-this.SubscribePrivateAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(messageHash, this.Extend(request, params)))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

@@ -744,8 +744,7 @@ func (this *Hitbtc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var name string = "trades"
 
-	trades := (<-this.SubscribePublicAsync(name, "trades", []any{symbol}, this.DeepExtend(request, params)))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePublicAsync(name, "trades", []any{symbol}, this.DeepExtend(request, params)))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -908,8 +907,7 @@ func (this *Hitbtc) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		ccxt.AddElementToObject(request["params"], "limit", limit)
 	}
 
-	ohlcv := (<-this.SubscribePublicAsync(name, "candles", []any{symbol}, this.DeepExtend(request, params)))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePublicAsync(name, "candles", []any{symbol}, this.DeepExtend(request, params)))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -1045,8 +1043,7 @@ func (this *Hitbtc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"future": "futures_subscribe",
 	})
 
-	orders := (<-this.SubscribePrivateAsync(name, symbol, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(name, symbol, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

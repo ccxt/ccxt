@@ -495,8 +495,7 @@ func (this *Bingx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		"id":          uuid,
 	}
 
-	trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1264,8 +1263,7 @@ func (this *Bingx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"id":          uuid,
 	}
 
-	orders := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash, subscription))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -1364,8 +1362,7 @@ func (this *Bingx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"id":          uuid,
 	}
 
-	trades := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash, subscription))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1582,8 +1579,7 @@ func (this *Bingx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && ccxt.IsEqual(this.Positions, nil) {
 
-		snapshot := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
-		ccxt.PanicOnError(snapshot)
+		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))))
 
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil

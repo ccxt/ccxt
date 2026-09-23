@@ -307,8 +307,7 @@ func (this *Okx) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 	}
 	var url any = this.GetUrl(channel, access)
 
-	trades := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -1401,8 +1400,7 @@ func (this *Okx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "candle" + *interval
 
-	ohlcv := (<-this.SubscribeAsync("public", name, name, symbol, params))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeAsync("public", name, name, symbol, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -2358,8 +2356,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"instType": uppercaseType,
 	}
 
-	orders := (<-this.SubscribeAsync("private", messageHash, channel, nil, this.Extend(request, params)))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeAsync("private", messageHash, channel, nil, this.Extend(request, params)))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -2626,8 +2623,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return "orders"
 	}()
 
-	orders := (<-this.SubscribeAsync("private", channel, channel, symbol, this.Extend(request, params)))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeAsync("private", channel, channel, symbol, this.Extend(request, params)))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

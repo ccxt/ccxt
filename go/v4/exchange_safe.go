@@ -133,6 +133,8 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 	// handle slices
 	case []any:
 		return getValueFromList(v, keys, defVal)
+	case ListCache:
+		return getValueFromList([]any(v), keys, defVal)
 	case []string:
 		return getValueFromList(v, keys, defVal)
 	case []int:

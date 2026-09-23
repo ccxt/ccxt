@@ -93,8 +93,7 @@ func (this *Gemini) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var subscribeHash any = ccxt.Add("l2:", market["symbol"])
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v2/marketdata")
 
-	trades := (<-this.Watch(url, messageHash, request, subscribeHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscribeHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
 	}
@@ -129,8 +128,7 @@ func (this *Gemini) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	trades := (<-this.HelperForWatchMultipleConstructAsync("trades", symbols, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.HelperForWatchMultipleConstructAsync("trades", symbols, params))))
 	if this.NewUpdates {
 		var first []any = ccxt.SafeListTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -354,8 +352,7 @@ func (this *Gemini) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", market["symbol"]), ":"), timeframeId)
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v2/marketdata")
 
-	ohlcv := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -832,8 +829,7 @@ func (this *Gemini) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash string = "orders"
 
-	orders := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

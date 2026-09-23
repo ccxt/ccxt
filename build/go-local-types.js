@@ -5176,6 +5176,64 @@ function ccxtGoAwaitSpecialReceive (goTranspiler, awaitNode, text) {
     return undefined;
 }
 
+// ws list streams (watchTrades/Orders/OHLCV/Positions...): a method declared Promise<T[]> whose
+// awaited local is only read as a cache (getLimit, filterBy*, positional safe* reads) holds an
+// ArrayCache or a plain list; AsArrayCache names both, and an absent value stays untyped nil
+const CCXT_GO_WS_LIST_POSITIONAL_READS = [ 'safeDict', 'safeList', 'safeValue' ];
+
+function ccxtGoWsListSourceFile (node) {
+    let current = node;
+    while ((current !== undefined) && (current.parent !== undefined)) {
+        current = current.parent;
+    }
+    const fileName = String (current?.fileName ?? '');
+    return /(^|[\\/])ts[\\/]src[\\/](pro|prediction)[\\/]/.test (fileName) && !/[\\/]test[\\/]/.test (fileName);
+}
+
+function ccxtGoWsListStreamRead (n) {
+    const parent = n.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    if ((parent.kind === ts.SyntaxKind.PropertyAccessExpression) && (parent.expression === n)) {
+        const call = parent.parent;
+        return (parent.name?.escapedText === 'getLimit') && (call?.kind === ts.SyntaxKind.CallExpression) && (call.expression === parent);
+    }
+    if ((parent.kind !== ts.SyntaxKind.CallExpression) || (parent.arguments?.[0] !== n)) {
+        return false;
+    }
+    const callee = parent.expression;
+    if ((callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) || (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword)) {
+        return false;
+    }
+    const name = String (callee.name?.escapedText ?? '');
+    if (/^filterBy\w*$/.test (name)) {
+        return true;
+    }
+    return (CCXT_GO_WS_LIST_POSITIONAL_READS.indexOf (name) >= 0) && (parent.arguments.length === 2)
+        && (parent.arguments[1].kind === ts.SyntaxKind.NumericLiteral);
+}
+
+function ccxtGoWsListStreamReceive (goTranspiler, awaitNode) {
+    const declaration = ccxtGoAsyncReceiveDeclaration (awaitNode);
+    if ((declaration === undefined) || (declaration.name?.kind !== ts.SyntaxKind.Identifier)
+        || (declaration.initializer !== awaitNode) || (typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function')
+        || !ccxtGoWsListSourceFile (awaitNode)) {
+        return undefined;
+    }
+    const method = (typeof goTranspiler.goEnclosingFunction === 'function') ? goTranspiler.goEnclosingFunction (declaration) : undefined;
+    if ((method?.kind !== ts.SyntaxKind.MethodDeclaration) || !/^Promise<\s*\w+\[\]\s*>$/.test (method.type?.getText?. () ?? '')) {
+        return undefined;
+    }
+    if (scopeMentionsIdentifier (method, 'ArrayCacheInterface') || scopeMentionsIdentifier (method, 'AsArrayCache')) {
+        return undefined;
+    }
+    if (goTranspiler.goDeclaredLocalTypeIfSafe (declaration, 'ArrayCacheInterface', ccxtGoWsListStreamRead) === undefined) {
+        return undefined;
+    }
+    return { goType: 'ArrayCacheInterface', wrap: (recv) => 'AsArrayCache(PanicOnError(' + recv.trim () + '))' };
+}
+
 // The hook the printer consults for all three await shapes.  Fail closed: undefined keeps the
 // boxed `x := (<-...)` + `PanicOnError(x)` emission byte-for-byte.
 export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitializer) {
@@ -5183,6 +5241,10 @@ export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitial
         return undefined;
     }
     const text = (printedInitializer ?? '').replace (/\s+/g, ' ').trim ();
+    const wsList = ccxtGoWsListStreamReceive (goTranspiler, awaitNode);
+    if (wsList !== undefined) {
+        return wsList;
+    }
     const special = ccxtGoAwaitSpecialReceive (goTranspiler, awaitNode, text);
     if (special !== undefined) {
         return special;

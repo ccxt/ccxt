@@ -419,8 +419,7 @@ func (this *Grvt) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 		"selectors": rawHashes,
 	}
 
-	trades := (<-this.SubscribeMultipleAsync(messageHashes, this.Extend(params, request), rawHashes))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMultipleAsync(messageHashes, this.Extend(params, request), rawHashes))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -879,8 +878,7 @@ func (this *Grvt) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"selectors": rawHashes,
 	}
 
-	trades := (<-this.SubscribeMultipleAsync(messageHashes, this.Extend(request, params), messageHashes, false))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMultipleAsync(messageHashes, this.Extend(request, params), messageHashes, false))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1101,8 +1099,7 @@ func (this *Grvt) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"selectors": rawHashes,
 	}
 
-	orders := (<-this.SubscribeMultipleAsync(messageHashes, this.Extend(request, params), rawHashes, false))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMultipleAsync(messageHashes, this.Extend(request, params), rawHashes, false))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

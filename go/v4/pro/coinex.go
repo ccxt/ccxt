@@ -518,8 +518,7 @@ func (this *Coinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	trades := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1189,8 +1188,7 @@ func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
 	var request map[string]any = this.DeepExtend(message, params)
 
-	orders := (<-this.Watch(url, messageHash, request, messageHash, request))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

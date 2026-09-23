@@ -240,11 +240,10 @@ func (this *Extended) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
 
-	orders := (<-this.WatchPrivateAsync(messageHash, map[string]any{
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, map[string]any{
 		"symbol": symbol,
 		"limit":  limit,
-	}))
-	ccxt.PanicOnError(orders)
+	}))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -383,11 +382,10 @@ func (this *Extended) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
 
-	trades := (<-this.WatchPrivateAsync(messageHash, map[string]any{
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, map[string]any{
 		"symbol": symbol,
 		"limit":  limit,
-	}))
-	ccxt.PanicOnError(trades)
+	}))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -835,11 +833,10 @@ func (this *Extended) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		url = ccxt.Add(url, "?"+query)
 	}
 
-	trades := (<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
 		"symbol": symbol,
 		"limit":  limit,
-	}))
-	ccxt.PanicOnError(trades)
+	}))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -950,15 +947,14 @@ func (this *Extended) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}, params))
 	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/candles/"), market["id"]), "/"), candleType), "?"), query)
 
-	ohlcv := (<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
 		"name":        "ohlcv",
 		"symbol":      symbol,
 		"timeframe":   timeframe,
 		"candleType":  candleType,
 		"limit":       limit,
 		"messageHash": messageHash,
-	}))
-	ccxt.PanicOnError(ohlcv)
+	}))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}

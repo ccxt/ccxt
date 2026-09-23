@@ -715,8 +715,7 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan any, optionalArgs ...any) any
 	}
 	var subscribeHash string = "subscribe:userFills::" + ccxt.ToLower(userAddress)
 
-	trades := (<-this.Watch(url, messageHash, message, subscribeHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, subscribeHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -961,8 +960,7 @@ func (this *Hyperliquid) watchTradesBody(ch chan any, symbol any, optionalArgs .
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	trades := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1182,8 +1180,7 @@ func (this *Hyperliquid) watchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	var messageHash any = ccxt.Add("candles:"+timeframe+":", symbol)
 	var message map[string]any = this.Extend(request, params)
 
-	ohlcv := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -1802,8 +1799,7 @@ func (this *Hyperliquid) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var subscribeHash string = "subscribe:orderUpdates::" + ccxt.ToLower(userAddress)
 
-	orders := (<-this.Watch(url, messageHash, message, subscribeHash))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, subscribeHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

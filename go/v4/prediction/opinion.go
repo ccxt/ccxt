@@ -2603,8 +2603,7 @@ func (this *Opinion) watchTradesBody(ch chan any, outcome any, optionalArgs ...a
 	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var messageHash any = ccxt.Add("trades::", sym)
 
-	trades := (<-this.SubscribeOpinionChannelAsync(messageHash, "market.last.trade", marketId))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeOpinionChannelAsync(messageHash, "market.last.trade", marketId))))
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
@@ -2695,8 +2694,7 @@ func (this *Opinion) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marketId *int64 = this.SafeInteger(info, "marketId")
 	var messageHash string = "orders"
 
-	orders := (<-this.SubscribeOpinionChannelAsync(messageHash, "trade.order.update", marketId))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeOpinionChannelAsync(messageHash, "trade.order.update", marketId))))
 	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
 
 	ch <- this.FilterByValueSinceLimit(orders, "outcome", sym, since, limit, "timestamp", true)
@@ -2840,8 +2838,7 @@ func (this *Opinion) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var marketId *int64 = this.SafeInteger(info, "marketId")
 	var messageHash string = "myTrades"
 
-	trades := (<-this.SubscribeOpinionChannelAsync(messageHash, "trade.record.new", marketId))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeOpinionChannelAsync(messageHash, "trade.record.new", marketId))))
 	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
 
 	ch <- this.FilterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true)

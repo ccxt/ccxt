@@ -118,8 +118,7 @@ func (this *Nado) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("trade:", market["symbol"])
 
-	trades := (<-this.WatchPublicAsync("trade", market, messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync("trade", market, messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
 	}
@@ -194,8 +193,7 @@ func (this *Nado) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 		messageHashes = append(messageHashes, ccxt.Add("trade:", market["symbol"]))
 	}
 
-	trades := (<-this.WatchPublicMultipleAsync("trade", markets, messageHashes, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicMultipleAsync("trade", markets, messageHashes, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -875,8 +873,7 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"product_id": productId,
 	}
 
-	orders := (<-this.WatchPrivateAsync("order_update", stream, messageHash, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync("order_update", stream, messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -990,8 +987,7 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"product_id": productId,
 	}
 
-	trades := (<-this.WatchPrivateAsync("fill", stream, messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync("fill", stream, messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

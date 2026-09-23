@@ -399,8 +399,7 @@ func (this *Krakenfutures) watchTradesForSymbolsBody(ch chan any, symbols any, o
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	trades := (<-this.WatchMultiHelperAsync("trade", "trade", symbols, nil, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("trade", "trade", symbols, nil, params))))
 	if this.NewUpdates {
 		var first []any = ccxt.SafeListTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -669,8 +668,7 @@ func (this *Krakenfutures) watchOrdersBody(ch chan any, optionalArgs ...any) any
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["symbol"]))
 	}
 
-	orders := (<-this.SubscribePrivateAsync(name, messageHash, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(name, messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -717,8 +715,7 @@ func (this *Krakenfutures) watchMyTradesBody(ch chan any, optionalArgs ...any) a
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["symbol"]))
 	}
 
-	trades := (<-this.SubscribePrivateAsync(name, messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(name, messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

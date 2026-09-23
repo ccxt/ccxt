@@ -4431,8 +4431,7 @@ func (this *Polymarket) watchTradesBody(ch chan any, outcome any, optionalArgs .
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 
-	trades := (<-this.Watch(url, messageHash, subscribeMsg, subscribeHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, subscribeMsg, subscribeHash))))
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
@@ -4577,8 +4576,7 @@ func (this *Polymarket) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add("orders::", outcome)
 	}
 
-	orders := (<-this.SubscribeUserChannelAsync(messageHash, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeUserChannelAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(outcome, limit)
 	}
@@ -4624,8 +4622,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		messageHash = ccxt.Add("myTrades::", outcome)
 	}
 
-	trades := (<-this.SubscribeUserChannelAsync(messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeUserChannelAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(outcome, limit)
 	}

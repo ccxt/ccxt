@@ -143,8 +143,7 @@ func (this *Blofin) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	trades := (<-this.WatchMultipleWrapperAsync(true, "trades", "watchTradesForSymbols", symbols, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultipleWrapperAsync(true, "trades", "watchTradesForSymbols", symbols, params))))
 	if this.NewUpdates {
 		var firstMarket map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var firstSymbol *string = this.SafeString(firstMarket, "symbol")
@@ -780,8 +779,7 @@ func (this *Blofin) watchOrdersForSymbolsBody(ch chan any, symbols any, optional
 		return "orders"
 	}()
 
-	orders := (<-this.WatchMultipleWrapperAsync(false, channel, "watchOrdersForSymbols", symbols, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultipleWrapperAsync(false, channel, "watchOrdersForSymbols", symbols, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(orders, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")

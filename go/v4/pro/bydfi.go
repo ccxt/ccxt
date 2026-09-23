@@ -841,8 +841,7 @@ func (this *Bydfi) watchOrdersForSymbolsBody(ch chan any, symbols any, optionalA
 		}
 	}
 
-	orders := (<-this.WatchPrivateAsync(messageHashes, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHashes, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(orders, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")

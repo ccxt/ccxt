@@ -216,8 +216,7 @@ func (this *Upbit) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	trades := (<-this.WatchPublicMultipleAsync(symbols, "trade"))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicMultipleAsync(symbols, "trade"))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -583,8 +582,7 @@ func (this *Upbit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var channel string = "myOrder"
 	var messageHash string = "myOrder"
 
-	orders := (<-this.WatchPrivateAsync(symbol, channel, messageHash))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(symbol, channel, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -627,8 +625,7 @@ func (this *Upbit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var channel string = "myOrder"
 	var messageHash string = "myTrades"
 
-	trades := (<-this.WatchPrivateAsync(symbol, channel, messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(symbol, channel, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

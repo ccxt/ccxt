@@ -1665,7 +1665,7 @@ func IsArray(v any) bool {
 		// predicate was the missing piece failing every ws orderbook structure
 		// assert in the Go test lane
 		return true
-	case []map[string]any:
+	case []map[string]any, ListCache:
 		return true
 	case []string, []bool:
 		return true

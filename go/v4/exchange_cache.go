@@ -13,7 +13,39 @@ package ccxt
 // are required for those flows: Append() and ToArray().  Everything else can be
 // added later if/when the need arises.
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
+
+// ArrayCacheInterface is the value a ws list stream resolves: one of the caches, or a plain list.
+type ArrayCacheInterface interface {
+	ToArray() []any
+	GetLimit(symbol any, limit any) any
+}
+
+// ListCache carries a plain resolved list; GetLimit answers the caller's limit like NoopLimit.
+type ListCache []any
+
+func (l ListCache) ToArray() []any                     { return []any(l) }
+func (l ListCache) GetLimit(symbol any, limit any) any { return limit }
+
+// AsArrayCache types a received ws list: caches pass through, a list becomes ListCache, absent stays nil.
+func AsArrayCache(v any) ArrayCacheInterface {
+	v = derefScalar(v)
+	switch c := v.(type) {
+	case nil:
+		return nil
+	case ArrayCacheInterface:
+		return c
+	case []any:
+		return ListCache(c)
+	}
+	if list, ok := castToSlice(v); ok {
+		return ListCache(list)
+	}
+	panic(fmt.Sprintf("AsArrayCache: a ws list stream resolved %T", v))
+}
 
 type Appender interface{ Append(any) }
 

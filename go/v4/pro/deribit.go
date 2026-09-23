@@ -507,8 +507,7 @@ func (this *Deribit) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	}
 
-	trades := (<-this.WatchMultipleWrapperAsync("trades", interval, symbols, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultipleWrapperAsync("trades", interval, symbols, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -617,8 +616,7 @@ func (this *Deribit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	trades := (<-this.Watch(url, channel, request, channel, request))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, channel, request, channel, request))))
 
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
@@ -941,8 +939,7 @@ func (this *Deribit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	orders := (<-this.Watch(url, channel, request, channel, request))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, channel, request, channel, request))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

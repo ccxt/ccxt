@@ -3383,8 +3383,7 @@ func (this *Sxbet) watchTradesBody(ch chan any, outcome any, optionalArgs ...any
 	var sym *string = this.SafeString(outcomeObj, "outcome")
 	var messageHash any = ccxt.Add("trades::", sym)
 
-	trades := (<-this.SubscribeSxbetChannelAsync(messageHash, "recent_trades_v3:global"))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeSxbetChannelAsync(messageHash, "recent_trades_v3:global"))))
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
@@ -3506,8 +3505,7 @@ func (this *Sxbet) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var channel any = ccxt.Add("account:fills_v3_#", this.WalletAddress)
 
-	trades := (<-this.SubscribeSxbetChannelAsync(messageHash, channel))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeSxbetChannelAsync(messageHash, channel))))
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
@@ -3575,8 +3573,7 @@ func (this *Sxbet) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var channel any = ccxt.Add("account:orders_v3_#", this.WalletAddress)
 
-	orders := (<-this.SubscribeSxbetChannelAsync(messageHash, channel))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeSxbetChannelAsync(messageHash, channel))))
 
 	ch <- this.FilterBySinceLimit(orders, since, limit, "timestamp", true)
 	return nil

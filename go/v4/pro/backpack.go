@@ -923,8 +923,7 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan any, symbols any, option
 		messageHashes = append(messageHashes, "trades:"+*symbol)
 	}
 
-	trades := (<-this.WatchPublicAsync(topics, messageHashes, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(topics, messageHashes, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -1339,8 +1338,7 @@ func (this *Backpack) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add("orders:", symbol)
 	}
 
-	orders := (<-this.WatchPrivateAsync([]any{topic}, []any{messageHash}, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync([]any{topic}, []any{messageHash}, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

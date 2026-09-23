@@ -81,8 +81,7 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "?subscribe=ticker-"), market["base"]), "-"), market["quote"])
 	var messageHash any = ccxt.Add("trades:", symbol)
 
-	trades := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash))))
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil

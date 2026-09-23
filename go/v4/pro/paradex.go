@@ -152,8 +152,7 @@ func (this *Paradex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		},
 	}
 
-	trades := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -452,8 +451,7 @@ func (this *Paradex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		},
 	}
 
-	orders := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), channel))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), channel))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

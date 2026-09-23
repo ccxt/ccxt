@@ -185,8 +185,7 @@ func (this *Bitopro) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("TRADE"+":", symbol)
 
-	trades := (<-this.WatchPublicAsync("trades", messageHash, market["id"]))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync("trades", messageHash, market["id"]))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -273,8 +272,7 @@ func (this *Bitopro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "user-trades")
 	this.Authenticate(url)
 
-	trades := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

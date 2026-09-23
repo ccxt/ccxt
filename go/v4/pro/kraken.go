@@ -936,8 +936,7 @@ func (this *Kraken) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	trades := (<-this.WatchMultiHelperAsync("trade", "trade", symbols, nil, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("trade", "trade", symbols, nil, params))))
 	if this.NewUpdates {
 		var first []any = ccxt.SafeListTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -1061,8 +1060,7 @@ func (this *Kraken) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	ohlcv := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}

@@ -117,8 +117,7 @@ func (this *Whitebit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var reqParams []any = []any{marketId, interval}
 	var method string = "candles_subscribe"
 
-	ohlcv := (<-this.WatchPublicAsync(messageHash, method, reqParams, params))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, method, reqParams, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -458,8 +457,7 @@ func (this *Whitebit) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var method string = "trades_subscribe"
 	// every time we want to subscribe to another market we have to 're-subscribe' sending it all again
 
-	trades := (<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, false, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, false, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -552,8 +550,7 @@ func (this *Whitebit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = ccxt.Add("myTrades:", symbol)
 	var method string = "deals_subscribe"
 
-	trades := (<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, true, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, true, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -707,8 +704,7 @@ func (this *Whitebit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = ccxt.Add("orders:", symbol)
 	var method string = "ordersPending_subscribe"
 
-	trades := (<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, false, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, false, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

@@ -318,8 +318,7 @@ func (this *Htx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	var messageHash any = ccxt.Add(ccxt.Add("market.", market["id"]), ".trade.detail")
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"])
 
-	trades := (<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -454,8 +453,7 @@ func (this *Htx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".kline."), interval)
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"])
 
-	ohlcv := (<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -1282,8 +1280,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"isV5": isV5Linear,
 	}
 
-	orders := (<-this.SubscribePrivateAsync(channel, messageHash, typeVar, subType, params, subscriptionParams))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(channel, messageHash, typeVar, subType, params, subscriptionParams))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

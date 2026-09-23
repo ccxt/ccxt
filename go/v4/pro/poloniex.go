@@ -506,8 +506,7 @@ func (this *Poloniex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		panic(ccxt.BadRequest(this.Id + " watchOHLCV cannot take a timeframe of " + timeframe))
 	}
 
-	ohlcv := (<-this.SubscribeAsync(channel, channel, false, []any{symbol}, params))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeAsync(channel, channel, false, []any{symbol}, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -663,8 +662,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 		}
 	}
 
-	trades := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -757,8 +755,7 @@ func (this *Poloniex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return []any{symbol}
 	}()
 
-	orders := (<-this.SubscribeAsync(name, name, true, symbols, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeAsync(name, name, true, symbols, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -812,8 +809,7 @@ func (this *Poloniex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return []any{symbol}
 	}()
 
-	trades := (<-this.SubscribeAsync(name, messageHash, true, symbols, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeAsync(name, messageHash, true, symbols, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

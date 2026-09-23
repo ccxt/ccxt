@@ -686,8 +686,7 @@ func (this *Bitget) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		messageHash = ccxt.Add("candles:"+timeframe+":", symbol)
 	}
 
-	ohlcv := (<-this.WatchPublicAsync(uta, messageHash, args, params))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(uta, messageHash, args, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -1371,8 +1370,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		})
 	}
 
-	trades := (<-this.WatchPublicMultipleAsync(uta, messageHashes, topics, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicMultipleAsync(uta, messageHashes, topics, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -2102,8 +2100,7 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		})
 	}
 
-	orders := (<-this.WatchPrivateAsync(uta, messageHash, subscriptionHash, args, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(uta, messageHash, subscriptionHash, args, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -2627,8 +2624,7 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		})
 	}
 
-	trades := (<-this.WatchPrivateAsync(uta, messageHash, subscriptionHash, args, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(uta, messageHash, subscriptionHash, args, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

@@ -594,8 +594,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan any, symbol any, optio
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(options, timeframe, timeframe)
 
-	ohlcv := (<-this.SubscribeAsync(interval, []any{symbol}, params))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeAsync(interval, []any{symbol}, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -707,8 +706,7 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan any, symbol
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 
-	trades := (<-this.SubscribeMultipleAsync("MATCH", symbols, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMultipleAsync("MATCH", symbols, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
