@@ -1541,7 +1541,7 @@ public class Bingx extends BingxApi
         String currency = this.safeString(market, "currency");
         Object checkIsInverse = false;
         Object checkIsLinear = true;
-        Object inverseContractSize = this.safeNumber(market, "minTickSize");
+        Double inverseContractSize = this.safeNumber(market, "minTickSize");
         if (!java.util.Objects.equals(inverseContractSize, null))
         {
             // inverse swap market
@@ -1587,7 +1587,7 @@ public class Bingx extends BingxApi
         }
         Object isInverse = ((Boolean.TRUE.equals(spot))) ? null : checkIsInverse;
         Object isLinear = ((Boolean.TRUE.equals(spot))) ? null : checkIsLinear;
-        Object minAmount = null;
+        Double minAmount = null;
         if (!Boolean.TRUE.equals(spot))
         {
             minAmount = this.safeNumber2(market, "minQty", "tradeMinQuantity");
@@ -2767,11 +2767,11 @@ public class Bingx extends BingxApi
         Long timestamp = (Long) this.safeInteger2(interest, "time", "timestamp");
         String id = this.safeString(interest, "symbol");
         String symbol = this.safeSymbol(id, market, "-", "swap");
-        Object openInterest = this.safeNumber(interest, "openInterest");
+        Double openInterest = this.safeNumber(interest, "openInterest");
         Boolean inverse = (Boolean) this.safeBool(market, "inverse", false);
         Boolean isInverse = (java.util.Objects.equals(inverse, true));
-        Object openInterestAmount = ((Boolean.TRUE.equals(isInverse))) ? openInterest : null;
-        Object openInterestValue = ((Boolean.TRUE.equals(isInverse))) ? null : openInterest;
+        Double openInterestAmount = ((Boolean.TRUE.equals(isInverse))) ? openInterest : null;
+        Double openInterestValue = ((Boolean.TRUE.equals(isInverse))) ? null : openInterest;
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "baseVolume", null );

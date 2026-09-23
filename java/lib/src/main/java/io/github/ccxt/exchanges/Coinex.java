@@ -2720,8 +2720,8 @@ public class Coinex extends CoinexApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String rawStatus = this.safeString(order, "status");
         Long timestamp = this.safeInteger(order, "created_at");
-        Object updatedTimestamp = this.safeInteger(order, "updated_at");
-        if (Helpers.isEqual(updatedTimestamp, 0))
+        Long updatedTimestamp = this.safeInteger(order, "updated_at");
+        if ((updatedTimestamp != null && updatedTimestamp == 0))
         {
             updatedTimestamp = timestamp;
         }
@@ -2931,7 +2931,7 @@ public class Coinex extends CoinexApi
                 List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                Object cost = this.safeNumber(parameters, "cost");
+                Double cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
@@ -5646,8 +5646,8 @@ final Object finalI = i;
         market = this.safeMarket(marketId, market, null, "spot");
         String currency = this.safeString(info, "ccy");
         Double rate = this.safeNumber(info, "daily_interest_rate");
-        Object baseRate = null;
-        Object quoteRate = null;
+        Double baseRate = null;
+        Double quoteRate = null;
         if (java.util.Objects.equals(currency, ((Map<String, Object>)market).get("baseId")))
         {
             baseRate = rate;

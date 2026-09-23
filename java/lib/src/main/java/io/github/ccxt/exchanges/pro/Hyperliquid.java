@@ -1370,7 +1370,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Object info = null;
         Object rawBalances = new ArrayList<Object>(Arrays.asList());
         String account = null;
-        Object timestamp = null;
+        Long timestamp = null;
         Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(topic, "spotState"))
         {
@@ -1437,7 +1437,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Object accountType = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> account = (Map<String, Object>) this.account();
         String currencyId = this.safeString(balance, "coin");
-        Object code = null;
+        String code = null;
         if (java.util.Objects.equals(currencyId, null))
         {
             code = "USDC";

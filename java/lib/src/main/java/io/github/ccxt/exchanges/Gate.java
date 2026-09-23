@@ -3612,7 +3612,7 @@ public class Gate extends GateApi
                 withdrawFees = new HashMap<String, Object>() {{}};
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 String currencyId = this.safeString(entry, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 if ((!java.util.Objects.equals(codes, null)) && !this.inArray(code, codes))
                 {
                     continue;
@@ -3635,7 +3635,7 @@ public class Gate extends GateApi
                     }
                 }
                 final Object finalWithdrawFees = withdrawFees;
-                ((Map<String, Object>)result).put((String)((String)code), new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "withdraw", finalWithdrawFees );
         put( "deposit", null );
         put( "info", entry );
@@ -4596,14 +4596,14 @@ public class Gate extends GateApi
                 {
                     Map<String, Object> base = (Map<String, Object>) this.safeDict(entry, "base", new HashMap<String, Object>() {{}});
                     Map<String, Object> quote = (Map<String, Object>) this.safeDict(entry, "quote", new HashMap<String, Object>() {{}});
-                    Object baseCode = this.safeCurrencyCode(this.safeString(base, "currency"));
-                    Object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), ((String)baseCode), (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (base))));
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), ((String)quoteCode), (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (quote))));
+                    String baseCode = this.safeCurrencyCode(this.safeString(base, "currency"));
+                    String quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (base))));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (quote))));
                 } else
                 {
-                    Object code = this.safeCurrencyCode(this.safeString(entry, "currency"));
-                    ((Map<String, Object>)result).put((String)((String)code), this.parseBalanceHelper((Map<String, Object>) (entry)));
+                    String code = this.safeCurrencyCode(this.safeString(entry, "currency"));
+                    ((Map<String, Object>)result).put((String)code, this.parseBalanceHelper((Map<String, Object>) (entry)));
                 }
             }
             return this.safeBalance(result);
@@ -6834,8 +6834,8 @@ final Object finalRebate = rebate;
                 amount = Precise.stringDiv(amount, averageString);
             }
         }
-        Object timestamp = null;
-        Object lastTradeTimestamp = null;
+        Long timestamp = null;
+        Long lastTradeTimestamp = null;
         if (!java.util.Objects.equals(timestampStr, null))
         {
             timestamp = this.parseToInt(timestampStr);
@@ -8666,7 +8666,7 @@ final Object finalFloor = floor;
         for (var i = 0; i < ((List<?>)info).size(); i++)
         {
             Object item = (info == null || i < 0 || i >= ((List<?>)info).size() ? null : ((List<?>)info).get(i));
-            Object maxNotional = this.safeNumber(item, "risk_limit");
+            Double maxNotional = this.safeNumber(item, "risk_limit");
 final Object finalI = i;
             final Object finalMinNotional = minNotional;
                         ((List<Object>)tiers).add(new HashMap<String, Object>() {{

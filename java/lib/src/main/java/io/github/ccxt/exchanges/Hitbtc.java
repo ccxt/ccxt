@@ -934,7 +934,7 @@ public class Hitbtc extends HitbtcApi
                 String quote = this.safeCurrencyCode(quoteId);
                 String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
                 String settleId = null;
-                Object settle = null;
+                String settle = null;
                 Object symbol = ((base + "/") + quote);
                 String type = "spot";
                 Object contractSize = null;
@@ -1671,7 +1671,7 @@ public class Hitbtc extends HitbtcApi
         Object fee = null;
         String feeCostString = this.safeString(trade, "fee");
         Boolean taker = (Boolean) this.safeBool(trade, "taker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (!java.util.Objects.equals(taker, null))
         {
             takerOrMaker = (((java.util.Objects.equals(taker, true)))) ? "taker" : "maker";
@@ -3172,7 +3172,7 @@ public class Hitbtc extends HitbtcApi
         String created = this.safeString(order, "created_at");
         Long timestamp = this.parse8601(created);
         String updated = this.safeString(order, "updated_at");
-        Object lastTradeTimestamp = null;
+        Long lastTradeTimestamp = null;
         if (!java.util.Objects.equals(updated, created))
         {
             lastTradeTimestamp = this.parse8601(updated);
@@ -3861,9 +3861,9 @@ public class Hitbtc extends HitbtcApi
         Double leverage = this.safeNumber(position, "leverage");
         String datetime = this.safeString(position, "updated_at");
         List<Object> positions = (List<Object>) this.safeList(position, "positions", new ArrayList<Object>(Arrays.asList()));
-        Object liquidationPrice = null;
-        Object entryPrice = null;
-        Object contracts = null;
+        Double liquidationPrice = null;
+        Double entryPrice = null;
+        Double contracts = null;
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
             Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
@@ -3872,7 +3872,7 @@ public class Hitbtc extends HitbtcApi
             contracts = this.safeNumber(entry, "quantity");
         }
         List<Object> currencies = (List<Object>) this.safeList(position, "currencies", new ArrayList<Object>(Arrays.asList()));
-        Object collateral = null;
+        Double collateral = null;
         for (var i = 0; i < ((List<?>)currencies).size(); i++)
         {
             Object entry = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));

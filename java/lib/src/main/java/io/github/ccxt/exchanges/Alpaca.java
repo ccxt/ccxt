@@ -788,7 +788,7 @@ public class Alpaca extends AlpacaApi
         Double minAmount = this.safeNumber(asset, "min_order_size");
         Double amount = this.safeNumber(asset, "min_trade_increment");
         Double price = this.safeNumber(asset, "price_increment");
-        Object minCost = null;
+        Double minCost = null;
         if ((java.util.Objects.equals(assetClass, "crypto")) && (java.util.Objects.equals(quote, "USD")))
         {
             // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
@@ -1488,7 +1488,7 @@ public class Alpaca extends AlpacaApi
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                Object newType = null;
+                String newType = null;
                 if (((String)type).indexOf("limit") >= 0)
                 {
                     newType = "stop_limit";
@@ -2501,7 +2501,7 @@ public class Alpaca extends AlpacaApi
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String activityType = this.safeString(transaction, "activity_type");
         String txid = null;
-        Object timestamp = null;
+        Long timestamp = null;
         String datetime = null;
         String network = null;
         String address = null;
@@ -2509,7 +2509,7 @@ public class Alpaca extends AlpacaApi
         String addressFrom = null;
         String type = null;
         Object amount = null;
-        Object code = null;
+        String code = null;
         String status = null;
         String comment = null;
         Object intern = null;

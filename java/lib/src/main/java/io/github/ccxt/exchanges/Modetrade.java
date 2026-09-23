@@ -1892,8 +1892,8 @@ public class Modetrade extends ModetradeApi
         String feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         Object transactions = this.safeValue(order, "Transactions");
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
-        Object takeProfitPrice = null;
-        Object stopLossPrice = null;
+        Double takeProfitPrice = null;
+        Double stopLossPrice = null;
         List<Object> childOrders = (List<Object>) this.safeList(order, "childOrders");
         if (!java.util.Objects.equals(childOrders, null))
         {

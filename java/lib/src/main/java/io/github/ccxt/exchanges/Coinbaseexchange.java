@@ -1136,7 +1136,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object timestamp = null;
+        Long timestamp = null;
         String bid = null;
         String ask = null;
         String last = null;
@@ -1604,7 +1604,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 300)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object parsedTimeframe = this.safeInteger(this.timeframes, timeframe);
+            Long parsedTimeframe = this.safeInteger(this.timeframes, timeframe);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", ((Map<String, Object>)market).get("id") );
             }};

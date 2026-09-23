@@ -994,14 +994,14 @@ public class P2b extends P2bApi
         {
             Object currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object balance = Helpers.GetValue(response, currencyId);
-            Object code = this.safeCurrencyCode((String) (currencyId));
+            String code = this.safeCurrencyCode((String) (currencyId));
             String used = this.safeString(balance, "freeze");
             String available = this.safeString(balance, "available");
             Map<String, Object> account = new HashMap<String, Object>() {{
                 put( "free", available );
                 put( "used", used );
             }};
-            ((Map<String, Object>)result).put((String)((String)code), account);
+            ((Map<String, Object>)result).put((String)code, account);
         }
         return this.safeBalance(result);
     }

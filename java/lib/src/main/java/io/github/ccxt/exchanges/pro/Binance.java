@@ -258,7 +258,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             Object streamIndex = this.safeInteger(this.options, "streamIndex", -1);
             Map<String, Object> streamLimits = (Map<String, Object>) this.safeDict(this.options, "streamLimits");
-            Object streamLimit = this.safeInteger(streamLimits, type);
+            Long streamLimit = this.safeInteger(streamLimits, type);
             streamIndex = Helpers.add(streamIndex, 1);
             Object normalizedIndex = Helpers.mod(streamIndex, streamLimit);
             Helpers.addElementToObject(this.options, "streamIndex", streamIndex);
@@ -3154,7 +3154,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "indexPrice", Binance.this.safeString(message, "i") );
             }});
         }
-        Object timestamp = null;
+        Long timestamp = null;
         if (java.util.Objects.equals(eventVar, "bookTicker"))
         {
             // take the event timestamp, if available, for spot tickers it is not
@@ -5640,9 +5640,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // futures user-data events carry the position side field, spot ones do not
         String marketType = (((order.containsKey("ps")))) ? "contract" : "spot";
         String symbol = this.safeSymbol(marketId, null, null, marketType);
-        Object timestamp = this.safeInteger(order, "O");
+        Long timestamp = this.safeInteger(order, "O");
         Long T = this.safeInteger(order, "T");
-        Object lastTradeTimestamp = null;
+        Long lastTradeTimestamp = null;
         if (java.util.Objects.equals(executionType, "NEW") || java.util.Objects.equals(executionType, "AMENDMENT") || java.util.Objects.equals(executionType, "CANCELED"))
         {
             if (java.util.Objects.equals(timestamp, null))
@@ -5653,7 +5653,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             lastTradeTimestamp = T;
         }
-        Object lastUpdateTimestamp = T;
+        Long lastUpdateTimestamp = T;
         Object fee = null;
         String feeCost = this.safeString(order, "n");
         if ((!java.util.Objects.equals(feeCost, null)) && (Precise.stringGt(feeCost, "0")))
@@ -6918,7 +6918,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String id = this.safeString(message, "id");
         Boolean rejected = false;
         Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", new HashMap<String, Object>() {{}});
-        Object code = this.safeInteger(error, "code");
+        Long code = this.safeInteger(error, "code");
         String msg = this.safeString(error, "msg");
         Object codeValue = (((java.util.Objects.equals(code, null)))) ? 0 : code;
         try

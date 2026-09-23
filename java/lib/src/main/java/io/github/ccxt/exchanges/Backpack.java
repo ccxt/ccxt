@@ -932,7 +932,7 @@ public class Backpack extends BackpackApi
         String typeOfMarket = this.parseMarketType(this.safeString(market, "marketType"));
         Object linear = null;
         Object inverse = null;
-        Object settle = null;
+        String settle = null;
         String settleId = null;
         Object contractSize = null;
         if (java.util.Objects.equals(typeOfMarket, "spot"))
@@ -1241,7 +1241,7 @@ public class Backpack extends BackpackApi
                     limit = defaultLimit;
                 }
                 int duration = this.parseTimeframe(timeframe);
-                Object endTime = (((!java.util.Objects.equals(until, null) && !java.util.Objects.equals(until, null) && !Helpers.isEqual(until, 0)))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
+                Long endTime = (((!java.util.Objects.equals(until, null) && !java.util.Objects.equals(until, null) && !Helpers.isEqual(until, 0)))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
                 Object startTime = Helpers.subtract(endTime, (Helpers.multiply(limit, duration)));
                 ((Map<String, Object>)request).put("startTime", startTime);
             } else
@@ -2632,7 +2632,7 @@ public class Backpack extends BackpackApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object timestamp = this.safeInteger(order, "createdAt");
+        Long timestamp = this.safeInteger(order, "createdAt");
         Long timestamp2 = this.parse8601(this.safeString(order, "createdAt"));
         if (!java.util.Objects.equals(timestamp2, null))
         {

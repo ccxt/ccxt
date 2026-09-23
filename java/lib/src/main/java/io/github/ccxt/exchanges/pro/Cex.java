@@ -1014,7 +1014,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         market = this.safeMarket(symbol, market);
         Long time = this.safeInteger(order, "time");
-        Object timestamp = time;
+        Long timestamp = time;
         if (Boolean.TRUE.equals(isTransaction))
         {
             timestamp = this.parse8601(time);

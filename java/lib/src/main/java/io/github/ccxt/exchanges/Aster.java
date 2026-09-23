@@ -1383,12 +1383,12 @@ public class Aster extends AsterApi
         Boolean active = java.util.Objects.equals(this.safeString(market, "status"), "TRADING");
         Object spot = null;
         Object symbol = null;
-        Object settle = null;
+        String settle = null;
         String settleId = null;
         Object swap = null;
         Object linear = null;
         Object inverse = null;
-        Object contractSize = null;
+        Double contractSize = null;
         String contractType = this.safeString(market, "contractType");
         Boolean isContract = !java.util.Objects.equals(contractType, null);
         if (Boolean.TRUE.equals(isContract))
@@ -3898,8 +3898,8 @@ public class Aster extends AsterApi
         String marketId = this.safeString(leverage, "symbol");
         String marginMode = this.safeStringLower(leverage, "marginType");
         String side = this.safeStringLower(leverage, "positionSide");
-        Object longLeverage = null;
-        Object shortLeverage = null;
+        Long longLeverage = null;
+        Long shortLeverage = null;
         Long leverageValue = this.safeInteger(leverage, "leverage");
         if ((java.util.Objects.equals(side, null)) || (java.util.Objects.equals(side, "both")))
         {

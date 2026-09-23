@@ -2506,7 +2506,7 @@ public class Kucoin extends KucoinApi
                 String multiplier = this.safeString(market, "multiplier");
                 Double tickSize = this.safeNumber(market, "tickSize");
                 Double lotSize = this.safeNumber(market, "lotSize");
-                Object limitAmountMin = lotSize;
+                Double limitAmountMin = lotSize;
                 if (java.util.Objects.equals(limitAmountMin, null))
                 {
                     limitAmountMin = this.safeNumber(market, "baseMinSize");
@@ -4491,7 +4491,7 @@ public class Kucoin extends KucoinApi
         {
             address = Helpers.replace(address, (String)"bitcoincash:", (String)"");
         }
-        Object code = null;
+        String code = null;
         if (!java.util.Objects.equals(currency, null))
         {
             code = this.safeCurrencyCode((String) (((Map<String, Object>)currency).get("id")));
@@ -11190,7 +11190,7 @@ public class Kucoin extends KucoinApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String timestampId = this.safeString2(info, "createdAt", "timestamp");
-        Object timestamp = null;
+        Long timestamp = null;
         if (!java.util.Objects.equals(timestampId, null))
         {
             timestamp = this.parseToInt((timestampId == null ? null : ((String)timestampId).substring(0, Math.min(13, ((String)timestampId).length()))));
@@ -11394,8 +11394,8 @@ public class Kucoin extends KucoinApi
         market = this.safeMarket(marketId, market);
         String symbol = this.safeString(market, "symbol");
         Map<String, Object> isolatedBase = (Map<String, Object>) this.safeDict(info, "baseAsset", new HashMap<String, Object>() {{}});
-        Object amountBorrowed = null;
-        Object interest = null;
+        Double amountBorrowed = null;
+        Double interest = null;
         String currencyId = null;
         if (java.util.Objects.equals(marginMode, "isolated"))
         {
@@ -12388,7 +12388,7 @@ public class Kucoin extends KucoinApi
             parameters = ((List<Object>) utaparametersVariable).get(1);
             parameters = this.omit(parameters, "until");
             Object start = since;
-            Object end = until;
+            Long end = until;
             if (java.util.Objects.equals(since, null))
             {
                 start = 0;

@@ -1130,7 +1130,7 @@ public class Hollaex extends HollaexApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             Long timeDelta = ((((long) this.parseTimeframe(timeframe)) * ((long) maxLimit)) * 1000L);
             Object start = since;
             Long now = this.milliseconds();
@@ -1140,10 +1140,10 @@ public class Hollaex extends HollaexApi
             }
             if (java.util.Objects.equals(start, null))
             {
-                start = Helpers.subtract(until, timeDelta);
+                start = (until - timeDelta);
             }
             ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(start, 1000))); // convert to seconds
-            ((Map<String, Object>)request).put("to", this.parseToInt(Helpers.divide(until, 1000))); // convert to seconds
+            ((Map<String, Object>)request).put("to", this.parseToInt((((double) until) / ((double) 1000)))); // convert to seconds
             parameters = this.omit(parameters, "until");
             List<Object> response = (this.publicGetChart(this.extend(request, parameters))).join();
             //

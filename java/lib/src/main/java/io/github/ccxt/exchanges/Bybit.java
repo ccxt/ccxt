@@ -2687,7 +2687,7 @@ public class Bybit extends BybitApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> list = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             String status = "ok";
-            Object eta = null;
+            Long eta = null;
             String url = null;
             for (var i = 0; i < ((List<?>)list).size(); i++)
             {
@@ -3209,7 +3209,7 @@ public class Bybit extends BybitApi
                 String settleId = this.safeString(market, "settleCoin", defaultSettledId);
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object settle = null;
+                String settle = null;
                 if (Boolean.TRUE.equals(linearPerpetual) && (java.util.Objects.equals(settleId, "USD")))
                 {
                     settle = "USDC";
@@ -9440,12 +9440,12 @@ public class Bybit extends BybitApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(interest, "timestamp");
-        Object openInterest = this.safeNumber2(interest, "open_interest", "openInterest");
+        Double openInterest = this.safeNumber2(interest, "open_interest", "openInterest");
         // the openInterest is in the base asset for linear and quote asset for inverse
         Boolean isLinear = (java.util.Objects.equals(this.safeBool(market, "linear"), true));
         Boolean isInverse = (java.util.Objects.equals(this.safeBool(market, "inverse"), true));
-        Object amount = ((Boolean.TRUE.equals(isLinear))) ? openInterest : null;
-        Object value = ((Boolean.TRUE.equals(isInverse))) ? openInterest : null;
+        Double amount = ((Boolean.TRUE.equals(isLinear))) ? openInterest : null;
+        Double value = ((Boolean.TRUE.equals(isInverse))) ? openInterest : null;
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Bybit.this.safeString(market, "symbol") );
             put( "openInterestAmount", amount );

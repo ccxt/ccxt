@@ -927,7 +927,7 @@ public class Pacifica extends PacificaApi
         Object inverse = null;
         Object contractSize = null;
         Object minLeverage = null;
-        Object maxLeverage = null;
+        Long maxLeverage = null;
         Object crossMargin = null;
         Object isolatedMargin = null;
         if (java.util.Objects.equals(id, null))

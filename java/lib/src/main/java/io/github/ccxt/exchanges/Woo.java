@@ -1110,7 +1110,7 @@ public class Woo extends WooApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String settleId = null;
-        Object settle = null;
+        String settle = null;
         Object symbol = ((base + "/") + quote);
         Object contractSize = null;
         Object linear = null;
@@ -4811,8 +4811,8 @@ public class Woo extends WooApi
         {
             spotLeverage = null;
         }
-        Object longLeverage = spotLeverage;
-        Object shortLeverage = spotLeverage;
+        Long longLeverage = spotLeverage;
+        Long shortLeverage = spotLeverage;
         List<Object> details = (List<Object>) this.safeList(leverage, "details", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)details).size(); i++)
         {

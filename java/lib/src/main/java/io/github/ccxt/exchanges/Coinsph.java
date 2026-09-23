@@ -2617,7 +2617,7 @@ public class Coinsph extends CoinsphApi
         String txid = this.safeString(transaction, "txId");
         String currencyId = this.safeString(transaction, "coin");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = null;
+        Long timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
         Object updated = null;
         String type = null;

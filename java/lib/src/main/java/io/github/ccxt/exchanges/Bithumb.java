@@ -924,7 +924,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object data = null;
-            Object timestamp = null;
+            Long timestamp = null;
             if (Helpers.isEqual(generation, 2))
             {
                 ((Map<String, Object>)request).put("markets", this.getGen2MarketId((Map<String, Object>) (market)));
@@ -1500,7 +1500,7 @@ public class Bithumb extends BithumbApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object timestamp = null;
+        Long timestamp = null;
         if ((ohlcv instanceof List))
         {
             timestamp = this.safeInteger2(ohlcv, 0, "timestamp");

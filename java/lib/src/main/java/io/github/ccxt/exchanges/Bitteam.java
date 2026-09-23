@@ -546,7 +546,7 @@ public class Bitteam extends BitteamApi
         Boolean active = (Boolean) this.safeBool(market, "active");
         String timeStart = this.safeString(market, "timeStart");
         Long created = this.parse8601(timeStart);
-        Object minCost = null;
+        Double minCost = null;
         Object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new HashMap<String, Object>() {{}});
         Boolean quoteInUsd = (Boolean) this.safeBool(currenciesValuedInUsd, quote, false);
         if (java.util.Objects.equals(quoteInUsd, true))

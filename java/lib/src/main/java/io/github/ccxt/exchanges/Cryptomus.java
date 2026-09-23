@@ -529,7 +529,7 @@ public class Cryptomus extends CryptomusApi
     {
         // currency here is array of networks
         String id = null; // all entries have same id, as they were grouped by
-        Object code = null;
+        String code = null;
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawCurrency).size(); i++)
         {

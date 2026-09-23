@@ -2350,7 +2350,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null));
-        Object price = null;
+        Double price = null;
         if (!Boolean.TRUE.equals(isTriggerOrder))
         {
             price = this.safeNumber(order, "price");

@@ -3940,7 +3940,7 @@ public class Bitget extends BitgetApi
                 Object amountPrecision = null;
                 Object linear = null;
                 Object inverse = null;
-                Object expiry = null;
+                Long expiry = null;
                 String expiryDatetime = null;
                 String symbolType = this.safeString(market, "symbolType");
                 Object marginModes = null;
@@ -3984,8 +3984,8 @@ public class Bitget extends BitgetApi
                     contract = true;
                     inverse = (java.util.Objects.equals(base, settle));
                     linear = !Boolean.TRUE.equals(inverse);
-                    Object priceDecimals = this.safeInteger(market, "pricePlace");
-                    Object amountDecimals = this.safeInteger(market, "volumePlace");
+                    Long priceDecimals = this.safeInteger(market, "pricePlace");
+                    Long amountDecimals = this.safeInteger(market, "volumePlace");
                     String priceStep = this.safeString(market, "priceEndStep");
                     String amountStep = this.safeString(market, "sizeMultiplier");
                     var precise = new Precise(priceStep);
@@ -4009,7 +4009,7 @@ public class Bitget extends BitgetApi
                 {
                     active = ((java.util.Objects.equals(status, "online")) || (java.util.Objects.equals(status, "normal")));
                 }
-                Object minCost = null;
+                Double minCost = null;
                 if (java.util.Objects.equals(quote, "USDT"))
                 {
                     minCost = this.safeNumber(market, "minTradeUSDT");
@@ -4215,7 +4215,7 @@ public class Bitget extends BitgetApi
                 String quote = this.safeCurrencyCode(quoteId);
                 String base = this.safeCurrencyCode(baseId);
                 String settleId = null;
-                Object settle = null;
+                String settle = null;
                 if (java.util.Objects.equals(category, "USDT-FUTURES"))
                 {
                     settleId = "USDT";
@@ -4240,7 +4240,7 @@ public class Bitget extends BitgetApi
                 Object amountPrecision = null;
                 Object linear = null;
                 Object inverse = null;
-                Object expiry = null;
+                Long expiry = null;
                 String expiryDatetime = null;
                 String symbolType = this.safeString(market, "type");
                 Object marginModes = null;
@@ -4734,7 +4734,7 @@ public class Bitget extends BitgetApi
             {
                 minNotional = minimumNotional;
             }
-            Object maxNotional = this.safeNumberN(item, new ArrayList<Object>(Arrays.asList("endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount", "maxTierValue")));
+            Double maxNotional = this.safeNumberN(item, new ArrayList<Object>(Arrays.asList("endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount", "maxTierValue")));
             String marginCurrency = this.safeString2(item, "coin", "baseCoin");
             String currencyId = (((!java.util.Objects.equals(marginCurrency, null)))) ? marginCurrency : this.safeString(market, "base");
             String marketId = this.safeString(item, "symbol");
@@ -5547,7 +5547,7 @@ final Object finalMinNotional = minNotional;
         Object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
         String category = this.safeString(ticker, "category");
         String markPrice = this.safeString(ticker, "markPrice");
-        Object marketType = null;
+        String marketType = null;
         if ((!java.util.Objects.equals(markPrice, null)) && (!java.util.Objects.equals(category, "SPOT")))
         {
             marketType = "contract";
@@ -6750,9 +6750,9 @@ final Object finalMinNotional = minNotional;
             String key = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "spot" : "swap";
             Map<String, Object> ohlcOptions = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("fetchOHLCV"), key, new HashMap<String, Object>() {{}});
             Map<String, Object> maxLimitPerTimeframe = (Map<String, Object>) this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new HashMap<String, Object>() {{}});
-            Object maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframe, limit);
+            Long maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframe, limit);
             Map<String, Object> recentEndpointDaysMap = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("fetchOHLCV"), "maxRecentDaysPerTimeframe", new HashMap<String, Object>() {{}});
-            Object recentEndpointAvailableDays = this.safeInteger(recentEndpointDaysMap, timeframe);
+            Long recentEndpointAvailableDays = this.safeInteger(recentEndpointDaysMap, timeframe);
             Object recentEndpointBoundaryTs = Helpers.subtract(now, Helpers.multiply((Helpers.subtract(recentEndpointAvailableDays, 1)), msInDay));
             if (Boolean.TRUE.equals(limitDefined))
             {

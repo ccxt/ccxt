@@ -1254,7 +1254,7 @@ public class Bitstamp extends BitstampApi
                     }
                 }
                 Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-                Object settle = (((!java.util.Objects.equals(settleId, null) && !java.util.Objects.equals(settleId, "")))) ? this.safeCurrencyCode((String) (settleId)) : null;
+                String settle = (((!java.util.Objects.equals(settleId, null) && !java.util.Objects.equals(settleId, "")))) ? this.safeCurrencyCode((String) (settleId)) : null;
     final Object finalSymbol = symbol;
                 final Object finalBase = base;
                 final Object finalSettleId = settleId;

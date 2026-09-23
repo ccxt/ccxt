@@ -638,7 +638,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trade::" + symbol);
-        Object trades = null;
+        List<Object> trades = null;
         if ((data instanceof List))
         {
             trades = this.parseTrades(data, market);
@@ -1580,7 +1580,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
-                Object contracts = this.safeNumber(position, "contracts", 0);
+                Double contracts = this.safeNumber(position, "contracts", 0);
                 if (Helpers.isGreaterThan(contracts, 0))
                 {
                     Helpers.callDynamically(cache, "append", new Object[]{position});
@@ -1632,7 +1632,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
         }
         String marginMode = this.safeString(position, "mt");
-        Object collateral = (((java.util.Objects.equals(marginMode, "isolated")))) ? this.safeNumber(position, "iw") : null;
+        Double collateral = (((java.util.Objects.equals(marginMode, "isolated")))) ? this.safeNumber(position, "iw") : null;
         final Object finalMarginMode = marginMode;
         final Object finalPositionSide = positionSide;
         final Object finalHedged = hedged;

@@ -764,7 +764,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Object market = null;
             String messageHash = "orders";
-            Object productId = null;
+            Long productId = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -815,7 +815,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Object market = null;
             String messageHash = "orders";
-            Object productId = null;
+            Long productId = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -866,7 +866,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Object market = null;
             String messageHash = "myTrades";
-            Object productId = null;
+            Long productId = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -917,7 +917,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Object market = null;
             String messageHash = "myTrades";
-            Object productId = null;
+            Long productId = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -968,7 +968,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             symbols = this.marketSymbols(symbols, null, false, true, true);
             String messageHash = "positions";
-            Object productId = null;
+            Long productId = null;
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
@@ -1022,7 +1022,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             symbols = this.marketSymbols(symbols, null, false, true, true);
             String messageHash = "positions";
-            Object productId = null;
+            Long productId = null;
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();

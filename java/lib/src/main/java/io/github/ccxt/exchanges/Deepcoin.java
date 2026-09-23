@@ -706,7 +706,7 @@ public class Deepcoin extends DeepcoinApi
         String baseId = this.safeString(market, "baseCcy");
         String quoteId = this.safeString(market, "quoteCcy", "");
         String settleId = null;
-        Object settle = null;
+        String settle = null;
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Object symbol = ((base + "/") + quote);
@@ -1283,12 +1283,12 @@ public class Deepcoin extends DeepcoinApi
         {
             Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String symbol = this.safeString(balance, "ccy");
-            Object code = this.safeCurrencyCode(symbol);
+            String code = this.safeCurrencyCode(symbol);
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "bal"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "frozenBal"));
             ((Map<String, Object>)account).put("free", this.safeString(balance, "availBal"));
-            ((Map<String, Object>)result).put((String)((String)code), account);
+            ((Map<String, Object>)result).put((String)code, account);
         }
         return this.safeBalance(result);
     }

@@ -1259,8 +1259,8 @@ public class Coinone extends CoinoneApi
         String id = this.safeString2(order, "orderId", "order_id");
         String baseId = this.safeString2(order, "baseCurrency", "target_currency");
         String quoteId = this.safeString2(order, "targetCurrency", "quote_currency");
-        Object base = null;
-        Object quote = null;
+        String base = null;
+        String quote = null;
         if (!java.util.Objects.equals(baseId, null))
         {
             base = this.safeCurrencyCode(baseId);
@@ -1312,7 +1312,7 @@ public class Coinone extends CoinoneApi
         String feeCostString = this.safeString(order, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            Object feeCurrencyCode = (((java.util.Objects.equals(side, "sell")))) ? quote : base;
+            String feeCurrencyCode = (((java.util.Objects.equals(side, "sell")))) ? quote : base;
             final Object finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );

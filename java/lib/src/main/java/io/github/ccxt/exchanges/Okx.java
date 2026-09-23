@@ -2862,7 +2862,7 @@ public class Okx extends OkxApi
         {
             symbol = id;
         }
-        Object expiry = null;
+        Long expiry = null;
         String strikePrice = null;
         String optionType = null;
         if (Boolean.TRUE.equals(contract))
@@ -2896,7 +2896,7 @@ public class Okx extends OkxApi
         Object fees = this.safeDict2(this.fees, feesType, "trading", new HashMap<String, Object>() {{}});
         String maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
-        Object maxSpotCost = this.safeNumber(market, "maxMktSz");
+        Double maxSpotCost = this.safeNumber(market, "maxMktSz");
         Object leverageAboveOne = Precise.stringGt(maxLeverage, "1");
         Object quoteEqualSettle = (java.util.Objects.equals(quoteId, settleId));
         Object baseEqualSettle = (java.util.Objects.equals(baseId, settleId));
@@ -7766,8 +7766,8 @@ public class Okx extends OkxApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = null;
         Object marginMode = null;
-        Object longLeverage = null;
-        Object shortLeverage = null;
+        Long longLeverage = null;
+        Long shortLeverage = null;
         for (var i = 0; i < ((List<?>)leverage).size(); i++)
         {
             Object entry = Helpers.GetValue(leverage, i);
@@ -10225,10 +10225,10 @@ public class Okx extends OkxApi
         market = this.safeMarket(id, market);
         Long time = this.safeInteger(interest, "ts");
         Long timestamp = this.safeInteger(interest, 0, time);
-        Object baseVolume = null;
-        Object quoteVolume = null;
-        Object openInterestAmount = null;
-        Object openInterestValue = null;
+        Double baseVolume = null;
+        Double quoteVolume = null;
+        Double openInterestAmount = null;
+        Double openInterestValue = null;
         String type = this.safeString(this.options, "defaultType");
         if ((interest instanceof List))
         {

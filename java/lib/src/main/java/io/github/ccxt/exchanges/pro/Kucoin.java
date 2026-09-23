@@ -170,7 +170,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 List<Object> instanceServers = (List<Object>) this.safeList(data, "instanceServers", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> firstInstanceServer = (Map<String, Object>) this.safeDict(instanceServers, 0);
-                Object pingInterval = this.safeInteger(firstInstanceServer, "pingInterval");
+                Long pingInterval = this.safeInteger(firstInstanceServer, "pingInterval");
                 String endpoint = this.safeString(firstInstanceServer, "endpoint");
                 String token = this.safeString(data, "token");
                 final Object finalConnectId = connectId;
@@ -2054,7 +2054,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long nonce = this.safeInteger(orderbook, "nonce");
-            Object deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
+            Long deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
             if (java.util.Objects.equals(nonce, null))
             {
                 Object cacheLength = ((List<?>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).size();
@@ -2127,7 +2127,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         } else
         {
             Long nonce = this.safeInteger(orderbook, "nonce");
-            Object deltaEnd = this.safeInteger(data, "C");
+            Long deltaEnd = this.safeInteger(data, "C");
             if (java.util.Objects.equals(nonce, null))
             {
                 Object cacheLength = ((List<?>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).size();
@@ -2155,8 +2155,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     public Object getCacheIndex(Object orderbook, Object cache)
     {
         Map<String, Object> firstDelta = (Map<String, Object>) this.safeDict(cache, 0);
-        Object nonce = this.safeInteger(orderbook, "nonce");
-        Object firstDeltaStart = this.safeIntegerN(firstDelta, new ArrayList<Object>(Arrays.asList("sequenceStart", "sequence", "O")));
+        Long nonce = this.safeInteger(orderbook, "nonce");
+        Long firstDeltaStart = this.safeIntegerN(firstDelta, new ArrayList<Object>(Arrays.asList("sequenceStart", "sequence", "O")));
         if ((java.util.Objects.equals(nonce, null)) || (java.util.Objects.equals(firstDeltaStart, null)))
         {
             return -1;
@@ -2168,8 +2168,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         for (var i = 0; i < Helpers.getArrayLength(cache); i++)
         {
             Object delta = Helpers.GetValue(cache, i);
-            Object deltaStart = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("sequenceStart", "sequence", "O")));
-            Object deltaEnd = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("sequenceEnd", "sequence", "C"))); // todo check
+            Long deltaStart = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("sequenceStart", "sequence", "O")));
+            Long deltaEnd = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("sequenceEnd", "sequence", "C"))); // todo check
             if ((java.util.Objects.equals(deltaStart, null)) || (java.util.Objects.equals(deltaEnd, null)))
             {
                 continue;
@@ -3527,7 +3527,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
-                Object contracts = this.safeNumber(position, "contracts", 0);
+                Double contracts = this.safeNumber(position, "contracts", 0);
                 if (Helpers.isGreaterThan(contracts, 0))
                 {
                     Helpers.callDynamically(cache, "append", new Object[]{position});

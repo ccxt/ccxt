@@ -1229,7 +1229,7 @@ public class Blockchaincom extends BlockchaincomApi
             type = "withdrawal";
             id = this.safeString(transaction, "withdrawalId");
         }
-        Object feeCost = (((java.util.Objects.equals(type, "withdrawal")))) ? this.safeNumber(transaction, "fee") : null;
+        Double feeCost = (((java.util.Objects.equals(type, "withdrawal")))) ? this.safeNumber(transaction, "fee") : null;
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
@@ -1507,11 +1507,11 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(entry, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
                 ((Map<String, Object>)account).put("total", this.safeString(entry, "balance"));
-                ((Map<String, Object>)result).put((String)((String)code), account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
             return this.safeBalance(result);
         }).thenApply(Balances::new);

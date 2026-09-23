@@ -658,8 +658,8 @@ public class Bitso extends BitsoApi
                 {
                     Object tier = (feeTiers == null || j < 0 || j >= feeTiers.size() ? null : feeTiers.get(j));
                     Double volume = this.safeNumber(tier, "volume");
-                    Object takerFee = this.safeNumber(tier, "taker");
-                    Object makerFee = this.safeNumber(tier, "maker");
+                    Double takerFee = this.safeNumber(tier, "taker");
+                    Double makerFee = this.safeNumber(tier, "maker");
                     ((List<Object>)takerFees).add(new ArrayList<Object>(Arrays.asList(volume, takerFee)));
                     ((List<Object>)makerFees).add(new ArrayList<Object>(Arrays.asList(volume, makerFee)));
                     if ((j == 0))

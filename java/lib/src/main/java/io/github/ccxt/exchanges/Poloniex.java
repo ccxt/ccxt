@@ -4098,8 +4098,8 @@ public class Poloniex extends PoloniexApi
     public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object shortLeverage = null;
-        Object longLeverage = null;
+        Long shortLeverage = null;
+        Long longLeverage = null;
         String marketId = null;
         Object marginMode = null;
         List<Object> data = (List<Object>) this.safeList(leverage, "data", new ArrayList<Object>(Arrays.asList()));

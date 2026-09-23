@@ -1787,7 +1787,7 @@ public class Apex extends ApexApi
                 }
             }
             String tokenId = this.safeString(currency, "tokenId", "");
-            Object decimalsNum = this.safeNumber(currency, "decimals", 0);
+            Double decimalsNum = this.safeNumber(currency, "decimals", 0);
             Object decimalsNumber = (((java.util.Objects.equals(decimalsNum, null)))) ? 0 : decimalsNum;
             Object mathPowResult = (Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(decimalsNumber))));
             Long amountNumber = this.parseToInt(Helpers.multiply(amount, mathPowResult));
@@ -1853,7 +1853,7 @@ public class Apex extends ApexApi
                 }};
                 Object signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
                 Object amountStr = String.valueOf(amount);
-                Object ts = timestampSeconds; // java req
+                Long ts = timestampSeconds; // java req
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "amount", amountStr );
                     put( "timestamp", ts );

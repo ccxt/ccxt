@@ -1101,7 +1101,7 @@ public class Gemini extends GeminiApi
         Object settleId = null;
         Object tickSize = null;
         Object amountPrecision = null;
-        Object minSize = null;
+        Double minSize = null;
         Object status = null;
         Boolean swap = false;
         Object contractSize = null;
@@ -1447,8 +1447,8 @@ public class Gemini extends GeminiApi
         market = this.safeMarket(marketId, market);
         Object baseId = null;
         Object quoteId = null;
-        Object base = null;
-        Object quote = null;
+        String base = null;
+        String quote = null;
         if ((!java.util.Objects.equals(marketId, null)) && (java.util.Objects.equals(market, null)))
         {
             Object idLength = Helpers.subtract(marketId.length(), 0);
@@ -1463,7 +1463,7 @@ public class Gemini extends GeminiApi
             }
             base = this.safeCurrencyCode((String) (baseId));
             quote = this.safeCurrencyCode((String) (quoteId));
-            symbol = Helpers.add((base + "/"), quote);
+            symbol = ((base + "/") + quote);
         }
         if ((java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(market, null)))
         {

@@ -1741,7 +1741,7 @@ public class Digifinex extends DigifinexApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCurrencyId = this.safeString(trade, "fee_currency");
-            Object feeCurrencyCode = null;
+            String feeCurrencyCode = null;
             if (!java.util.Objects.equals(feeCurrencyId, null))
             {
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
@@ -1985,7 +1985,7 @@ public class Digifinex extends DigifinexApi
                 response = (this.publicSwapGetPublicCandles(this.extend(request, parameters))).join();
             } else
             {
-                Object until = this.safeInteger(parameters, "until");
+                Long until = this.safeInteger(parameters, "until");
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 ((Map<String, Object>)request).put("period", this.safeString(this.timeframes, timeframe, timeframe));
                 Object startTime = since;
@@ -1994,7 +1994,7 @@ public class Digifinex extends DigifinexApi
                 {
                     if ((!java.util.Objects.equals(limit, null)) || (!java.util.Objects.equals(until, null)))
                     {
-                        Object endTime = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
+                        Long endTime = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
                         Object startLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 200;
                         startTime = Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(startLimit, duration), 1000)));
                     }
@@ -2007,7 +2007,7 @@ public class Digifinex extends DigifinexApi
                     {
                         if (!java.util.Objects.equals(until, null))
                         {
-                            Long endByUntil = this.parseToInt(Helpers.divide(until, 1000));
+                            Long endByUntil = this.parseToInt((((double) until) / ((double) 1000)));
                             if (!java.util.Objects.equals(limit, null))
                             {
                                 Object endByLimit = this.sum(startTime, Helpers.multiply(limit, duration));

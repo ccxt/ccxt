@@ -1757,12 +1757,12 @@ public class Xt extends XtApi
         String state = this.safeString(market, "state");
         Object symbol = ((base + "/") + quote);
         List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
-        Object minAmount = null;
-        Object maxAmount = null;
-        Object minCost = null;
-        Object maxCost = null;
-        Object minPrice = null;
-        Object maxPrice = null;
+        Double minAmount = null;
+        Double maxAmount = null;
+        Double minCost = null;
+        Double maxCost = null;
+        Double minPrice = null;
+        Double maxPrice = null;
         Object amountPrecision = null;
         for (var i = 0; i < ((List<?>)filters).size(); i++)
         {
@@ -1793,7 +1793,7 @@ public class Xt extends XtApi
         Object inverse = null;
         String settleId = null;
         String settle = null;
-        Object expiry = null;
+        Long expiry = null;
         Boolean future = false;
         Boolean swap = false;
         Boolean contract = false;
@@ -4867,9 +4867,9 @@ public class Xt extends XtApi
         market = this.safeMarket(marketId, market, null, marketType);
         String symbol = this.safeSymbol(marketId, market, null, marketType);
         Long timestamp = (Long) this.safeInteger2(order, "time", "createdTime");
-        Object quantity = this.safeNumber(order, "origQty");
+        Double quantity = this.safeNumber(order, "origQty");
         Object amount = (((java.util.Objects.equals(marketType, "spot")))) ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString(((Map<String, Object>)market).get("contractSize")));
-        Object filledQuantity = this.safeNumber(order, "executedQty");
+        Double filledQuantity = this.safeNumber(order, "executedQty");
         Object filled = (((java.util.Objects.equals(marketType, "spot")))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(((Map<String, Object>)market).get("contractSize")));
         Long lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
         String timeInForce = this.safeString(order, "timeInForce");

@@ -1087,7 +1087,7 @@ public class Cryptocom extends CryptocomApi
                 String settleId = ((Boolean.TRUE.equals(spot))) ? null : quoteId;
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object settle = ((Boolean.TRUE.equals(spot))) ? null : this.safeCurrencyCode(settleId);
+                String settle = ((Boolean.TRUE.equals(spot))) ? null : this.safeCurrencyCode(settleId);
                 String optionType = this.safeStringLower(market, "put_call");
                 String strike = this.safeString(market, "strike");
                 Boolean marginBuyEnabled = (Boolean) this.safeBool(market, "margin_buy_enabled");

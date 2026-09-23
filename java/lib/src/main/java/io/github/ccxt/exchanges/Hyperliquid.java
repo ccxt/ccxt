@@ -993,7 +993,7 @@ public class Hyperliquid extends HyperliquidApi
             for (var i = 0; i < ((List<?>)meta).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.safeDict(meta, i, new HashMap<String, Object>() {{}});
-                Object index = this.safeInteger(market, "index");
+                Long index = this.safeInteger(market, "index");
                 Map<String, Object> extraData = (Map<String, Object>) this.safeDict(second, index, new HashMap<String, Object>() {{}});
                 String marketName = this.safeString(market, "name");
                 // if (marketName.indexOf ('/') < 0) {
@@ -4235,12 +4235,12 @@ final Object finalClientOrderId = clientOrderId;
             postOnly = (java.util.Objects.equals(tif, "ALO"));
         }
         Boolean isTrigger = (java.util.Objects.equals(this.safeBool(entry, "isTrigger"), true));
-        Object triggerPx = ((Boolean.TRUE.equals(isTrigger))) ? this.safeNumber(entry, "triggerPx") : null;
+        Double triggerPx = ((Boolean.TRUE.equals(isTrigger))) ? this.safeNumber(entry, "triggerPx") : null;
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         Object orderTypeRaw = ((String)this.safeStringLower(entry, "orderType", ""));
-        Object stopLossPrice = null;
-        Object takeProfitPrice = null;
+        Double stopLossPrice = null;
+        Double takeProfitPrice = null;
         if (!java.util.Objects.equals(triggerPx, null))
         {
             if (((String)orderTypeRaw).indexOf("stop") >= 0)

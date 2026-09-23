@@ -1074,8 +1074,8 @@ public class Hibachi extends HibachiApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object takerFee = this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045));
-        Object makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
+        Double takerFee = this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045));
+        Double makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
         Object takerFeeValue = (((java.util.Objects.equals(takerFee, null)))) ? 0 : takerFee;
         Object makerFeeValue = (((java.util.Objects.equals(makerFee, null)))) ? 0 : makerFee;
         Object feeRate = Helpers.mathMax(takerFeeValue, makerFeeValue);
@@ -1242,8 +1242,8 @@ public class Hibachi extends HibachiApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object takerFee = this.safeNumber(market, "taker", 0);
-        Object makerFee = this.safeNumber(market, "maker", 0);
+        Double takerFee = this.safeNumber(market, "taker", 0);
+        Double makerFee = this.safeNumber(market, "maker", 0);
         Object takerFeeValue = (((java.util.Objects.equals(takerFee, null)))) ? 0 : takerFee;
         Object makerFeeValue = (((java.util.Objects.equals(makerFee, null)))) ? 0 : makerFee;
         Object feeRate = Helpers.mathMax(takerFeeValue, makerFeeValue);

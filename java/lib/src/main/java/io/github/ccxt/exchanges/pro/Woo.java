@@ -1390,7 +1390,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             put( "currency", Woo.this.safeString(order, "feeAsset") );
         }};
         String priceString = this.safeString(order, "price");
-        Object price = this.safeNumber(order, "price");
+        Double price = this.safeNumber(order, "price");
         Double avgPrice = this.safeNumber(order, "avgPrice");
         if (Precise.stringEq(priceString, "0") && (!java.util.Objects.equals(avgPrice, null)))
         {

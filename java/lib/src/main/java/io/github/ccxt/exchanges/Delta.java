@@ -1058,7 +1058,7 @@ public class Delta extends DeltaApi
                 String strike = this.safeString(market, "strike_price");
                 String expiryDatetime = this.safeString(market, "settlement_time");
                 Long expiry = this.parse8601(expiryDatetime);
-                Object contractSize = this.safeNumber(market, "contract_value");
+                Double contractSize = this.safeNumber(market, "contract_value");
                 Object amountPrecision = null;
                 if (Boolean.TRUE.equals(spot))
                 {
@@ -1298,7 +1298,7 @@ public class Delta extends DeltaApi
         String turnoverSymbol = this.safeStringUpper(ticker, "turnover_symbol");
         String quoteId = this.safeStringUpper(market, "quoteId");
         Boolean baseDenominated = (!java.util.Objects.equals(turnoverSymbol, null)) && (!java.util.Objects.equals(quoteId, null)) && (!java.util.Objects.equals(turnoverSymbol, quoteId));
-        Object quoteVolume = ((Boolean.TRUE.equals(baseDenominated))) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
+        Double quoteVolume = ((Boolean.TRUE.equals(baseDenominated))) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -2278,7 +2278,7 @@ public class Delta extends DeltaApi
         String feeCostString = this.safeString(order, "paid_commission");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            Object feeCurrencyCode = null;
+            String feeCurrencyCode = null;
             if (!java.util.Objects.equals(market, null))
             {
                 Map<String, Object> settlingAsset = (Map<String, Object>) this.safeDict(((Map<String, Object>)market).get("info"), "settling_asset", new HashMap<String, Object>() {{}});

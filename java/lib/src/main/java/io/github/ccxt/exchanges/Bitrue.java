@@ -1095,7 +1095,7 @@ public class Bitrue extends BitrueApi
         String baseId = this.safeString(market, "baseAsset");
         String quoteId = this.safeString(market, "quoteAsset");
         String settleId = null;
-        Object settle = null;
+        String settle = null;
         if (Boolean.TRUE.equals(isContract))
         {
             Object symbolSplit = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
@@ -2163,8 +2163,8 @@ public class Bitrue extends BitrueApi
         String marketId = this.safeString(order, "symbol");
         String symbol = this.safeSymbol(marketId, market);
         String filled = this.safeString(order, "executedQty");
-        Object timestamp = null;
-        Object lastTradeTimestamp = null;
+        Long timestamp = null;
+        Long lastTradeTimestamp = null;
         if (((Map<?, ?>)order).containsKey("time"))
         {
             timestamp = this.safeInteger(order, "time");

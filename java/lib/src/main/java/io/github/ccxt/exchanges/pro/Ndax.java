@@ -530,7 +530,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 timestamp = this.safeInteger(bidask, 2);
             } else
             {
-                Object newTimestamp = this.safeInteger(bidask, 2);
+                Long newTimestamp = this.safeInteger(bidask, 2);
                 Object currentTimestampValue = (((java.util.Objects.equals(timestamp, null)))) ? 0 : timestamp;
                 Object newTimestampValue = (((java.util.Objects.equals(newTimestamp, null)))) ? 0 : newTimestamp;
                 timestamp = Helpers.mathMax(currentTimestampValue, newTimestampValue);
@@ -540,7 +540,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 nonce = this.safeInteger(bidask, 0);
             } else
             {
-                Object newNonce = this.safeInteger(bidask, 0);
+                Long newNonce = this.safeInteger(bidask, 0);
                 Object currentNonceValue = (((java.util.Objects.equals(nonce, null)))) ? 0 : nonce;
                 Object newNonceValue = (((java.util.Objects.equals(newNonce, null)))) ? 0 : newNonce;
                 nonce = Helpers.mathMax(currentNonceValue, newNonceValue);

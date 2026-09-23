@@ -2205,7 +2205,7 @@ public class Htx extends HtxApi
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             String status = null;
-            Object eta = null;
+            Long eta = null;
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -2770,7 +2770,7 @@ public class Htx extends HtxApi
                 String quote = this.safeCurrencyCode((String) (quoteId));
                 String settle = this.safeCurrencyCode((String) (settleId));
                 Object symbol = ((base + "/") + quote);
-                Object expiry = null;
+                Long expiry = null;
                 if (Boolean.TRUE.equals(contract))
                 {
                     if (java.util.Objects.equals(inverse, true))
@@ -2787,9 +2787,9 @@ public class Htx extends HtxApi
                     }
                 }
                 Double contractSize = this.safeNumber(market, "contract_size");
-                Object minCost = this.safeNumber(market, "min-order-value");
+                Double minCost = this.safeNumber(market, "min-order-value");
                 Double maxAmount = this.safeNumber(market, "max-order-amt");
-                Object minAmount = this.safeNumber(market, "min-order-amt");
+                Double minAmount = this.safeNumber(market, "min-order-amt");
                 if (Boolean.TRUE.equals(contract))
                 {
                     if (java.util.Objects.equals(linear, true))
@@ -2837,7 +2837,7 @@ public class Htx extends HtxApi
                 // 7 Settlement Completed
                 // 8 Delivered
                 // 9 Suspending of Trade
-                Object created = null;
+                Long created = null;
                 Object createdDate = this.safeString(market, "create_date"); // i.e 20230101
                 if (!java.util.Objects.equals(createdDate, null))
                 {
@@ -4154,7 +4154,7 @@ public class Htx extends HtxApi
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger(parameters, "until");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
-            Object untilSeconds = (((!java.util.Objects.equals(until, null)))) ? this.parseToInt((((double) until) / ((double) 1000))) : null;
+            Long untilSeconds = (((!java.util.Objects.equals(until, null)))) ? this.parseToInt((((double) until) / ((double) 1000))) : null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 if (!java.util.Objects.equals(limit, null))
@@ -11365,7 +11365,7 @@ public class Htx extends HtxApi
             String networkId = this.safeString(chainEntry, "chain");
             String withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
             Object networkCode = this.networkIdToCode(networkId, code);
-            Object withdrawFee = null;
+            Double withdrawFee = null;
             Object withdrawResult = null;
             if (java.util.Objects.equals(withdrawFeeType, "fixed"))
             {

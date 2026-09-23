@@ -1013,7 +1013,7 @@ public class Coinspot extends CoinspotApi
         //       "price": 0.5168600000125209
         //     }
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object timestamp = null;
+        Long timestamp = null;
         String priceString = null;
         Object fee = null;
         String audTotal = this.safeString(trade, "audtotal");

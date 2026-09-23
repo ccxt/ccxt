@@ -1032,9 +1032,9 @@ public class Derive extends DeriveApi
         String marketId = this.safeString(market, "instrument_name");
         Object symbol = ((base + "/") + quote);
         String settleId = null;
-        Object settle = null;
+        String settle = null;
         Object expiry = null;
-        Object strike = null;
+        Long strike = null;
         String optionType = null;
         String optionLetter = null;
         if (java.util.Objects.equals(type, "erc20"))

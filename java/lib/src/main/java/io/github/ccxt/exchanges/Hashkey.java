@@ -1231,8 +1231,8 @@ public class Hashkey extends HashkeyApi
         String amountPrecisionString = this.safeString(amountFilter, "stepSize");
         String amountMinLimitString = this.safeString(amountFilter, "minQty");
         String amountMaxLimitString = this.safeString(amountFilter, "maxQty");
-        Object minLeverage = null;
-        Object maxLeverage = null;
+        Long minLeverage = null;
+        Long maxLeverage = null;
         if (Boolean.TRUE.equals(isSwap))
         {
             amountPrecisionString = Precise.stringDiv(amountPrecisionString, contractSizeString);

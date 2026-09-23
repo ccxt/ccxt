@@ -2428,9 +2428,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String executionType = this.safeString(order, "x");
         String marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(order, "O");
+        Long timestamp = this.safeInteger(order, "O");
         Long T = this.safeInteger(order, "T");
-        Object lastTradeTimestamp = null;
+        Long lastTradeTimestamp = null;
         if (java.util.Objects.equals(executionType, "NEW") || java.util.Objects.equals(executionType, "AMENDMENT") || java.util.Objects.equals(executionType, "CANCELED"))
         {
             if (java.util.Objects.equals(timestamp, null))
@@ -2441,7 +2441,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             lastTradeTimestamp = T;
         }
-        Object lastUpdateTimestamp = T;
+        Long lastUpdateTimestamp = T;
         Object fee = null;
         String feeCost = this.safeString(order, "n");
         if ((!java.util.Objects.equals(feeCost, null)) && (Precise.stringGt(feeCost, "0")))

@@ -885,10 +885,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object symbol = ((Map<String, Object>)market).get("symbol");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
-        Object seqNum = this.safeInteger(tick, "seqNum");
+        Long seqNum = this.safeInteger(tick, "seqNum");
         Long prevSeqNum = this.safeInteger(tick, "prevSeqNum");
         String eventVar = this.safeString(tick, "event");
-        Object version = this.safeInteger(tick, "version");
+        Long version = this.safeInteger(tick, "version");
         Long timestamp = this.safeInteger(message, "ts");
         if (java.util.Objects.equals(eventVar, "snapshot"))
         {
@@ -905,7 +905,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
         }
         Boolean spotConditon = (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (Helpers.isEqual(prevSeqNum, Helpers.GetValue(orderbook, "nonce")));
-        Boolean nonSpotCondition = (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (!java.util.Objects.equals(version, null)) && (Helpers.isEqual(Helpers.subtract(version, 1), Helpers.GetValue(orderbook, "nonce")));
+        Boolean nonSpotCondition = (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (!java.util.Objects.equals(version, null)) && (Helpers.isEqual((version - 1L), Helpers.GetValue(orderbook, "nonce")));
         if ((java.util.Objects.equals(spotConditon, true)) || (java.util.Objects.equals(nonSpotCondition, true)))
         {
             List<Object> asks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));

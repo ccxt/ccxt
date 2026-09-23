@@ -2896,7 +2896,7 @@ public class Tokocrypto extends TokocryptoApi
         }
         String currencyId = this.safeString2(transaction, "coin", "fiatCurrency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = null;
+        Long timestamp = null;
         Long insertTime = this.safeInteger(transaction, "insertTime");
         Long createTime = (Long) this.safeInteger2(transaction, "createTime", "timestamp");
         String type = this.safeString(transaction, "type");

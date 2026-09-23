@@ -858,7 +858,7 @@ public class Btse extends BtseApi
         String amountPrecision = this.safeString(market, "minSizeIncrement");
         Boolean active = (Boolean) this.safeBool(market, "active");
         String type = "spot";
-        Object expiry = null;
+        Long expiry = null;
         String contractSize = null;
         if (!Boolean.TRUE.equals(isSpot))
         {
@@ -4377,8 +4377,8 @@ public class Btse extends BtseApi
                 put( "info", response );
                 put( "symbol", symbol );
             }};
-            Object longLeverage = null;
-            Object shortLeverage = null;
+            Long longLeverage = null;
+            Long shortLeverage = null;
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)safeResponse).size(); i++)
             {

@@ -800,7 +800,7 @@ public class Btcbox extends BtcboxApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(order, "id");
         String datetimeString = this.safeString(order, "datetime");
-        Object timestamp = null;
+        Long timestamp = null;
         if (!java.util.Objects.equals(datetimeString, null))
         {
             timestamp = this.parse8601(Helpers.add(((Map<String, Object>)order).get("datetime"), "+09:00")); // Tokyo time

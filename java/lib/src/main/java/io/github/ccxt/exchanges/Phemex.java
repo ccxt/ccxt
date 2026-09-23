@@ -1761,7 +1761,7 @@ public class Phemex extends PhemexApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "resolution", Phemex.this.safeString(Phemex.this.timeframes, timeframe, timeframe) );
             }};
-            Object until = this.safeInteger2(parameters, "until", "to");
+            Long until = this.safeInteger2(parameters, "until", "to");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             Boolean isStableSettled = (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT")) || (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC"));
             Boolean usesSpecialFromToEndpoint = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) || Boolean.TRUE.equals(isStableSettled))) && ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)));
@@ -1793,7 +1793,7 @@ public class Phemex extends PhemexApi
                     }
                     if (!java.util.Objects.equals(until, null))
                     {
-                        ((Map<String, Object>)request).put("to", Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(until, 1000)))));
+                        ((Map<String, Object>)request).put("to", Math.round(Double.parseDouble(String.valueOf((((double) until) / ((double) 1000))))));
                     } else
                     {
                         // when since is defined 'to' is mandatory
@@ -2331,7 +2331,7 @@ public class Phemex extends PhemexApi
         Object fee = null;
         Object feeCostString = null;
         Object feeRateString = null;
-        Object feeCurrencyCode = null;
+        String feeCurrencyCode = null;
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -2507,7 +2507,7 @@ public class Phemex extends PhemexApi
         {
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -2522,7 +2522,7 @@ public class Phemex extends PhemexApi
             timestamp = (((java.util.Objects.equals(timestamp, null)))) ? lastUpdateTimeNs : Helpers.mathMax(timestamp, lastUpdateTimeNs);
             ((Map<String, Object>)account).put("total", total);
             ((Map<String, Object>)account).put("used", used);
-            ((Map<String, Object>)result).put((String)((String)code), account);
+            ((Map<String, Object>)result).put((String)code, account);
         }
         ((Map<String, Object>)result).put("timestamp", timestamp);
         ((Map<String, Object>)result).put("datetime", this.iso8601(timestamp));
@@ -2567,8 +2567,8 @@ public class Phemex extends PhemexApi
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, "account", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(balance, "currency");
-        Object code = this.safeCurrencyCode(currencyId);
-        Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+        String code = this.safeCurrencyCode(currencyId);
+        Map<String, Object> currency = (Map<String, Object>) this.currency(code);
         Long valueScale = this.safeInteger(currency, "valueScale", 8);
         Map<String, Object> account = (Map<String, Object>) this.account();
         String accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
@@ -2576,7 +2576,7 @@ public class Phemex extends PhemexApi
         Boolean needsConversion = (!java.util.Objects.equals(code, "USDT"));
         ((Map<String, Object>)account).put("total", ((Boolean.TRUE.equals(needsConversion))) ? this.fromEn(accountBalanceEv, valueScale) : accountBalanceEv);
         ((Map<String, Object>)account).put("used", ((Boolean.TRUE.equals(needsConversion))) ? this.fromEn(totalUsedBalanceEv, valueScale) : totalUsedBalanceEv);
-        ((Map<String, Object>)result).put((String)((String)code), account);
+        ((Map<String, Object>)result).put((String)code, account);
         return this.safeBalance(result);
     }
 
@@ -5700,8 +5700,8 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Boolean isHedged = (Boolean) this.safeBool(parameters, "hedged", false);
-            Object longLeverageRr = this.safeInteger(parameters, "longLeverageRr");
-            Object shortLeverageRr = this.safeInteger(parameters, "shortLeverageRr");
+            Long longLeverageRr = this.safeInteger(parameters, "longLeverageRr");
+            Long shortLeverageRr = this.safeInteger(parameters, "shortLeverageRr");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );

@@ -1406,7 +1406,7 @@ public class Mexc extends MexcApi
             var query = ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             Object status = null;
-            Object updated = null;
+            Long updated = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.spotPublicGetPing(query)).join();
@@ -2100,7 +2100,7 @@ public class Mexc extends MexcApi
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object id = null;
-        Object timestamp = null;
+        Long timestamp = null;
         String orderId = null;
         Object symbol = null;
         Object fee = null;
@@ -2574,7 +2574,7 @@ public class Mexc extends MexcApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = null;
+        Long timestamp = null;
         String bid = null;
         String ask = null;
         String bidVolume = null;
@@ -7141,8 +7141,8 @@ final Object finalRiskIncrVol = riskIncrVol;
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marginMode = null;
-        Object longLeverage = null;
-        Object shortLeverage = null;
+        Long longLeverage = null;
+        Long shortLeverage = null;
         for (var i = 0; i < ((List<?>)leverage).size(); i++)
         {
             Object entry = Helpers.GetValue(leverage, i);

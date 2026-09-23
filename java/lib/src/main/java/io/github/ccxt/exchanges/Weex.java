@@ -5115,8 +5115,8 @@ public class Weex extends WeexApi
         String marginType = this.safeString(leverage, "marginType");
         String marginMode = this.parseMarginType(marginType);
         Double crossLeverage = this.safeNumber(leverage, "crossLeverage");
-        Object longLeverage = this.safeNumber(leverage, "isolatedLongLeverage");
-        Object shortLeverage = this.safeNumber(leverage, "isolatedShortLeverage");
+        Double longLeverage = this.safeNumber(leverage, "isolatedLongLeverage");
+        Double shortLeverage = this.safeNumber(leverage, "isolatedShortLeverage");
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             longLeverage = crossLeverage;

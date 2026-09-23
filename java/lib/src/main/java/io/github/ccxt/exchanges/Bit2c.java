@@ -1146,7 +1146,7 @@ public class Bit2c extends Bit2cApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object timestamp = null;
-        Object id = null;
+        String id = null;
         Object price = null;
         String amount = null;
         Object orderId = null;

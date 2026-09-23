@@ -604,13 +604,13 @@ public class Coinmate extends CoinmateApi
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            Object code = this.safeCurrencyCode((String) (currencyId));
+            String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "reserved"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
-            ((Map<String, Object>)result).put((String)((String)code), account);
+            ((Map<String, Object>)result).put((String)code, account);
         }
         return this.safeBalance(result);
     }

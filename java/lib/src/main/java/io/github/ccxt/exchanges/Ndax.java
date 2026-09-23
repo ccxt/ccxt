@@ -1452,7 +1452,7 @@ public class Ndax extends NdaxApi
         String priceString = null;
         String amountString = null;
         String costString = null;
-        Object timestamp = null;
+        Long timestamp = null;
         String id = null;
         String marketId = null;
         Object side = null;

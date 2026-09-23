@@ -390,11 +390,11 @@ public class Btcturk extends BtcturkApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         List<Object> filters = (List<Object>) this.safeList(entry, "filters", new ArrayList<Object>(Arrays.asList()));
-        Object minPrice = null;
-        Object maxPrice = null;
-        Object minAmount = null;
-        Object maxAmount = null;
-        Object minCost = null;
+        Double minPrice = null;
+        Double maxPrice = null;
+        Double minAmount = null;
+        Double maxAmount = null;
+        Double minCost = null;
         for (var j = 0; j < ((List<?>)filters).size(); j++)
         {
             Object filter = (filters == null || j < 0 || j >= filters.size() ? null : filters.get(j));

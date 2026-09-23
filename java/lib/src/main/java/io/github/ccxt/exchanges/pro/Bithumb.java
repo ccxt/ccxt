@@ -605,7 +605,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }
         }
         Object gen2TimestampStr = this.safeString2(message, "timestamp", "datetime");
-        Object timestamp = null;
+        Long timestamp = null;
         if (!java.util.Objects.equals(gen2TimestampStr, null))
         {
             timestamp = this.parseToInt((gen2TimestampStr == null ? null : ((String)gen2TimestampStr).substring(0, Math.min(13, ((String)gen2TimestampStr).length()))));

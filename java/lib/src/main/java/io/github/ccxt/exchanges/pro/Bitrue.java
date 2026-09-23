@@ -547,7 +547,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return rawQuantity;
         }
-        Object contractSize = this.safeNumber(market, "contractSize", 1);
+        Double contractSize = this.safeNumber(market, "contractSize", 1);
         return Helpers.multiply(rawQuantity, contractSize);
     }
 

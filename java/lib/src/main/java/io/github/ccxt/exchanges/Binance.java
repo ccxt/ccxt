@@ -4920,7 +4920,7 @@ public class Binance extends BinanceApi
         Boolean isFiat = (Boolean) this.safeBool(entry, "isLegalMoney");
         List<Object> networkList = (List<Object>) this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> fees = new HashMap<String, Object>() {{}};
-        Object fee = null;
+        Double fee = null;
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Boolean isETF = false;
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
@@ -5420,7 +5420,7 @@ public class Binance extends BinanceApi
         List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
         String status = this.safeString2(market, "status", "contractStatus");
-        Object contractSize = null;
+        Double contractSize = null;
         Object fees = this.fees;
         Object linear = null;
         Object inverse = null;
@@ -5643,7 +5643,7 @@ public class Binance extends BinanceApi
         Object result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object timestamp = null;
+        Long timestamp = null;
         Boolean isolated = java.util.Objects.equals(marginMode, "isolated");
         Boolean cross = (java.util.Objects.equals(type, "margin")) || (java.util.Objects.equals(marginMode, "cross"));
         if (Helpers.isTrue(isPortfolioMargin))
@@ -8848,7 +8848,7 @@ public class Binance extends BinanceApi
         String symbol = this.safeSymbol(marketId, market, null, marketType);
         String filled = this.safeString2(order, "executedQty", "filledQty", "0");
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"))); // order of the keys matters here
-        Object lastTradeTimestamp = null;
+        Long lastTradeTimestamp = null;
         if ((((Map<?, ?>)order).containsKey("transactTime")) || (((Map<?, ?>)order).containsKey("updateTime")) || (((Map<?, ?>)order).containsKey("updatedAt")))
         {
             Long timestampValue = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("updateTime", "transactTime", "updatedAt")));
@@ -12212,7 +12212,7 @@ public class Binance extends BinanceApi
         }
         String currencyId = this.safeString2(transaction, "coin", "fiatCurrency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = null;
+        Long timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "createTime");
         if (java.util.Objects.equals(timestamp, null))
         {
@@ -15556,8 +15556,8 @@ final Object finalMarket = market;
             marginMode = (((java.util.Objects.equals(marginTypeRaw, "crossed")))) ? "cross" : "isolated";
         }
         String side = this.safeStringLower(leverage, "positionSide");
-        Object longLeverage = null;
-        Object shortLeverage = null;
+        Long longLeverage = null;
+        Long shortLeverage = null;
         Long leverageValue = this.safeInteger(leverage, "leverage");
         if ((java.util.Objects.equals(side, null)) || (java.util.Objects.equals(side, "both")))
         {
@@ -17585,12 +17585,12 @@ final Object finalMarket = market;
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = (Long) this.safeInteger2(interest, "timestamp", "time");
         String id = this.safeString(interest, "symbol");
-        Object amount = this.safeNumber2(interest, "sumOpenInterest", "openInterest");
+        Double amount = this.safeNumber2(interest, "sumOpenInterest", "openInterest");
         Double value = this.safeNumber2(interest, "sumOpenInterestValue", "sumOpenInterestUsd");
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         Boolean isInverse = (java.util.Objects.equals(this.safeBool(market, "inverse"), true));
-        Object baseVolume = ((Boolean.TRUE.equals(isInverse))) ? null : amount;
+        Double baseVolume = ((Boolean.TRUE.equals(isInverse))) ? null : amount;
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Binance.this.safeSymbol(id, market, null, "contract") );
             put( "baseVolume", baseVolume );
@@ -19191,7 +19191,7 @@ final Object finalMarket = market;
         Double longNum = this.safeNumber(adlQuantile, "LONG");
         Double shortNum = this.safeNumber(adlQuantile, "SHORT");
         Double both = this.safeNumber(adlQuantile, "BOTH");
-        Object rank = null;
+        Double rank = null;
         if (!java.util.Objects.equals(both, null))
         {
             rank = both;

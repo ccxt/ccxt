@@ -458,7 +458,7 @@ public class Revolutx extends RevolutxApi
         String id = this.safeString2(currency, "id", "symbol", "");
         String code = this.safeCurrencyCode(id);
         String name = this.safeString(currency, "name");
-        Object scale = this.safeInteger(currency, "scale");
+        Long scale = this.safeInteger(currency, "scale");
         String status = this.safeString(currency, "status");
         Boolean active = (java.util.Objects.equals(status, "active"));
         String assetType = this.safeString(currency, "asset_type");
@@ -1488,7 +1488,7 @@ public class Revolutx extends RevolutxApi
                 ((Map<String, Object>)request).put("end_date", until);
             } else if (!java.util.Objects.equals(since, null))
             {
-                Object now = this.milliseconds();
+                Long now = this.milliseconds();
                 Object defaultEnd = Helpers.add(since, thirtyDays);
                 ((Map<String, Object>)request).put("end_date", (((Helpers.isLessThan(defaultEnd, now)))) ? defaultEnd : now);
             }
@@ -1648,7 +1648,7 @@ public class Revolutx extends RevolutxApi
                 ((Map<String, Object>)request).put("end_date", until);
             } else if (!java.util.Objects.equals(since, null))
             {
-                Object now = this.milliseconds();
+                Long now = this.milliseconds();
                 Object defaultEnd = Helpers.add(since, thirtyDays);
                 ((Map<String, Object>)request).put("end_date", (((Helpers.isLessThan(defaultEnd, now)))) ? defaultEnd : now);
             }

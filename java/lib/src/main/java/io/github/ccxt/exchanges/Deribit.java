@@ -1351,7 +1351,7 @@ public class Deribit extends DeribitApi
                     }
                     Boolean isComboMarket = ((String)kind).indexOf("combo") >= 0;
                     Long expiry = this.safeInteger(market, "expiration_timestamp");
-                    Object strike = null;
+                    Double strike = null;
                     String optionType = null;
                     Object symbol = id;
                     String type = "swap";
@@ -2516,7 +2516,7 @@ public class Deribit extends DeribitApi
                 cost = Precise.stringDiv(amount, averageString);
             }
         }
-        Object lastTradeTimestamp = null;
+        Long lastTradeTimestamp = null;
         if (!java.util.Objects.equals(filledString, null))
         {
             Object isFilledPositive = Precise.stringGt(filledString, "0");
@@ -4864,8 +4864,8 @@ public class Deribit extends DeribitApi
         String marketId = this.safeString(interest, "instrument_name");
         market = this.safeMarket(marketId, market);
         Double openInterest = this.safeNumber(interest, "open_interest");
-        Object openInterestAmount = null;
-        Object openInterestValue = null;
+        Double openInterestAmount = null;
+        Double openInterestValue = null;
         if ((java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)) || ((java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))))
         {
             openInterestAmount = openInterest;

@@ -197,7 +197,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 throw new BadRequest(((this.id + " no subscription for ") + messageHash)) ;
             }
-            Object subId = this.safeInteger(existingSubscription, "id");
+            Long subId = this.safeInteger(existingSubscription, "id");
             Object request = this.createPublicRequest(market, subId, topicID, suffix, true); // unsubscribe message uses the same id as the original subscribe message
             String unsubHash = ("unsubscribe::" + messageHash);
             subscription = this.extend(subscription, new HashMap<String, Object>() {{

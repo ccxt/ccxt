@@ -1742,8 +1742,8 @@ public class Lighter extends LighterApi
         String code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
         String decimals = this.safeString(rawCurrency, "decimals");
         Boolean isUSDC = (java.util.Objects.equals(code, "USDC"));
-        Object depositMin = null;
-        Object withdrawMin = null;
+        Double depositMin = null;
+        Double withdrawMin = null;
         if (Boolean.TRUE.equals(isUSDC))
         {
             depositMin = this.safeNumber(rawCurrency, "min_transfer_amount");
@@ -2111,9 +2111,9 @@ public class Lighter extends LighterApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             Object startTs = null;
             Object endTs = null;
             if (!java.util.Objects.equals(since, null))

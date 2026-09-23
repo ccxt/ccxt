@@ -579,7 +579,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 Boolean index = (((String)marketType).indexOf(" index") >= 0);
                 Object linear = null;
                 Object inverse = null;
-                Object expiry = null;
+                Long expiry = null;
                 if (!Boolean.TRUE.equals(index))
                 {
                     linear = (((String)marketType).indexOf("_vanilla") >= 0);
@@ -4010,7 +4010,7 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             marginType = "isolated";
         }
-        Object timestamp = null;
+        Long timestamp = null;
         String datetime = null;
         if (Boolean.TRUE.equals(isHistory))
         {

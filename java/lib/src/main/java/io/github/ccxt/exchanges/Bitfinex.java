@@ -961,17 +961,17 @@ public class Bitfinex extends BitfinexApi
                     baseId = (id == null ? null : ((String)id).substring(0, Math.min(3, ((String)id).length())));
                     quoteId = (id == null ? null : ((String)id).substring(Math.min(3, ((String)id).length()), Math.min(6, ((String)id).length())));
                 }
-                Object base = this.safeCurrencyCode((String) (baseId));
-                Object quote = this.safeCurrencyCode((String) (quoteId));
-                Object splitBase = new ArrayList<Object>(Arrays.asList(((String)((String)base)).split(java.util.regex.Pattern.quote("F0"))));
-                Object splitQuote = new ArrayList<Object>(Arrays.asList(((String)((String)quote)).split(java.util.regex.Pattern.quote("F0"))));
+                String base = this.safeCurrencyCode((String) (baseId));
+                String quote = this.safeCurrencyCode((String) (quoteId));
+                Object splitBase = new ArrayList<Object>(Arrays.asList(((String)base).split(java.util.regex.Pattern.quote("F0"))));
+                Object splitQuote = new ArrayList<Object>(Arrays.asList(((String)quote).split(java.util.regex.Pattern.quote("F0"))));
                 base = this.safeString(splitBase, 0);
                 quote = this.safeString(splitQuote, 0);
-                Object symbol = Helpers.add((base + "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 // baseId = 'f' + baseId;
                 // quoteId = 'f' + quoteId;
-                Object settle = null;
-                Object settleId = null;
+                String settle = null;
+                String settleId = null;
                 if (Boolean.TRUE.equals(swap))
                 {
                     settle = quote;
@@ -3240,8 +3240,8 @@ public class Bitfinex extends BitfinexApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object transactionLength = ((List<?>)transaction).size();
-        Object timestamp = null;
-        Object updated = null;
+        Long timestamp = null;
+        Long updated = null;
         Object code = null;
         Object amount = null;
         Object id = null;

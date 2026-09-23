@@ -959,7 +959,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //         ]
         //     }
         //
-        Object nonce = this.safeInteger(message, "nonce");
+        Long nonce = this.safeInteger(message, "nonce");
         if (Helpers.isGreaterThan(nonce, Helpers.GetValue(orderbook, "nonce")))
         {
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList())));
@@ -2313,7 +2313,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         String error = this.safeString(message, "error");
-        Object code = this.safeInteger(error, "errorCode");
+        Long code = this.safeInteger(error, "errorCode");
         String action = this.safeString(message, "action");
         Object buildMessage = this.buildMessageHash((String) (action), message);
         String messageHash = this.safeString(message, "requestId", buildMessage);

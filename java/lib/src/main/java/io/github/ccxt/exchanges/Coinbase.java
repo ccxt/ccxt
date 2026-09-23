@@ -2241,10 +2241,10 @@ public class Coinbase extends CoinbaseApi
             type = "future";
             symbol = ((((symbol + ":") + quote) + "-") + this.yymmdd(expireTimestamp));
         }
-        Object takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
-        Object makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
-        Object taker = (((!java.util.Objects.equals(takerFeeRate, null) && !java.util.Objects.equals(takerFeeRate, null) && !Helpers.isEqual(takerFeeRate, 0)))) ? takerFeeRate : this.parseNumber("0.06");
-        Object maker = (((!java.util.Objects.equals(makerFeeRate, null) && !java.util.Objects.equals(makerFeeRate, null) && !Helpers.isEqual(makerFeeRate, 0)))) ? makerFeeRate : this.parseNumber("0.04");
+        Double takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
+        Double makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
+        Object taker = (((!java.util.Objects.equals(takerFeeRate, null) && !java.util.Objects.equals(takerFeeRate, null) && (takerFeeRate == null || takerFeeRate != 0)))) ? takerFeeRate : this.parseNumber("0.06");
+        Object maker = (((!java.util.Objects.equals(makerFeeRate, null) && !java.util.Objects.equals(makerFeeRate, null) && (makerFeeRate == null || makerFeeRate != 0)))) ? makerFeeRate : this.parseNumber("0.04");
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalType = type;
@@ -2869,8 +2869,8 @@ public class Coinbase extends CoinbaseApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Double bid = this.safeNumber(ticker, "bid");
         Double ask = this.safeNumber(ticker, "ask");
-        Object bidVolume = null;
-        Object askVolume = null;
+        Double bidVolume = null;
+        Double askVolume = null;
         if ((((Map<?, ?>)ticker).containsKey("bids")))
         {
             List<Object> bids = (List<Object>) this.safeList(ticker, "bids", new ArrayList<Object>(Arrays.asList()));

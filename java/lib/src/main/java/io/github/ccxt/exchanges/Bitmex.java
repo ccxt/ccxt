@@ -1188,7 +1188,7 @@ public class Bitmex extends BitmexApi
         Object linear = ((Boolean.TRUE.equals(contract))) ? ((!java.util.Objects.equals(isInverse, true)) && (!java.util.Objects.equals(isQuanto, true))) : null;
         String status = this.safeString(market, "state");
         Boolean active = java.util.Objects.equals(status, "Open"); // Open, Settled, Unlisted
-        Object expiry = null;
+        Long expiry = null;
         String expiryDatetime = null;
         Object symbol = null;
         if (Boolean.TRUE.equals(spot))
@@ -1219,7 +1219,7 @@ public class Bitmex extends BitmexApi
         String positionId = this.safeString2(market, "positionCurrency", "underlying");
         String position = this.safeCurrencyCode(positionId);
         Boolean positionIsQuote = (java.util.Objects.equals(position, quote));
-        Object maxOrderQty = this.safeNumber(market, "maxOrderQty");
+        Double maxOrderQty = this.safeNumber(market, "maxOrderQty");
         String initMargin = this.safeString(market, "initMargin", "1");
         Double maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
         // subtype should be undefined for spot markets

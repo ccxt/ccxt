@@ -865,7 +865,7 @@ public class Blofin extends BlofinApi
         Boolean isMargin = Boolean.TRUE.equals(spot) && (Precise.stringGt(maxLeverage, "1"));
         String contractType = this.safeString(market, "contractType");
         Double maxLimitAmount = this.safeNumber(market, "maxLimitSize");
-        Object maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
+        Double maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalType = type;
@@ -1607,7 +1607,7 @@ public class Blofin extends BlofinApi
         {
             Object balance = (details == null || i < 0 || i >= details.size() ? null : details.get(i));
             String currencyId = this.safeString(balance, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
             // it may be incorrect to use total, free and used for swap accounts
             String eq = this.safeString(balance, "equity");
@@ -1653,7 +1653,7 @@ public class Blofin extends BlofinApi
         {
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
             // it may be incorrect to use total, free and used for swap accounts
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));

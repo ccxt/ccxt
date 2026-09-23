@@ -1011,7 +1011,7 @@ public class Bullish extends BullishApi
         Object linear = null;
         Object inverse = null;
         String expiryDatetime = null;
-        Object contractSize = null;
+        Double contractSize = null;
         Object optionType = null;
         Object strike = null;
         Object margin = false;
@@ -3449,7 +3449,7 @@ public class Bullish extends BullishApi
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object until = this.safeInteger(request, "createdAtDatetime[lte]");
+            Long until = this.safeInteger(request, "createdAtDatetime[lte]");
             // current endpoint requires both since and until parameters
             if (java.util.Objects.equals(startTimestamp, null))
             {

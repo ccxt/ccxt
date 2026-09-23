@@ -833,8 +833,8 @@ public class Whitebit extends WhitebitApi
         Boolean active = (Boolean) this.safeBool(market, "tradesEnabled");
         Boolean isCollateral = (Boolean) this.safeBool(market, "isCollateral");
         String typeId = this.safeString(market, "type");
-        Object type = null;
-        Object settle = null;
+        String type = null;
+        String settle = null;
         Object settleId = null;
         Object symbol = ((base + "/") + quote);
         Boolean swap = (java.util.Objects.equals(typeId, "futures")) || (java.util.Objects.equals(typeId, "tradfiFutures"));

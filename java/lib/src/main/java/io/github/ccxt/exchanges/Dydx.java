@@ -1748,7 +1748,7 @@ public class Dydx extends DydxApi
         }
         Object sideNumber = (((java.util.Objects.equals(orderSide, "BUY")))) ? 1 : 2;
         Object defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
-        Object clientOrderId = this.safeInteger(parameters, "clientOrderId", defaultClientOrderId);
+        Long clientOrderId = this.safeInteger(parameters, "clientOrderId", defaultClientOrderId);
         final Object finalSubaccountId = subaccountId;
         final Object finalClientOrderId = clientOrderId;
         final Object finalOrderFlag = orderFlag;
@@ -1788,7 +1788,7 @@ public class Dydx extends DydxApi
         }};
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId")));
         String walletAddress = this.getWalletAddress();
-        Object clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
+        Long clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
         Object subaccountIdValue = (((java.util.Objects.equals(subaccountId, null)))) ? 0 : subaccountId;
         Object clientOrderIdValue = (((java.util.Objects.equals(clientOrderId, null)))) ? 0 : clientOrderId;
         Object orderFlagValue = (((java.util.Objects.equals(orderFlag, null)))) ? 0 : orderFlag;
