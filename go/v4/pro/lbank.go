@@ -630,15 +630,15 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var parts []string = ccxt.Split(rawSide, "_")
 	var firstPart *string = this.SafeString(parts, 0)
 	var secondPart *string = this.SafeString(parts, 1)
-	var side any = firstPart
+	var side *string = firstPart
 	// reverse if it was 'maker'
 	if secondPart != nil && *secondPart == "maker" {
-		side = func() string {
-			if ccxt.IsEqual(side, "buy") {
+		side = ccxt.SafeStringPtr(func() string {
+			if side != nil && *side == "buy" {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	return this.SafeTrade(map[string]any{
 		"timestamp":    timestamp,
@@ -1308,11 +1308,11 @@ func (this *Lbank) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOHLCVWsAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.NewOHLCVArray, this.FetchOHLCVWsAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOHLCVArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1334,11 +1334,11 @@ func (this *Lbank) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.NewOHLCVArray, this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOHLCVArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1357,11 +1357,11 @@ func (this *Lbank) FetchTickerWs(symbol string, options ...ccxt.FetchTickerWsOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchTickerWsAsync(symbol, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Ticker] = ccxt.AwaitResult(ccxt.NewTicker, this.FetchTickerWsAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return ccxt.Ticker{}, res.Err
 	}
-	return ccxt.NewTicker(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1380,11 +1380,11 @@ func (this *Lbank) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchTickerAsync(symbol, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Ticker] = ccxt.AwaitResult(ccxt.NewTicker, this.WatchTickerAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return ccxt.Ticker{}, res.Err
 	}
-	return ccxt.NewTicker(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1405,11 +1405,11 @@ func (this *Lbank) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchTradesWsAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.FetchTradesWsAsync(symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1430,11 +1430,11 @@ func (this *Lbank) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1455,11 +1455,11 @@ func (this *Lbank) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1471,11 +1471,11 @@ func (this *Lbank) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Lbank) WatchBalance(params ...any) (ccxt.Balances, error) {
-	res := ccxt.AwaitResult(this.WatchBalanceAsync(params...))
+	var res ccxt.AsyncResult[ccxt.Balances] = ccxt.AwaitResult(ccxt.NewBalances, this.WatchBalanceAsync(params...))
 	if res.Err != nil {
 		return ccxt.Balances{}, res.Err
 	}
-	return ccxt.NewBalances(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1495,11 +1495,11 @@ func (this *Lbank) FetchOrderBookWs(symbol string, options ...ccxt.FetchOrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOrderBookWsAsync(symbol, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBook, this.FetchOrderBookWsAsync(symbol, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return ccxt.OrderBook{}, res.Err
 	}
-	return ccxt.NewOrderBook(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1519,9 +1519,9 @@ func (this *Lbank) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return ccxt.OrderBook{}, res.Err
 	}
-	return ccxt.NewOrderBookFromWs(res.Value), nil
+	return res.Value, nil
 }

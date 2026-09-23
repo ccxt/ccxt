@@ -3301,6 +3301,23 @@ class NewTranspiler {
         return type.startsWith('Dictionary<string,') && type.endsWith('>') ? type.substring(19, type.length - 1) : type;
     }
 
+    // createReturnStatement's conversion of `res` as a func(any) T value for AwaitResult
+    createReturnConverter (methodName: string, unwrappedType: string) {
+        const stmt = this.createReturnStatement (methodName, unwrappedType);
+        if (stmt === 'res') {
+            return 'Untyped';
+        }
+        const call = stmt.match (/^(\w+)\(res\)$/);
+        if (call) {
+            return call[1];
+        }
+        const assertion = stmt.match (/^\(?res\)?\.\((.+)\)$/);
+        if (assertion) {
+            return `AssertAs[${assertion[1]}]`;
+        }
+        throw new Error (`[go] no AwaitResult converter for ${methodName}: ${stmt}`);
+    }
+
     createReturnStatement(methodName: string,  unwrappedType:string ) {
 
         // custom handling for now
@@ -3639,12 +3656,12 @@ class NewTranspiler {
             // `${three}defer ReturnPanicError(ch)`,
            `${defaultParams}`,
             // receive: `<-` binds the call directly, gofmt prints `<-this.X(...)` (no space after the arrow)
-            // AwaitResult receives once and splits the boxed value from its error
-            `${two}res := AwaitResult(${accessor}${methodNameCapitalized}${GO_ASYNC_SUFFIX}(${params}))`,
+            // AwaitResult receives once, splits off the error and converts the payload to the wrapper's type
+            `${two}var res AsyncResult[${unwrappedType}] = AwaitResult(${this.createReturnConverter(methodName, unwrappedType)}, ${accessor}${methodNameCapitalized}${GO_ASYNC_SUFFIX}(${params}))`,
             `${two}if res.Err != nil {`,
             `${three}return ${emptyObject}, res.Err`,
             `${two}}`,
-            `${two}return ${this.createReturnStatement(methodName, unwrappedType).replace (/\bres\b/g, 'res.Value')}, nil`,
+            `${two}return res.Value, nil`,
             // `${two}}()`,
             // `${two}return ch`,
         ];
@@ -3810,19 +3827,19 @@ class NewTranspiler {
             '}',
             '',
             'func (this *ExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
-            `\tres := AwaitResult(this.Exchange.LoadMarkets${GO_ASYNC_SUFFIX}(params...))`,
+            `\tvar res AsyncResult[map[string]MarketInterface] = AwaitResult(NewMarketsMap, this.Exchange.LoadMarkets${GO_ASYNC_SUFFIX}(params...))`,
             '\tif res.Err != nil {',
             '\t\treturn nil, res.Err',
             '\t}',
-            '\treturn NewMarketsMap(res.Value), nil',
+            '\treturn res.Value, nil',
             '}',
             '',
             'func (this *BaseExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
-            `\tres := AwaitResult(this.BaseExchange.LoadMarkets${GO_ASYNC_SUFFIX}(params...))`,
+            `\tvar res AsyncResult[map[string]MarketInterface] = AwaitResult(NewMarketsMap, this.BaseExchange.LoadMarkets${GO_ASYNC_SUFFIX}(params...))`,
             '\tif res.Err != nil {',
             '\t\treturn nil, res.Err',
             '\t}',
-            '\treturn NewMarketsMap(res.Value), nil',
+            '\treturn res.Value, nil',
             '}',
         ].join('\n');
 

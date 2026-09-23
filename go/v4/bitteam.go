@@ -1227,9 +1227,8 @@ func (this *Bitteam) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"type": "active",
 	}
 
-	retRes107415 := (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes107415)
-	ch <- retRes107415
+	var retRes107415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes107415)
 	return nil
 }
 
@@ -1268,9 +1267,8 @@ func (this *Bitteam) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		"type": "closed",
 	}
 
-	retRes109515 := (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes109515)
-	ch <- retRes109515
+	var retRes109515 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes109515)
 	return nil
 }
 
@@ -1309,9 +1307,8 @@ func (this *Bitteam) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
 		"type": "cancelled",
 	}
 
-	retRes111615 := (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes111615)
-	ch <- retRes111615
+	var retRes111615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes111615)
 	return nil
 }
 
@@ -2391,14 +2388,14 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = Precise.StringMul(timestamp, "1000")
 	}
 	// the exchange returns the side of the taker
-	var side any = DerefScalar(this.SafeString2(trade, "side", "type"))
+	var side *string = this.SafeString2(trade, "side", "type")
 	var feeInfo any = nil
 	var order *string = nil
 	if takerOrMaker != nil && *takerOrMaker == "maker" {
-		if IsEqual(side, "sell") {
-			side = "buy"
-		} else if IsEqual(side, "buy") {
-			side = "sell"
+		if side != nil && *side == "sell" {
+			side = SafeStringPtr("buy")
+		} else if side != nil && *side == "buy" {
+			side = SafeStringPtr("sell")
 		}
 		order = this.SafeString(trade, "makerOrderId")
 		feeInfo = this.SafeDict(trade, "feeMaker", map[string]any{})
@@ -2859,11 +2856,11 @@ func (this *Bitteam) Init(userConfig map[string]any) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Bitteam) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	res := AwaitResult(this.FetchMarketsAsync(params...))
+	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewMarketInterfaceArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2875,11 +2872,11 @@ func (this *Bitteam) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Bitteam) FetchCurrencies(params ...any) (Currencies, error) {
-	res := AwaitResult(this.FetchCurrenciesAsync(params...))
+	var res AsyncResult[Currencies] = AwaitResult(NewCurrencies, this.FetchCurrenciesAsync(params...))
 	if res.Err != nil {
 		return Currencies{}, res.Err
 	}
-	return NewCurrencies(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2900,11 +2897,11 @@ func (this *Bitteam) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]OHLCV] = AwaitResult(NewOHLCVArray, this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOHLCVArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2924,11 +2921,11 @@ func (this *Bitteam) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return OrderBook{}, res.Err
 	}
-	return NewOrderBook(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2950,11 +2947,11 @@ func (this *Bitteam) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2974,11 +2971,11 @@ func (this *Bitteam) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrderAsync(id, opts.Symbol, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2999,11 +2996,11 @@ func (this *Bitteam) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3024,11 +3021,11 @@ func (this *Bitteam) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3049,11 +3046,11 @@ func (this *Bitteam) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3076,11 +3073,11 @@ func (this *Bitteam) CreateOrder(symbol string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3100,11 +3097,11 @@ func (this *Bitteam) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelOrderAsync(id, opts.Symbol, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3123,11 +3120,11 @@ func (this *Bitteam) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3146,11 +3143,11 @@ func (this *Bitteam) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTickersAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return Tickers{}, res.Err
 	}
-	return NewTickers(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3169,11 +3166,11 @@ func (this *Bitteam) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTickerAsync(symbol, opts.Params))
+	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return Ticker{}, res.Err
 	}
-	return NewTicker(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3194,11 +3191,11 @@ func (this *Bitteam) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3219,18 +3216,18 @@ func (this *Bitteam) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 func (this *Bitteam) FetchBalance(params ...any) (Balances, error) {
-	res := AwaitResult(this.FetchBalanceAsync(params...))
+	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
 	if res.Err != nil {
 		return Balances{}, res.Err
 	}
-	return NewBalances(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3251,11 +3248,11 @@ func (this *Bitteam) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawal
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchDepositsWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchDepositsWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTransactionArray(res.Value), nil
+	return res.Value, nil
 }
 
 // missing typed methods from base

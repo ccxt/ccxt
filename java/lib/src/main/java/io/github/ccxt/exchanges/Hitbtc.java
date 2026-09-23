@@ -1451,16 +1451,16 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -1509,7 +1509,7 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -2141,12 +2141,12 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
-    public CompletableFuture<OrderBooks> fetchOrderBooks(Object symbols2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<OrderBooks> fetchOrderBooks(List<String> symbols2, Long limit2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2189,7 +2189,7 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<OrderBooks> fetchOrderBooks(Object... optionalArgs)
     {
-        return this.fetchOrderBooks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+        return this.fetchOrderBooks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3239,15 +3239,15 @@ public class Hitbtc extends HitbtcApi
         return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> editOrder(String id, String symbol2, Object type2, Object side, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol2, String type2, String side, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final String symbol3 = symbol2;
-        final Object type3 = type2;
+        final String type3 = type2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object type = type3;
+            String type = type3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -3305,7 +3305,7 @@ public class Hitbtc extends HitbtcApi
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -3330,7 +3330,7 @@ public class Hitbtc extends HitbtcApi
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -3349,7 +3349,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-            var requestparametersVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, type, side, amount, price, marginMode, parameters);
+            var requestparametersVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, (String) (type), (String) (side), amount, price, marginMode, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;
@@ -3387,19 +3387,19 @@ public class Hitbtc extends HitbtcApi
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(Map<String, Object> market, Object marketType, Object type, Object side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
+    public Object createOrderRequest(Map<String, Object> market, Object marketType, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
     {
         Boolean isLimit = (java.util.Objects.equals(type, "limit"));
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
         String timeInForce = this.safeString(parameters, "timeInForce");
         Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
         Object isPostOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), null, parameters);
-        final Object finalType = type;
+        final String finalType = type;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "type", finalType );
             put( "side", side );
@@ -3467,7 +3467,7 @@ public class Hitbtc extends HitbtcApi
         }
         return new ArrayList<Object>(Arrays.asList(request, parameters));
     }
-    public Object createOrderRequest(Map<String, Object> market, Object marketType, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(Map<String, Object> market, Object marketType, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(market, marketType, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgString(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -3625,12 +3625,12 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public CompletableFuture<MarginModes> fetchMarginModes(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<MarginModes> fetchMarginModes(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3639,7 +3639,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                symbols = this.marketSymbols(symbols);
+                symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                 market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             String marketType = null;
@@ -3674,7 +3674,7 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<MarginModes> fetchMarginModes(Object... optionalArgs)
     {
-        return this.fetchMarginModes(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchMarginModes(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
@@ -3786,7 +3786,7 @@ public class Hitbtc extends HitbtcApi
         return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public CompletableFuture<Object> convertCurrencyNetwork(String code2, Object amount, Object fromNetwork2, Object toNetwork2, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> convertCurrencyNetwork(String code2, Object amount, Object fromNetwork2, Object toNetwork2, Map<String, Object> parameters)
     {
         final String code3 = code2;
         final Object fromNetwork3 = fromNetwork2;
@@ -3830,10 +3830,10 @@ public class Hitbtc extends HitbtcApi
             return new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> convertCurrencyNetwork(String code, Object amount, Object fromNetwork, Object toNetwork, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> convertCurrencyNetwork(String code, Object amount, Object fromNetwork, Object toNetwork, Object... optionalArgs)
     {
         return this.convertCurrencyNetwork(code, amount, fromNetwork, toNetwork, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -3930,12 +3930,12 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3945,7 +3945,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                symbols = this.marketSymbols(symbols);
+                symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                 market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 Object queryMarketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("symbols", String.join(",", (List<String>)queryMarketIds));
@@ -4006,7 +4006,7 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4137,7 +4137,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for fetching spot-margin positions
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -4232,7 +4232,7 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4479,17 +4479,17 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public CompletableFuture<OpenInterests> fetchOpenInterests(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Object marketIds = null;
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -4538,7 +4538,7 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
-        return this.fetchOpenInterests(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchOpenInterests(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -5245,7 +5245,7 @@ public class Hitbtc extends HitbtcApi
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<String, Object> parameters2)
+    public CompletableFuture<Order> closePosition(Object symbol, String side, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -5298,7 +5298,7 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
     {
-        return this.closePosition(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, Object defaultValue)

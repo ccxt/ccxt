@@ -68,9 +68,8 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan any, optionalArgs ...any) a
 	}
 	var extendedRequest map[string]any = this.Extend(request, params)
 
-	retRes5715 := (<-this.FetchTickersAsync(symbols, extendedRequest))
-	PanicOnError(retRes5715)
-	ch <- retRes5715
+	var retRes5715 map[string]any = MapTyped(PanicOnError((<-this.FetchTickersAsync(symbols, extendedRequest))))
+	ch <- BoxAbsent(retRes5715)
 	return nil
 }
 
@@ -166,11 +165,11 @@ func (this *Kucoinfutures) FetchBidsAsks(options ...FetchBidsAsksOptions) (Ticke
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchBidsAsksAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchBidsAsksAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return Tickers{}, res.Err
 	}
-	return NewTickers(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -191,9 +190,9 @@ func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params))
+	var res AsyncResult[TransferEntry] = AwaitResult(NewTransferEntry, this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params))
 	if res.Err != nil {
 		return TransferEntry{}, res.Err
 	}
-	return NewTransferEntry(res.Value), nil
+	return res.Value, nil
 }

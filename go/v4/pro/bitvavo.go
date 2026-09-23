@@ -681,9 +681,19 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	var messageHashes []any = []any{}
 	var marketIdsByInterval map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbolAndTimeframe, 0)))
-		var timeframeString any = ccxt.GetValue(symbolAndTimeframe, 1)
+		var symbolAndTimeframe []any = ccxt.ArrayTyped(ccxt.GetValue(symbolsAndTimeframes, i))
+		var market map[string]any = ccxt.MapTyped(this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[0])
+			}
+			return nil
+		}()))
+		var timeframeString any = func() any {
+			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[1])
+			}
+			return nil
+		}()
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
 		if !(func() bool {
 			if interval == nil {
@@ -788,9 +798,19 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	var subMessageHashes []any = []any{}
 	var marketIdsByInterval map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbolAndTimeframe, 0)))
-		var timeframeString any = ccxt.GetValue(symbolAndTimeframe, 1)
+		var symbolAndTimeframe []any = ccxt.ArrayTyped(ccxt.GetValue(symbolsAndTimeframes, i))
+		var market map[string]any = ccxt.MapTyped(this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[0])
+			}
+			return nil
+		}()))
+		var timeframeString any = func() any {
+			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[1])
+			}
+			return nil
+		}()
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
 		if !(func() bool {
 			if interval == nil {
@@ -2634,11 +2654,11 @@ func (this *Bitvavo) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchTickerAsync(symbol, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Ticker] = ccxt.AwaitResult(ccxt.NewTicker, this.WatchTickerAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return ccxt.Ticker{}, res.Err
 	}
-	return ccxt.NewTicker(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2657,11 +2677,11 @@ func (this *Bitvavo) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchTickersAsync(opts.Symbols, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.WatchTickersAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return ccxt.Tickers{}, res.Err
 	}
-	return ccxt.NewTickers(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2680,11 +2700,11 @@ func (this *Bitvavo) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchBidsAsksAsync(opts.Symbols, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.WatchBidsAsksAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return ccxt.Tickers{}, res.Err
 	}
-	return ccxt.NewTickers(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2704,11 +2724,11 @@ func (this *Bitvavo) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2729,11 +2749,11 @@ func (this *Bitvavo) WatchTradesForSymbols(symbols []string, options ...ccxt.Wat
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2752,7 +2772,7 @@ func (this *Bitvavo) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.UnWatchTradesAsync(symbol, opts.Params))
+	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchTradesAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
@@ -2775,7 +2795,7 @@ func (this *Bitvavo) UnWatchTradesForSymbols(symbols []string, options ...ccxt.U
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.UnWatchTradesForSymbolsAsync(symbols, opts.Params))
+	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchTradesForSymbolsAsync(symbols, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
@@ -2800,11 +2820,11 @@ func (this *Bitvavo) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.NewOHLCVArray, this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOHLCVArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2825,11 +2845,11 @@ func (this *Bitvavo) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.AssertAs[map[string]map[string][]ccxt.OHLCV], this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return map[string]map[string][]ccxt.OHLCV{}, res.Err
 	}
-	return res.Value.(map[string]map[string][]ccxt.OHLCV), nil
+	return res.Value, nil
 }
 
 /**
@@ -2849,7 +2869,7 @@ func (this *Bitvavo) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params))
+	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
@@ -2872,7 +2892,7 @@ func (this *Bitvavo) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, opt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params))
+	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
@@ -2895,11 +2915,11 @@ func (this *Bitvavo) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return ccxt.OrderBook{}, res.Err
 	}
-	return ccxt.NewOrderBookFromWs(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2919,11 +2939,11 @@ func (this *Bitvavo) WatchOrderBookForSymbols(symbols []string, options ...ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return ccxt.OrderBook{}, res.Err
 	}
-	return ccxt.NewOrderBookFromWs(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -2942,7 +2962,7 @@ func (this *Bitvavo) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.UnWatchOrderBookAsync(symbol, opts.Params))
+	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchOrderBookAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
@@ -2965,7 +2985,7 @@ func (this *Bitvavo) UnWatchOrderBookForSymbols(symbols []string, options ...ccx
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.UnWatchOrderBookForSymbolsAsync(symbols, opts.Params))
+	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchOrderBookForSymbolsAsync(symbols, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
@@ -2989,11 +3009,11 @@ func (this *Bitvavo) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3013,11 +3033,11 @@ func (this *Bitvavo) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3051,11 +3071,11 @@ func (this *Bitvavo) CreateOrderWs(symbol string, typeVar string, side string, a
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrder, this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return ccxt.Order{}, res.Err
 	}
-	return ccxt.NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3079,11 +3099,11 @@ func (this *Bitvavo) EditOrderWs(id string, symbol string, typeVar string, side 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrder, this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return ccxt.Order{}, res.Err
 	}
-	return ccxt.NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3103,11 +3123,11 @@ func (this *Bitvavo) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.CancelOrderWsAsync(id, opts.Symbol, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrder, this.CancelOrderWsAsync(id, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return ccxt.Order{}, res.Err
 	}
-	return ccxt.NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3126,11 +3146,11 @@ func (this *Bitvavo) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3150,11 +3170,11 @@ func (this *Bitvavo) FetchOrderWs(id string, options ...ccxt.FetchOrderWsOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOrderWsAsync(id, opts.Symbol, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrder, this.FetchOrderWsAsync(id, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return ccxt.Order{}, res.Err
 	}
-	return ccxt.NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3175,18 +3195,18 @@ func (this *Bitvavo) FetchOrdersWs(options ...ccxt.FetchOrdersWsOptions) ([]ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.FetchOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 func (this *Bitvavo) WatchRequest(action string, request map[string]any) (map[string]any, error) {
-	res := ccxt.AwaitResult(this.WatchRequestAsync(action, request))
+	var res ccxt.AsyncResult[map[string]any] = ccxt.AwaitResult(ccxt.AssertAs[map[string]any], this.WatchRequestAsync(action, request))
 	if res.Err != nil {
 		return map[string]any{}, res.Err
 	}
-	return res.Value.(map[string]any), nil
+	return res.Value, nil
 }
 
 /**
@@ -3206,11 +3226,11 @@ func (this *Bitvavo) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOpenOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.FetchOpenOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3231,11 +3251,11 @@ func (this *Bitvavo) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchMyTradesWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.FetchMyTradesWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3256,11 +3276,11 @@ func (this *Bitvavo) WithdrawWs(code string, amount float64, address string, opt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WithdrawWsAsync(code, amount, address, opts.Tag, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Transaction] = ccxt.AwaitResult(ccxt.NewTransaction, this.WithdrawWsAsync(code, amount, address, opts.Tag, opts.Params))
 	if res.Err != nil {
 		return ccxt.Transaction{}, res.Err
 	}
-	return ccxt.NewTransaction(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3281,11 +3301,11 @@ func (this *Bitvavo) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchWithdrawalsWsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Transaction] = ccxt.AwaitResult(ccxt.NewTransactionArray, this.FetchWithdrawalsWsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewTransactionArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3307,11 +3327,11 @@ func (this *Bitvavo) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOHLCVWsAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.NewOHLCVArray, this.FetchOHLCVWsAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOHLCVArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3332,11 +3352,11 @@ func (this *Bitvavo) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchDepositsWsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Transaction] = ccxt.AwaitResult(ccxt.NewTransactionArray, this.FetchDepositsWsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewTransactionArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3348,11 +3368,11 @@ func (this *Bitvavo) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Bitvavo) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
-	res := ccxt.AwaitResult(this.FetchTradingFeesWsAsync(params...))
+	var res ccxt.AsyncResult[ccxt.TradingFees] = ccxt.AwaitResult(ccxt.NewTradingFees, this.FetchTradingFeesWsAsync(params...))
 	if res.Err != nil {
 		return ccxt.TradingFees{}, res.Err
 	}
-	return ccxt.NewTradingFees(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -3364,9 +3384,9 @@ func (this *Bitvavo) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error)
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
  */
 func (this *Bitvavo) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
-	res := ccxt.AwaitResult(this.FetchBalanceWsAsync(params...))
+	var res ccxt.AsyncResult[ccxt.Balances] = ccxt.AwaitResult(ccxt.NewBalances, this.FetchBalanceWsAsync(params...))
 	if res.Err != nil {
 		return ccxt.Balances{}, res.Err
 	}
-	return ccxt.NewBalances(res.Value), nil
+	return res.Value, nil
 }

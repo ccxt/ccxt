@@ -2015,12 +2015,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols2, Long since, Long limit, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2052,7 +2052,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 subType = ((List<Object>) subTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("watchPositions", parameters, "cross");
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -2105,7 +2105,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      */
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
-        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.watchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public void handlePositions(Client client, Map<String, Object> message)
@@ -2314,8 +2314,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 String symbol = this.safeString(parameters, "symbol");
                 String currency = this.safeString(parameters, "currency");
-                Object market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
-                Object currencyCode = (((!java.util.Objects.equals(currency, null)))) ? this.currency((String) (currency)) : null;
+                Map<String, Object> market = (Map<String, Object>) ((((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null);
+                Map<String, Object> currencyCode = (Map<String, Object>) ((((!java.util.Objects.equals(currency, null)))) ? this.currency((String) (currency)) : null);
                 marginMode = this.safeString(parameters, "margin", "cross");
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "symbol", "margin")));
                 Object prefix = "accounts";
@@ -3297,7 +3297,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             if (!java.util.Objects.equals(data, null))
             {
                 String contractCode = this.safeString(message, "contract_code");
-                Object market = (((!java.util.Objects.equals(contractCode, null)))) ? this.safeMarket(contractCode) : null;
+                Map<String, Object> market = (Map<String, Object>) ((((!java.util.Objects.equals(contractCode, null)))) ? this.safeMarket(contractCode) : null);
                 if ((data instanceof List))
                 {
                     for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -3660,7 +3660,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             if (java.util.Objects.equals(authenticated, null))
             {
                 String timestamp = this.ymdhms(this.milliseconds(), "T");
-                Object signatureParams = null;
+                Map<String, Object> signatureParams = null;
                 if (java.util.Objects.equals(type, "spot"))
                 {
                     signatureParams = new HashMap<String, Object>() {{

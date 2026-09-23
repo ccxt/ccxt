@@ -434,7 +434,7 @@ public class Bitflyer extends BitflyerApi
                         baseId = (id == null ? null : ((String)id).substring(0, Math.min(3, ((String)id).length())));
                         quoteId = (id == null ? null : ((String)id).substring(Math.min(3, ((String)id).length()), Math.min(6, ((String)id).length())));
                         // last 9 chars are expiry date
-                        Object expiryDate = (id == null ? null : ((String)id).substring(Math.max(((String)id).length() - 9, 0)));
+                        String expiryDate = (id == null ? null : ((String)id).substring(Math.max(((String)id).length() - 9, 0)));
                         expiry = this.parseExpiryDate(expiryDate);
                     } else
                     {
@@ -943,7 +943,7 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -982,7 +982,7 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1363,11 +1363,11 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(symbols, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchPositions() requires a `symbols` argument, exactly one symbol in an array")) ;
@@ -1376,7 +1376,7 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets()).join();
             }
-            final Object finalSymbols = symbols;
+            final List<String> finalSymbols = symbols;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", Bitflyer.this.marketIds(finalSymbols) );
             }};
@@ -1414,7 +1414,7 @@ public class Bitflyer extends BitflyerApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**

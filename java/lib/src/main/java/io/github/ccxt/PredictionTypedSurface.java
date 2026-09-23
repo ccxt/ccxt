@@ -124,7 +124,7 @@ public interface PredictionTypedSurface {
     CompletableFuture<Tickers> fetchSpotTickers(Object... optionalArgs);
     CompletableFuture<Tickers> fetchContractTickers(Object... optionalArgs);
     CompletableFuture<OrderBooks> fetchOrderBooks(Object... optionalArgs);
-    CompletableFuture<Order> createTwapOrder(String symbol, Object side, Object amount, Object duration, Object... optionalArgs);
+    CompletableFuture<Order> createTwapOrder(String symbol, String side, Object amount, Object duration, Object... optionalArgs);
     CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Object... optionalArgs);
     CompletableFuture<Conversion> fetchConvertTrade(String id, Object... optionalArgs);
     CompletableFuture<List<Conversion>> fetchConvertTradeHistory(Object... optionalArgs);
@@ -167,14 +167,14 @@ public interface PredictionTypedSurface {
     CompletableFuture<List<PredictionTrade>> fetchTrades(String symbol, Object... optionalArgs);
     CompletableFuture<PredictionOrderBook> fetchOrderBook(Object symbol, Object... optionalArgs);
     CompletableFuture<PredictionOpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs);
-    CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs);
+    CompletableFuture<PredictionOrder> editOrder(String id, String symbol, String type, String side, Object... optionalArgs);
     CompletableFuture<PredictionPosition> fetchPosition(Object symbol, Object... optionalArgs);
     CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs);
     CompletableFuture<PredictionTicker> fetchTicker(String symbol, Object... optionalArgs);
     CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs);
     CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs);
-    CompletableFuture<PredictionOrder> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs);
-    CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs);
+    CompletableFuture<PredictionOrder> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs);
+    CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, String side, Object cost, Object... optionalArgs);
     CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs);
     CompletableFuture<PredictionOrder> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs);
     CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Object... optionalArgs);
@@ -440,8 +440,8 @@ public interface PredictionTypedSurface {
     default OrderBooks fetchOrderBooks(String[] symbols, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchOrderBooksAsync(symbols == null ? null : Arrays.asList(symbols), limit, params)); }
     default CompletableFuture<OrderBooks> fetchOrderBooksAsync(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooksAsync(symbols == null ? null : Arrays.asList(symbols), limit, params); }
 
-    default Order createTwapOrder(String symbol, String side, Double amount, Double duration) { return Helpers.joinUnwrapped(this.createTwapOrder(symbol, (Object) (side), (Object) (amount), (Object) (duration), (Object) ((Map<String, Object>) null))); }
-    default CompletableFuture<Order> createTwapOrderAsync(String symbol, String side, Double amount, Double duration, Map<String, Object> params) { return this.createTwapOrder(symbol, (Object) side, (Object) amount, (Object) duration, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default Order createTwapOrder(String symbol, String side, Double amount, Double duration) { return Helpers.joinUnwrapped(this.createTwapOrder(symbol, side, (Object) (amount), (Object) (duration), (Object) ((Map<String, Object>) null))); }
+    default CompletableFuture<Order> createTwapOrderAsync(String symbol, String side, Double amount, Double duration, Map<String, Object> params) { return this.createTwapOrder(symbol, side, (Object) amount, (Object) duration, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Order> createTwapOrderAsync(String symbol, String side, Double amount, Double duration) { return createTwapOrderAsync(symbol, side, amount, duration, (Map<String, Object>) null); }
 
     default Conversion createConvertTrade(String id, String fromCode, String toCode) { return Helpers.joinUnwrapped(this.createConvertTrade(id, fromCode, toCode, (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
@@ -624,10 +624,10 @@ public interface PredictionTypedSurface {
     default CompletableFuture<PredictionOpenInterest> fetchOpenInterestAsync(String symbol, Map<String, Object> params) { return this.fetchOpenInterest(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOpenInterest> fetchOpenInterestAsync(String symbol) { return fetchOpenInterestAsync(symbol, (Map<String, Object>) null); }
 
-    default PredictionOrder editOrder(String id, String symbol, String type, String side) { return Helpers.joinUnwrapped(this.editOrder(id, symbol, (Object) (type), (Object) (side), (Object) ((Double) null), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
-    default PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount) { return Helpers.joinUnwrapped(this.editOrder(id, symbol, (Object) (type), (Object) (side), (Object) (amount), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
-    default PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount, Double price) { return Helpers.joinUnwrapped(this.editOrder(id, symbol, (Object) (type), (Object) (side), (Object) (amount), (Object) (price), (Object) ((Map<String, Object>) null))); }
-    default CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) { return this.editOrder(id, symbol, (Object) type, (Object) side, (Object) amount, (Object) price, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default PredictionOrder editOrder(String id, String symbol, String type, String side) { return Helpers.joinUnwrapped(this.editOrder(id, symbol, type, side, (Object) ((Double) null), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount) { return Helpers.joinUnwrapped(this.editOrder(id, symbol, type, side, (Object) (amount), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount, Double price) { return Helpers.joinUnwrapped(this.editOrder(id, symbol, type, side, (Object) (amount), (Object) (price), (Object) ((Map<String, Object>) null))); }
+    default CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) { return this.editOrder(id, symbol, type, side, (Object) amount, (Object) price, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side) { return editOrderAsync(id, symbol, type, side, (Double) null, (Double) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side, Double amount) { return editOrderAsync(id, symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side, Double amount, Double price) { return editOrderAsync(id, symbol, type, side, amount, price, (Map<String, Object>) null); }
@@ -662,14 +662,14 @@ public interface PredictionTypedSurface {
     default CompletableFuture<PredictionOrder> fetchOrderAsync(String id) { return fetchOrderAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> fetchOrderAsync(String id, String symbol) { return fetchOrderAsync(id, symbol, (Map<String, Object>) null); }
 
-    default PredictionOrder createOrder(String symbol, String type, String side, Double amount) { return Helpers.joinUnwrapped(this.createOrder((Object) (symbol), (Object) (type), (Object) (side), (Object) (amount), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
-    default PredictionOrder createOrder(String symbol, String type, String side, Double amount, Double price) { return Helpers.joinUnwrapped(this.createOrder((Object) (symbol), (Object) (type), (Object) (side), (Object) (amount), (Object) (price), (Object) ((Map<String, Object>) null))); }
-    default CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) { return this.createOrder((Object) symbol, (Object) type, (Object) side, (Object) amount, (Object) price, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default PredictionOrder createOrder(String symbol, String type, String side, Double amount) { return Helpers.joinUnwrapped(this.createOrder((Object) (symbol), type, side, (Object) (amount), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionOrder createOrder(String symbol, String type, String side, Double amount, Double price) { return Helpers.joinUnwrapped(this.createOrder((Object) (symbol), type, side, (Object) (amount), (Object) (price), (Object) ((Map<String, Object>) null))); }
+    default CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) { return this.createOrder((Object) symbol, type, side, (Object) amount, (Object) price, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount) { return createOrderAsync(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createOrderAsync(symbol, type, side, amount, price, (Map<String, Object>) null); }
 
-    default PredictionOrder createMarketOrderWithCost(String symbol, String side, Double cost) { return Helpers.joinUnwrapped(this.createMarketOrderWithCost(symbol, (Object) (side), (Object) (cost), (Object) ((Map<String, Object>) null))); }
-    default CompletableFuture<PredictionOrder> createMarketOrderWithCostAsync(String symbol, String side, Double cost, Map<String, Object> params) { return this.createMarketOrderWithCost(symbol, (Object) side, (Object) cost, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default PredictionOrder createMarketOrderWithCost(String symbol, String side, Double cost) { return Helpers.joinUnwrapped(this.createMarketOrderWithCost(symbol, side, (Object) (cost), (Object) ((Map<String, Object>) null))); }
+    default CompletableFuture<PredictionOrder> createMarketOrderWithCostAsync(String symbol, String side, Double cost, Map<String, Object> params) { return this.createMarketOrderWithCost(symbol, side, (Object) cost, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> createMarketOrderWithCostAsync(String symbol, String side, Double cost) { return createMarketOrderWithCostAsync(symbol, side, cost, (Map<String, Object>) null); }
 
     default PredictionOrder createMarketBuyOrderWithCost(String symbol, Double cost) { return Helpers.joinUnwrapped(this.createMarketBuyOrderWithCost(symbol, (Object) (cost), (Object) ((Map<String, Object>) null))); }

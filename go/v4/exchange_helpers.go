@@ -227,6 +227,21 @@ func ListTyped(v any) []any {
 	return nil
 }
 
+// BoxAbsent re-boxes a typed container for an `any` channel: a nil map/slice becomes untyped nil.
+func BoxAbsent(v any) any {
+	switch c := v.(type) {
+	case map[string]any:
+		if c == nil {
+			return nil
+		}
+	case []any:
+		if c == nil {
+			return nil
+		}
+	}
+	return v
+}
+
 func getValue(collection any, key any) any {
 	collection = derefScalar(collection)
 	key = derefScalar(key)
@@ -3027,19 +3042,29 @@ func ReturnPanicError(ch chan any) {
 	}
 }
 
-// AsyncResult is one received async-core value: Err is set when the core delivered a failure.
-type AsyncResult struct {
-	Value any
+// AsyncResult is one received async-core value converted to T; Err is set (and Value zero) on failure.
+type AsyncResult[T any] struct {
+	Value T
 	Err   error
 }
 
-// AwaitResult receives once from an async core and classifies the value like IsError/CreateReturnError.
-func AwaitResult(ch <-chan any) AsyncResult {
+// AwaitResult receives once from an async core; on success conv builds the typed Value.
+func AwaitResult[T any](conv func(any) T, ch <-chan any) AsyncResult[T] {
 	v := <-ch
 	if IsError(v) {
-		return AsyncResult{Value: v, Err: CreateReturnError(v)}
+		return AsyncResult[T]{Err: CreateReturnError(v)}
 	}
-	return AsyncResult{Value: v}
+	return AsyncResult[T]{Value: conv(v)}
+}
+
+// AssertAs is the checked type assertion as a converter value.
+func AssertAs[T any](v any) T {
+	return v.(T)
+}
+
+// Untyped is the identity converter for results whose declared type is any.
+func Untyped(v any) any {
+	return v
 }
 
 // EndpointResult carries one implicit-API response: Raw is exactly what Fetch2Async

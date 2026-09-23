@@ -1259,16 +1259,16 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetProductsSparkLines(this.extend(request, parameters))).join();
             //
@@ -1318,7 +1318,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2214,14 +2214,14 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side, Object amount2, Object price2, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         final Object amount3 = amount2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
+            String type = type3;
             Object amount = amount3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
@@ -2230,7 +2230,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalType = type;
+            final String finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", finalType );
                 put( "side", side );
@@ -2319,7 +2319,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2760,7 +2760,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(id, null))
             {
                 List<Object> transfers = (this.privateGetTransfers(this.extend(request, parameters))).join();

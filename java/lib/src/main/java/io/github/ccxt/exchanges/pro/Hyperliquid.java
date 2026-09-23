@@ -155,7 +155,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -164,7 +164,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 (this.loadMarkets()).join();
             }
-            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (null), symbol, type, side, amount, price, parameters);
+            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (null), symbol, (String) (type), (String) (side), amount, price, parameters);
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((List<Object>) orderglobalParamsVariable).get(1);
             List<Order> orders = (this.createOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(((Object)order)))), (Object)(globalParams))).join();
@@ -199,7 +199,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -224,7 +224,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -235,7 +235,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (id), symbol, type, side, amount, price, parameters);
+            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (id), symbol, (String) (type), (String) (side), amount, price, parameters);
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((List<Object>) orderglobalParamsVariable).get(1);
             Object postRequest = this.editOrdersRequest(new ArrayList<Object>(Arrays.asList(order)), globalParams);
@@ -273,7 +273,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrderWs(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -647,18 +647,18 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true));
             String messageHash = "tickers";
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -706,7 +706,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -718,16 +718,16 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTickers(Object symbols2, Object parameters)
+    public CompletableFuture<Object> unWatchTickers(List<String> symbols2, Object parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true));
             String subMessageHash = "tickers";
             String messageHash = ("unsubscribe:" + subMessageHash);
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
@@ -752,9 +752,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      */
     public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
     {
-        return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+        return this.unWatchTickers(Helpers.getArgStringList(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
     {
         return this.unWatchTickers(symbols, (Object) (parameters));
     }
@@ -1776,12 +1776,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols2, Long since, Long limit, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1795,7 +1795,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String messageHash = (topic + "::positions");
             if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
-                symbols = this.marketSymbols(symbols);
+                symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                 messageHash = (messageHash + ("::" + String.join(",", (List<String>)symbols)));
             }
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
@@ -1841,10 +1841,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      */
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
-        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.watchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public void setPositionsCache(Client client, Object symbols)
+    public void setPositionsCache(Client client, List<String> symbols)
     {
         if (!java.util.Objects.equals(this.positions, null))
         {
@@ -1854,7 +1854,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     }
     public void setPositionsCache(Client client, Object... optionalArgs)
     {
-        this.setPositionsCache(client, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+        this.setPositionsCache(client, Helpers.getArgStringList(optionalArgs, 0, null));
     }
 
     public void handlePositions(Client client, Map<String, Object> message)
@@ -1905,12 +1905,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchPositions(Object symbols2, Object parameters2)
+    public CompletableFuture<Object> unWatchPositions(List<String> symbols2, Object parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1950,9 +1950,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      */
     public CompletableFuture<Object> unWatchPositions(Object... optionalArgs)
     {
-        return this.unWatchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+        return this.unWatchPositions(Helpers.getArgStringList(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<Object> unWatchPositions(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchPositions(List<String> symbols, Map<String, Object> parameters)
     {
         return this.unWatchPositions(symbols, (Object) (parameters));
     }

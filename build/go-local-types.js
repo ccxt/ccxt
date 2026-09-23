@@ -5065,11 +5065,38 @@ export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitial
     } else if (awaitNode.parent?.kind === ts.SyntaxKind.ReturnStatement) {
         // `return await this.X()` forwards the value through `ch <- retResNNN`: refused until
         // the inner value is proven never-absent for this method
-        if (CCXT_GO_ASYNC_FORWARD_SAFE.indexOf (method) < 0) {
+        // the forward re-boxes through BoxAbsent (installCcxtGoAsyncForwardRebox), so an absent
+        // result still reaches the caller as untyped nil
+        // watch* results can be cache objects that MapTyped/ListTyped would drop: never forwarded typed
+        if ((CCXT_GO_ASYNC_FORWARD_SAFE.indexOf (method) < 0)
+            && ((typeof goTranspiler.printReturnStatement !== 'function') || /^(un)?watch/i.test (method))) {
             return undefined;
         }
     }
     return { goType: goType, wrap: (recv) => conv + '(PanicOnError(' + recv.trim () + '))' };
+}
+
+// `var retResN T = ..` + `ch <- retResN`: a nil map/slice would reach the caller as a non-nil
+// box, so the forwarded send goes through BoxAbsent (typed nil -> untyped nil)
+function installCcxtGoAsyncForwardRebox (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoAsyncForwardReboxInstalled
+        || (typeof goTranspiler.printReturnStatement !== 'function')) {
+        return;
+    }
+    const printReturn = goTranspiler.printReturnStatement;
+    goTranspiler.printReturnStatement = function (node, identation) {
+        const printed = printReturn.call (this, node, identation);
+        const m = /\n(\s*)var (retRes\d+) (?:map\[string\]any|\[\]any) = [^\n]*\n/.exec (printed);
+        if (m === null) {
+            return printed;
+        }
+        const send = new RegExp ('^(\\s*ch <- )' + m[2] + '(\\s*(?://.*)?)$', 'm');
+        if (!send.test (printed)) {
+            throw new Error ('go typed forward without its send: ' + printed.slice (0, 120));
+        }
+        return printed.replace (send, '$1BoxAbsent(' + m[2] + ')$2');
+    };
+    goTranspiler.__ccxtGoAsyncForwardReboxInstalled = true;
 }
 
 function installCcxtGoAsyncReceiveUnbox (goTranspiler) {
@@ -5194,6 +5221,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoSafeCollectionUnbox (goTranspiler);
     // B1: name the async-receive locals whose element type the core's channel carries
     installCcxtGoAsyncReceiveUnbox (goTranspiler);
+    installCcxtGoAsyncForwardRebox (goTranspiler);
     installCcxtGoEndpointConsumers (goTranspiler);
     installCcxtGoProducerDeclarations (goTranspiler);
     // destructured element read straight into a scalar local
@@ -5219,6 +5247,14 @@ function ccxtGoElementReadInitializer (declaration) {
     return node;
 }
 
+const CCXT_GO_ELEMENT_READ_STRUCT_NAMES = /OrderBook|ArrayCache|Client|Future/;
+
+function ccxtGoElementReadIsObject (checker, type) {
+    const parts = (type?.isUnion?. ()) ? type.types : [ type ];
+    return parts.some ((t) => (t?.symbol !== undefined) && (((t.symbol.flags & ts.SymbolFlags.Class) !== 0)
+        || CCXT_GO_ELEMENT_READ_STRUCT_NAMES.test (checker.typeToString (t))));
+}
+
 function ccxtGoElementReadLocalType (goTranspiler, declaration, family) {
     if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || (declaration.name?.kind !== ts.SyntaxKind.Identifier)) {
         return undefined;
@@ -5226,8 +5262,8 @@ function ccxtGoElementReadLocalType (goTranspiler, declaration, family) {
     if (declaration.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement) {
         return undefined;
     }
-    // ws caches, order-book sides and structs live only outside the REST tier
-    if ((ccxtGoElementReadInitializer (declaration) === undefined) || !ccxtGoSafeCollectionIsRestSource (declaration)) {
+    const initializer = ccxtGoElementReadInitializer (declaration);
+    if (initializer === undefined) {
         return undefined;
     }
     if ((typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function') || (typeof goTranspiler.goSafeDictUseReadsTheMap !== 'function')
@@ -5268,6 +5304,15 @@ function ccxtGoElementReadLocalType (goTranspiler, declaration, family) {
         return undefined;
     }
     if (dictLike && parts.some ((t) => isList (t) || ((t.flags & scalarFlags) !== 0))) {
+        return undefined;
+    }
+    // ws caches, order books and clients are Go structs read by reflect: MapTyped would drop them
+    for (let node = initializer; node?.kind === ts.SyntaxKind.ElementAccessExpression; node = node.expression) {
+        if (ccxtGoElementReadIsObject (checker, checker.getTypeAtLocation (node.expression))) {
+            return undefined;
+        }
+    }
+    if (ccxtGoElementReadIsObject (checker, valueType)) {
         return undefined;
     }
     // the key must fit the container family, or the typed conversion would hide the value

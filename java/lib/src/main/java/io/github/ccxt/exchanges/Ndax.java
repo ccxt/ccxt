@@ -1211,16 +1211,16 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             List<Object> response = (this.publicGetSummary(parameters)).join();
             //
             //     [
@@ -1253,7 +1253,7 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2149,15 +2149,15 @@ public class Ndax extends NdaxApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
+            String type = type3;
+            String side = side3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
@@ -2183,7 +2183,7 @@ public class Ndax extends NdaxApi
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice")));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
+            Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             Object amountString = this.amountToPrecision(symbol, amount);
             final Object finalAmountString = amountString;
             final Object finalOrderType = orderType;
@@ -2241,7 +2241,7 @@ public class Ndax extends NdaxApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2260,13 +2260,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
-        final Object side3 = side2;
+        final String side3 = side2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object side = side3;
+            String side = side3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
@@ -2280,7 +2280,7 @@ public class Ndax extends NdaxApi
             Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId")));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
+            Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             Object amountString = this.amountToPrecision(symbol, amount);
             final Object finalAmountString = amountString;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2334,7 +2334,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -3376,7 +3376,7 @@ public class Ndax extends NdaxApi
                 put( "Confirmed2Fa", "pending" );
             }} );
         }};
-        Object statuses = (((java.util.Objects.equals(type, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = (Map<String, Object>) ((((java.util.Objects.equals(type, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}}));
         if (java.util.Objects.equals(status, null))
         {
             return null;

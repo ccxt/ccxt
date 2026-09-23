@@ -429,7 +429,7 @@ public class Upbit extends UpbitApi
         }});
     }
 
-    public CompletableFuture<Object> fetchCurrency(String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrency(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -442,15 +442,15 @@ public class Upbit extends UpbitApi
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             return (this.fetchCurrencyById(((Map<String, Object>)currency).get("id"), parameters)).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> fetchCurrency(String code, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> fetchCurrency(String code, Object... optionalArgs)
     {
         return this.fetchCurrency(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> fetchCurrencyById(Object id, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencyById(Object id, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -550,10 +550,10 @@ public class Upbit extends UpbitApi
                     }} );
                 }} );
             }};
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> fetchCurrencyById(Object id, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> fetchCurrencyById(Object id, Object... optionalArgs)
     {
         return this.fetchCurrencyById(id, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -887,12 +887,12 @@ public class Upbit extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
-    public CompletableFuture<OrderBooks> fetchOrderBooks(Object symbols2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<OrderBooks> fetchOrderBooks(List<String> symbols2, Long limit2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -982,7 +982,7 @@ public class Upbit extends UpbitApi
      */
     public CompletableFuture<OrderBooks> fetchOrderBooks(Object... optionalArgs)
     {
-        return this.fetchOrderBooks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+        return this.fetchOrderBooks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1098,16 +1098,16 @@ public class Upbit extends UpbitApi
      * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Object tickers = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(symbols, null))
             {
@@ -1200,7 +1200,7 @@ public class Upbit extends UpbitApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object idsQueryStrings(Object ids, Object maxQueryLength)
@@ -1756,16 +1756,16 @@ public class Upbit extends UpbitApi
      * @param {boolean} [params.test] If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount2, Object price2, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         final Object amount3 = amount2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
+            String type = type3;
+            String side = side3;
             Object amount = amount3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
@@ -1923,7 +1923,7 @@ public class Upbit extends UpbitApi
      * @param {boolean} [params.test] If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2012,18 +2012,18 @@ public class Upbit extends UpbitApi
      * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id2, String symbol, Object type2, Object side2, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id2, String symbol, String type2, String side2, Object amount2, Object price2, Map<String, Object> parameters2)
     {
         final String id3 = id2;
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         final Object amount3 = amount2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String id = id3;
-            Object type = type3;
-            Object side = side3;
+            String type = type3;
+            String side = side3;
             Object amount = amount3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
@@ -2179,7 +2179,7 @@ public class Upbit extends UpbitApi
      * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }

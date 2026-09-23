@@ -3168,7 +3168,7 @@ public class Bybit extends BybitApi
             ((Map<String, Object>)parameters).put("limit", 1000); // minimize number of requests
             Object preLaunchMarkets = new ArrayList<Object>(Arrays.asList());
             Object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(usePrivateInstrumentsInfo, true))
             {
                 response = (this.privateGetV5MarketInstrumentsInfo(parameters)).join();
@@ -3178,7 +3178,7 @@ public class Bybit extends BybitApi
         put( "status", "PreLaunch" );
     }}))));
                 Object promises = (Helpers.promiseAll(linearPromises)).join();
-                response = this.safeDict(promises, 0, new HashMap<String, Object>() {{}});
+                response = (Map<String, Object>) this.safeDict(promises, 0, new HashMap<String, Object>() {{}});
                 preLaunchMarkets = this.safeDict(promises, 1, new HashMap<String, Object>() {{}});
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
@@ -3790,12 +3790,12 @@ public class Bybit extends BybitApi
      * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3919,7 +3919,7 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3933,7 +3933,7 @@ public class Bybit extends BybitApi
      * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchBidsAsks(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3955,7 +3955,7 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
     {
-        return this.fetchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -3972,7 +3972,7 @@ public class Bybit extends BybitApi
         //     ]
         //
         Boolean isInverse = (Boolean) this.safeBool(market, "inverse");
-        Object volumeIndex = (((java.util.Objects.equals(isInverse, true)))) ? 6 : 5;
+        Integer volumeIndex = (((java.util.Objects.equals(isInverse, true)))) ? 6 : 5;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));
     }
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
@@ -4234,12 +4234,12 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -4249,7 +4249,7 @@ public class Bybit extends BybitApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                symbols = this.marketSymbols(symbols);
+                symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                 market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 Integer symbolsLength = ((List<?>)symbols).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
@@ -4331,7 +4331,7 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -5157,7 +5157,7 @@ public class Bybit extends BybitApi
             {
                 type = subType;
             }
-            Object lowercaseRawType = (((!java.util.Objects.equals(type, null)))) ? ((String)type).toLowerCase() : null;
+            String lowercaseRawType = (((!java.util.Objects.equals(type, null)))) ? ((String)type).toLowerCase() : null;
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
             Boolean isLinear = (java.util.Objects.equals(type, "linear"));
             Boolean isInverse = (java.util.Objects.equals(type, "inverse"));
@@ -5647,7 +5647,7 @@ public class Bybit extends BybitApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(-1), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+            return (this.createOrder((Object)(symbol), "market", "buy", (Object)(-1), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(Order::new);
 
     }
@@ -5699,7 +5699,7 @@ public class Bybit extends BybitApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(-1), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+            return (this.createOrder((Object)(symbol), "market", "sell", (Object)(-1), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(Order::new);
 
     }
@@ -5754,7 +5754,7 @@ public class Bybit extends BybitApi
      * @param {boolean} [params.rpiTakerAccess] set to true to match a taker order against retail price improvement quotes (https://announcements.bybit.com/en/article/rpi-liquidity-now-available-to-api-taker-orders-bltb943887bfa4c4d17/), supported order combinations: (1) orderType=Market; (2) orderType=Limit with timeInForce=IOC or FOK
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -5844,7 +5844,7 @@ public class Bybit extends BybitApi
      * @param {boolean} [params.rpiTakerAccess] set to true to match a taker order against retail price improvement quotes (https://announcements.bybit.com/en/article/rpi-liquidity-now-available-to-api-taker-orders-bltb943887bfa4c4d17/), supported order combinations: (1) orderType=Market; (2) orderType=Limit with timeInForce=IOC or FOK
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -6433,7 +6433,7 @@ public class Bybit extends BybitApi
      * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol2, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol2, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
@@ -6497,7 +6497,7 @@ public class Bybit extends BybitApi
      * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -9263,12 +9263,12 @@ public class Bybit extends BybitApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -9293,11 +9293,11 @@ public class Bybit extends BybitApi
                 {
                     symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
                 }
-                symbols = this.marketSymbols(symbols);
+                symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             } else if (!java.util.Objects.equals(symbols, null))
             {
                 symbol = symbols;
-                symbols = new ArrayList<Object>(Arrays.asList(this.symbol(symbol)));
+                symbols = Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(this.symbol(symbol))));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -9405,7 +9405,7 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -10431,7 +10431,7 @@ public class Bybit extends BybitApi
         Long timestamp = this.safeInteger(info, "timestamp");
         String currencyId = this.safeString2(info, "coin", "currency");
         Double hourlyBorrowRate = this.safeNumber(info, "hourlyBorrowRate");
-        Object period = (((!java.util.Objects.equals(hourlyBorrowRate, null)))) ? 3600000 : 86400000; // 1h or 1d
+        Integer period = (((!java.util.Objects.equals(hourlyBorrowRate, null)))) ? 3600000 : 86400000; // 1h or 1d
         final Double finalHourlyBorrowRate = hourlyBorrowRate;
         return new HashMap<String, Object>() {{
             put( "currency", Bybit.this.safeCurrencyCode(currencyId, currency) );
@@ -11860,16 +11860,16 @@ public class Bybit extends BybitApi
      * @param {string} [params.baseCoin] the baseCoin of the symbol, default is BTC
      * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    public CompletableFuture<Object> fetchAllGreeks(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchAllGreeks(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
             String baseCoin = this.safeString(parameters, "baseCoin", "BTC");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", "option" );
@@ -11944,7 +11944,7 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<Object> fetchAllGreeks(Object... optionalArgs)
     {
-        return this.fetchAllGreeks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchAllGreeks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseGreeks(Map<String, Object> greeks, Map<String, Object> market)
@@ -12251,11 +12251,11 @@ public class Bybit extends BybitApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<LeverageTiers> fetchLeverageTiers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12275,7 +12275,7 @@ public class Bybit extends BybitApi
                 put( "paginate", true );
                 put( "paginationCalls", 200 );
             }}, parameters))).join();
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             return this.parseLeverageTiers(data, symbols, "symbol");
         }).thenApply(LeverageTiers::new);
 
@@ -12293,10 +12293,10 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
-        return this.fetchLeverageTiers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchLeverageTiers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseLeverageTiers(Object response, Object symbols, String marketIdKey)
+    public Object parseLeverageTiers(Object response, List<String> symbols, String marketIdKey)
     {
         //
         //  [
@@ -12334,7 +12334,7 @@ public class Bybit extends BybitApi
     }
     public Object parseLeverageTiers(Object response, Object... optionalArgs)
     {
-        return this.parseLeverageTiers(response, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgString(optionalArgs, 1, null));
+        return this.parseLeverageTiers(response, Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null));
     }
 
     public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
@@ -12776,14 +12776,14 @@ final Map<String, Object> finalMarket = market;
      * @param {string} [params.subType] 'linear' or 'inverse'
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositionsHistory(Object symbols2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Long since3 = since2;
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Long since = since3;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
@@ -12888,7 +12888,7 @@ final Map<String, Object> finalMarket = market;
      */
     public CompletableFuture<List<Position>> fetchPositionsHistory(Object... optionalArgs)
     {
-        return this.fetchPositionsHistory(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.fetchPositionsHistory(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -13527,12 +13527,12 @@ final Map<String, Object> finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    public CompletableFuture<List<ADL>> fetchPositionsADLRank(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<List<ADL>> fetchPositionsADLRank(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbols, null))
             {
@@ -13542,7 +13542,7 @@ final Map<String, Object> finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
@@ -13623,7 +13623,7 @@ final Map<String, Object> finalMarket = market;
      */
     public CompletableFuture<List<ADL>> fetchPositionsADLRank(Object... optionalArgs)
     {
-        return this.fetchPositionsADLRank(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositionsADLRank(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseADLRank(Map<String, Object> info, Map<String, Object> market)

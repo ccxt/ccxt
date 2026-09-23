@@ -1471,19 +1471,19 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                symbols = this.marketSymbols(symbols, null, true, true, false);
+                symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, false));
                 Integer symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
@@ -1571,7 +1571,7 @@ public class Poloniex extends PoloniexApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2395,7 +2395,7 @@ public class Poloniex extends PoloniexApi
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
-                Object max = (((java.util.Objects.equals(marketType, "spot")))) ? 2000 : 100;
+                Integer max = (((java.util.Objects.equals(marketType, "spot")))) ? 2000 : 100;
                 ((Map<String, Object>)request).put("limit", Helpers.mathMax(limit, max));
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
@@ -2630,7 +2630,7 @@ public class Poloniex extends PoloniexApi
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -2642,7 +2642,7 @@ public class Poloniex extends PoloniexApi
                 put( "side", ((String)((String)side)).toUpperCase() );
             }};
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
-            var requestparametersVariable = this.orderRequest(symbol, type, side, amount, (Map<String, Object>) (request), price, parameters);
+            var requestparametersVariable = this.orderRequest(symbol, (String) (type), (String) (side), amount, (Map<String, Object>) (request), price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Object response = new HashMap<String, Object>() {{}};
@@ -2687,12 +2687,12 @@ public class Poloniex extends PoloniexApi
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object orderRequest(Object symbol, Object type, Object side, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
+    public Object orderRequest(Object symbol, String type, String side, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
     {
         Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -2770,16 +2770,16 @@ public class Poloniex extends PoloniexApi
                 {
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
-                Object amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "amount" : "sz";
+                String amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "amount" : "sz";
                 ((Map<String, Object>)request).put((String)amountKey, quoteAmount);
             } else
             {
-                Object amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "quantity" : "sz";
+                String amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "quantity" : "sz";
                 ((Map<String, Object>)request).put((String)amountKey, this.amountToPrecision(symbol, amount));
             }
         } else
         {
-            Object amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "quantity" : "sz";
+            String amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "quantity" : "sz";
             ((Map<String, Object>)request).put((String)amountKey, this.amountToPrecision(symbol, amount));
             String priceKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "price" : "px";
             ((Map<String, Object>)request).put((String)priceKey, this.priceToPrecision(symbol, price));
@@ -2795,7 +2795,7 @@ public class Poloniex extends PoloniexApi
         // remember the timestamp before issuing the request
         return new ArrayList<Object>(Arrays.asList(request, parameters));
     }
-    public Object orderRequest(Object symbol, Object type, Object side, Object amount, Map<String, Object> request, Object... optionalArgs)
+    public Object orderRequest(Object symbol, String type, String side, Object amount, Map<String, Object> request, Object... optionalArgs)
     {
         return this.orderRequest(symbol, type, side, amount, request, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2817,7 +2817,7 @@ public class Poloniex extends PoloniexApi
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -2832,7 +2832,7 @@ public class Poloniex extends PoloniexApi
                 put( "id", id );
             }};
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
-            var requestparametersVariable = this.orderRequest(symbol, type, side, amount, (Map<String, Object>) (request), price, parameters);
+            var requestparametersVariable = this.orderRequest(symbol, (String) (type), (String) (side), amount, (Map<String, Object>) (request), price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Object response = new HashMap<String, Object>() {{}};
@@ -2874,7 +2874,7 @@ public class Poloniex extends PoloniexApi
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -3662,7 +3662,7 @@ public class Poloniex extends PoloniexApi
         }
         Object exchangeNetworkId = null;
         networkCode = this.networkIdToCode(networkCode, code);
-        Object networkEntry = (((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(((Map<String, Object>)currency).get("networks"), networkCode);
+        Map<String, Object> networkEntry = (Map<String, Object>) ((((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(((Map<String, Object>)currency).get("networks"), networkCode));
         if (!java.util.Objects.equals(networkEntry, null))
         {
             exchangeNetworkId = ((Map<String, Object>)networkEntry).get("id");
@@ -4682,13 +4682,13 @@ public class Poloniex extends PoloniexApi
      * @param {boolean} [params.standard] whether to fetch standard contract positions
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             (this.loadMarkets()).join();
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.swapPrivateGetV3TradePositionOpens(parameters)).join();
             //
             //    {
@@ -4742,7 +4742,7 @@ public class Poloniex extends PoloniexApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)

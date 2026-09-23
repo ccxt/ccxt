@@ -171,13 +171,13 @@ func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(trade, "event_id", "tid")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString2(trade, "quantity", "amount")
-	var side any = this.SafeStringLower(trade, "side")
-	if ccxt.IsEqual(side, nil) {
+	var side *string = this.SafeStringLower(trade, "side")
+	if side == nil {
 		var marketSide *string = this.SafeStringLower(trade, "makerSide")
 		if marketSide != nil && *marketSide == "bid" {
-			side = "sell"
+			side = ccxt.SafeStringPtr("sell")
 		} else if marketSide != nil && *marketSide == "ask" {
-			side = "buy"
+			side = ccxt.SafeStringPtr("buy")
 		}
 	}
 	var marketId *string = this.SafeStringLower(trade, "symbol")
@@ -619,12 +619,12 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 	var messageHash any = ccxt.Add("bidsasks:", symbol)
 	// last update always overwrites the previous state and is the latest state
 	for i := 0; i < len(rawBidAskChanges); i++ {
-		var entry any = func() any {
+		var entry map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(rawBidAskChanges) {
 				return ccxt.DerefScalar(rawBidAskChanges[i])
 			}
 			return nil
-		}()
+		}())
 		var rawSide *string = this.SafeString(entry, "side")
 		var price *float64 = this.SafeNumber(entry, "price")
 		var sizeString *string = this.SafeString(entry, "remaining")
@@ -729,12 +729,12 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	var bids any = ccxt.GetValue(orderbook, "bids")
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	for i := 0; i < len(rawOrderBookChanges); i++ {
-		var entry any = func() any {
+		var entry map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(rawOrderBookChanges) {
 				return ccxt.DerefScalar(rawOrderBookChanges[i])
 			}
 			return nil
-		}()
+		}())
 		var price *float64 = this.SafeNumber(entry, "price")
 		var size *float64 = this.SafeNumber(entry, "remaining")
 		var rawSide *string = this.SafeString(entry, "side")
@@ -1193,11 +1193,11 @@ func (this *Gemini) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1218,11 +1218,11 @@ func (this *Gemini) WatchTradesForSymbols(symbols []string, options ...ccxt.Watc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1244,11 +1244,11 @@ func (this *Gemini) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.NewOHLCVArray, this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOHLCVArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1268,11 +1268,11 @@ func (this *Gemini) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBook
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return ccxt.OrderBook{}, res.Err
 	}
-	return ccxt.NewOrderBookFromWs(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1292,11 +1292,11 @@ func (this *Gemini) WatchOrderBookForSymbols(symbols []string, options ...ccxt.W
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return ccxt.OrderBook{}, res.Err
 	}
-	return ccxt.NewOrderBookFromWs(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -1315,11 +1315,11 @@ func (this *Gemini) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchBidsAsksAsync(opts.Symbols, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.WatchBidsAsksAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return ccxt.Tickers{}, res.Err
 	}
-	return ccxt.NewTickers(res.Value), nil
+	return res.Value, nil
 }
 func (this *Gemini) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
 
@@ -1328,9 +1328,9 @@ func (this *Gemini) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res.Value), nil
+	return res.Value, nil
 }

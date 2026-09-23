@@ -1177,7 +1177,7 @@ public class Gemini extends GeminiApi
             Boolean isPerp = (((String)marketIdUpper).indexOf("PERP") >= 0);
             String marketIdWithoutPerp = Helpers.replace(marketIdUpper, (String)"PERP", (String)"");
             Map<String, Object> conflictingMarkets = (Map<String, Object>) this.safeDict(this.options, "conflictingMarkets", new HashMap<String, Object>() {{}});
-            Object lowerCaseId = marketIdWithoutPerp.toLowerCase();
+            String lowerCaseId = marketIdWithoutPerp.toLowerCase();
             if (conflictingMarkets.containsKey(lowerCaseId))
             {
                 Object conflictingMarket = (conflictingMarkets == null || lowerCaseId == null ? null : conflictingMarkets.get(lowerCaseId));
@@ -1590,7 +1590,7 @@ public class Gemini extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1631,7 +1631,7 @@ public class Gemini extends GeminiApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -2242,12 +2242,12 @@ public class Gemini extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
+            String type = type3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2359,7 +2359,7 @@ public class Gemini extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

@@ -1289,11 +1289,10 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	if trigger != nil && *trigger == true {
 
-		retRes105319 := (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+		var retRes105319 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 			"status_types": []any{"waiting_price", "waiting_dependency"},
-		})))
-		PanicOnError(retRes105319)
-		ch <- retRes105319
+		})))))
+		ch <- BoxAbsent(retRes105319)
 		return nil
 	}
 	if symbol == nil {
@@ -1391,11 +1390,10 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	if trigger != nil && *trigger == true {
 
-		retRes113019 := (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+		var retRes113019 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 			"status_types": []any{"triggered", "triggering", "twap_executing", "twap_completed"},
-		})))
-		PanicOnError(retRes113019)
-		ch <- retRes113019
+		})))))
+		ch <- BoxAbsent(retRes113019)
 		return nil
 	}
 	var ordersRequest any = map[string]any{
@@ -1482,12 +1480,11 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes119415 := (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+	var retRes119415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 		"trigger":      true,
 		"status_types": []any{"cancelled", "internal_error"},
-	})))
-	PanicOnError(retRes119415)
-	ch <- retRes119415
+	})))))
+	ch <- BoxAbsent(retRes119415)
 	return nil
 }
 
@@ -1519,12 +1516,11 @@ func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes121415 := (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+	var retRes121415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 		"trigger":      true,
 		"status_types": []any{"cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed"},
-	})))
-	PanicOnError(retRes121415)
-	ch <- retRes121415
+	})))))
+	ch <- BoxAbsent(retRes121415)
 	return nil
 }
 
@@ -1724,9 +1720,8 @@ func (this *Nado) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes136115 := (<-this.QueryTransactionsByEventTypeAsync("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, params))
-	PanicOnError(retRes136115)
-	ch <- retRes136115
+	var retRes136115 []any = ListTyped(PanicOnError((<-this.QueryTransactionsByEventTypeAsync("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, params))))
+	ch <- BoxAbsent(retRes136115)
 	return nil
 }
 
@@ -1760,9 +1755,8 @@ func (this *Nado) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes137815 := (<-this.QueryTransactionsByEventTypeAsync("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, params))
-	PanicOnError(retRes137815)
-	ch <- retRes137815
+	var retRes137815 []any = ListTyped(PanicOnError((<-this.QueryTransactionsByEventTypeAsync("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, params))))
+	ch <- BoxAbsent(retRes137815)
 	return nil
 }
 func (this *Nado) QueryTransactionsByEventTypeAsync(eventType any, transactionType any, methodName any, optionalArgs ...any) <-chan any {
@@ -3000,12 +2994,12 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "base_filled")
 	var costString *string = this.SafeString(trade, "quote_filled")
 	var rawOrderAmount *string = this.SafeString(order, "amount")
-	var side any = DerefScalar(this.SafeString(trade, "trade_type"))
-	if (IsEqual(side, nil)) && (rawOrderAmount != nil) {
+	var side *string = this.SafeString(trade, "trade_type")
+	if (side == nil) && (rawOrderAmount != nil) {
 		if Precise.StringLt(rawOrderAmount, "0") {
-			side = "sell"
+			side = SafeStringPtr("sell")
 		} else {
-			side = "buy"
+			side = SafeStringPtr("buy")
 		}
 	}
 	var price any = DerefScalar(this.SafeString(trade, "price"))
@@ -3273,13 +3267,13 @@ func (this *Nado) ParseBalance(response any) any {
 			return nil
 		}())
 		var currencyId *string = this.SafeString(rawBalance, "product_id")
-		var code any = DerefScalar(this.SafeCurrencyCode(currencyId))
-		if IsEqual(code, "0") {
-			code = "USDT0"
-		} else if IsEqual(code, currencyId) {
+		var code *string = this.SafeCurrencyCode(currencyId)
+		if code != nil && *code == "0" {
+			code = SafeStringPtr("USDT0")
+		} else if code == currencyId || (code != nil && currencyId != nil && *code == *currencyId) {
 			var market map[string]any = MapTyped(this.SafeMarket(currencyId, nil, nil, "spot"))
 			if IsEqual(this.SafeBool(market, "spot"), true) {
-				code = DerefScalar(this.SafeString(market, "base", code))
+				code = this.SafeString(market, "base", code)
 			}
 		}
 		var balance map[string]any = SafeMapTyped(rawBalance, "balance")
@@ -3288,7 +3282,7 @@ func (this *Nado) ParseBalance(response any) any {
 		account["total"] = amount
 		// the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
 		account["free"] = amount
-		if !IsEqual(code, nil) {
+		if code != nil {
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -4027,11 +4021,11 @@ func (this *Nado) CreateOrder(symbol string, typeVar string, side string, amount
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4065,11 +4059,11 @@ func (this *Nado) EditOrder(id string, symbol string, typeVar string, side strin
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4092,11 +4086,11 @@ func (this *Nado) CancelOrder(id string, options ...CancelOrderOptions) (Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelOrderAsync(id, opts.Symbol, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4118,11 +4112,11 @@ func (this *Nado) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4146,11 +4140,11 @@ func (this *Nado) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelOrdersAsync(ids, opts.Symbol, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CancelOrdersAsync(ids, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4170,11 +4164,11 @@ func (this *Nado) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrderAsync(id, opts.Symbol, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4197,11 +4191,11 @@ func (this *Nado) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4225,11 +4219,11 @@ func (this *Nado) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4254,11 +4248,11 @@ func (this *Nado) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4279,11 +4273,11 @@ func (this *Nado) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4304,11 +4298,11 @@ func (this *Nado) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosed
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchCanceledAndClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchCanceledAndClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4331,11 +4325,11 @@ func (this *Nado) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4348,11 +4342,11 @@ func (this *Nado) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Nado) FetchBalance(params ...any) (Balances, error) {
-	res := AwaitResult(this.FetchBalanceAsync(params...))
+	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
 	if res.Err != nil {
 		return Balances{}, res.Err
 	}
-	return NewBalances(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4375,11 +4369,11 @@ func (this *Nado) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTransactionArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4402,11 +4396,11 @@ func (this *Nado) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTransactionArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4426,11 +4420,11 @@ func (this *Nado) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchPositionsAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[[]Position] = AwaitResult(NewPositionArray, this.FetchPositionsAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewPositionArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4442,11 +4436,11 @@ func (this *Nado) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Nado) FetchTime(params ...any) (int64, error) {
-	res := AwaitResult(this.FetchTimeAsync(params...))
+	var res AsyncResult[int64] = AwaitResult(AssertAs[int64], this.FetchTimeAsync(params...))
 	if res.Err != nil {
 		return -1, res.Err
 	}
-	return (res.Value).(int64), nil
+	return res.Value, nil
 }
 
 /**
@@ -4458,11 +4452,11 @@ func (this *Nado) FetchTime(params ...any) (int64, error) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Nado) FetchStatus(params ...any) (Status, error) {
-	res := AwaitResult(this.FetchStatusAsync(params...))
+	var res AsyncResult[Status] = AwaitResult(NewStatus, this.FetchStatusAsync(params...))
 	if res.Err != nil {
 		return Status{}, res.Err
 	}
-	return NewStatus(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4476,11 +4470,11 @@ func (this *Nado) FetchStatus(params ...any) (Status, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Nado) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	res := AwaitResult(this.FetchMarketsAsync(params...))
+	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewMarketInterfaceArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4492,11 +4486,11 @@ func (this *Nado) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Nado) FetchCurrencies(params ...any) (Currencies, error) {
-	res := AwaitResult(this.FetchCurrenciesAsync(params...))
+	var res AsyncResult[Currencies] = AwaitResult(NewCurrencies, this.FetchCurrenciesAsync(params...))
 	if res.Err != nil {
 		return Currencies{}, res.Err
 	}
-	return NewCurrencies(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4515,11 +4509,11 @@ func (this *Nado) FetchTickers(options ...FetchTickersOptions) (Tickers, error) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTickersAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return Tickers{}, res.Err
 	}
-	return NewTickers(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4538,11 +4532,11 @@ func (this *Nado) FetchTicker(symbol string, options ...FetchTickerOptions) (Tic
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTickerAsync(symbol, opts.Params))
+	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return Ticker{}, res.Err
 	}
-	return NewTicker(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4562,11 +4556,11 @@ func (this *Nado) FetchFundingRate(symbol string, options ...FetchFundingRateOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchFundingRateAsync(symbol, opts.Params))
+	var res AsyncResult[FundingRate] = AwaitResult(NewFundingRate, this.FetchFundingRateAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return FundingRate{}, res.Err
 	}
-	return NewFundingRate(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4588,11 +4582,11 @@ func (this *Nado) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]FundingHistory] = AwaitResult(NewFundingHistoryArray, this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewFundingHistoryArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4612,11 +4606,11 @@ func (this *Nado) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundin
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchFundingRatesAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[FundingRates] = AwaitResult(NewFundingRates, this.FetchFundingRatesAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return FundingRates{}, res.Err
 	}
-	return NewFundingRates(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4636,11 +4630,11 @@ func (this *Nado) FetchOpenInterest(symbol string, options ...FetchOpenInterestO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOpenInterestAsync(symbol, opts.Params))
+	var res AsyncResult[OpenInterest] = AwaitResult(NewOpenInterest, this.FetchOpenInterestAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return OpenInterest{}, res.Err
 	}
-	return NewOpenInterest(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4660,11 +4654,11 @@ func (this *Nado) FetchOpenInterests(options ...FetchOpenInterestsOptions) (Open
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOpenInterestsAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[OpenInterests] = AwaitResult(NewOpenInterests, this.FetchOpenInterestsAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return OpenInterests{}, res.Err
 	}
-	return NewOpenInterests(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4684,11 +4678,11 @@ func (this *Nado) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return OrderBook{}, res.Err
 	}
-	return NewOrderBook(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4710,11 +4704,11 @@ func (this *Nado) FetchTrades(symbol string, options ...FetchTradesOptions) ([]T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4737,11 +4731,11 @@ func (this *Nado) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHL
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]OHLCV] = AwaitResult(NewOHLCVArray, this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOHLCVArray(res.Value), nil
+	return res.Value, nil
 }
 
 // missing typed methods from base

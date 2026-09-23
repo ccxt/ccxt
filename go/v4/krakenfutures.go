@@ -1122,10 +1122,10 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		ch <- retRes91519
 		return nil
 	}
-	var priceType any = DerefScalar(this.SafeString(params, "price", "trade"))
-	if IsEqual(priceType, "index") {
-		priceType = "spot" // the venue's name for index-price candles
-	} else if (!IsEqual(priceType, "trade")) && (!IsEqual(priceType, "mark")) && (!IsEqual(priceType, "spot")) {
+	var priceType *string = this.SafeString(params, "price", "trade")
+	if priceType != nil && *priceType == "index" {
+		priceType = SafeStringPtr("spot") // the venue's name for index-price candles
+	} else if (priceType == nil || *priceType != "trade") && (priceType == nil || *priceType != "mark") && (priceType == nil || *priceType != "spot") {
 		panic(NotSupported(this.Id + " fetchOHLCV() price parameter must be one of \"trade\", \"mark\", \"index\" or \"spot\""))
 	}
 	var request map[string]any = map[string]any{
@@ -1228,7 +1228,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	if paginate {
 
 		var retRes100819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))))
-		ch <- retRes100819
+		ch <- BoxAbsent(retRes100819)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -2869,7 +2869,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	// This may be incorrectly marked as "open" if only execution report is given,
 	// but will be fixed below
-	var status any = this.ParseOrderStatus(statusId)
+	var status *string = this.ParseOrderStatus(statusId)
 	var isClosed bool = this.InArray(status, []any{"canceled", "rejected", "closed"})
 	var marketId *string = this.SafeString2(details, "symbol", "tradeable")
 	market = this.SafeMarket(marketId, market)
@@ -2893,7 +2893,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		average = Precise.StringDiv(vwapSum, filled2)
 		if (amount != nil) && (!isClosed) && isPrior && Precise.StringGe(filled2, amount) {
-			status = "closed"
+			status = SafeStringPtr("closed")
 			isClosed = true
 		}
 		if isPrior {
@@ -3702,18 +3702,18 @@ func (this *Krakenfutures) ParseFundingRate(ticker any, optionalArgs ...any) any
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "lastTime"))
 	var markPriceString *string = this.SafeString(ticker, "markPrice")
 	var fundingRateString *string = this.SafeString(ticker, "fundingRate")
-	var fundingRateResult any = Precise.StringDiv(fundingRateString, markPriceString)
+	var fundingRateResult *string = Precise.StringDiv(fundingRateString, markPriceString)
 	var nextFundingRateString *string = this.SafeString(ticker, "fundingRatePrediction")
-	var nextFundingRateResult any = Precise.StringDiv(nextFundingRateString, markPriceString)
+	var nextFundingRateResult *string = Precise.StringDiv(nextFundingRateString, markPriceString)
 	if Precise.StringGt(fundingRateResult, "0.25") {
-		fundingRateResult = "0.25"
+		fundingRateResult = SafeStringPtr("0.25")
 	} else if Precise.StringLt(fundingRateResult, "-0.25") {
-		fundingRateResult = "-0.25"
+		fundingRateResult = SafeStringPtr("-0.25")
 	}
 	if Precise.StringGt(nextFundingRateResult, "0.25") {
-		nextFundingRateResult = "0.25"
+		nextFundingRateResult = SafeStringPtr("0.25")
 	} else if Precise.StringLt(nextFundingRateResult, "-0.25") {
-		nextFundingRateResult = "-0.25"
+		nextFundingRateResult = SafeStringPtr("-0.25")
 	}
 	return map[string]any{
 		"info":                     ticker,
@@ -4049,7 +4049,7 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) any 
 		datetime = this.SafeString(position, "fillTime")
 		timestamp = this.Parse8601(datetime)
 	}
-	var side any = DerefScalar(this.SafeString(position, "side"))
+	var side *string = this.SafeString(position, "side")
 	var entryPrice *string = this.SafeString(position, "price")
 	var contracts *string = this.SafeString(position, "size")
 	if isHistory {
@@ -4068,9 +4068,9 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) any 
 			contracts = Precise.StringAbs(signedSize) // a reversal closes the whole old position
 		}
 		if Precise.StringGt(signedSize, "0") {
-			side = "long"
+			side = SafeStringPtr("long")
 		} else if Precise.StringLt(signedSize, "0") {
-			side = "short"
+			side = SafeStringPtr("short")
 		}
 	}
 	var marketId *string = this.SafeString2(position, "symbol", "tradeable")
@@ -4326,9 +4326,8 @@ func (this *Krakenfutures) transferOutBody(ch chan any, code any, amount any, op
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes362815 := (<-this.TransferAsync(code, amount, "future", "spot", params))
-	PanicOnError(retRes362815)
-	ch <- retRes362815
+	var retRes362815 map[string]any = MapTyped(PanicOnError((<-this.TransferAsync(code, amount, "future", "spot", params))))
+	ch <- BoxAbsent(retRes362815)
 	return nil
 }
 
@@ -4659,11 +4658,11 @@ func (this *Krakenfutures) Init(userConfig map[string]any) {
  * @returns An array of market structures
  */
 func (this *Krakenfutures) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	res := AwaitResult(this.FetchMarketsAsync(params...))
+	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewMarketInterfaceArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4683,11 +4682,11 @@ func (this *Krakenfutures) FetchOrderBook(symbol string, options ...FetchOrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return OrderBook{}, res.Err
 	}
-	return NewOrderBook(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4706,11 +4705,11 @@ func (this *Krakenfutures) FetchTicker(symbol string, options ...FetchTickerOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTickerAsync(symbol, opts.Params))
+	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return Ticker{}, res.Err
 	}
-	return NewTicker(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4729,11 +4728,11 @@ func (this *Krakenfutures) FetchTickers(options ...FetchTickersOptions) (Tickers
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTickersAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return Tickers{}, res.Err
 	}
-	return NewTickers(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4746,11 +4745,11 @@ func (this *Krakenfutures) FetchTickers(options ...FetchTickersOptions) (Tickers
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Krakenfutures) FetchTradingFees(params ...any) (TradingFees, error) {
-	res := AwaitResult(this.FetchTradingFeesAsync(params...))
+	var res AsyncResult[TradingFees] = AwaitResult(NewTradingFees, this.FetchTradingFeesAsync(params...))
 	if res.Err != nil {
 		return TradingFees{}, res.Err
 	}
-	return NewTradingFees(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4774,11 +4773,11 @@ func (this *Krakenfutures) FetchOHLCV(symbol string, options ...FetchOHLCVOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]OHLCV] = AwaitResult(NewOHLCVArray, this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOHLCVArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4803,11 +4802,11 @@ func (this *Krakenfutures) FetchTrades(symbol string, options ...FetchTradesOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4837,11 +4836,11 @@ func (this *Krakenfutures) CreateOrder(symbol string, typeVar string, side strin
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4860,11 +4859,11 @@ func (this *Krakenfutures) CreateOrders(orders []OrderRequest, options ...Create
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4888,11 +4887,11 @@ func (this *Krakenfutures) EditOrder(id string, symbol string, typeVar string, s
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4912,11 +4911,11 @@ func (this *Krakenfutures) CancelOrder(id string, options ...CancelOrderOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelOrderAsync(id, opts.Symbol, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4939,11 +4938,11 @@ func (this *Krakenfutures) CancelOrders(ids []string, options ...CancelOrdersOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelOrdersAsync(ids, opts.Symbol, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CancelOrdersAsync(ids, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4962,11 +4961,11 @@ func (this *Krakenfutures) CancelAllOrders(options ...CancelAllOrdersOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4985,11 +4984,11 @@ func (this *Krakenfutures) CancelAllOrdersAfter(timeout int64, options ...Cancel
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelAllOrdersAfterAsync(timeout, opts.Params))
+	var res AsyncResult[map[string]any] = AwaitResult(AssertAs[map[string]any], this.CancelAllOrdersAfterAsync(timeout, opts.Params))
 	if res.Err != nil {
 		return map[string]any{}, res.Err
 	}
-	return res.Value.(map[string]any), nil
+	return res.Value, nil
 }
 
 /**
@@ -5010,11 +5009,11 @@ func (this *Krakenfutures) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5035,11 +5034,11 @@ func (this *Krakenfutures) FetchOrders(options ...FetchOrdersOptions) ([]Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5059,11 +5058,11 @@ func (this *Krakenfutures) FetchOrder(id string, options ...FetchOrderOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrderAsync(id, opts.Symbol, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5086,11 +5085,11 @@ func (this *Krakenfutures) FetchClosedOrders(options ...FetchClosedOrdersOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5112,11 +5111,11 @@ func (this *Krakenfutures) FetchCanceledOrders(options ...FetchCanceledOrdersOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5138,11 +5137,11 @@ func (this *Krakenfutures) FetchMyTrades(options ...FetchMyTradesOptions) ([]Tra
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5164,11 +5163,11 @@ func (this *Krakenfutures) FetchLedger(options ...FetchLedgerOptions) ([]LedgerE
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]LedgerEntry] = AwaitResult(NewLedgerEntryArray, this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewLedgerEntryArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5190,11 +5189,11 @@ func (this *Krakenfutures) FetchFundingHistory(options ...FetchFundingHistoryOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]FundingHistory] = AwaitResult(NewFundingHistoryArray, this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewFundingHistoryArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5208,11 +5207,11 @@ func (this *Krakenfutures) FetchFundingHistory(options ...FetchFundingHistoryOpt
  * @returns A [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Krakenfutures) FetchBalance(params ...any) (Balances, error) {
-	res := AwaitResult(this.FetchBalanceAsync(params...))
+	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
 	if res.Err != nil {
 		return Balances{}, res.Err
 	}
-	return NewBalances(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5231,11 +5230,11 @@ func (this *Krakenfutures) FetchFundingRates(options ...FetchFundingRatesOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchFundingRatesAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[FundingRates] = AwaitResult(NewFundingRates, this.FetchFundingRatesAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return FundingRates{}, res.Err
 	}
-	return NewFundingRates(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5256,11 +5255,11 @@ func (this *Krakenfutures) FetchFundingRateHistory(options ...FetchFundingRateHi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]FundingRateHistory] = AwaitResult(NewFundingRateHistoryArray, this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewFundingRateHistoryArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5279,11 +5278,11 @@ func (this *Krakenfutures) FetchPositions(options ...FetchPositionsOptions) ([]P
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchPositionsAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[[]Position] = AwaitResult(NewPositionArray, this.FetchPositionsAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewPositionArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5316,11 +5315,11 @@ func (this *Krakenfutures) FetchPositionsHistory(options ...FetchPositionsHistor
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchPositionsHistoryAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Position] = AwaitResult(NewPositionArray, this.FetchPositionsHistoryAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewPositionArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5339,11 +5338,11 @@ func (this *Krakenfutures) FetchLeverageTiers(options ...FetchLeverageTiersOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchLeverageTiersAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[LeverageTiers] = AwaitResult(NewLeverageTiers, this.FetchLeverageTiersAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return LeverageTiers{}, res.Err
 	}
-	return NewLeverageTiers(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5362,11 +5361,11 @@ func (this *Krakenfutures) TransferOut(code string, amount float64, options ...T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.TransferOutAsync(code, amount, opts.Params))
+	var res AsyncResult[TransferEntry] = AwaitResult(NewTransferEntry, this.TransferOutAsync(code, amount, opts.Params))
 	if res.Err != nil {
 		return TransferEntry{}, res.Err
 	}
-	return NewTransferEntry(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5389,11 +5388,11 @@ func (this *Krakenfutures) Transfer(code string, amount float64, fromAccount str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params))
+	var res AsyncResult[TransferEntry] = AwaitResult(NewTransferEntry, this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params))
 	if res.Err != nil {
 		return TransferEntry{}, res.Err
 	}
-	return NewTransferEntry(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5413,11 +5412,11 @@ func (this *Krakenfutures) SetLeverage(leverage int64, options ...SetLeverageOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.SetLeverageAsync(leverage, opts.Symbol, opts.Params))
+	var res AsyncResult[map[string]any] = AwaitResult(AssertAs[map[string]any], this.SetLeverageAsync(leverage, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return map[string]any{}, res.Err
 	}
-	return res.Value.(map[string]any), nil
+	return res.Value, nil
 }
 
 /**
@@ -5436,11 +5435,11 @@ func (this *Krakenfutures) FetchLeverages(options ...FetchLeveragesOptions) (Lev
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchLeveragesAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[Leverages] = AwaitResult(NewLeverages, this.FetchLeveragesAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return Leverages{}, res.Err
 	}
-	return NewLeverages(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5459,11 +5458,11 @@ func (this *Krakenfutures) FetchLeverage(symbol string, options ...FetchLeverage
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchLeverageAsync(symbol, opts.Params))
+	var res AsyncResult[Leverage] = AwaitResult(NewLeverage, this.FetchLeverageAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return Leverage{}, res.Err
 	}
-	return NewLeverage(res.Value), nil
+	return res.Value, nil
 }
 
 // missing typed methods from base

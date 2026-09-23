@@ -2796,16 +2796,16 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type2, Object side2, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type2, String side2, Object amount2, Object price2, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         final Object amount3 = amount2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
+            String type = type3;
+            String side = side3;
             Object amount = amount3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
@@ -2922,7 +2922,7 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2962,7 +2962,7 @@ final Object finalOi = oi;
             }
             (this.loadOutcome((String) (outcome))).join();
             (this.cancelOrder((Object)(id), (Object)(outcome))).join();
-            return (this.createOrder((Object)(outcome), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.createOrder((Object)(outcome), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(PredictionOrder::new);
 
     }
@@ -3791,7 +3791,7 @@ final Object finalOi = oi;
             // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
             Object tradeApiIndex = ((String)baseUrl).indexOf("/trade-api");
-            Object versionPrefix = Helpers.slice(baseUrl, tradeApiIndex, null);
+            String versionPrefix = Helpers.slice(baseUrl, tradeApiIndex, null);
             String pathForSigning = ((versionPrefix + "/") + implodedPath);
             String payload = ((timestamp + method) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM

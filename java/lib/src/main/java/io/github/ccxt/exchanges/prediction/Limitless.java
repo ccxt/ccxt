@@ -448,7 +448,7 @@ public class Limitless extends LimitlessApi
             {
                 Object raw = (expandedRaw == null || i < 0 || i >= ((List<?>)expandedRaw).size() ? null : ((List<?>)expandedRaw).get(i));
                 String groupId = this.safeStringN(raw, new ArrayList<Object>(Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
-                Object eventKey = (((!java.util.Objects.equals(groupId, null) && !java.util.Objects.equals(groupId, "")))) ? this.shortenSlug((String) (groupId)) : null;
+                String eventKey = (((!java.util.Objects.equals(groupId, null) && !java.util.Objects.equals(groupId, "")))) ? this.shortenSlug((String) (groupId)) : null;
                 Object m = this.parseMarket(raw);
                 ((List<Object>)markets).add(m);
                 if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")))
@@ -1295,11 +1295,11 @@ public class Limitless extends LimitlessApi
         //
         // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
         Object raw = ticker;
-        Object book = null;
+        Map<String, Object> book = null;
         if (ticker.containsKey("market"))
         {
             raw = this.safeDict(ticker, "market", new HashMap<String, Object>() {{}});
-            book = this.safeDict(ticker, "book");
+            book = (Map<String, Object>) this.safeDict(ticker, "book");
         }
         String rawLabel = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "label", this.safeString(((Map<String, Object>)market).get("info"), "outcomeLabel", "yes")) : "yes";
         Boolean isYes = !java.util.Objects.equals(rawLabel.toLowerCase(), "no");
@@ -2624,15 +2624,15 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type2, Object side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
+            String type = type3;
+            String side = side3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             List<Account> accounts = (this.loadAccounts()).join();
@@ -2830,7 +2830,7 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2906,8 +2906,8 @@ public class Limitless extends LimitlessApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        Object rPadded = (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r));
-        Object sPadded = (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s));
+        String rPadded = (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r));
+        String sPadded = (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s));
         String result = ((("0x" + rPadded) + sPadded) + v);
         return result.toLowerCase();
     }

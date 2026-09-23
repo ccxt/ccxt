@@ -1078,7 +1078,7 @@ func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var close *string = this.SafeString2(ticker, "closing_price", "trade_price")
 	var change *string = this.SafeString2(ticker, "signed_change_price", "change_price")
-	var percentage any = DerefScalar(this.SafeString2(ticker, "signed_change_rate", "change_rate"))
+	var percentage *string = this.SafeString2(ticker, "signed_change_rate", "change_rate")
 	var open *string = this.SafeString(ticker, "opening_price")
 	var nonZeroOpen any = this.OmitZero(open)
 	if (marketId != nil) && (nonZeroOpen != nil) && (close != nil) {
@@ -1702,11 +1702,11 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = Subtract(timestamp, 9*3600000) // they report UTC + 9 hours, server in Korean timezone
 	}
 	var typeVar any = nil
-	var side any = this.SafeStringLower2(trade, "ask_bid", "type")
-	if IsEqual(side, "bid") {
-		side = "buy"
-	} else if IsEqual(side, "ask") {
-		side = "sell"
+	var side *string = this.SafeStringLower2(trade, "ask_bid", "type")
+	if side != nil && *side == "bid" {
+		side = SafeStringPtr("buy")
+	} else if side != nil && *side == "ask" {
+		side = SafeStringPtr("sell")
 	} else {
 		side = nil
 	}
@@ -1955,9 +1955,9 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		panic(InvalidOrder(Add(this.Id+" createOrder() invalid side ", side)))
 	}
 	request["side"] = sideRequest
-	var timeInForce any = this.SafeString2(params, "timeInForce", "time_in_force")
-	if IsEqual(timeInForce, nil) {
-		timeInForce = "GTC"
+	var timeInForce *string = this.SafeString2(params, "timeInForce", "time_in_force")
+	if timeInForce == nil {
+		timeInForce = SafeStringPtr("GTC")
 	} else {
 		params = MapTyped(this.Omit(params, "timeInForce"))
 	}
@@ -1965,12 +1965,12 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var postOnlyparamsVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = MapTyped(GetValue(postOnlyparamsVariable, 1))
-	if (postOnly == true) || (IsEqual(timeInForce, "PO")) {
+	if (postOnly == true) || (timeInForce != nil && *timeInForce == "PO") {
 		request["time_in_force"] = "post_only"
 		params = MapTyped(this.Omit(params, "postOnly"))
-	} else if IsEqual(timeInForce, "FOK") {
+	} else if timeInForce != nil && *timeInForce == "FOK" {
 		request["time_in_force"] = "fok"
-	} else if IsEqual(timeInForce, "IOC") {
+	} else if timeInForce != nil && *timeInForce == "IOC" {
 		request["time_in_force"] = "ioc"
 	}
 	if IsEqual(typeVar, "limit") {
@@ -2144,9 +2144,8 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan any, symbol any, c
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-	retRes186915 := (<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))
-	PanicOnError(retRes186915)
-	ch <- retRes186915
+	var retRes186915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes186915)
 	return nil
 }
 
@@ -2548,13 +2547,13 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString2(order, "order_status", "state"))
 	var price *string = this.SafeString2(order, "order_price", "price")
-	var typeVar any = DerefScalar(this.SafeString2(order, "order_type", "ord_type"))
+	var typeVar *string = this.SafeString2(order, "order_type", "ord_type")
 	var progressCount *string = this.SafeString(order, "progress_count")
-	if (IsEqual(typeVar, nil)) && (price != nil) && (progressCount == nil) {
+	if (typeVar == nil) && (price != nil) && (progressCount == nil) {
 		if Precise.StringEquals(price, "0") {
-			typeVar = "market"
+			typeVar = SafeStringPtr("market")
 		} else {
-			typeVar = "limit"
+			typeVar = SafeStringPtr("limit")
 		}
 	}
 	var amount any = this.FixCommaNumber(this.SafeStringN(order, []any{"order_qty", "units", "volume"}))
@@ -2595,9 +2594,9 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var postOnly any = nil
-	var timeInForce any = this.SafeStringUpper(order, "time_in_force")
-	if IsEqual(timeInForce, "POST_ONLY") {
-		timeInForce = "PO"
+	var timeInForce *string = this.SafeStringUpper(order, "time_in_force")
+	if timeInForce != nil && *timeInForce == "POST_ONLY" {
+		timeInForce = SafeStringPtr("PO")
 		postOnly = true
 	}
 	return this.SafeOrder(map[string]any{
@@ -3087,9 +3086,8 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan any, order any, optionalArgs
 		"side": GetValue(order, "side"),
 	}
 
-	retRes266815 := (<-this.CancelOrderAsync(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
-	PanicOnError(retRes266815)
-	ch <- retRes266815
+	var retRes266815 map[string]any = MapTyped(PanicOnError((<-this.CancelOrderAsync(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes266815)
 	return nil
 }
 
@@ -4075,11 +4073,11 @@ func (this *Bithumb) Init(userConfig map[string]any) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Bithumb) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	res := AwaitResult(this.FetchMarketsAsync(params...))
+	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewMarketInterfaceArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4093,11 +4091,11 @@ func (this *Bithumb) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bithumb) FetchBalance(params ...any) (Balances, error) {
-	res := AwaitResult(this.FetchBalanceAsync(params...))
+	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
 	if res.Err != nil {
 		return Balances{}, res.Err
 	}
-	return NewBalances(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4119,11 +4117,11 @@ func (this *Bithumb) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return OrderBook{}, res.Err
 	}
-	return NewOrderBook(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4144,11 +4142,11 @@ func (this *Bithumb) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTickersAsync(opts.Symbols, opts.Params))
+	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return Tickers{}, res.Err
 	}
-	return NewTickers(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4169,11 +4167,11 @@ func (this *Bithumb) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTickerAsync(symbol, opts.Params))
+	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
 	if res.Err != nil {
 		return Ticker{}, res.Err
 	}
-	return NewTicker(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4200,11 +4198,11 @@ func (this *Bithumb) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]OHLCV] = AwaitResult(NewOHLCVArray, this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOHLCVArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4227,11 +4225,11 @@ func (this *Bithumb) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4254,11 +4252,11 @@ func (this *Bithumb) CreateOrders(orders []OrderRequest, options ...CreateOrders
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4290,11 +4288,11 @@ func (this *Bithumb) CreateOrder(symbol string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4315,11 +4313,11 @@ func (this *Bithumb) CreateMarketBuyOrderWithCost(symbol string, cost float64, o
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CreateMarketBuyOrderWithCostAsync(symbol, cost, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateMarketBuyOrderWithCostAsync(symbol, cost, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4344,11 +4342,11 @@ func (this *Bithumb) CreateTwapOrder(symbol string, side string, amount float64,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CreateTwapOrderAsync(symbol, side, amount, duration, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateTwapOrderAsync(symbol, side, amount, duration, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4374,11 +4372,11 @@ func (this *Bithumb) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrderAsync(id, opts.Symbol, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4404,11 +4402,11 @@ func (this *Bithumb) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4434,11 +4432,11 @@ func (this *Bithumb) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4463,11 +4461,11 @@ func (this *Bithumb) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4492,11 +4490,11 @@ func (this *Bithumb) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4521,11 +4519,11 @@ func (this *Bithumb) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelOrderAsync(id, opts.Symbol, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4547,11 +4545,11 @@ func (this *Bithumb) CancelOrders(ids []string, options ...CancelOrdersOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelOrdersAsync(ids, opts.Symbol, opts.Params))
+	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CancelOrdersAsync(ids, opts.Symbol, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewOrderArray(res.Value), nil
+	return res.Value, nil
 }
 func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (Order, error) {
 
@@ -4560,11 +4558,11 @@ func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CancelUnifiedOrderAsync(order, opts.Params))
+	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelUnifiedOrderAsync(order, opts.Params))
 	if res.Err != nil {
 		return Order{}, res.Err
 	}
-	return NewOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4600,11 +4598,11 @@ func (this *Bithumb) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params))
+	var res AsyncResult[Transaction] = AwaitResult(NewTransaction, this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params))
 	if res.Err != nil {
 		return Transaction{}, res.Err
 	}
-	return NewTransaction(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4617,11 +4615,11 @@ func (this *Bithumb) Withdraw(code string, amount float64, address string, optio
  * @returns {object[]} a list response from the exchange
  */
 func (this *Bithumb) FetchWithdrawalWhitelist(params ...any) (map[string]any, error) {
-	res := AwaitResult(this.FetchWithdrawalWhitelistAsync(params...))
+	var res AsyncResult[map[string]any] = AwaitResult(AssertAs[map[string]any], this.FetchWithdrawalWhitelistAsync(params...))
 	if res.Err != nil {
 		return map[string]any{}, res.Err
 	}
-	return res.Value.(map[string]any), nil
+	return res.Value, nil
 }
 
 /**
@@ -4643,11 +4641,11 @@ func (this *Bithumb) FetchWithdrawal(id string, options ...FetchWithdrawalOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchWithdrawalAsync(id, opts.Code, opts.Params))
+	var res AsyncResult[Transaction] = AwaitResult(NewTransaction, this.FetchWithdrawalAsync(id, opts.Code, opts.Params))
 	if res.Err != nil {
 		return Transaction{}, res.Err
 	}
-	return NewTransaction(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4675,11 +4673,11 @@ func (this *Bithumb) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTransactionArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4701,11 +4699,11 @@ func (this *Bithumb) FetchDeposit(id string, options ...FetchDepositOptions) (Tr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchDepositAsync(id, opts.Code, opts.Params))
+	var res AsyncResult[Transaction] = AwaitResult(NewTransaction, this.FetchDepositAsync(id, opts.Code, opts.Params))
 	if res.Err != nil {
 		return Transaction{}, res.Err
 	}
-	return NewTransaction(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4733,11 +4731,11 @@ func (this *Bithumb) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewTransactionArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4758,11 +4756,11 @@ func (this *Bithumb) CreateDepositAddress(code string, options ...CreateDepositA
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.CreateDepositAddressAsync(code, opts.Params))
+	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.CreateDepositAddressAsync(code, opts.Params))
 	if res.Err != nil {
 		return DepositAddress{}, res.Err
 	}
-	return NewDepositAddress(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4783,11 +4781,11 @@ func (this *Bithumb) FetchDepositAddress(code string, options ...FetchDepositAdd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchDepositAddressAsync(code, opts.Params))
+	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.FetchDepositAddressAsync(code, opts.Params))
 	if res.Err != nil {
 		return DepositAddress{}, res.Err
 	}
-	return NewDepositAddress(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -4807,11 +4805,11 @@ func (this *Bithumb) FetchDepositAddresses(options ...FetchDepositAddressesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := AwaitResult(this.FetchDepositAddressesAsync(opts.Codes, opts.Params))
+	var res AsyncResult[[]DepositAddress] = AwaitResult(NewDepositAddressArray, this.FetchDepositAddressesAsync(opts.Codes, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return NewDepositAddressArray(res.Value), nil
+	return res.Value, nil
 }
 
 // missing typed methods from base

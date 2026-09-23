@@ -165,7 +165,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -192,7 +192,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -902,8 +902,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object cachedOrders = this.orders;
-        Object orders = (((java.util.Objects.equals(symbol, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-        Object order = (((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId);
+        Map<String, Object> orders = (Map<String, Object>) ((((java.util.Objects.equals(symbol, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}}));
+        Map<String, Object> order = (Map<String, Object>) ((((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId));
         if (!java.util.Objects.equals(order, null))
         {
             Object fee = this.safeValue(order, "fee");

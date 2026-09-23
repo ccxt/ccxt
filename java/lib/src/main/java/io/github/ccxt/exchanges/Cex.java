@@ -730,11 +730,11 @@ public class Cex extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -787,7 +787,7 @@ public class Cex extends CexApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1297,7 +1297,7 @@ public class Cex extends CexApi
             List<Object> methodparametersVariable = (List<Object>) this.handleParamString(parameters, "method", "privatePostGetMyWalletBalance");
             method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
-            Object accountBalance = null;
+            Map<String, Object> accountBalance = null;
             if (java.util.Objects.equals(method, "privatePostGetMyAccountStatusV3"))
             {
                 Map<String, Object> response = (this.privatePostGetMyAccountStatusV3(parameters)).join();
@@ -1316,7 +1316,7 @@ public class Cex extends CexApi
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balancesPerAccounts", new HashMap<String, Object>() {{}});
-                accountBalance = this.safeDict(balances, accountName, new HashMap<String, Object>() {{}});
+                accountBalance = (Map<String, Object>) this.safeDict(balances, accountName, new HashMap<String, Object>() {{}});
             } else
             {
                 Map<String, Object> response = (this.privatePostGetMyWalletBalance(parameters)).join();
@@ -1332,7 +1332,7 @@ public class Cex extends CexApi
                 //            },
                 //            ...
                 //
-                accountBalance = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                accountBalance = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseBalance(accountBalance);
         }).thenApply(Balances::new);
@@ -1776,14 +1776,14 @@ public class Cex extends CexApi
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount, Object price, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
+            String type = type3;
+            String side = side3;
             Map<String, Object> parameters = parameters3;
             Object accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "accountId");
@@ -1803,8 +1803,8 @@ public class Cex extends CexApi
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
             }
             final Object finalAccountId = accountId;
-            final Object finalType = type;
-            final Object finalSide = side;
+            final String finalType = type;
+            final String finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "clientOrderId", Cex.this.uuid() );
                 put( "currency1", ((Map<String, Object>)market).get("baseId") );
@@ -1902,7 +1902,7 @@ public class Cex extends CexApi
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

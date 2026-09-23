@@ -390,7 +390,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                     newTopicsCount = Helpers.add(newTopicsCount, 1);
                 }
             }
-            Object message = null;
+            Map<String, Object> message = null;
             if (Helpers.isGreaterThan(newTopicsCount, 0))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -566,16 +566,16 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object url = this.getWsPublicUrl();
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
@@ -610,7 +610,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -915,11 +915,11 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols2, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -927,7 +927,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String messageHash = "";
             if (!this.isEmpty(symbols))
             {
-                symbols = this.marketSymbols(symbols);
+                symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                 messageHash = ("::" + String.join(",", (List<String>)(List<String>)(symbols)));
             }
             Object url = this.getWsPrivateUrl();
@@ -964,7 +964,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      */
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
-        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.watchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1123,7 +1123,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         client.resolve(orders, messageHash);
     }
 
-    public void setPositionsCache(Client client, Object symbols)
+    public void setPositionsCache(Client client, List<String> symbols)
     {
         if (!java.util.Objects.equals(this.positions, null))
         {
@@ -1138,7 +1138,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
     }
     public void setPositionsCache(Client client, Object... optionalArgs)
     {
-        this.setPositionsCache(client, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+        this.setPositionsCache(client, Helpers.getArgStringList(optionalArgs, 0, null));
     }
 
     public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash2)

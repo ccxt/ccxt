@@ -1109,7 +1109,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String marketId = this.safeString(message, "s", firstPart);
         String marketType = ((Boolean.TRUE.equals(isSwap))) ? "swap" : "spot";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-        Object candles = null;
+        List<Object> candles = null;
         if (Boolean.TRUE.equals(isSwap))
         {
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
@@ -1117,7 +1117,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 candles = new ArrayList<Object>(Arrays.asList(this.safeDict(message, "data", new HashMap<String, Object>() {{}})));
             } else
             {
-                candles = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+                candles = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             }
         } else
         {
@@ -1143,7 +1143,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe));
         for (var i = 0; i < ((List<?>)candles).size(); i++)
         {
-            Object candle = (candles == null || i < 0 || i >= ((List<?>)candles).size() ? null : ((List<?>)candles).get(i));
+            Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
             Object parsed = this.parseWsOHLCV(candle, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
@@ -1665,12 +1665,12 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols2, Long since, Long limit, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1679,7 +1679,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             (this.authenticate()).join();
             Map<String, Object> market = null;
             String messageHash = "";
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
@@ -1747,10 +1747,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
      */
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
-        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.watchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public void setPositionsCache(Client client, String type, Object symbols)
+    public void setPositionsCache(Client client, String type, List<String> symbols)
     {
         if (!java.util.Objects.equals(this.positions, null))
         {
@@ -1772,7 +1772,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     }
     public void setPositionsCache(Client client, String type, Object... optionalArgs)
     {
-        this.setPositionsCache(client, type, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+        this.setPositionsCache(client, type, Helpers.getArgStringList(optionalArgs, 0, null));
     }
 
     public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash2, String type)

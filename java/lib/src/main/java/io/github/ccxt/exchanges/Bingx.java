@@ -1761,7 +1761,7 @@ public class Bingx extends BingxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object maxLimit = (((java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)))) ? 1000 : 1440;
+            Integer maxLimit = (((java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)))) ? 1000 : 1440;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
@@ -1975,7 +1975,7 @@ public class Bingx extends BingxApi
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
-                Object maxLimit = (((java.util.Objects.equals(marketType, "spot")))) ? 500 : 1000;
+                Integer maxLimit = (((java.util.Objects.equals(marketType, "spot")))) ? 500 : 1000;
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, maxLimit));
             }
             if (java.util.Objects.equals(marketType, "spot"))
@@ -2442,14 +2442,14 @@ public class Bingx extends BingxApi
             //        ]
             //    }
             //
-            Object data = null;
+            Map<String, Object> data = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 List<Object> dataList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                data = this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
             } else
             {
-                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
@@ -2485,18 +2485,18 @@ public class Bingx extends BingxApi
      * @param {string} [params.subType] "linear" or "inverse" (default is linear)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, "swap", true, true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, "swap", true, true, true));
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String subType = "linear";
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
@@ -2528,7 +2528,7 @@ public class Bingx extends BingxApi
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -2737,7 +2737,7 @@ public class Bingx extends BingxApi
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters);
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object isInverse = (((!java.util.Objects.equals(market, null)))) ? (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)) : (java.util.Objects.equals(subType, "inverse"));
+            Boolean isInverse = (((!java.util.Objects.equals(market, null)))) ? (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)) : (java.util.Objects.equals(subType, "inverse"));
             if (Boolean.TRUE.equals(isInverse))
             {
                 throw new NotSupported((this.id + " fetchFundingHistory() is not supported for inverse swap markets")) ;
@@ -3076,12 +3076,12 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3090,7 +3090,7 @@ public class Bingx extends BingxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                symbols = this.marketSymbols(symbols);
+                symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                 String firstSymbol = this.safeString(symbols, 0);
                 if (!java.util.Objects.equals(firstSymbol, null))
                 {
@@ -3166,7 +3166,7 @@ public class Bingx extends BingxApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3237,12 +3237,12 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchMarkPrices(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchMarkPrices(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3251,7 +3251,7 @@ public class Bingx extends BingxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                symbols = this.marketSymbols(symbols);
+                symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                 String firstSymbol = this.safeString(symbols, 0);
                 if (!java.util.Objects.equals(firstSymbol, null))
                 {
@@ -3316,7 +3316,7 @@ public class Bingx extends BingxApi
      */
     public CompletableFuture<Tickers> fetchMarkPrices(Object... optionalArgs)
     {
-        return this.fetchMarkPrices(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchMarkPrices(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -3745,18 +3745,18 @@ public class Bingx extends BingxApi
      * @param {boolean} [params.standard] whether to fetch standard contract positions
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Object standard = null;
             List<Object> standardparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "standard", false);
             standard = ((List<Object>) standardparametersVariable).get(0);
@@ -3770,7 +3770,7 @@ public class Bingx extends BingxApi
                 Map<String, Object> market = null;
                 if (!java.util.Objects.equals(symbols, null))
                 {
-                    symbols = this.marketSymbols(symbols);
+                    symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                     String firstSymbol = this.safeString(symbols, 0);
                     if (!java.util.Objects.equals(firstSymbol, null))
                     {
@@ -3808,7 +3808,7 @@ public class Bingx extends BingxApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4008,13 +4008,13 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             ((Map<String, Object>)parameters).put("quoteOrderQty", cost);
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "market", (String) (side), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -4028,7 +4028,7 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Object... optionalArgs)
     {
         return this.createMarketOrderWithCost(symbol, side, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -4048,7 +4048,7 @@ public class Bingx extends BingxApi
         return BaseExchange.supplyAsync(() -> {
 
             ((Map<String, Object>)parameters).put("quoteOrderQty", cost);
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "market", "buy", (Object)(cost), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -4081,7 +4081,7 @@ public class Bingx extends BingxApi
         return BaseExchange.supplyAsync(() -> {
 
             ((Map<String, Object>)parameters).put("quoteOrderQty", cost);
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "market", "sell", (Object)(cost), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -4445,12 +4445,12 @@ public class Bingx extends BingxApi
      * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
+            String type = type3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -4625,7 +4625,7 @@ public class Bingx extends BingxApi
      * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -7805,7 +7805,7 @@ public class Bingx extends BingxApi
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> response = null;
-            Object liquidations = null;
+            List<Object> liquidations = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.cswapV1PrivateGetTradeForceOrders(this.extend(request, parameters))).join();
@@ -7836,7 +7836,7 @@ public class Bingx extends BingxApi
                 //         ]
                 //     }
                 //
-                liquidations = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                liquidations = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 response = (this.swapV2PrivateGetTradeForceOrders(this.extend(request, parameters))).join();
@@ -7870,7 +7870,7 @@ public class Bingx extends BingxApi
                 //     }
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                liquidations = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+                liquidations = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseLiquidations(liquidations, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
@@ -7954,7 +7954,7 @@ public class Bingx extends BingxApi
      * @param {string|undefined} [params.positionId] the id of the position you would like to close, only supported for linear swap
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<String, Object> parameters)
+    public CompletableFuture<Order> closePosition(Object symbol, String side, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -8005,7 +8005,7 @@ public class Bingx extends BingxApi
      */
     public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
     {
-        return this.closePosition(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -8248,7 +8248,7 @@ public class Bingx extends BingxApi
      * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -8309,7 +8309,7 @@ public class Bingx extends BingxApi
      * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
