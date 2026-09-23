@@ -31,6 +31,42 @@ public class Helpers {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    /** Object literal `{ k1: v1, k2: v2 }` as a mutable map; args alternate key, value. */
+    public static HashMap<String, Object> newMap(Object... keysAndValues) {
+        HashMap<String, Object> map = new HashMap<>();
+        for (int i = 0; i + 1 < keysAndValues.length; i += 2) {
+            map.put((String) keysAndValues[i], keysAndValues[i + 1]);
+        }
+        return map;
+    }
+
+    // spawn tasks: the arguments are passed by value, so the call site captures no local
+    public interface Task1<A> { void run(A a) throws Exception; }
+    public interface Task2<A, B> { void run(A a, B b) throws Exception; }
+    public interface Task3<A, B, C> { void run(A a, B b, C c) throws Exception; }
+    public interface Task4<A, B, C, D> { void run(A a, B b, C c, D d) throws Exception; }
+    public interface Task5<A, B, C, D, E> { void run(A a, B b, C c, D d, E e) throws Exception; }
+    public interface Task6<A, B, C, D, E, F> { void run(A a, B b, C c, D d, E e, F f) throws Exception; }
+
+    private interface Body { void run() throws Exception; }
+
+    private static Runnable unchecked(Body body) {
+        return () -> {
+            try {
+                body.run();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    public static <A> Runnable task(Task1<A> f, A a) { return unchecked(() -> f.run(a)); }
+    public static <A, B> Runnable task(Task2<A, B> f, A a, B b) { return unchecked(() -> f.run(a, b)); }
+    public static <A, B, C> Runnable task(Task3<A, B, C> f, A a, B b, C c) { return unchecked(() -> f.run(a, b, c)); }
+    public static <A, B, C, D> Runnable task(Task4<A, B, C, D> f, A a, B b, C c, D d) { return unchecked(() -> f.run(a, b, c, d)); }
+    public static <A, B, C, D, E> Runnable task(Task5<A, B, C, D, E> f, A a, B b, C c, D d, E e) { return unchecked(() -> f.run(a, b, c, d, e)); }
+    public static <A, B, C, D, E, F> Runnable task(Task6<A, B, C, D, E, F> f, A a, B b, C c, D d, E e, F g) { return unchecked(() -> f.run(a, b, c, d, e, g)); }
+
     /**
      * Block on a CompletableFuture and rethrow any wrapped ccxt error directly.
      *
@@ -555,7 +591,7 @@ public static Object callDynamically(Object obj, Object methodName, Object[] arg
     try {
         m.setAccessible(true);
 
-        Object[] invokeArgs = adaptForVarArgs(m, args);
+        Object[] invokeArgs = m.isVarArgs() ? adaptForVarArgs(m, args) : padArgs(m, args);
         coerceArgs(m, invokeArgs);
 
         return m.invoke(obj, invokeArgs);
@@ -563,6 +599,19 @@ public static Object callDynamically(Object obj, Object methodName, Object[] arg
     } catch (Exception e) {
         throw new RuntimeException(e);
     }
+}
+
+// omitted trailing arguments of a fixed-arity method: null (TS `undefined`), except a
+// params bag, which takes the TS default `{}`
+private static Object[] padArgs(Method m, Object[] args) {
+    int n = m.getParameterCount();
+    if (args.length == n) return args;
+    Object[] out = java.util.Arrays.copyOf(args, n);
+    Class<?>[] ptypes = m.getParameterTypes();
+    for (int i = args.length; i < n; i++) {
+        if (ptypes[i] == Map.class) out[i] = new HashMap<String, Object>();
+    }
+    return out;
 }
 
 /**
@@ -597,6 +646,14 @@ private static void coerceArgs(Method m, Object[] args) {
                 if (expected == Long.class) args[i] = Long.parseLong(s);
                 else args[i] = Double.parseDouble(s);
             } catch (NumberFormatException ignored) {}
+        }
+        // a String slot takes the value's string form (the getArgString conversion)
+        if (expected == String.class && !(args[i] instanceof String)) {
+            args[i] = toStringArg(args[i]);
+        }
+        // a symbol list given as an array
+        else if (expected == List.class && args[i] instanceof Object[] arr) {
+            args[i] = new ArrayList<>(java.util.Arrays.asList(arr));
         }
     }
 }
@@ -706,39 +763,38 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
 
     // --------- helpers ---------
 
+    // Every generated method has ONE signature: resolve by name, child class first. Among
+    // same-named methods (hand-written helpers, typed override bridges, surface defaults)
+    // prefer the fewest parameters that still take every argument, trailing ones padded.
     private static Method findMethod(Class<?> cls, String name, int argCount) {
-        // Search child-first (normal Java resolution order) but collect candidates.
-        // Prefer varargs methods over non-varargs when both match — varargs methods
-        // are the untyped transpiled methods (Object... params, CompletableFuture returns)
-        // while non-varargs are typed overloads (String/Long/Map params, sync returns)
-        // that don't work with callDynamically's Object[] args.
-        Method nonVarArgsMatch = null;
-
-        Class<?> cur = cls;
-        while (cur != null) {
+        Method best = null;
+        for (Class<?> cur = cls; cur != null && best == null; cur = cur.getSuperclass()) {
             for (Method m : cur.getDeclaredMethods()) {
-                if (!m.getName().equals(name)) continue;
-
-                // Varargs method that can accept this arg count: return immediately
-                if (m.isVarArgs() && argCount >= m.getParameterCount() - 1) {
-                    return m;
-                }
-
-                // Exact arg count match: save as fallback (typed overload)
-                if (m.getParameterCount() == argCount && nonVarArgsMatch == null) {
-                    nonVarArgsMatch = m;
+                if (!m.getName().equals(name) || m.isBridge() || m.isSynthetic()) continue;
+                int n = m.getParameterCount();
+                boolean fits = m.isVarArgs() ? argCount >= n - 1 : n >= argCount;
+                if (!fits) continue;
+                if (best == null || n < best.getParameterCount()
+                        || (n == best.getParameterCount() && isLooser(m, best))) {
+                    best = m;
                 }
             }
-            cur = cur.getSuperclass();
         }
-
-        if (nonVarArgsMatch != null) return nonVarArgsMatch;
-
-        // last resort: first by name
+        if (best != null) return best;
+        // interface default methods and public inherited members
         for (Method m : cls.getMethods()) {
-            if (m.getName().equals(name)) return m;
+            if (m.getName().equals(name) && (m.isVarArgs() || m.getParameterCount() >= argCount)) return m;
         }
         throw new RuntimeException("Method not found: " + name + " with " + argCount + " args on " + cls.getName());
+    }
+
+    // of two same-arity overloads (a typed core and its override bridge), the one declaring
+    // more Object slots accepts every argument the other does
+    private static boolean isLooser(Method a, Method b) {
+        int objectsA = 0, objectsB = 0;
+        for (Class<?> t : a.getParameterTypes()) if (t == Object.class) objectsA++;
+        for (Class<?> t : b.getParameterTypes()) if (t == Object.class) objectsB++;
+        return objectsA > objectsB;
     }
 
     private static Long toLong(Object o) {

@@ -53,18 +53,6 @@ function overwriteFileAndFolder(path: string, content: string) {
     overwriteFile(path, content);
 }
 
-// Zero-arg `this.fetchBalance()` (or `this.fetchBalance(null)`) on a whitelisted
-// name would bind TypedSurface's fixed-arity default and return a typed value
-// (JLS 15.12.2 phase 1 beats varargs); `new Object[0]` binds only the varargs core.
-const WHITELISTED_ZERO_ARG_CALL_RE = new RegExp(
-    '\\bthis\\.(' + [...ZERO_REQUIRED_TYPED_WHITELIST].join('|') + ')\\(\\s*(?:null\\s*)?\\)',
-    'g',
-);
-
-function routeWhitelistedInternalCallsToVarargs(javaSource: string): string {
-    return javaSource.replace(WHITELISTED_ZERO_ARG_CALL_RE, 'this.$1(new Object[0])');
-}
-
 // Split a comma-separated argument list, respecting nested () [] {} and
 // string literals (so that `()` inside a quoted string is not counted as
 // paren depth). Used to rewrite multi-arg System.out.println calls in
@@ -174,6 +162,8 @@ const RETYPE_METHOD_END = /^ {0,4}\}$/;
 const RETYPE_AUDITED_USE_SHAPES = [
     /^\s*(?:[A-Za-z_$][\w$.]*\s*\.\s*)?put\s*\([^;]*,\s*NAME\s*\)\s*;$/,
     /^\s*(?:final\s+)?Object\s+[A-Za-z_$][\w$]*\s*=\s*NAME\s*;$/,
+    // a value line of a multi-line `Helpers.newMap("k", v, ...)` (Object... parameter)
+    /^\s*"[^"]*",\s*NAME,?\s*(?:\/\/.*)?$/,
 ];
 
 // the plain copy shape `Object x = y;` (the async-param inside-wrapper
@@ -182,7 +172,7 @@ const RETYPE_COPY_LINE = /^(\s*)Object ([A-Za-z_$][A-Za-z0-9_$]*) = ([A-Za-z_$][
 // every one of these callees declares an `Object` parameter at the position the hoisted name can
 // occupy (BaseExchange.java/Helpers.java/Precise.java read at 5faa2c21), so a narrower static
 // argument type cannot move the overload; the receivers themselves are untouched.
-const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.equals|Boolean\.TRUE\.equals|Helpers\.(?:add|isEqual|isGreaterThan|isLessThan|divide|multiply|GetValue|replace|toString)|Precise\.(?:stringAbs|stringMul|stringAdd|stringSub|stringDiv)|(?:java\.util\.)?Arrays\.asList|(?:this|[A-Za-z_$][\w$.]*\.this)\.\w+|\w*(?:\.\w+)*\.put)$/;
+const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.equals|Boolean\.TRUE\.equals|Helpers\.(?:add|isEqual|isGreaterThan|isLessThan|divide|multiply|GetValue|replace|toString|newMap|task)|Precise\.(?:stringAbs|stringMul|stringAdd|stringSub|stringDiv)|(?:java\.util\.)?Arrays\.asList|(?:this|[A-Za-z_$][\w$.]*\.this)\.\w+|\w*(?:\.\w+)*\.put)$/;
 // callees whose Java return type is String (BaseExchange.java:8623 symbol, :10911 safeSymbol,
 // :1080 numberToString, :1264 iso8601, :1101 safeString, :10697 safeCurrencyCode, :1232 capitalize,
 // Helpers.java:521 toString, :797 replace, Precise.stringMul/stringAdd/stringAbs): a write whose
@@ -202,8 +192,8 @@ function retypeReferenceToken (token: string | undefined): string | undefined {
 }
 
 // the member (method) window: a generated file closes a member with a 4-space `}` and opens a
-// new one with a `public|private|protected`/`@` line — the convention the final pass below
-// and `fixEffectivelyFinal` share
+// new one with a `public|private|protected`/`@` line — the convention the final pass below uses
+
 function retypeMemberStart (lines: string[], index: number): number {
     for (let j = index - 1; j >= 0; j--) {
         if (RETYPE_MEMBER_BOUNDARY.test (lines[j]) || RETYPE_METHOD_END.test (lines[j])) return j;
@@ -410,7 +400,8 @@ function retypeCopyUseIsAudited (lines: string[], j: number, from: number, name:
     if (retypeUseIsAudited (lines[j], name, token)) return true;
     const code = retypeCodeOnly (lines[j]);
     let prefix = '';
-    for (let k = Math.max (from, j - 12); k < j; k++) prefix += retypeCodeOnly (lines[k]);
+    // a Helpers.newMap literal spans one line per property: look back over the whole literal
+    for (let k = Math.max (from, j - 400); k < j; k++) prefix += retypeCodeOnly (lines[k]);
     const re = new RegExp (`\\b${name}\\b`, 'g');
     let m: RegExpExecArray | null;
     while ((m = re.exec (code)) !== null) {
@@ -2053,6 +2044,8 @@ class NewTranspiler {
     setupTranspiler() {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
+        // a lambda body cannot capture a reassigned parameter: fail the transpile instead of copying it
+        (this.transpiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         this.patchJavaPropertyTypes();
         // narrows `Object x = this.safeString(...)` locals to `String` — see
@@ -2847,7 +2840,6 @@ class NewTranspiler {
             // loadOrderBook is provided hand-written (void, WS-snapshot friendly) in Exchange.java;
             // drop the transpiled CompletableFuture version to avoid a redundant overload.
             exchangeBody = this.removeJavaMethod(exchangeBody, 'loadOrderBook');
-            exchangeBody = this.redirectToAsyncOnJoin(exchangeBody);
             exchangeBody = typeCoreReturns(exchangeBody, typedReturnTable('rest'));
             log.magenta('→', (EXCHANGE_METHODS_FILE as any).yellow)
             this.spliceTranspiledJavaBody(EXCHANGE_METHODS_FILE, javaDelimiter, restOfFile, exchangeBody.trim() + '\n}\n', true);
@@ -2939,7 +2931,6 @@ class NewTranspiler {
             // predictionBody ends with the class's closing brace — splice the extras in before it.
             const withoutClose = predictionBody.replace(/\}\s*$/, '');
             let merged = withoutClose.trimEnd() + '\n\n' + extras.trim() + '\n}\n';
-            merged = this.redirectToAsyncOnJoin(merged, true);
             merged = typeCoreReturns(merged, typedReturnTable('prediction'));
             log.magenta('→', (javaPredictionBase as any).yellow)
             this.spliceTranspiledJavaBody(javaPredictionBase, javaDelimiter, restOfFile, merged, true);
@@ -3486,30 +3477,6 @@ class NewTranspiler {
      * the method body only.
      */
     /**
-     * Collect the typed `default` method names declared on the generated
-     * TypedSurface / PredictionTypedSurface interface. Used by redirectToAsyncOnJoin
-     * to scope the rewrite to methods that shadow the untyped varargs core signature.
-     */
-    _typedSurfaceNames: Map<boolean, Set<string>> = new Map();
-    collectTypedSurfaceMethodNames(prediction = false): Set<string> {
-        const cached = this._typedSurfaceNames.get(prediction);
-        if (cached !== undefined) return new Set(cached);
-        const path = EXCHANGE_WRAPPER_FOLDER + (prediction ? 'PredictionTypedSurface.java' : 'TypedSurface.java');
-        const names = new Set<string>();
-        let content = '';
-        try {
-            content = fs.readFileSync(path, 'utf-8');
-        } catch {
-            log.red(`[java] ${path} missing — run \`tsx build/generateJavaWrappers.ts\` first; typed-call casts skipped`);
-        }
-        const re = /^\s{4}default\s+[^=]+?\s+(\w+)\s*\(/gm;
-        let m;
-        while ((m = re.exec(content)) !== null) names.add(m[1]);
-        this._typedSurfaceNames.set(prediction, names);
-        return new Set(names);
-    }
-
-    /**
      * Collect every method name defined inside the class body of the given
      * file. Used for method-reference-as-value rewriting so we don't need a
      * hardcoded whitelist.
@@ -3525,69 +3492,6 @@ class NewTranspiler {
             names.add(n);
         }
         return names;
-    }
-
-    /**
-     * Rewrite `(this.X(arg1, ...)).join()` / `(super.X(arg1, ...)).join()` in every
-     * transpiled tier, where X carries typed defaults on TypedSurface, to cast every
-     * argument to `(Object)` so the call dispatches to the untyped `X(Object...)` core
-     * signature instead of a typed overload (which returns the typed value and breaks
-     * `.join()`, or is ambiguous between List<String> / String[] on a null).
-     */
-    redirectToAsyncOnJoin(content: string, prediction = false): string {
-        const typedRestMethods = this.collectTypedSurfaceMethodNames(prediction);
-        if (typedRestMethods.size === 0) return content;
-        // loadMarkets has a special typed signature `loadMarkets(boolean reload)`;
-        // the untyped base accepts 0 args, so a zero-arg call is already unambiguous
-        // and we shouldn't touch it.
-        typedRestMethods.delete('loadMarkets');
-        // super calls stay typed: an ancestor's varargs front forwards to `this.X`, which would re-enter the caller
-        const pattern = /\((this)\.(\w+)\(/g;
-        let result = '';
-        let lastIdx = 0;
-        let match;
-        while ((match = pattern.exec(content)) !== null) {
-            const receiver = match[1];
-            const methodName = match[2];
-            if (!typedRestMethods.has(methodName)) {
-                continue;
-            }
-            const argsStart = match.index + match[0].length;
-            let depth = 1;
-            let j = argsStart;
-            while (j < content.length && depth > 0) {
-                if (content[j] === '(') depth++;
-                else if (content[j] === ')') depth--;
-                j++;
-            }
-            // j now points just past the closing ')' of the method call.
-            // Expect outer ')' + '.join()' to confirm this is a CompletableFuture-style use.
-            if (j < content.length && content[j] === ')' && content.substring(j + 1, j + 8) === '.join()') {
-                const argsRaw = content.substring(argsStart, j - 1);
-                // Zero-arg calls are already unambiguous (typed overloads require
-                // 1+ args); only cast when there are real args.
-                //
-                // SS-05: an argument at a parameter position the transpiler retyped to
-                // `String` (JAVA_STRING_PARAM_POSITIONS) must stay uncast — an `(Object)`
-                // cast would no longer bind the String-parameter method at all, and the
-                // method name is only admitted to that table when dropping the cast
-                // still binds the untyped varargs implementation (no typed truncation
-                // overload can steal it).
-                // `new Object[0]` (routeWhitelistedInternalCallsToVarargs) already binds the
-                // varargs core; casting it to (Object) would pass the array as one element.
-                const retyped = javaStringParamPositions(methodName);
-                const bare = (a: string, k: number) => retyped.includes(k) || a === 'new Object[0]';
-                const argsCast = argsRaw.trim().length === 0
-                    ? argsRaw
-                    : this.splitTopLevelArgs(argsRaw).map((a, k) => (bare(a.trim(), k) ? a.trim() : `(Object)(${a.trim()})`)).join(', ');
-                result += content.substring(lastIdx, match.index);
-                result += `(${receiver}.${methodName}(${argsCast})).join()`;
-                lastIdx = j + 8;
-                pattern.lastIndex = lastIdx;
-            }
-        }
-        result += content.substring(lastIdx);
-        return result;
     }
 
     /**
@@ -3882,21 +3786,6 @@ class NewTranspiler {
                 this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length)
                     ? match : `${prefix}(String)Helpers.add(`);
 
-        // ── Typed-wrapper overload collision: fetchBalance / fetchPositions ──
-        // The typed-wrapper exchange classes (e.g. exchanges/Hashkey.java) define
-        //     Balances fetchBalance(Map<String, Object> params)
-        //     List<Position> fetchPositions(List<String> symbols, Map<String, Object> params)
-        // which Java's overload resolution prefers over the inherited async
-        //     CompletableFuture<Object> fetchBalance(Object... optionalArgs)
-        // when the WS code calls `this.fetchBalance(new HashMap<>(){{...}})`. The
-        // typed return is not a CompletableFuture, so the trailing `.join()`
-        // fails to compile. Cast the HashMap to Object so the varargs overload
-        // wins and the call returns a CompletableFuture<Object>.
-        content = content.replace(/this\.fetchBalance\(new java\.util\.HashMap/gm,
-            'this.fetchBalance((Object) new java.util.HashMap');
-        content = content.replace(/this\.fetchPositions\((null|[a-zA-Z_]\w*),\s*new java\.util\.HashMap/gm,
-            'this.fetchPositions($1, (Object) new java.util.HashMap');
-
         // ── Pattern 5: ArrayCache .hashmap access ──
         // Only match local variables, not this.xxx
         content = content.replace(/(?<!this\.)(?<![\w.])([a-z]\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap');
@@ -4094,29 +3983,6 @@ class NewTranspiler {
             return `new io.github.ccxt.exchanges.pro.Binance().describeData()`;
         });
 
-        // ── Fix effectively final: when url is captured in anonymous inner class ──
-        content = content.replace(/(this\.authenticate\(new java\.util\.HashMap[^}]*\{\{[^}]*put\(\s*"url",\s*)url(\s*\))/gm,
-            (match: string, before: string, after: string) => {
-                return match;
-            });
-        {
-            const lines2 = content.split('\n');
-            for (let j = 0; j < lines2.length; j++) {
-                if (lines2[j].includes('this.authenticate')) {
-                    for (let k = j; k < Math.min(j + 5, lines2.length); k++) {
-                        if (lines2[k].includes('put( "url", url )')) {
-                            const indent2 = lines2[j].match(/^\s*/)?.[0] || '';
-                            lines2.splice(j, 0, `${indent2}final Object finalUrl = url;`);
-                            lines2[k + 1] = lines2[k + 1].replace(/put\(\s*"url",\s*url\s*\)/, 'put( "url", finalUrl )');
-                            j = k + 2;
-                            break;
-                        }
-                    }
-                }
-            }
-            content = lines2.join('\n');
-        }
-
         // ── Fix extra args in method calls when definition has fewer params ──
         {
             const defMatch = content.match(/loadPositionsSnapshot\(Client\s+\w+,\s*Object\s+\w+,\s*Object\s+\w+\)\s*$/m);
@@ -4149,18 +4015,9 @@ class NewTranspiler {
         content = content.replace(/\(java\.util\.List<String>\)new java\.util\.ArrayList<Object>/gm,
             '(java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>');
 
-        // ── Fix effectively final for anonymous inner class captures ──
-        // (skipped for prediction REST+WS files: the ast-transpiler already handles
-        // effectively-final there, and this pass mis-scopes vars across the REST parse* methods)
+        // ── spawn lambdas whose argument is a reassigned local: pass the arguments by value ──
         if (!skipEffectivelyFinal) {
-            content = this.fixEffectivelyFinal(content);
-            // ── Fix effectively final for lambda captures in spawn/delay ──
-            content = this.fixEffectivelyFinalLambda(content);
-        }
-
-        // ── Remove duplicate final variable declarations in same method ──
-        if (!skipEffectivelyFinal) {
-            content = this.removeTrueDuplicateFinals(content);
+            content = this.spawnReassignedArgsByValue(content);
         }
 
         // ── Void supplyAsync return null insertion ──
@@ -4451,140 +4308,7 @@ class NewTranspiler {
         return lines.join ('\n');
     }
 
-    fixEffectivelyFinal(content: string): string {
-        const lines = content.split('\n');
-
-        for (let i = 0; i < lines.length; i++) {
-            if (!lines[i].includes('new java.util.HashMap<String, Object>() {{')) continue;
-
-            let depth = 0;
-            let endLine = -1;
-            for (let j = i; j < lines.length; j++) {
-                for (const ch of lines[j]) {
-                    if (ch === '{') depth++;
-                    if (ch === '}') depth--;
-                }
-                if (depth === 0) {
-                    endLine = j;
-                    break;
-                }
-            }
-            if (endLine < 0) continue;
-
-            const capturedVars = new Set<string>();
-            for (let j = i; j <= endLine; j++) {
-                const putMatch = lines[j].match(/put\(\s*"[^"]+",\s*(?:new\s+)?([a-z]\w+)\s*\)/);
-                if (putMatch) {
-                    const varName = putMatch[1];
-                    if (['null', 'true', 'false', 'this'].includes(varName)) continue;
-                    if (varName.startsWith('final')) continue;
-                    capturedVars.add(varName);
-                }
-                const asListMatches = lines[j].matchAll(/java\.util\.Arrays\.asList\(([^)]+)\)/g);
-                for (const m of asListMatches) {
-                    const argsStr = m[1];
-                    const args = argsStr.split(',').map((a: string) => a.trim());
-                    for (const arg of args) {
-                        const varMatch = arg.match(/^([a-z]\w+)$/);
-                        if (varMatch) {
-                            const varName = varMatch[1];
-                            if (!['null', 'true', 'false', 'this'].includes(varName) && !varName.startsWith('final')) {
-                                capturedVars.add(varName);
-                            }
-                        }
-                    }
-                }
-                const extendMatch = lines[j].match(/\.extend\([^,]+,\s*([a-z]\w+)\)/);
-                if (extendMatch) {
-                    const varName = extendMatch[1];
-                    if (!['null', 'true', 'false', 'this'].includes(varName) && !varName.startsWith('final')) {
-                        capturedVars.add(varName);
-                    }
-                }
-                const isEqualMatch = lines[j].match(/Helpers\.isEqual\(([a-z]\w+),\s*"/);
-                if (isEqualMatch) {
-                    const varName = isEqualMatch[1];
-                    if (!['null', 'true', 'false', 'this'].includes(varName) && !varName.startsWith('final')) {
-                        capturedVars.add(varName);
-                    }
-                }
-                const innerAsListMatches = lines[j].matchAll(/asList\(([^()]+)\)/g);
-                for (const m2 of innerAsListMatches) {
-                    const innerArgs = m2[1].split(',').map((a: string) => a.trim());
-                    for (const arg of innerArgs) {
-                        const varMatch = arg.match(/^([a-z]\w+)$/);
-                        if (varMatch) {
-                            const vn = varMatch[1];
-                            if (!['null', 'true', 'false', 'this'].includes(vn) && !vn.startsWith('final')) {
-                                capturedVars.add(vn);
-                            }
-                        }
-                    }
-                }
-            }
-
-            for (const varName of capturedVars) {
-                let reassigned = false;
-                let methodStart = i;
-                for (let j = i - 1; j >= 0; j--) {
-                    if (lines[j].match(/^\s*(?:public|private|protected)\s+/)) {
-                        methodStart = j;
-                        break;
-                    }
-                }
-                for (let j = methodStart; j < lines.length; j++) {
-                    if (j > methodStart && lines[j].match(/^\s*(?:public|private|protected)\s+/)) break;
-                    const reassignRegex = new RegExp(`^\\s+${varName}\\s*=\\s`);
-                    if (reassignRegex.test(lines[j])) {
-                        reassigned = true;
-                        break;
-                    }
-                }
-
-                if (reassigned) {
-                    const baseFinalName = `final${varName.charAt(0).toUpperCase()}${varName.slice(1)}`;
-                    let nearbyExists = false;
-                    for (let j = Math.max(methodStart, i - 5); j < i; j++) {
-                        if (lines[j].includes(`final Object ${baseFinalName}`) || lines[j].includes(`final Object ${baseFinalName}2`)) {
-                            nearbyExists = true;
-                            break;
-                        }
-                    }
-                    let suffix = '';
-                    for (let j = methodStart; j < i; j++) {
-                        if (lines[j].includes(`final Object ${baseFinalName}`)) suffix = '2';
-                        if (lines[j].includes(`final Object ${baseFinalName}2`)) suffix = '3';
-                    }
-                    const finalVarName = baseFinalName + suffix;
-                    if (nearbyExists) {
-                        const existingFinal = baseFinalName;
-                        for (let j2 = i; j2 <= endLine; j2++) {
-                            if (lines[j2].includes(`final Object`)) continue;
-                            lines[j2] = lines[j2].replace(
-                                new RegExp(`\\b${varName}\\b`, 'g'),
-                                existingFinal
-                            );
-                        }
-                    } else {
-                        const indent = lines[i].match(/^\s*/)?.[0] || '';
-                        lines.splice(i, 0, `${indent}final Object ${finalVarName} = ${varName};`);
-                        i++; endLine++;
-                        for (let j = i; j <= endLine; j++) {
-                            if (lines[j].includes(`final Object ${finalVarName}`)) continue;
-                            lines[j] = lines[j].replace(
-                                new RegExp(`\\b${varName}\\b`, 'g'),
-                                finalVarName
-                            );
-                        }
-                    }
-                }
-            }
-        }
-
-        return lines.join('\n');
-    }
-
-    fixEffectivelyFinalLambda(content: string): string {
+    spawnReassignedArgsByValue(content: string): string {
         const lines = content.split('\n');
 
         for (let i = 0; i < lines.length; i++) {
@@ -4654,43 +4378,21 @@ class NewTranspiler {
             }
             if (finals.length === 0) continue;
 
-            // from the last argument to the first, so the earlier offsets stay valid
-            let line = lines[i];
-            for (const candidate of finals.slice().reverse()) {
-                const finalName = `_final_${candidate.name}`;
-                const segment = line.slice(candidate.start, candidate.end);
-                const replaced = segment.replace(new RegExp(`\\b${candidate.name}\\b`), finalName);
-                line = line.slice(0, candidate.start) + replaced + line.slice(candidate.end);
+            // a lambda cannot capture the reassigned local: hand every argument to
+            // Helpers.task(this::m, ...) by value instead
+            const lambda = /^(\s*)this\.spawn\(\(\) -> \{ try \{ this\.(\w+)\((.*)\); \} catch\(Exception _e\) \{ throw new RuntimeException\(_e\); \} \}\);$/;
+            const shape = lines[i].match(lambda);
+            let argCount = 1;
+            depth = 0;
+            for (const ch of argsText) {
+                if (ch === '(' || ch === '<') depth++;
+                else if (ch === ')' || ch === '>') depth--;
+                else if (ch === ',' && depth === 0) argCount++;
             }
-            const indent = lines[i].match(/^\s*/)?.[0] || '';
-            lines.splice(i, 0, ...finals.map((c) => `${indent}final Object _final_${c.name} = ${c.name};`));
-            lines[i + finals.length] = line;
-            i += finals.length;
+            if (shape === null || shape[3] !== argsText || argCount > 6) continue;
+            lines[i] = `${shape[1]}this.spawn(Helpers.task(this::${shape[2]}, ${argsText}));`;
         }
 
-        return lines.join('\n');
-    }
-
-    removeTrueDuplicateFinals(content: string): string {
-        const lines = content.split('\n');
-        let seen = new Set<string>();
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].match(/^\s*(?:public|private|protected)\s+.*\(.*\)\s*$/)) {
-                seen = new Set<string>();
-            }
-            if (lines[i].match(/^\s*(?:public|private|protected)\s+.*\(.*\)\s*\{?\s*$/)) {
-                seen = new Set<string>();
-            }
-            const finalMatch = lines[i].match(/^\s*final\s+Object\s+(final\w+)\s*=\s*\w+\s*;/);
-            if (finalMatch) {
-                const varName = finalMatch[1];
-                if (seen.has(varName)) {
-                    lines[i] = '';
-                } else {
-                    seen.add(varName);
-                }
-            }
-        }
         return lines.join('\n');
     }
 
@@ -4790,8 +4492,6 @@ class NewTranspiler {
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
-        javaSource = routeWhitelistedInternalCallsToVarargs(javaSource)
-        javaSource = this.redirectToAsyncOnJoin(javaSource, prediction)
         javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest')))
 
         if (javaFolder) {
@@ -5071,13 +4771,13 @@ class NewTranspiler {
     }
 
     /**
-     * Test-side counterpart of redirectToAsyncOnJoin. `(exchange.<m>(args)).join()` in
+     * `(exchange.<m>(args)).join()` in
      * transpiled tests binds a typed TypedSurface default whenever the args are
      * statically typed (String symbol, literals, zero-arg whitelisted names), which
      * returns the typed value and has no `.join()`. Casting cannot fix it: an
      * `(Object)` at an SS-05 String position leaves no applicable method. So every
      * call to a typed-surface name is late-bound through Helpers.callDynamically,
-     * whose findMethod prefers the untyped varargs core over typed overloads.
+     * whose findMethod resolves the single core by name and pads omitted arguments.
      */
     lateBindTypedSurfaceCalls(content: string): string {
         const typedNames = new Set<string>();
