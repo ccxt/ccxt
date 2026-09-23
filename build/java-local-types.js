@@ -4391,6 +4391,7 @@ const HANDLE_COERCION_DEBUG = typeof process !== 'undefined' && process.env !== 
 const HANDLE_COERCION_KINDS = {
     'boolean': { declaration: 'Boolean', wrapper: 'Boolean.TRUE.equals(' }, // TS type exactly `boolean`
     'Boolean': { declaration: 'Boolean', wrapper: 'Helpers.isTrue(' },      // TS nullable `Bool` / bool|null union
+    'any': { declaration: 'Boolean', wrapper: 'Helpers.isTrue(' },          // TS `any`, null/undefined init only
 };
 
 // the TS-declared kind of the local, through the printer's OWN two predicates (the same ones that
@@ -4416,6 +4417,9 @@ function handleCoercionKind (printer, declaration) {
         && printer.javaNullableBooleanDeclaration (declaration)) {
         return 'Boolean';
     }
+    if (declaration.type === undefined && ((type.flags ?? 0) & ts.TypeFlags.Any) !== 0) {
+        return 'any'; // unannotated `let x = undefined`: its reads already print Helpers.isTrue
+    }
     return undefined;
 }
 
@@ -4429,7 +4433,9 @@ function handleCoercionInitIsKind (initializer, kind) {
     if (node.kind === ts.SyntaxKind.TrueKeyword || node.kind === ts.SyntaxKind.FalseKeyword) {
         return true;
     }
-    return kind === 'Boolean' && node.kind === ts.SyntaxKind.NullKeyword;
+    const nullish = node.kind === ts.SyntaxKind.NullKeyword
+        || (ts.isIdentifier (node) && node.escapedText === 'undefined'); // both print `null`
+    return kind !== 'boolean' && nullish;
 }
 
 // `if (x)` / `while (x)` / `do .. while (x)` / `x ? :` / `!x` / `x || y` / `x && y` inside a
