@@ -26,9 +26,9 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![Enjoy VIP+2 tier on Bitget when migrating from BitMEX](https://github.com/user-attachments/assets/51386fa3-a95c-4bef-aa3b-2d4ee1d8f5c3)](https://forms.gle/VLDTR7ushknvsUGH7)
+[![CCXT Terminal: One App. Every Market. High-performance trading with real-time sync](https://github.com/user-attachments/assets/5bfe1227-860c-45ad-b43c-884e899b70e1)](https://terminal.ccxt.com)
 
-[![Unlock VIP3 on BTSE and earn up to $2,500 in the BTSE × CCXT Trading Competition](https://github.com/user-attachments/assets/5acdc47c-6e49-429b-bda7-dc0628a00971)](https://www.btse.com/en/events/btsexccxt20260831?ref=o2tjIXx5)
+[**CCXT Terminal**](https://terminal.ccxt.com) is a non-custodial trading platform built on the same open-source CCXT library you already use. It takes you from market analysis to order execution in one place, pairing a scalper DOM and real-time liquidity visualization with low-latency order routing across multiple exchanges.
 
 ## See Also
 
