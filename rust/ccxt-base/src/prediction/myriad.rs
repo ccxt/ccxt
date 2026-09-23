@@ -3184,8 +3184,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-        let mut networkId: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "networkId", &[]);
-        let mut marketId: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "marketId", &[]);
+        let mut networkId: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("networkId".into()), &[]);
+        let mut marketId: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketId".into()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), marketId);
@@ -3422,10 +3422,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
-        let mut networkId: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "networkId", &[]);
-        let mut marketId: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "marketId", &[]);
-        let mut outcomeId: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "outcomeId", &[]);
-        let mut tradingModel: Option<String> = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "tradingModel", &[Value::Str("amm".into())]).as_str().map(str::to_owned);
+        let mut networkId: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("networkId".into()), &[]);
+        let mut marketId: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketId".into()), &[]);
+        let mut outcomeId: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("outcomeId".into()), &[]);
+        let mut tradingModel: Option<String> = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("tradingModel".into()), &[Value::Str("amm".into())]).as_str().map(str::to_owned);
         if (tradingModel.as_deref() == Some("ob")) {
             let mut obRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3643,8 +3643,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut networkId: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "networkId", &[]);
-        let mut marketId: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "marketId", &[]);
+        let mut networkId: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("networkId".into()), &[]);
+        let mut marketId: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketId".into()), &[]);
         let mut outcomeId: Value = self.safe_string_k(outcomeInfo.clone(), "outcomeId", &[self.safe_string(outcomeInfo.clone(), Value::Str("id".into()), &[])]);
         let mut outcomeTitle: Value = self.safe_string_k(outcomeInfo.clone(), "outcomeLabel", &[self.safe_string(outcomeInfo.clone(), Value::Str("label".into()), &[self.safe_string(outcomeInfo, Value::Str("title".into()), &[])])]);
         let mut bucketKey: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[Value::Str("30d".into())]);

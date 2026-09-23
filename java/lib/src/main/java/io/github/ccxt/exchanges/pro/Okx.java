@@ -178,7 +178,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     throw new ArgumentsRequired((this.id + " subscribeMultiple() symbols is required")) ;
                 }
-                Object marketId = this.marketId((String) ((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                Object marketId = this.marketId((String) ((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
                 final Object finalChannel = channel;
                 Map<String, Object> arg = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -189,7 +189,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     throw new ArgumentsRequired((this.id + " subscribeMultiple() symbols is required")) ;
                 }
-                ((List<Object>)messageHashes).add(((channel + "::") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                ((List<Object>)messageHashes).add(((channel + "::") + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
@@ -595,7 +595,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((List<Object>)messageHashes).add(((channel + ":") + symbol));
                 Object marketId = this.marketId((String) (symbol));
                 final String finalChannel = channel;
@@ -930,9 +930,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((List<Object>)messageHashes).add(("unsubscribe:ticker:" + symbol));
-                Object marketId = this.marketId((String) (symbol));
+                Object marketId = this.marketId(symbol);
                 final Object finalChannel = channel;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -1050,14 +1050,14 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object marketId = this.marketId((String) ((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                Object marketId = this.marketId((String) ((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
                 final Object finalChannel = channel;
                 Map<String, Object> arg = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
                     put( "instId", marketId );
                 }};
                 ((List<Object>)args).add(this.extend(arg, parameters));
-                ((List<Object>)messageHashes).add(("bidask::" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                ((List<Object>)messageHashes).add(("bidask::" + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );

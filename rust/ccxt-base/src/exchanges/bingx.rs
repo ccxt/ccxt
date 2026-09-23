@@ -7574,7 +7574,7 @@ impl BingxCore {
         params = self.omit(params.clone(), Value::from(vec![Value::Str("walletType".into()), Value::Str("network".into())]), &[]);
         let __ws_arg_65 = self.extend(request, &[params]);
         let mut response: Value = self.wallets_v1_private_post_capital_withdraw_apply(&[__ws_arg_65]).await;
-        let mut data: Value = self.safe_value_k(response, "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[]);
         return self.parse_transaction(data, &[]);
 
     Value::Null

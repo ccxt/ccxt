@@ -2505,7 +2505,7 @@ public class Paradex extends ParadexApi
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> signOrderRequest(Map<String, Object> request, Object modify)
+    public CompletableFuture<Map<String, Object>> signOrderRequest(Map<String, Object> request, Object modify)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2569,10 +2569,10 @@ public class Paradex extends ParadexApi
             ((Map<String, Object>)request).put("signature", signature);
             ((Map<String, Object>)request).put("signature_timestamp", ((Map<String, Object>)orderReq).get("timestamp"));
             return request;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> signOrderRequest(Map<String, Object> request, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> signOrderRequest(Map<String, Object> request, Object... optionalArgs)
     {
         return this.signOrderRequest(request, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
     }
@@ -2609,7 +2609,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             request = (this.signOrderRequest((Map<String, Object>) (request))).join();
             Map<String, Object> response = (this.privatePostOrders(request)).join();
             //
@@ -2803,7 +2803,7 @@ public class Paradex extends ParadexApi
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(parameters, orderParams);
-                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
                 orderRequest = (this.signOrderRequest((Map<String, Object>) (orderRequest))).join();
                 ((List<Object>)ordersRequests).add(orderRequest);
             }

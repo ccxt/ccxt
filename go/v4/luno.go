@@ -839,8 +839,7 @@ func (this *Luno) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetBalance(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetBalance(params)).Raw))
 
 	//
 	//     {
@@ -1019,8 +1018,7 @@ func (this *Luno) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		"id": id,
 	}
 
-	response := (<-this.PrivateGetOrdersId(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersId(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrder(response)
 	return nil
@@ -1234,8 +1232,8 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
-		var market any = this.SafeMarket(id)
-		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+		var market map[string]any = MapTyped(this.SafeMarket(id))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		var ticker any = tickers[id]
 		AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
 	}
@@ -1272,8 +1270,7 @@ func (this *Luno) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetTicker(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTicker(this.Extend(request, params))).Raw))
 
 	// {
 	//     "pair":"XBTAUD",
@@ -1988,8 +1985,7 @@ func (this *Luno) createDepositAddressBody(ch chan any, code any, optionalArgs .
 		"asset": currency["id"],
 	}
 
-	response := (<-this.PrivatePostFundingAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostFundingAddress(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -2045,8 +2041,7 @@ func (this *Luno) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 		"asset": currency["id"],
 	}
 
-	response := (<-this.PrivateGetFundingAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundingAddress(this.Extend(request, params))).Raw))
 
 	//
 	//     {

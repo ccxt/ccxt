@@ -89,8 +89,7 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	trades := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash, subscription))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

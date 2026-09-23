@@ -8,37 +8,37 @@ namespace ccxt\async\abstract;
 
 abstract class revolutx extends \ccxt\async\Exchange {
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_2_0_public_order_book_symbol($params = array()) {
         return $this->request('2.0/public/order-book/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_1_0_public_tickers($params = array()) {
         return $this->request('1.0/public/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_1_0_public_candles_symbol($params = array()) {
         return $this->request('1.0/public/candles/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_1_0_public_trades_all($params = array()) {
         return $this->request('1.0/public/trades/all', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_1_0_public_configuration_currencies($params = array()) {
         return $this->request('1.0/public/configuration/currencies', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_1_0_public_configuration_pairs($params = array()) {
         return $this->request('1.0/public/configuration/pairs', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -50,19 +50,19 @@ abstract class revolutx extends \ccxt\async\Exchange {
         return $this->request('1.0/balances', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_1_0_orders_active($params = array()) {
         return $this->request('1.0/orders/active', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_1_0_orders_historical($params = array()) {
         return $this->request('1.0/orders/historical', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_1_0_orders_venue_order_id($params = array()) {
         return $this->request('1.0/orders/{venue_order_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -74,7 +74,7 @@ abstract class revolutx extends \ccxt\async\Exchange {
         return $this->request('1.0/orders/fills/{venue_order_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_1_0_trades_private_symbol($params = array()) {
         return $this->request('1.0/trades/private/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -86,13 +86,13 @@ abstract class revolutx extends \ccxt\async\Exchange {
         return $this->request('1.0/transactions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_1_0_orders($params = array()) {
         return $this->request('1.0/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_put_1_0_orders_venue_order_id($params = array()) {
         return $this->request('1.0/orders/{venue_order_id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
@@ -104,43 +104,43 @@ abstract class revolutx extends \ccxt\async\Exchange {
         return $this->request('1.0/orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_delete_1_0_orders_venue_order_id($params = array()) {
         return $this->request('1.0/orders/{venue_order_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGet20PublicOrderBookSymbol($params = array()) {
         return $this->request('2.0/public/order-book/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGet10PublicTickers($params = array()) {
         return $this->request('1.0/public/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGet10PublicCandlesSymbol($params = array()) {
         return $this->request('1.0/public/candles/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGet10PublicTradesAll($params = array()) {
         return $this->request('1.0/public/trades/all', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGet10PublicConfigurationCurrencies($params = array()) {
         return $this->request('1.0/public/configuration/currencies', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGet10PublicConfigurationPairs($params = array()) {
         return $this->request('1.0/public/configuration/pairs', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -152,19 +152,19 @@ abstract class revolutx extends \ccxt\async\Exchange {
         return $this->request('1.0/balances', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGet10OrdersActive($params = array()) {
         return $this->request('1.0/orders/active', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGet10OrdersHistorical($params = array()) {
         return $this->request('1.0/orders/historical', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGet10OrdersVenueOrderId($params = array()) {
         return $this->request('1.0/orders/{venue_order_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -176,7 +176,7 @@ abstract class revolutx extends \ccxt\async\Exchange {
         return $this->request('1.0/orders/fills/{venue_order_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGet10TradesPrivateSymbol($params = array()) {
         return $this->request('1.0/trades/private/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -188,13 +188,13 @@ abstract class revolutx extends \ccxt\async\Exchange {
         return $this->request('1.0/transactions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePost10Orders($params = array()) {
         return $this->request('1.0/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePut10OrdersVenueOrderId($params = array()) {
         return $this->request('1.0/orders/{venue_order_id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
@@ -206,7 +206,7 @@ abstract class revolutx extends \ccxt\async\Exchange {
         return $this->request('1.0/orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateDelete10OrdersVenueOrderId($params = array()) {
         return $this->request('1.0/orders/{venue_order_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));

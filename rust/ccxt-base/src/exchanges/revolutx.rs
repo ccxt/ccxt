@@ -201,12 +201,36 @@ impl RevolutxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("2.0/public/order-book/{symbol}".to_string(), Value::Int(1));
-        m.insert("1.0/public/tickers".to_string(), Value::Int(1));
-        m.insert("1.0/public/candles/{symbol}".to_string(), Value::Int(1));
-        m.insert("1.0/public/trades/all".to_string(), Value::Int(1));
-        m.insert("1.0/public/configuration/currencies".to_string(), Value::Int(1));
-        m.insert("1.0/public/configuration/pairs".to_string(), Value::Int(1));
+        m.insert("2.0/public/order-book/{symbol}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("1.0/public/tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("1.0/public/candles/{symbol}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("1.0/public/trades/all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("1.0/public/configuration/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("1.0/public/configuration/pairs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -216,28 +240,56 @@ impl RevolutxCore {
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("1.0/balances".to_string(), Value::Int(1));
-        m.insert("1.0/orders/active".to_string(), Value::Int(1));
-        m.insert("1.0/orders/historical".to_string(), Value::Int(1));
-        m.insert("1.0/orders/{venue_order_id}".to_string(), Value::Int(1));
+        m.insert("1.0/orders/active".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("1.0/orders/historical".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("1.0/orders/{venue_order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("1.0/orders/fills/{venue_order_id}".to_string(), Value::Int(1));
-        m.insert("1.0/trades/private/{symbol}".to_string(), Value::Int(1));
+        m.insert("1.0/trades/private/{symbol}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("1.0/transactions".to_string(), Value::Int(1));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("1.0/orders".to_string(), Value::Int(1));
+        m.insert("1.0/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("put".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("1.0/orders/{venue_order_id}".to_string(), Value::Int(1));
+        m.insert("1.0/orders/{venue_order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("1.0/orders".to_string(), Value::Int(1));
-        m.insert("1.0/orders/{venue_order_id}".to_string(), Value::Int(1));
+        m.insert("1.0/orders/{venue_order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m

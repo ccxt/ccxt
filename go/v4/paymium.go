@@ -256,8 +256,7 @@ func (this *Paymium) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetUser(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUser(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -294,8 +293,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"currency": market["id"],
 	}
 
-	response := (<-this.PublicGetDataCurrencyDepth(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDataCurrencyDepth(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")
 	return nil
@@ -379,8 +377,7 @@ func (this *Paymium) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"currency": market["id"],
 	}
 
-	ticker := (<-this.PublicGetDataCurrencyTicker(this.Extend(request, params))).Raw
-	PanicOnError(ticker)
+	var ticker map[string]any = MapTyped(PanicOnError((<-this.PublicGetDataCurrencyTicker(this.Extend(request, params))).Raw))
 
 	//
 	// {
@@ -464,8 +461,7 @@ func (this *Paymium) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"currency": market["id"],
 	}
 
-	response := (<-this.PublicGetDataCurrencyTrades(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetDataCurrencyTrades(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -495,8 +491,7 @@ func (this *Paymium) createDepositAddressBody(ch chan any, code any, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostUserAddresses(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostUserAddresses(params)).Raw))
 
 	//
 	//     {
@@ -537,8 +532,7 @@ func (this *Paymium) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		"address": code,
 	}
 
-	response := (<-this.PrivateGetUserAddressesAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserAddressesAddress(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -578,8 +572,7 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetUserAddresses(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetUserAddresses(params)).Raw))
 
 	//
 	//     [
@@ -740,8 +733,7 @@ func (this *Paymium) transferBody(ch chan any, code any, amount any, fromAccount
 		"email":    toAccount,
 	}
 
-	response := (<-this.PrivatePostUserEmailTransfers(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostUserEmailTransfers(this.Extend(request, params))).Raw))
 
 	//
 	//     {

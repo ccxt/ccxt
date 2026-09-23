@@ -208,7 +208,9 @@ public partial class btse : Exchange
                         { "spot/api/v3.3/trades", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
-                        { "spot/api/v3.3/time", 5 },
+                        { "spot/api/v3.3/time", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "futures/api/v2.3/market_summary", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -690,7 +692,7 @@ public partial class btse : Exchange
     public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetSpotApiV33Time(parameters);
+        Dictionary<string, object> response = await this.publicGetSpotApiV33Time(parameters);
         //
         //     {
         //         "iso": "2026-02-06T11:48:37.976Z",

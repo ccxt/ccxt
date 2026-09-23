@@ -672,7 +672,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     ((List<Object>)messageHashes).add(("ticker:" + symbol));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)topics).add(((method + ":") + ((Map<String, Object>)market).get("id")));
@@ -3835,7 +3835,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     ((List<Object>)messageHashes).add(((messageHash + ":") + symbol));
                 }
             }

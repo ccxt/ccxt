@@ -316,8 +316,7 @@ func (this *Zaif) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	markets := (<-this.PublicGetCurrencyPairsAll(params)).Raw
-	PanicOnError(markets)
+	var markets []any = ListTyped(PanicOnError((<-this.PublicGetCurrencyPairsAll(params)).Raw))
 
 	//
 	//     [
@@ -457,8 +456,7 @@ func (this *Zaif) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostGetInfo(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetInfo(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -495,8 +493,7 @@ func (this *Zaif) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetDepthPair(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDepthPair(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
@@ -572,8 +569,7 @@ func (this *Zaif) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		"pair": market["id"],
 	}
 
-	ticker := (<-this.PublicGetTickerPair(this.Extend(request, params))).Raw
-	PanicOnError(ticker)
+	var ticker map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickerPair(this.Extend(request, params))).Raw))
 
 	//
 	// {

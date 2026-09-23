@@ -399,8 +399,7 @@ func (this *Krakenfutures) watchTradesForSymbolsBody(ch chan any, symbols any, o
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	trades := (<-this.WatchMultiHelperAsync("trade", "trade", symbols, nil, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("trade", "trade", symbols, nil, params))))
 	if this.NewUpdates {
 		var first []any = ccxt.SafeListTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -669,8 +668,7 @@ func (this *Krakenfutures) watchOrdersBody(ch chan any, optionalArgs ...any) any
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["symbol"]))
 	}
 
-	orders := (<-this.SubscribePrivateAsync(name, messageHash, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(name, messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -717,8 +715,7 @@ func (this *Krakenfutures) watchMyTradesBody(ch chan any, optionalArgs ...any) a
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["symbol"]))
 	}
 
-	trades := (<-this.SubscribePrivateAsync(name, messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(name, messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1401,12 +1398,12 @@ func (this *Krakenfutures) ParseWsTicker(ticker map[string]any, optionalArgs ...
 	//        "volumeQuote": 6899673.0
 	//    }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "product_id")
-	var marketResolved any = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	market = marketResolved
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(marketResolved, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "lastTime"))
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{

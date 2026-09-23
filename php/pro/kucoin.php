@@ -177,7 +177,7 @@ class kucoin extends \ccxt\async\kucoin {
         return null;
     }
 
-    public function request_id() {
+    public function request_id(): float {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
@@ -2607,7 +2607,7 @@ class kucoin extends \ccxt\async\kucoin {
         $client->resolve($cache, $symbolMessageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
         // /spotMarket/tradeOrders
         //
@@ -3671,7 +3671,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
     }
 
-    public function get_message_hash(string $elementName, ?string $symbol = null) {
+    public function get_message_hash(string $elementName, ?string $symbol = null): string {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...
         if ($symbol !== null) {

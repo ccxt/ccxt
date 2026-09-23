@@ -188,8 +188,7 @@ func (this *Bullish) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 
-	trades := (<-this.WatchPublicAsync(url, messageHash, request, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(url, messageHash, request, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -321,8 +320,8 @@ func (this *Bullish) HandleTicker(client any, message any) {
 	var updateType *string = this.SafeString(message, "type", "")
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var parsed any = this.ParseTicker(data, market)
 	if updateType != nil && *updateType == "update" {
 		var ticker map[string]any = ccxt.SafeMapTyped(this.Tickers, symbol)
@@ -485,8 +484,7 @@ func (this *Bullish) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		params = ccxt.MapTyped(this.Omit(params, "tradingAccountId"))
 	}
 
-	orders := (<-this.WatchPrivateAsync(messageHash, subscribeHash, request, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, subscribeHash, request, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -622,8 +620,7 @@ func (this *Bullish) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		params = ccxt.MapTyped(this.Omit(params, "tradingAccountId"))
 	}
 
-	trades := (<-this.WatchPrivateAsync(messageHash, subscribeHash, request, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, subscribeHash, request, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

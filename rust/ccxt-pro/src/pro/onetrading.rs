@@ -1480,7 +1480,7 @@ impl OnetradingCore {
             m
         });
         if (client != Value::Null) {
-            subscription = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), subscriptionHash.clone(), &[]);
+            subscription = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), subscriptionHash.clone(), &[]);
             if (subscription != Value::Null) {
                 let mut ohlcvMarket: Value = self.safe_dict(subscription.clone(), marketId.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1751,7 +1751,7 @@ impl OnetradingCore {
             m
         });
         if (client != Value::Null) {
-            subscription = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), subscriptionHash.clone(), &[]);
+            subscription = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), subscriptionHash.clone(), &[]);
             if (subscription != Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);

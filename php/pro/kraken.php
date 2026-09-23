@@ -671,7 +671,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve($stored, $messageHash);
     }
 
-    public function request_id() {
+    public function request_id(): float {
         // their support said that reqid must be an int32, not documented
         $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
@@ -1628,7 +1628,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve($this->balance[$type], $channel);
     }
 
-    public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null) {
+    public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null): string {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         $withSymbol = $symbol !== null;

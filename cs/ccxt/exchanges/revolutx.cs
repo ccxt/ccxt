@@ -66,33 +66,59 @@ public partial class revolutx : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "2.0/public/order-book/{symbol}", 1 },
-                        { "1.0/public/tickers", 1 },
-                        { "1.0/public/candles/{symbol}", 1 },
-                        { "1.0/public/trades/all", 1 },
-                        { "1.0/public/configuration/currencies", 1 },
-                        { "1.0/public/configuration/pairs", 1 },
+                        { "2.0/public/order-book/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/public/tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/public/candles/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/public/trades/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/public/configuration/currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/public/configuration/pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "1.0/balances", 1 },
-                        { "1.0/orders/active", 1 },
-                        { "1.0/orders/historical", 1 },
-                        { "1.0/orders/{venue_order_id}", 1 },
+                        { "1.0/orders/active", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/orders/historical", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/orders/{venue_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "1.0/orders/fills/{venue_order_id}", 1 },
-                        { "1.0/trades/private/{symbol}", 1 },
+                        { "1.0/trades/private/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "1.0/transactions", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "1.0/orders", 1 },
+                        { "1.0/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "1.0/orders/{venue_order_id}", 1 },
+                        { "1.0/orders/{venue_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "1.0/orders", 1 },
-                        { "1.0/orders/{venue_order_id}", 1 },
+                        { "1.0/orders/{venue_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -376,7 +402,7 @@ public partial class revolutx : Exchange
         {
             request["region"] = region;
         }
-        object response = await this.publicGet10PublicConfigurationPairs(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet10PublicConfigurationPairs(this.extend(request, parameters));
         //
         //     {
         //         "BTC/USD": {
@@ -471,7 +497,7 @@ public partial class revolutx : Exchange
         {
             request["region"] = region;
         }
-        object response = await this.publicGet10PublicConfigurationCurrencies(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet10PublicConfigurationCurrencies(this.extend(request, parameters));
         //
         //     {
         //         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
@@ -589,7 +615,7 @@ public partial class revolutx : Exchange
         {
             request["region"] = region;
         }
-        object response = await this.publicGet10PublicTickers(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet10PublicTickers(this.extend(request, parameters));
         //
         //     {
         //         "data": [
@@ -689,7 +715,7 @@ public partial class revolutx : Exchange
         {
             request["region"] = region;
         }
-        object response = await this.publicGet20PublicOrderBookSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet20PublicOrderBookSymbol(this.extend(request, parameters));
         //
         //     {
         //         "data": {
@@ -770,7 +796,7 @@ public partial class revolutx : Exchange
         {
             request["region"] = region;
         }
-        object response = await this.publicGet10PublicCandlesSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet10PublicCandlesSymbol(this.extend(request, parameters));
         //
         //     {
         //         "data": [
@@ -876,7 +902,7 @@ public partial class revolutx : Exchange
         {
             request["cursor"] = cursor;
         }
-        object response = await this.publicGet10PublicTradesAll(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet10PublicTradesAll(this.extend(request, parameters));
         //
         //     {
         //         "data": [
@@ -1129,7 +1155,7 @@ public partial class revolutx : Exchange
             { "side", side },
             { "order_configuration", orderConfiguration },
         };
-        object response = await this.privatePost10Orders(this.extend(request, this.omit(parameters, new List<object>() {"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})));
+        Dictionary<string, object> response = await this.privatePost10Orders(this.extend(request, this.omit(parameters, new List<object>() {"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})));
         //
         //     {
         //         "data": [
@@ -1171,7 +1197,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "venue_order_id", id },
         };
-        object response = await this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },             { "status", "canceled" },         }));
     }
 
@@ -1215,7 +1241,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "venue_order_id", id },
         };
-        object response = await this.privateGet10OrdersVenueOrderId(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGet10OrdersVenueOrderId(this.extend(request, parameters));
         //
         //     {
         //         "data": {
@@ -1290,7 +1316,7 @@ public partial class revolutx : Exchange
         {
             request["side"] = side;
         }
-        object response = await this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new List<object>() {"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side"})));
+        Dictionary<string, object> response = await this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new List<object>() {"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side"})));
         //
         //     {
         //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
@@ -1372,7 +1398,7 @@ public partial class revolutx : Exchange
         {
             request["order_types"] = String.Join(",", orderTypes.ToArray());
         }
-        object response = await this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new List<object>() {"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})));
+        Dictionary<string, object> response = await this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new List<object>() {"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})));
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
@@ -1502,7 +1528,7 @@ public partial class revolutx : Exchange
         {
             request["cursor"] = cursor;
         }
-        object response = await this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new List<object>() {"until"})));
+        Dictionary<string, object> response = await this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new List<object>() {"until"})));
         //
         //     {
         //         "data": [
@@ -1577,7 +1603,7 @@ public partial class revolutx : Exchange
         {
             request["execution_instructions"] = executionInstructions;
         }
-        object response = await this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})));
+        Dictionary<string, object> response = await this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})));
         //
         //     {
         //         "data": [

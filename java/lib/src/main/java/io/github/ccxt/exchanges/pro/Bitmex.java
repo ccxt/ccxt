@@ -145,7 +145,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     String subscription = ((name + ":") + ((Map<String, Object>)market).get("id"));
                     ((List<Object>)rawSubscriptions).add(subscription);

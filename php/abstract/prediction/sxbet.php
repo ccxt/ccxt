@@ -8,25 +8,25 @@ namespace ccxt\abstract\prediction;
 
 abstract class sxbet extends \ccxt\prediction\PredictionExchange {
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_public_get_metadata_obv3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('metadata/obv3', array('sxbet', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_public_get_orderbook_v3_snapshot($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orderbook-v3/snapshot', array('sxbet', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_public_get_trades_v3_public($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trades-v3/public', array('sxbet', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_public_get_markets_active($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/active', array('sxbet', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -104,19 +104,19 @@ abstract class sxbet extends \ccxt\prediction\PredictionExchange {
         return $this->request('live-scores', array('sxbet', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_get_user_realtime_token_v3_api_key($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/realtime-token-v3/api-key', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_get_user_proxy($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/proxy', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_get_user_balance_v3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/balance-v3', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
@@ -134,61 +134,61 @@ abstract class sxbet extends \ccxt\prediction\PredictionExchange {
         return $this->request('user/transfer-to-proxy/status', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_get_orders_v3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_get_orders_v3_orderid($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3/{orderId}', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_get_orders_v3_odds_best($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3/odds/best', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_get_trades_v3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trades-v3', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_get_fills_v3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('fills-v3', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_get_positions_v3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions-v3', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_delete_orders_v3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3', array('sxbet', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_delete_orders_v3_event($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3/event', array('sxbet', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_delete_orders_v3_all($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3/all', array('sxbet', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_post_orders_v3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3', array('sxbet', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -200,7 +200,7 @@ abstract class sxbet extends \ccxt\prediction\PredictionExchange {
         return $this->request('user/deploy-proxy', array('sxbet', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbet_private_post_user_transfer_to_proxy($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/transfer-to-proxy', array('sxbet', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -212,25 +212,25 @@ abstract class sxbet extends \ccxt\prediction\PredictionExchange {
         return $this->request('heartbeat/v3', array('sxbet', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPublicGetMetadataObv3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('metadata/obv3', array('sxbet', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPublicGetOrderbookV3Snapshot($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orderbook-v3/snapshot', array('sxbet', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPublicGetTradesV3Public($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trades-v3/public', array('sxbet', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPublicGetMarketsActive($params = array()): \React\Promise\PromiseInterface {
         return $this->request('markets/active', array('sxbet', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -308,19 +308,19 @@ abstract class sxbet extends \ccxt\prediction\PredictionExchange {
         return $this->request('live-scores', array('sxbet', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateGetUserRealtimeTokenV3ApiKey($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/realtime-token-v3/api-key', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateGetUserProxy($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/proxy', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateGetUserBalanceV3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/balance-v3', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
@@ -338,61 +338,61 @@ abstract class sxbet extends \ccxt\prediction\PredictionExchange {
         return $this->request('user/transfer-to-proxy/status', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateGetOrdersV3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateGetOrdersV3OrderId($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3/{orderId}', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateGetOrdersV3OddsBest($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3/odds/best', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateGetTradesV3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('trades-v3', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateGetFillsV3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('fills-v3', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateGetPositionsV3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('positions-v3', array('sxbet', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateDeleteOrdersV3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3', array('sxbet', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateDeleteOrdersV3Event($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3/event', array('sxbet', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivateDeleteOrdersV3All($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3/all', array('sxbet', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivatePostOrdersV3($params = array()): \React\Promise\PromiseInterface {
         return $this->request('orders-v3', array('sxbet', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -404,7 +404,7 @@ abstract class sxbet extends \ccxt\prediction\PredictionExchange {
         return $this->request('user/deploy-proxy', array('sxbet', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function sxbetPrivatePostUserTransferToProxy($params = array()): \React\Promise\PromiseInterface {
         return $this->request('user/transfer-to-proxy', array('sxbet', 'private'), 'POST', $params, null, null, array("cost" => 1));

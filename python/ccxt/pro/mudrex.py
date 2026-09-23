@@ -42,7 +42,7 @@ class mudrex(ccxt.async_support.mudrex):
             'method': 'PING',
         }
 
-    def request_id(self):
+    def request_id(self) -> float:
         reqid = self.sum(self.safe_integer(self.options, 'correlationId', 0), 1)
         self.options['correlationId'] = reqid
         return reqid

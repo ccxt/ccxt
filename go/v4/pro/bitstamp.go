@@ -314,8 +314,7 @@ func (this *Bitstamp) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	trades := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -431,8 +430,8 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	}
 	var parts []string = ccxt.Split(channel, "_")
 	var marketId *string = this.SafeString(parts, 2)
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trades:" + *symbol
 	var data any = this.SafeValue(message, "data")
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
@@ -506,8 +505,8 @@ func (this *Bitstamp) HandleFundingRate(client any, message map[string]any) {
 	}
 	var parts []string = ccxt.Split(channel, "_")
 	var marketId *string = this.SafeString(parts, 2)
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var fundingRate any = this.ParseFundingRate(data, market)
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
@@ -558,8 +557,7 @@ func (this *Bitstamp) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"params": params,
 	}
 
-	orders := (<-this.SubscribePrivateAsync(subscription, messageHash, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(subscription, messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -651,8 +649,7 @@ func (this *Bitstamp) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"params": params,
 	}
 
-	trades := (<-this.SubscribePrivateAsync(subscription, messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(subscription, messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}

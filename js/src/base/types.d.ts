@@ -189,6 +189,14 @@ export interface PredictionOutcome {
     settleFraction?: Num;
     precision?: Precision;
 }
+export interface PredictionOutcomeMarket extends MarketInterface {
+    outcome: string;
+    outcomeId: string;
+    label?: Str;
+    market?: Str;
+    marketId?: Str;
+    event?: Str;
+}
 export interface PredictionOrder {
     id: Str;
     clientOrderId: Str;

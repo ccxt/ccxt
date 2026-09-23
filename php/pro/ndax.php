@@ -37,7 +37,7 @@ class ndax extends \ccxt\async\ndax {
         ));
     }
 
-    public function request_id() {
+    public function request_id(): float {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;

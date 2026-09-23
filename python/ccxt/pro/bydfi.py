@@ -89,7 +89,7 @@ class bydfi(ccxt.async_support.bydfi):
             'method': 'ping',
         }
 
-    def request_id(self):
+    def request_id(self) -> float:
         self.lock_id()
         reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
         self.options['reqid'] = reqid

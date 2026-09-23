@@ -746,8 +746,7 @@ func (this *Ndax) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		"omsId": omsId,
 	}
 
-	response := (<-this.PublicGetGetProducts(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetGetProducts(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -834,8 +833,7 @@ func (this *Ndax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		"omsId": omsId,
 	}
 
-	response := (<-this.PublicGetGetInstruments(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetGetInstruments(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1045,8 +1043,7 @@ func (this *Ndax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"Depth":        limit,
 	}
 
-	response := (<-this.PublicGetGetL2Snapshot(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetGetL2Snapshot(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1186,8 +1183,7 @@ func (this *Ndax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetSummary(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetSummary(params)).Raw))
 	//
 	//     [
 	//         {
@@ -1239,8 +1235,7 @@ func (this *Ndax) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		"InstrumentId": market["id"],
 	}
 
-	response := (<-this.PublicGetGetLevel1(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetLevel1(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -1578,8 +1573,7 @@ func (this *Ndax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["Count"] = limit
 	}
 
-	response := (<-this.PublicGetGetLastTrades(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetGetLastTrades(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1697,8 +1691,7 @@ func (this *Ndax) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"AccountId": accountId,
 	}
 
-	response := (<-this.PrivateGetGetAccountPositions(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetAccountPositions(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1856,8 +1849,7 @@ func (this *Ndax) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["Depth"] = limit
 	}
 
-	response := (<-this.PrivateGetGetAccountTransactions(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetAccountTransactions(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -2079,8 +2071,7 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		request["StopPrice"] = triggerPrice
 	}
 
-	response := (<-this.PrivatePostSendOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostSendOrder(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -2167,8 +2158,7 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 		request["ClientOrderId"] = clientOrderId
 	}
 
-	response := (<-this.PrivatePostCancelReplaceOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelReplaceOrder(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -2235,8 +2225,7 @@ func (this *Ndax) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["Depth"] = limit
 	}
 
-	response := (<-this.PrivateGetGetTradesHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetTradesHistory(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2390,8 +2379,7 @@ func (this *Ndax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "ClOrderId"}))
 
-	response := (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
 	var order map[string]any = MapTyped(this.ParseOrder(response, market))
 
 	ch <- this.Extend(order, map[string]any{
@@ -2447,8 +2435,7 @@ func (this *Ndax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"AccountId": accountId,
 	}
 
-	response := (<-this.PrivateGetGetOpenOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetOpenOrders(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2557,8 +2544,7 @@ func (this *Ndax) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["Depth"] = limit
 	}
 
-	response := (<-this.PrivateGetGetOrdersHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetOrdersHistory(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2656,8 +2642,7 @@ func (this *Ndax) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		"OrderId":   ParseInt(id),
 	}
 
-	response := (<-this.PrivateGetGetOrderStatus(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetOrderStatus(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -2758,8 +2743,7 @@ func (this *Ndax) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 		"OrderId": ParseInt(id),
 	}
 
-	response := (<-this.PrivatePostGetOrderHistoryByOrderId(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostGetOrderHistoryByOrderId(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -2853,8 +2837,7 @@ func (this *Ndax) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 		"GenerateNewKey": false,
 	}
 
-	response := (<-this.PrivateGetGetDepositInfo(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetDepositInfo(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -3068,8 +3051,7 @@ func (this *Ndax) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		"AccountId": accountId,
 	}
 
-	response := (<-this.PrivateGetGetWithdraws(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetWithdraws(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -3374,8 +3356,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 		"Payload": this.Json(withdrawPayload),
 	}
 
-	response := (<-this.PrivatePostCreateWithdrawTicket(this.DeepExtend(withdrawRequest, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCreateWithdrawTicket(this.DeepExtend(withdrawRequest, params))).Raw))
 
 	ch <- this.ParseTransaction(response, currency)
 	return nil

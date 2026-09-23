@@ -72,7 +72,7 @@ class phemex(ccxt.async_support.phemex):
             return er
         return self.from_en(er, self.safe_integer(market, 'ratioScale'))
 
-    def request_id(self):
+    def request_id(self) -> float:
         self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId

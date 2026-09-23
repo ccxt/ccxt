@@ -10454,9 +10454,9 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("amount", Helpers.parseFloat(amountString));
             }
-            Object includeFee = null;
+            Boolean includeFee = null;
             List<Object> includeFeeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "withdraw", "includeFee", false);
-            includeFee = ((List<Object>) includeFeeparametersVariable).get(0);
+            includeFee = Helpers.isTrue(((List<Object>) includeFeeparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) includeFeeparametersVariable).get(1);
             if (Helpers.isTrue(includeFee))
             {

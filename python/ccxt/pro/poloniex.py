@@ -268,7 +268,7 @@ class poloniex(ccxt.async_support.poloniex):
         """
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
-            clientOrderIds = self.safe_value(params, 'clientOrderId', [])
+            clientOrderIds = self.safe_list(params, 'clientOrderId', [])
             params['clientOrderIds'] = self.array_concat(clientOrderIds, [clientOrderId])
         orders = await self.cancel_orders_ws([id], symbol, params)
         order = self.safe_dict(orders, 0)
@@ -435,7 +435,7 @@ class poloniex(ccxt.async_support.poloniex):
                 messageHashes.append(name + '::' + symbols[i])
         trades = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
-            first = self.safe_value(trades, 0)
+            first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -628,7 +628,7 @@ class poloniex(ccxt.async_support.poloniex):
                 client.resolve(tradesArray, messageHash)
         return message
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None) -> Trade:
         #
         # handleTrade
         #

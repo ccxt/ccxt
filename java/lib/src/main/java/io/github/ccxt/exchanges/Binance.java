@@ -5966,9 +5966,9 @@ public class Binance extends BinanceApi
             } else if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 type = "linear";
-                Object useV2 = null;
+                Boolean useV2 = null;
                 List<Object> useV2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "useV2", false);
-                useV2 = ((List<Object>) useV2parametersVariable).get(0);
+                useV2 = Helpers.isTrue(((List<Object>) useV2parametersVariable).get(0));
                 parameters = (Map<String, Object>) ((List<Object>) useV2parametersVariable).get(1);
                 parameters = this.extend(request, query);
                 if (!Helpers.isTrue(useV2))
@@ -8337,9 +8337,9 @@ public class Binance extends BinanceApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object request = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = null;
@@ -8513,9 +8513,9 @@ public class Binance extends BinanceApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object isPortfolioMargin = null;
+                Boolean isPortfolioMargin = null;
                 List<Object> isPortfolioMarginorderParamsVariable = (List<Object>) this.handleOptionAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false);
-                isPortfolioMargin = ((List<Object>) isPortfolioMarginorderParamsVariable).get(0);
+                isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginorderParamsVariable).get(0));
                 orderParams = ((List<Object>) isPortfolioMarginorderParamsVariable).get(1);
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -10558,9 +10558,9 @@ public class Binance extends BinanceApi
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchOrders", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Boolean isOptionType = java.util.Objects.equals(type, "option");
@@ -10955,9 +10955,9 @@ public class Binance extends BinanceApi
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchOpenOrders", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Object stock = null;
@@ -11884,9 +11884,9 @@ public class Binance extends BinanceApi
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "cancelAllOrders", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             String type = null;
@@ -12303,9 +12303,9 @@ public class Binance extends BinanceApi
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-                Object isPortfolioMargin = null;
+                Boolean isPortfolioMargin = null;
                 List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchMyTrades", "papi", "portfolioMargin", false);
-                isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+                isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
                 parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
                 if (java.util.Objects.equals(stock, true))
                 {
@@ -14150,9 +14150,9 @@ public class Binance extends BinanceApi
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchTradingFee", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             boolean isLinear = Helpers.isTrue(this.isLinear(type, subType));
             boolean isInverse = Helpers.isTrue(this.isInverse(type, subType));
@@ -15504,9 +15504,9 @@ public class Binance extends BinanceApi
                 List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("loadLeverageBrackets", null, parameters, "linear");
                 subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-                Object isPortfolioMargin = null;
+                Boolean isPortfolioMargin = null;
                 List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "loadLeverageBrackets", "papi", "portfolioMargin", false);
-                isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+                isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
                 parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
                 List<Object> response = null;
                 if (Boolean.TRUE.equals(this.isLinear(type, subType)))
@@ -15594,9 +15594,9 @@ public class Binance extends BinanceApi
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLeverageTiers", null, parameters, "linear");
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchLeverageTiers", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
@@ -16073,9 +16073,9 @@ final Map<String, Object> finalMarket = market;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchAccountPositions", null, parameters, "linear");
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchAccountPositions", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
@@ -16085,9 +16085,9 @@ final Map<String, Object> finalMarket = market;
                     response = (this.papiV2GetUmAccount(parameters)).join();
                 } else
                 {
-                    Object useV2 = null;
+                    Boolean useV2 = null;
                     List<Object> useV2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchAccountPositions", "useV2", false);
-                    useV2 = ((List<Object>) useV2parametersVariable).get(0);
+                    useV2 = Helpers.isTrue(((List<Object>) useV2parametersVariable).get(0));
                     parameters = (Map<String, Object>) ((List<Object>) useV2parametersVariable).get(1);
                     if (!Helpers.isTrue(useV2))
                     {
@@ -16187,9 +16187,9 @@ final Map<String, Object> finalMarket = market;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsRisk", null, parameters, "linear");
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchPositionsRisk", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             parameters = (Map<String, Object>) this.omit(parameters, "type");
             List<Object> response = null;
@@ -16200,9 +16200,9 @@ final Map<String, Object> finalMarket = market;
                     response = (this.papiGetUmPositionRisk(this.extend(request, parameters))).join();
                 } else
                 {
-                    Object useV2 = null;
+                    Boolean useV2 = null;
                     List<Object> useV2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsRisk", "useV2", false);
-                    useV2 = ((List<Object>) useV2parametersVariable).get(0);
+                    useV2 = Helpers.isTrue(((List<Object>) useV2parametersVariable).get(0));
                     parameters = (Map<String, Object>) ((List<Object>) useV2parametersVariable).get(1);
                     parameters = this.extend(request, parameters);
                     if (!Helpers.isTrue(useV2))
@@ -16398,9 +16398,9 @@ final Map<String, Object> finalMarket = market;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchFundingHistory", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -16508,9 +16508,9 @@ final Map<String, Object> finalMarket = market;
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "leverage", finalLeverage );
             }};
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "setLeverage", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -16707,9 +16707,9 @@ final Map<String, Object> finalMarket = market;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("setPositionMode", market, parameters);
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "setPositionMode", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             String dualSidePosition = null;
             if (Helpers.isTrue(hedged))
@@ -16812,9 +16812,9 @@ final Map<String, Object> finalMarket = market;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLeverages", null, parameters, "linear");
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchLeverages", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
@@ -17309,9 +17309,9 @@ final Map<String, Object> finalMarket = market;
                 parameters = (Map<String, Object>) this.omit(parameters, "until");
                 ((Map<String, Object>)request).put("endTime", until);
             }
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchLedger", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(type, "option"))
@@ -18603,9 +18603,9 @@ final Map<String, Object> finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchBorrowInterest", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -18752,9 +18752,9 @@ final Map<String, Object> finalMarket = market;
                 put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
             }};
             Map<String, Object> response = null;
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "repayCrossMargin", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             if (Helpers.isTrue(isPortfolioMargin))
             {
@@ -18882,9 +18882,9 @@ final Map<String, Object> finalMarket = market;
                 put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
             }};
             Map<String, Object> response = null;
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "borrowCrossMargin", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             if (Helpers.isTrue(isPortfolioMargin))
             {
@@ -19325,9 +19325,9 @@ final Map<String, Object> finalMarket = market;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMyLiquidations", market, parameters, "linear");
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchMyLiquidations", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(type, "spot"))
@@ -21043,9 +21043,9 @@ final Map<String, Object> finalMarket = market;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchPositionsADLRank", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(subType, "linear"))

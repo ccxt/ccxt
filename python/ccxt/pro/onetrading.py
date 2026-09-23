@@ -1042,7 +1042,7 @@ class onetrading(ccxt.async_support.onetrading):
         type = 'SUBSCRIBE'
         subscription = {}
         if client is not None:
-            subscription = self.safe_value(client.subscriptions, subscriptionHash)
+            subscription = self.safe_dict(client.subscriptions, subscriptionHash)
             if subscription is not None:
                 ohlcvMarket = self.safe_dict(subscription, marketId, {})
                 marketSubscribed = self.safe_bool(ohlcvMarket, timeframe, False)
@@ -1142,7 +1142,7 @@ class onetrading(ccxt.async_support.onetrading):
             self.ohlcvs[symbol][timeframe] = stored
         client.resolve(stored, channel)
 
-    def find_timeframe(self, timeframe: object, timeframes: object = None):
+    def find_timeframe(self, timeframe: object, timeframes: object = None) -> Str:
         if timeframes is None:
             timeframes = self.timeframes
         if timeframes is None:
@@ -1275,7 +1275,7 @@ class onetrading(ccxt.async_support.onetrading):
         type = 'SUBSCRIBE'
         subscription = {}
         if client is not None:
-            subscription = self.safe_value(client.subscriptions, subscriptionHash)
+            subscription = self.safe_dict(client.subscriptions, subscriptionHash)
             if subscription is not None:
                 for i in range(0, len(marketIds)):
                     marketId = marketIds[i]

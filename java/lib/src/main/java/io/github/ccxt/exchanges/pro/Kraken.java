@@ -1980,10 +1980,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 String eventTrigger = this.safeString(parameters, "event_trigger");
                 if (!java.util.Objects.equals(eventTrigger, null))
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash(channelName, null, this.symbol((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)))));
+                    ((List<Object>)messageHashes).add(this.getMessageHash(channelName, null, this.symbol((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)))));
                 } else
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash(unifiedName, null, this.symbol((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)))));
+                    ((List<Object>)messageHashes).add(this.getMessageHash(unifiedName, null, this.symbol((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)))));
                 }
             }
             final List<String> finalSymbols = symbols;

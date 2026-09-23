@@ -77,33 +77,33 @@ class revolutx extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        '2.0/public/order-book/{symbol}' => 1,
-                        '1.0/public/tickers' => 1,
-                        '1.0/public/candles/{symbol}' => 1,
-                        '1.0/public/trades/all' => 1,
-                        '1.0/public/configuration/currencies' => 1,
-                        '1.0/public/configuration/pairs' => 1,
+                        '2.0/public/order-book/{symbol}' => array( 'cost' => 1 ),
+                        '1.0/public/tickers' => array( 'cost' => 1 ),
+                        '1.0/public/candles/{symbol}' => array( 'cost' => 1 ),
+                        '1.0/public/trades/all' => array( 'cost' => 1 ),
+                        '1.0/public/configuration/currencies' => array( 'cost' => 1 ),
+                        '1.0/public/configuration/pairs' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         '1.0/balances' => 1,
-                        '1.0/orders/active' => 1,
-                        '1.0/orders/historical' => 1,
-                        '1.0/orders/{venue_order_id}' => 1,
+                        '1.0/orders/active' => array( 'cost' => 1 ),
+                        '1.0/orders/historical' => array( 'cost' => 1 ),
+                        '1.0/orders/{venue_order_id}' => array( 'cost' => 1 ),
                         '1.0/orders/fills/{venue_order_id}' => 1,
-                        '1.0/trades/private/{symbol}' => 1,
+                        '1.0/trades/private/{symbol}' => array( 'cost' => 1 ),
                         '1.0/transactions' => 1,
                     ),
                     'post' => array(
-                        '1.0/orders' => 1,
+                        '1.0/orders' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        '1.0/orders/{venue_order_id}' => 1,
+                        '1.0/orders/{venue_order_id}' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         '1.0/orders' => 1,
-                        '1.0/orders/{venue_order_id}' => 1,
+                        '1.0/orders/{venue_order_id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),

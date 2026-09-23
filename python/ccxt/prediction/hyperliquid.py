@@ -316,7 +316,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             return self.shorten_slug(name) + '_' + str(outcomeId)
         return 'OUTCOME_' + str(outcomeId)
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         Retrieves all Hyperliquid outcome markets from outcomeMeta.
  Each binary outcome becomes one CCXT prediction market with two outcomes: YES and NO.
@@ -552,7 +552,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             zeros = zeros + '0'
         return self.parse_to_numeric('0.' + zeros + '1')
 
-    async def fetch_ticker(self, outcome: str, params={}) -> PredictionTicker:
+    async def fetch_ticker(self, outcome: str, params: dict = {}) -> PredictionTicker:
         """
         fetches a ticker for a single outcome market using the L2 order book snapshot
 
@@ -585,7 +585,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         tickerData = self.safe_dict({'book': response}, 'book', {})
         return self.parse_prediction_ticker(tickerData, outcomeObj)
 
-    async def fetch_tickers(self, outcomes: Strings = None, params={}) -> PredictionTickers:
+    async def fetch_tickers(self, outcomes: Strings = None, params: dict = {}) -> PredictionTickers:
         """
         fetches all outcome market tickers using allMids then optionally enriches with l2Book
 
@@ -700,7 +700,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'info': raw,
         }, market)
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         fetches the L2 order book for an outcome market
 
@@ -744,7 +744,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         orderbook = self.parse_order_book({'bids': bids, 'asks': asks}, self.safe_string(outcomeObj, 'outcome', outcome), timestamp)
         return self.safe_prediction_order_book(orderbook, outcomeObj)
 
-    async def fetch_ohlcv(self, outcome: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, outcome: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches candlestick OHLCV data for an outcome market
 
@@ -837,7 +837,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         Fetches spot balance(outcomes use spot-like balance).
 
@@ -879,7 +879,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 result[coin] = account
         return self.safe_balance(result)
 
-    async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
+    async def fetch_positions(self, outcomes: Strings = None, params: dict = {}) -> list[PredictionPosition]:
         """
         fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form (size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
 
@@ -1070,7 +1070,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 return found
         raise ArgumentsRequired(self.id + ' cannot resolve outcome from input: ' + outcomeInput + '. Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.')
 
-    async def create_order(self, outcome: str, type: str, side: str, amount: float, price: Num = None, params={}) -> PredictionOrder:
+    async def create_order(self, outcome: str, type: str, side: str, amount: float, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         creates a limit or market order for an outcome market
 
@@ -1205,7 +1205,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'trades': [],
         }, market)
 
-    async def cancel_order(self, id: str, outcome: Str = None, params={}) -> PredictionOrder:
+    async def cancel_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         cancels a single open order
 
@@ -1221,7 +1221,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         orders = await self.cancel_orders([id], outcome, params)
         return self.safe_dict(orders, 0)
 
-    async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}) -> list[PredictionOrder]:
+    async def cancel_orders(self, ids: list[str], outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
         """
         cancels multiple open orders
 
@@ -1302,7 +1302,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             orders.append(self.safe_prediction_order(order))
         return orders
 
-    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetches currently open orders for the user
 
@@ -1337,7 +1337,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_outcome_since_limit(parsed, outcomeHandle, since, limit)
 
-    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetches all historical orders for the user
 
@@ -1382,7 +1382,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_outcome_since_limit(parsed, outcomeHandle, since, limit)
 
-    async def fetch_order(self, id: str, outcome: Str = None, params={}) -> PredictionOrder:
+    async def fetch_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         fetches a single order by id
 
@@ -1528,7 +1528,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         tifLower = timeInForce.lower() if (timeInForce is not None and timeInForce != '') else None
         return self.safe_string(statuses, tifLower, timeInForce)
 
-    async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         fetches the most recent public trades for an outcome
 
@@ -1556,7 +1556,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             trades = self.to_array(response)
         return self.parse_prediction_trades(trades, outcomeObj, since, limit)
 
-    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         fetches the authenticated user's fill history
 
@@ -1984,7 +1984,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             normalized = normalized[2:]
         return normalized.lower()
 
-    def sign(self, path: object, api: object = 'public', method='POST', params={}, headers: object = None, body: object = None):
+    def sign(self, path: object, api: object = 'public', method='POST', params: dict = {}, headers: object = None, body: object = None):
         apiGroup = api[0] if isinstance(api, list) else api
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         baseUrl: str

@@ -1003,9 +1003,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> watchOrderBookRateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "watchOrderBookRate", "100");
             watchOrderBookRate = ((List<Object>) watchOrderBookRateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) watchOrderBookRateparametersVariable).get(1);
-            Object rpi = null;
+            Boolean rpi = null;
             List<Object> rpiparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "rpi", false);
-            rpi = ((List<Object>) rpiparametersVariable).get(0);
+            rpi = Helpers.isTrue(((List<Object>) rpiparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) rpiparametersVariable).get(1);
             if (Helpers.isTrue(rpi) && java.util.Objects.equals(type, "future"))
             {
@@ -3333,9 +3333,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 List<Object> stockMessageHashes = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object stockTicker = this.getStockTickerFromSymbol((String) ((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                    Object stockTicker = this.getStockTickerFromSymbol((String) ((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
                     ((List<Object>)stockStreams).add((stockTicker + "@quote"));
-                    ((List<Object>)stockMessageHashes).add(("stock:quote:" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                    ((List<Object>)stockMessageHashes).add(("stock:quote:" + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
                 }
                 Object stockResult = (this.watchStockMarketStream(stockStreams, stockMessageHashes, parameters)).join();
                 if (this.newUpdates)
@@ -3457,7 +3457,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Map<String, Object> seenUnderlyings = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)messageHashes).add(((((unifiedPrefix + ":") + channelName) + "@") + symbol));
                     if (Helpers.isTrue(isUnsubscribe))
@@ -4239,9 +4239,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> resolvedAuth = this.resolveAuthType("authenticate", null, parameters);
             Object type = ((List<Object>)resolvedAuth).get(0);
             parameters = ((List<Object>)resolvedAuth).get(2);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "authenticate", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             // For spot use WebSocket API signature subscription
             if (java.util.Objects.equals(type, "spot"))
@@ -4376,9 +4376,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
             String type = this.safeString2(this.options, "defaultType", "authenticate", "spot");
             type = this.safeString(parameters, "type", type);
-            Object isPortfolioMargin = null;
+            Boolean isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object subTypeInfo = this.handleSubTypeAndParams("keepAliveListenKey", null, parameters);
             Object subType = ((List<Object>)subTypeInfo).get(0);

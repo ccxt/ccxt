@@ -320,8 +320,8 @@ func (this *Bingx) HandleTicker(client any, message any) {
 		}
 		return "spot"
 	}()
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	// the Coin-M stream is a distinct endpoint, so it identifies an inverse
 	// ticker even when the market id could not be resolved
 	var inverseUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "inverse")
@@ -495,8 +495,7 @@ func (this *Bingx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		"id":          uuid,
 	}
 
-	trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -641,8 +640,8 @@ func (this *Bingx) HandleTrades(client any, message any) {
 		}
 		return "spot"
 	}()
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trade::" + *symbol
 	var trades any = nil
 	if ccxt.IsArray(data) {
@@ -1005,10 +1004,10 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 		}
 		return "spot"
 	}()
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var candles any = nil
 	if isSwap {
-		if ccxt.GetValue(market, "inverse") == true {
+		if market["inverse"] == true {
 			candles = []any{this.SafeDict(message, "data", map[string]any{})}
 		} else {
 			candles = this.SafeList(message, "data", []any{})
@@ -1017,7 +1016,7 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		candles = []any{this.SafeDict(data, "K", map[string]any{})}
 	}
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var rawTimeframe *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.Split(dataType, "_"), 1))
 	var marketOptions map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
@@ -1264,8 +1263,7 @@ func (this *Bingx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"id":          uuid,
 	}
 
-	orders := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash, subscription))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -1364,8 +1362,7 @@ func (this *Bingx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"id":          uuid,
 	}
 
-	trades := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash, subscription))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1582,8 +1579,7 @@ func (this *Bingx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && ccxt.IsEqual(this.Positions, nil) {
 
-		snapshot := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
-		ccxt.PanicOnError(snapshot)
+		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))))
 
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil
@@ -2199,7 +2195,7 @@ func (this *Bingx) HandleMyTrades(client any, message any) {
 		return "swap"
 	}()
 	var marketId *string = this.SafeString(result, "s")
-	var market any = this.SafeMarket(marketId, nil, "-", typeVar)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-", typeVar))
 	var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(result, market))
 	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	var spotHash string = "spot:mytrades"

@@ -212,7 +212,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
 
@@ -442,7 +442,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             raise BadRequest(feedback)
         return None
 
-    def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params={}):
+    def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params: dict = {}):
         # kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * price * (1 - price), which
         # peaks at price 0.5 and vanishes near 0 or 1. the describe() `taker: 0.07` is only the
         # coefficient; compute the real per-contract formula here so fee estimates are accurate
@@ -644,7 +644,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'created': None,
         }
 
-    async def fetch_ticker(self, outcome: Str, params={}) -> PredictionTicker:
+    async def fetch_ticker(self, outcome: Str, params: dict = {}) -> PredictionTicker:
         """
         fetches the current market price and bid/ask for a single kalshi outcome
 
@@ -719,7 +719,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         raw = self.safe_value(response, 'market', response)
         return self.parse_prediction_ticker(raw, outcomeObj)
 
-    async def fetch_status(self, params={}) -> object:
+    async def fetch_status(self, params: dict = {}) -> object:
         """
         fetches the kalshi exchange status
 
@@ -741,7 +741,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_open_interest(self, outcome: str, params={}) -> PredictionOpenInterest:
+    async def fetch_open_interest(self, outcome: str, params: dict = {}) -> PredictionOpenInterest:
         """
         fetches the open interest of a prediction market outcome
 
@@ -904,7 +904,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'info': raw,
         }, market)
 
-    async def fetch_tickers(self, outcomes: Strings = None, params={}) -> PredictionTickers:
+    async def fetch_tickers(self, outcomes: Strings = None, params: dict = {}) -> PredictionTickers:
         """
         fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint(100 per request)
 
@@ -967,7 +967,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             startIndex = self.sum(startIndex, chunkSize)
         return result
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         fetches the order book for a single kalshi outcome
 
@@ -1047,7 +1047,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'nonce': None,
         }
 
-    async def fetch_ohlcv(self, outcome: Str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, outcome: Str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches OHLCV candlesticks for a single kalshi outcome from the candlesticks endpoint
 
@@ -1199,7 +1199,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume_fp', 0),
         ]
 
-    async def fetch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def fetch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         fetches public trade history for a single kalshi market ticker
 
@@ -1281,7 +1281,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         fetch the fills(executed trades) of the authenticated kalshi user
 
@@ -1389,7 +1389,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         fetches the authenticated user's USD portfolio balance from kalshi
 
@@ -1417,7 +1417,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         result['USD'] = {'free': total, 'used': 0, 'total': total}
         return self.safe_balance(result)
 
-    async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
+    async def fetch_positions(self, outcomes: Strings = None, params: dict = {}) -> list[PredictionPosition]:
         """
         fetches open market positions for the authenticated kalshi user
 
@@ -1459,7 +1459,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 result.append(position)
         return result
 
-    async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionSettlement]:
+    async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionSettlement]:
         """
         fetches the user's settled (resolved) positions, with the collateral paid out and realized pnl
 
@@ -1595,7 +1595,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'info': position,
         })
 
-    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetches resting(open) orders for the authenticated kalshi user, optionally filtered by ticker
 
@@ -1620,7 +1620,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         orders = self.safe_list(response, 'orders', [])
         return self.parse_prediction_orders(orders, outcomeObj, since, limit)
 
-    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetches all orders(resting, executed and canceled) for the authenticated kalshi user
 
@@ -1646,7 +1646,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         orders = self.safe_list(response, 'orders', [])
         return self.parse_prediction_orders(orders, outcomeObj, since, limit)
 
-    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetches the closed(executed or canceled) orders for the authenticated kalshi user
 
@@ -1669,7 +1669,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 result.append(order)
         return self.filter_by_since_limit(result, since, limit, 'timestamp')
 
-    async def fetch_order(self, id: Str, outcome: Str = None, params={}) -> PredictionOrder:
+    async def fetch_order(self, id: Str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         fetches a single order by id from the kalshi portfolio endpoint
 
@@ -1773,7 +1773,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, outcome: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> PredictionOrder:
+    async def create_order(self, outcome: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         places a limit or market order on kalshi for the given outcome token
 
@@ -1856,7 +1856,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             order['status'] = resolvedStatus
         return order
 
-    async def edit_order(self, id: str, outcome: str, type: Str, side: Str, amount: Num = None, price: Num = None, params={}) -> PredictionOrder:
+    async def edit_order(self, id: str, outcome: str, type: Str, side: Str, amount: Num = None, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         edits a resting order by cancelling it and placing a new one with the updated terms
 
@@ -1883,7 +1883,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         await self.cancel_order(id, outcome)
         return await self.create_order(outcome, type, side, amount, price, params)
 
-    async def cancel_order(self, id: Str, outcome: Str = None, params={}) -> PredictionOrder:
+    async def cancel_order(self, id: Str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         cancels a single open order by id on kalshi
 
@@ -1909,7 +1909,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             order['status'] = 'canceled'
         return order
 
-    async def cancel_all_orders(self, outcome: Str = None, params={}) -> list[PredictionOrder]:
+    async def cancel_all_orders(self, outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
         """
         cancels all open orders on kalshi, optionally scoped to one outcome ticker
 
@@ -2021,7 +2021,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         postParams = self.omit(params, ['tags', 'category', 'series_ticker'])
         return self.apply_event_fetch_params(result, postParams, [])
 
-    async def fetch_events_by_query(self, queries: list[str], limit: Int, rest={}) -> list[object]:
+    async def fetch_events_by_query(self, queries: list[str], limit: Int, rest: dict = {}) -> list[object]:
         """
  @ignore
         resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)
@@ -2066,7 +2066,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                     raise e
         return rawEvents
 
-    async def fetch_raw_event_by_ticker(self, ticker: str, params={}) -> object:
+    async def fetch_raw_event_by_ticker(self, ticker: str, params: dict = {}) -> object:
         """
  @ignore
         fetches a single raw kalshi event object(with nested markets) by its event ticker
@@ -2082,7 +2082,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             fullEvent['markets'] = self.safe_list(response, 'markets', [])
         return fullEvent
 
-    async def resolve_event_series_tickers(self, params={}) -> list[str]:
+    async def resolve_event_series_tickers(self, params: dict = {}) -> list[str]:
         """
  @ignore
         resolves a fetchEvents scope(tags, category or series_ticker) to a deduplicated list of kalshi series tickers, preserving discovery order
@@ -2129,7 +2129,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 ordered.append(st)
         return ordered
 
-    async def fetch_series_events(self, seriesTickers: list[str], status: Str, limit: Int, rest={}) -> list[object]:
+    async def fetch_series_events(self, seriesTickers: list[str], status: Str, limit: Int, rest: dict = {}) -> list[object]:
         """
  @ignore
         fetches the canonical events(with nested markets) of the given kalshi series, cursor-paginated per series and stopping once `limit` events are gathered
@@ -2177,7 +2177,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                     break
         return rawEvents
 
-    async def fetch_event(self, id: str, params={}) -> PredictionEvent:
+    async def fetch_event(self, id: str, params: dict = {}) -> PredictionEvent:
         """
         fetches a single prediction-market event by its event ticker
 
@@ -2334,7 +2334,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'info': rawEvent,
         })
 
-    def sign(self, path: object, api: object = 'kalshi', method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: object, api: object = 'kalshi', method='GET', params: dict = {}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints

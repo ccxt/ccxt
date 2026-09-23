@@ -141,8 +141,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 		messageHashes = append(messageHashes, messageHash)
 	}
 
-	trades := (<-this.WatchTopicsAsync(url, messageHashes, topics, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchTopicsAsync(url, messageHashes, topics, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -178,8 +177,8 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	var trades any = data
 	var parts []string = ccxt.Split(topic, ".")
 	var marketId *string = this.SafeString(parts, 2)
-	var market any = this.SafeMarket(marketId, nil, nil)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -788,8 +787,7 @@ func (this *Apex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 
-	trades := (<-this.WatchTopicsAsync(url, []any{messageHash}, []any{"myTrades"}, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchTopicsAsync(url, []any{messageHash}, []any{"myTrades"}, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -843,8 +841,7 @@ func (this *Apex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var cache any = this.Positions
 	if ccxt.IsEqual(cache, nil) {
 
-		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
-		ccxt.PanicOnError(snapshot)
+		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))))
 
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil
@@ -904,8 +901,7 @@ func (this *Apex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	var topics []any = []any{"orders"}
 
-	orders := (<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -1129,7 +1125,7 @@ func (this *Apex) authenticateBody(ch chan any, url any, optionalArgs ...any) an
 	var timestamp string = ccxt.ToString(this.Milliseconds())
 	var request_path string = "/ws/accounts"
 	var http_method string = "GET"
-	var messageString any = (timestamp + http_method + request_path)
+	var messageString string = (timestamp + http_method + request_path)
 	var signature string = this.Hmac(this.Encode(messageString), this.Encode(this.StringToBase64(this.Secret)), ccxt.Sha256, "base64")
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)

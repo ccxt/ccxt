@@ -290,7 +290,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String channelName = ((((Map<String, Object>)market).get("id") + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
@@ -389,7 +389,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             List<Object> unSubHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String channelName = ((((Map<String, Object>)market).get("id") + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
@@ -1478,7 +1478,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String channelName = ((((Map<String, Object>)market).get("id") + "@") + "bookTicker");
                 String messageHash = ("bidask::" + symbol);
@@ -1539,7 +1539,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             List<Object> unSubHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String channelName = ((((Map<String, Object>)market).get("id") + "@") + "bookTicker");
                 String messageHash = ("bidask::" + symbol);

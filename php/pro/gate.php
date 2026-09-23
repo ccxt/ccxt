@@ -2311,7 +2311,7 @@ class gate extends \ccxt\async\gate {
         return 'spot';
     }
 
-    public function request_id() {
+    public function request_id(): float {
         // their support said that reqid must be an int32, not documented
         $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);

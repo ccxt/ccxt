@@ -564,8 +564,7 @@ func (this *Independentreserve) fetchBalanceBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostGetAccounts(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetAccounts(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -602,8 +601,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan any, symbol any, opti
 		"secondaryCurrencyCode": market["quoteId"],
 	}
 
-	response := (<-this.PublicGetGetOrderBook(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetOrderBook(this.Extend(request, params))).Raw))
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "CreatedTimestampUtc"))
 
 	ch <- this.ParseOrderBook(response, market["symbol"], timestamp, "BuyOrders", "SellOrders", "Price", "Volume")
@@ -687,8 +685,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan any, symbol any, optiona
 		"secondaryCurrencyCode": market["quoteId"],
 	}
 
-	response := (<-this.PublicGetGetMarketSummary(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetMarketSummary(this.Extend(request, params))).Raw))
 
 	// {
 	//     "DayHighestPrice":43489.49,
@@ -890,10 +887,9 @@ func (this *Independentreserve) fetchOrderBody(ch chan any, id any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostGetOrderDetails(this.Extend(map[string]any{
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetOrderDetails(this.Extend(map[string]any{
 		"orderGuid": id,
-	}, params))).Raw
-	PanicOnError(response)
+	}, params))).Raw))
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1309,8 +1305,7 @@ func (this *Independentreserve) cancelOrderBody(ch chan any, id any, optionalArg
 		"orderGuid": id,
 	}
 
-	response := (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -1359,8 +1354,7 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan any, code any, o
 		"primaryCurrencyCode": currency["id"],
 	}
 
-	response := (<-this.PrivatePostGetDigitalCurrencyDepositAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetDigitalCurrencyDepositAddress(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -1446,8 +1440,7 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 		panic(BadRequest(this.Id + " withdraw () does not accept params[\"networkCode\"]"))
 	}
 
-	response := (<-this.PrivatePostWithdrawDigitalCurrency(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawDigitalCurrency(this.Extend(request, params))).Raw))
 
 	//
 	//    {

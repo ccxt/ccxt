@@ -65,7 +65,7 @@ class lighter(ccxt.async_support.lighter):
             },
         })
 
-    def get_message_hash(self, unifiedChannel: str, symbol: Str = None, extra: Str = None):
+    def get_message_hash(self, unifiedChannel: str, symbol: Str = None, extra: Str = None) -> str:
         hash = unifiedChannel
         if symbol is not None:
             hash += '::' + symbol

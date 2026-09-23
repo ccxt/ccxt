@@ -1302,8 +1302,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
-                ((List<Object>)messageHashes).add(Helpers.add((prefix + ":"), symbol));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                ((List<Object>)messageHashes).add(((prefix + ":") + symbol));
             }
             Object tickerOrBidAsk = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, (String) (channel), parameters)).join();
             if (this.newUpdates)

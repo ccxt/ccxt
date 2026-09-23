@@ -732,8 +732,7 @@ func (this *Bitopro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetOrderBookPair(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBookPair(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -1620,8 +1619,7 @@ func (this *Bitopro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"pair":    market["id"],
 	}
 
-	response := (<-this.PrivateGetOrdersPairOrderId(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersPairOrderId(this.Extend(request, params))).Raw))
 
 	//
 	//     {

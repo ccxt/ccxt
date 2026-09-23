@@ -218,7 +218,9 @@ func (this *Btse) Describe() any {
 					"spot/api/v3.3/trades": map[string]any{
 						"cost": 5,
 					},
-					"spot/api/v3.3/time": 5,
+					"spot/api/v3.3/time": map[string]any{
+						"cost": 5,
+					},
 					"futures/api/v2.3/market_summary": map[string]any{
 						"cost": 5,
 					},
@@ -708,8 +710,7 @@ func (this *Btse) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetSpotApiV33Time(params))
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetSpotApiV33Time(params)).Raw))
 
 	//
 	//     {

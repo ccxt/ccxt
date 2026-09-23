@@ -890,7 +890,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     ((List<Object>)messageHashes).add(((messageHash + ":") + symbol));
                 }
             }
@@ -1025,13 +1025,13 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Object url = this.getPrivateUrl(listenKey);
             Client client = this.client(url);
             this.setBalanceCache(client, type, messageHash);
-            Object fetchBalanceSnapshot = null;
-            Object awaitBalanceSnapshot = null;
+            Boolean fetchBalanceSnapshot = null;
+            Boolean awaitBalanceSnapshot = null;
             List<Object> fetchBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true);
-            fetchBalanceSnapshot = ((List<Object>) fetchBalanceSnapshotparametersVariable).get(0);
+            fetchBalanceSnapshot = Helpers.isTrue(((List<Object>) fetchBalanceSnapshotparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
             List<Object> awaitBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false);
-            awaitBalanceSnapshot = ((List<Object>) awaitBalanceSnapshotparametersVariable).get(0);
+            awaitBalanceSnapshot = Helpers.isTrue(((List<Object>) awaitBalanceSnapshotparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) awaitBalanceSnapshotparametersVariable).get(1);
             if (Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot))
             {

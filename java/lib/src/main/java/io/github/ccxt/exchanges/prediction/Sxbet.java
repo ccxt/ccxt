@@ -97,10 +97,18 @@ public class Sxbet extends SxbetApi
                 put( "sxbet", new HashMap<String, Object>() {{
                     put( "public", new HashMap<String, Object>() {{
                         put( "get", new HashMap<String, Object>() {{
-                            put( "metadata/obv3", 1 );
-                            put( "orderbook-v3/snapshot", 1 );
-                            put( "trades-v3/public", 1 );
-                            put( "markets/active", 1 );
+                            put( "metadata/obv3", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orderbook-v3/snapshot", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "trades-v3/public", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "markets/active", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "markets/find", 1 );
                             put( "markets/popular", 1 );
                             put( "trades/consolidated", 1 );
@@ -117,27 +125,55 @@ public class Sxbet extends SxbetApi
                     }} );
                     put( "private", new HashMap<String, Object>() {{
                         put( "get", new HashMap<String, Object>() {{
-                            put( "user/realtime-token-v3/api-key", 1 );
-                            put( "user/proxy", 1 );
-                            put( "user/balance-v3", 1 );
+                            put( "user/realtime-token-v3/api-key", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "user/proxy", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "user/balance-v3", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "user/transfer-to-proxy/pending", 1 );
                             put( "user/transfer-to-proxy/status", 1 );
-                            put( "orders-v3", 1 );
-                            put( "orders-v3/{orderId}", 1 );
-                            put( "orders-v3/odds/best", 1 );
-                            put( "trades-v3", 1 );
-                            put( "fills-v3", 1 );
-                            put( "positions-v3", 1 );
+                            put( "orders-v3", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders-v3/{orderId}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders-v3/odds/best", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "trades-v3", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "fills-v3", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "positions-v3", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "delete", new HashMap<String, Object>() {{
-                            put( "orders-v3", 1 );
-                            put( "orders-v3/event", 1 );
-                            put( "orders-v3/all", 1 );
+                            put( "orders-v3", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders-v3/event", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "orders-v3/all", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new HashMap<String, Object>() {{
-                            put( "orders-v3", 1 );
+                            put( "orders-v3", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "user/deploy-proxy", 1 );
-                            put( "user/transfer-to-proxy", 1 );
+                            put( "user/transfer-to-proxy", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "heartbeat/v3", 1 );
                         }} );
                     }} );
@@ -290,7 +326,7 @@ public class Sxbet extends SxbetApi
                 {
                     ((Map<String, Object>)request).put("paginationKey", paginationKey);
                 }
-                Object response = (this.sxbetPublicGetMarketsActive(this.extend(request, extra))).join();
+                Map<String, Object> response = (this.sxbetPublicGetMarketsActive(this.extend(request, extra))).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 List<Object> pageMarkets = (List<Object>) this.safeList(result, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer pageMarketsLength = ((List<?>)pageMarkets).size();
@@ -818,7 +854,7 @@ final Object finalOi = oi;
             {
                 return cached;
             }
-            Object response = (this.sxbetPublicGetMetadataObv3()).join();
+            Map<String, Object> response = (this.sxbetPublicGetMetadataObv3()).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.options, "sxObv3Metadata", data);
             return data;
@@ -942,7 +978,7 @@ final Object finalOi = oi;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.sxbetPrivateGetUserProxy()).join();
+            Map<String, Object> response = (this.sxbetPrivateGetUserProxy()).join();
             return this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -1072,7 +1108,7 @@ final Object finalOi = oi;
                 put( "signature", signature );
             }};
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("amount", "tokenAddress", "deadline", "rpcUrl")));
-            Object response = (this.sxbetPrivatePostUserTransferToProxy(this.extend(request, rest))).join();
+            Map<String, Object> response = (this.sxbetPrivatePostUserTransferToProxy(this.extend(request, rest))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return new HashMap<String, Object>() {{
                 put( "info", response );
@@ -1270,7 +1306,7 @@ final Object finalOi = oi;
                 put( "orders", new ArrayList<Object>(Arrays.asList(orderItem)) );
                 put( "waitForOutcome", waitForOutcome );
             }};
-            Object response = (this.sxbetPrivatePostOrdersV3(this.extend(request, rest))).join();
+            Map<String, Object> response = (this.sxbetPrivatePostOrdersV3(this.extend(request, rest))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> results = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(results, 0, new HashMap<String, Object>() {{}});
@@ -1451,7 +1487,7 @@ final Object finalI = i;
         put( "orderId", id );
     }})) );
             }};
-            Object response = (this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters))).join();
             Object orders = this.parseSxbetCancelResponse((Map<String, Object>) (response));
             return this.safeDict(orders, 0);
         }).thenApply(PredictionOrder::new);
@@ -1517,7 +1553,7 @@ final Object finalI = i;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "orders", orderItems );
                 }};
-                Object response = (this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters))).join();
+                Map<String, Object> response = (this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters))).join();
                 result = this.arrayConcat(result, this.parseSxbetCancelResponse((Map<String, Object>) (response)));
             }
             return result;
@@ -1559,7 +1595,7 @@ final Object finalI = i;
             String eventId = this.safeString2(parameters, "eventId", "sportXeventId");
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("eventId", "sportXeventId")));
             Boolean isEventScoped = (!java.util.Objects.equals(eventId, null));
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isEventScoped))
             {
                 // the event route takes eventId in the QUERY string, not the body - sign() urlencodes
@@ -1579,7 +1615,7 @@ final Object finalI = i;
             Object guard = 0;
             while ((java.util.Objects.equals(hasMore, true)) && (Helpers.isLessThan(guard, 50)))
             {
-                Object nextResponse = null;
+                Map<String, Object> nextResponse = null;
                 if (Boolean.TRUE.equals(isEventScoped))
                 {
                     final String finalEventId_2 = eventId;
@@ -1768,7 +1804,7 @@ final Object finalI = i;
             {
                 ((Map<String, Object>)request).put("perPage", this.clampSxbetPerPage(limit));
             }
-            Object response = (this.sxbetPrivateGetOrdersV3(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sxbetPrivateGetOrdersV3(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rawOrders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parsePredictionOrders(rawOrders, outcomeObj, since, limit);
@@ -1859,7 +1895,7 @@ final Object finalI = i;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", finalId );
             }};
-            Object response = (this.sxbetPrivateGetOrdersV3OrderId(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sxbetPrivateGetOrdersV3OrderId(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object row = this.safeDict(data, "order", data);
             return this.parsePredictionOrder((Map<String, Object>) (row), outcomeObj);
@@ -1912,7 +1948,7 @@ final Object finalI = i;
             {
                 ((Map<String, Object>)request).put("perPage", this.clampSxbetPerPage(limit));
             }
-            Object response = (this.sxbetPublicGetTradesV3Public(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sxbetPublicGetTradesV3Public(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
@@ -1982,7 +2018,7 @@ final Object finalI = i;
                 // size would truncate the page before the filter and under-fill the result
                 ((Map<String, Object>)request).put("perPage", this.clampSxbetPerPage(limit));
             }
-            Object response = (this.sxbetPrivateGetFillsV3(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sxbetPrivateGetFillsV3(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rawFills = (List<Object>) this.safeList(data, "fills", new ArrayList<Object>(Arrays.asList()));
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
@@ -2106,7 +2142,7 @@ final Object finalI = i;
             Map<String, Object> obv3 = (this.loadSxObv3Metadata()).join();
             Map<String, Object> activeAsset = (Map<String, Object>) this.safeDict(obv3, "activeAsset", new HashMap<String, Object>() {{}});
             String usdcAddress = this.safeStringLower(activeAsset, "baseToken", "");
-            Object response = (this.sxbetPrivateGetUserBalanceV3(parameters)).join();
+            Map<String, Object> response = (this.sxbetPrivateGetUserBalanceV3(parameters)).join();
             //
             //     { "status": "success", "data": { "balances": [ {
             //         "userAddress": "0xC3f4...", "wallet": "0x19D1...",
@@ -2192,7 +2228,7 @@ final Object finalI = i;
                 put( "status", Sxbet.this.safeString(parameters, "status", "MATCHED,LOCKED") );
             }};
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("status")));
-            Object response = (this.sxbetPrivateGetPositionsV3(this.extend(request, rest))).join();
+            Map<String, Object> response = (this.sxbetPrivateGetPositionsV3(this.extend(request, rest))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2321,7 +2357,7 @@ final Object finalI = i;
                 // per side) - a server-side page size would under-fill the filtered result
                 ((Map<String, Object>)request).put("perPage", this.clampSxbetPerPage(limit));
             }
-            Object response = (this.sxbetPrivateGetTradesV3(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sxbetPrivateGetTradesV3(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2463,7 +2499,7 @@ final Object finalI = i;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketHash", marketHash );
             }};
-            Object response = (this.sxbetPublicGetOrderbookV3Snapshot(request)).join();
+            Map<String, Object> response = (this.sxbetPublicGetOrderbookV3Snapshot(request)).join();
             return this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -2526,7 +2562,7 @@ final Object finalI = i;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketHashes", String.join(",", (List<String>)marketHashes) );
             }};
-            Object response = (this.sxbetPrivateGetOrdersV3OddsBest(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sxbetPrivateGetOrdersV3OddsBest(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeList(data, "bestOdds", new ArrayList<Object>(Arrays.asList()));
         });
@@ -2803,7 +2839,7 @@ final Object finalI = i;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketHash", marketHash );
             }};
-            Object response = (this.sxbetPublicGetOrderbookV3Snapshot(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sxbetPublicGetOrderbookV3Snapshot(this.extend(request, parameters))).join();
             Map<String, Object> snapshot = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> sides = this.parseSxbetV3BookSides((Map<String, Object>) (snapshot), isOutcomeOne);
             Object sortedBids = this.safeList(sides, "bids", new ArrayList<Object>(Arrays.asList()));
@@ -2958,7 +2994,7 @@ final Object finalI = i;
             {
                 throw new ArgumentsRequired((this.id + " websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header")) ;
             }
-            Object response = (this.sxbetPrivateGetUserRealtimeTokenV3ApiKey()).join();
+            Map<String, Object> response = (this.sxbetPrivateGetUserRealtimeTokenV3ApiKey()).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeString2(data, "token", "realtimeToken", this.safeString(response, "token"));
         }).thenApply(res -> (String) res);

@@ -841,8 +841,7 @@ func (this *Bydfi) watchOrdersForSymbolsBody(ch chan any, symbols any, optionalA
 		}
 	}
 
-	orders := (<-this.WatchPrivateAsync(messageHashes, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHashes, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(orders, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -883,8 +882,8 @@ func (this *Bydfi) HandleOrder(client any, message any) {
 	//
 	var rawOrder any = this.SafeDict(message, "o", map[string]any{})
 	var marketId *string = this.SafeString(rawOrder, "s")
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "orders"
 	var symbolMessageHash string = messageHash + "::" + *symbol
 	if ccxt.IsEqual(this.Orders, nil) {
@@ -1065,8 +1064,8 @@ func (this *Bydfi) HandlePositions(client any, message any) {
 	var positionsData any = this.SafeList(data, "p", []any{})
 	var rawPosition any = this.SafeDict(positionsData, 0, map[string]any{})
 	var marketId *string = this.SafeString(rawPosition, "s")
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "positions"
 	var symbolMessageHash string = messageHash + "::" + *symbol
 	if ccxt.IsEqual(this.Positions, nil) {

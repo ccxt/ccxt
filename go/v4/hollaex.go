@@ -673,8 +673,7 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetOrderbooks(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderbooks(params)).Raw))
 	var result map[string]any = map[string]any{}
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
@@ -775,8 +774,7 @@ func (this *Hollaex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetTicker(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTicker(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -820,8 +818,7 @@ func (this *Hollaex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetTickers(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
 
 	//
 	//     {
@@ -852,8 +849,8 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) any {
 		var key string = GetValue(keys, i).(string)
 		var ticker any = GetValue(tickers, key)
 		var marketId *string = this.SafeString(ticker, "symbol", key)
-		var market any = this.SafeMarket(marketId, nil, "-")
-		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, "-"))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(result, symbol, this.Extend(this.ParseTicker(ticker, market), params))
 	}
 	return this.FilterByArrayTickers(result, "symbol", symbols)
@@ -1250,8 +1247,7 @@ func (this *Hollaex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetUserBalance(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserBalance(params)).Raw))
 
 	//
 	//     {
@@ -1299,8 +1295,7 @@ func (this *Hollaex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 		"order_id": id,
 	}
 
-	response := (<-this.PrivateGetOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrder(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -1677,8 +1672,7 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	}
 	params = MapTyped(this.Omit(params, []any{"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"}))
 
-	response := (<-this.PrivatePostOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrder(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -1737,8 +1731,7 @@ func (this *Hollaex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"order_id": id,
 	}
 
-	response := (<-this.PrivateDeleteOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrder(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -1790,8 +1783,7 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	market = this.Market(symbol)
 	request["symbol"] = GetValue(market, "id")
 
-	response := (<-this.PrivateDeleteOrderAll(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteOrderAll(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2358,8 +2350,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code any, amount any, address any
 		"network":  this.NetworkCodeToId(network, code),
 	}
 
-	response := (<-this.PrivatePostUserWithdrawal(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostUserWithdrawal(this.Extend(request, params))).Raw))
 
 	//
 	//     {

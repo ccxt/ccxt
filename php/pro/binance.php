@@ -221,7 +221,7 @@ class binance extends \ccxt\async\binance {
         );
     }
 
-    public function request_id(string $url) {
+    public function request_id(string $url): float {
         $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);

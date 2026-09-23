@@ -75,7 +75,7 @@ class deribit(ccxt.async_support.deribit):
             },
         })
 
-    def request_id(self):
+    def request_id(self) -> float:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId

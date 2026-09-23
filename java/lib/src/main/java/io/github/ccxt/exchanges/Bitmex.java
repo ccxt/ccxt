@@ -2496,9 +2496,9 @@ public class Bitmex extends BitmexApi
                 ((Map<String, Object>)request).put("endTime", this.iso8601(until));
             }
             Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
-            Object useOpenTimestamp = null;
+            Boolean useOpenTimestamp = null;
             List<Object> useOpenTimestampparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "useOpenTimestamp", true);
-            useOpenTimestamp = ((List<Object>) useOpenTimestampparametersVariable).get(0);
+            useOpenTimestamp = Helpers.isTrue(((List<Object>) useOpenTimestampparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) useOpenTimestampparametersVariable).get(1);
             // if since is not set, they will return candles starting from 2017-01-01
             if (!java.util.Objects.equals(since, null))

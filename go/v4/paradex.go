@@ -1610,8 +1610,7 @@ func (this *Paradex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"market": market["id"],
 	}
 
-	response := (<-this.PublicGetOrderbookMarket(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderbookMarket(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "market": "BTC-USD-PERP",
@@ -2478,8 +2477,7 @@ func (this *Paradex) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	request = (<-this.SignOrderRequestAsync(request))
 	PanicOnError(request)
 
-	response := (<-this.PrivatePostOrders(request)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(request)).Raw))
 	//
 	// {
 	//     "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -2565,8 +2563,7 @@ func (this *Paradex) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	request = (<-this.SignOrderRequestAsync(request, true))
 	PanicOnError(request)
 
-	response := (<-this.PrivatePutOrdersOrderId(request)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePutOrdersOrderId(request)).Raw))
 
 	//
 	//     {
