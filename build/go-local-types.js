@@ -955,6 +955,24 @@ export function ccxtGoTypeOfArithmeticInitializer (goTranspiler, initializer, pr
     return CCXT_GO_ARITHMETIC_LOCAL_TYPE;
 }
 
+// an initializer the printer emitted as the Go operator (`"a:" + b`, `n - 1`): the printer's own
+// goNativeArithmetic names its static type; the printed text must be exactly that emission
+const CCXT_GO_NATIVE_ARITHMETIC_LOCAL_TYPES = [ 'string', 'int64', 'float64', 'int' ];
+function ccxtGoTypeOfNativeArithmeticInitializer (goTranspiler, initializer, printedValue) {
+    let node = initializer;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if ((node !== initializer) || (node?.kind !== ts.SyntaxKind.BinaryExpression) || (typeof goTranspiler.goNativeArithmetic !== 'function')) {
+        return undefined;
+    }
+    const native = goTranspiler.goNativeArithmetic (node);
+    if ((native === undefined) || (native.text.trim () !== (printedValue ?? '').trim ())) {
+        return undefined;
+    }
+    return (CCXT_GO_NATIVE_ARITHMETIC_LOCAL_TYPES.indexOf (native.goType) >= 0) ? native.goType : undefined;
+}
+
 // The declared type alone cannot be passed to a Go `any`-returning call: the
 // printer would emit `var x int64 = Multiply(a, b)` and the compiler would reject
 // it. Add the unbox the type forces — the same helper call, so the value (and with
@@ -4966,6 +4984,10 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         const arithmeticType = ccxtGoTypeOfArithmeticInitializer (this, initializer, printedValue);
         if (arithmeticType !== undefined) {
             return arithmeticType;
+        }
+        const nativeType = ccxtGoTypeOfNativeArithmeticInitializer (this, initializer, printedValue);
+        if (nativeType !== undefined) {
+            return nativeType;
         }
         // a `a + b` initializer whose declaration print is in flight: both operands
         // provably Go strings, so the emitted value is a plain concatenation
