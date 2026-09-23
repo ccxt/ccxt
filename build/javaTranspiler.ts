@@ -176,6 +176,23 @@ const RETYPE_AUDITED_USE_SHAPES = [
     /^\s*(?:final\s+)?Object\s+[A-Za-z_$][\w$]*\s*=\s*NAME\s*;$/,
 ];
 
+// SPEC-copy-cascade: the plain copy shape `Object x = y;` (the async-param inside-wrapper
+// `Object symbol = symbol3;` is its dominant instance) and the extended, still cast-free audits.
+const RETYPE_COPY_LINE = /^(\s*)Object ([A-Za-z_$][A-Za-z0-9_$]*) = ([A-Za-z_$][A-Za-z0-9_$]*);$/;
+// every one of these callees declares an `Object` parameter at the position the hoisted name can
+// occupy (BaseExchange.java/Helpers.java/Precise.java read at 5faa2c21), so a narrower static
+// argument type cannot move the overload; the receivers themselves are untouched.
+const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.equals|Boolean\.TRUE\.equals|Helpers\.(?:add|isEqual|isGreaterThan|isLessThan|divide|multiply|GetValue|replace|toString)|Precise\.(?:stringAbs|stringMul|stringAdd|stringSub|stringDiv)|(?:java\.util\.)?Arrays\.asList|(?:this|[A-Za-z_$][\w$.]*\.this)\.\w+|\w*(?:\.\w+)*\.put)$/;
+// callees whose Java return type is String (BaseExchange.java:8623 symbol, :10911 safeSymbol,
+// :1080 numberToString, :1264 iso8601, :1101 safeString, :10697 safeCurrencyCode, :1232 capitalize,
+// Helpers.java:521 toString, :797 replace, Precise.stringMul/stringAdd/stringAbs): a write whose
+// right side is one of these can carry a String token.
+const RETYPE_STRING_RETURN_CALLEES = new Set ([
+    'this.symbol', 'this.safeSymbol', 'this.numberToString', 'this.iso8601', 'this.safeString',
+    'this.safeCurrencyCode', 'this.capitalize', 'Helpers.toString', 'Helpers.replace',
+    'Precise.stringMul', 'Precise.stringAdd', 'Precise.stringAbs',
+]);
+
 function retypeReferenceToken (token: string | undefined): string | undefined {
     if (token === undefined) return undefined;
     const t = token.trim ();
@@ -232,12 +249,151 @@ function retypeParameterType (signature: string, name: string): string | undefin
     return undefined;
 }
 
-function retypeUseIsAudited (line: string, name: string): boolean {
-    if (!new RegExp (`\\b${name}\\b`).test (line)) return true;   // the line does not mention the hoist
+// SPEC-copy-cascade: a name mention inside a string/char literal or a comment is not a use —
+// `throw new ArgumentsRequired((this.id + " requires a symbol argument"))` must not block.
+function retypeCodeOnly (line: string): string {
+    let out = '';
+    let i = 0;
+    let state = 0;
+    while (i < line.length) {
+        if (state === 1) {
+            const j = line.indexOf ('*/', i);
+            if (j === -1) return out;
+            i = j + 2; state = 0; continue;
+        }
+        const c = line[i];
+        if (line.startsWith ('//', i)) break;
+        if (line.startsWith ('/*', i)) {
+            const j = line.indexOf ('*/', i + 2);
+            if (j === -1) { state = 1; break; }
+            i = j + 2; continue;
+        }
+        if (c === '"') {
+            i++;
+            while (i < line.length) {
+                if (line[i] === '\\') { i += 2; continue; }
+                if (line[i] === '"') { i++; break; }
+                i++;
+            }
+            continue;
+        }
+        if (c === "'") {
+            const j = line.indexOf ("'", i + 1);
+            if (j !== -1 && j - i <= 3) { i = j + 1; continue; }
+            out += c; i++; continue;
+        }
+        out += c; i++;
+    }
+    return out;
+}
+
+// every occurrence of the name must sit in a proven cast-free context: an argument of an
+// Object-parameter callee, an operand of a native `+` chain carrying a string literal (the
+// printer only emits a native `+` for a proven string concatenation, and JLS 15.18.1 keeps the
+// meaning for any operand type once one operand is a String), or the operand of a cast to the
+// very type being declared (or Object).
+function retypeMentionContextsOk (code: string, name: string, token: string | undefined, line: string): boolean {
+    const re = new RegExp (`\\b${name}\\b`, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec (code)) !== null) {
+        const pre = code.slice (0, m.index);
+        let depth = 0;
+        let callee: string | undefined = undefined;
+        for (let k = pre.length - 1; k >= 0; k--) {
+            const c = pre[k];
+            if (c === ')') depth++;
+            else if (c === '(') {
+                if (depth === 0) {
+                    const head = pre.slice (0, k).trim ().match (/([\w$.]+)\s*$/);
+                    callee = head !== null ? head[1] : undefined;
+                    break;
+                }
+                depth--;
+            }
+        }
+        if (callee !== undefined && RETYPE_AUDITED_CALLEES.test (callee)) continue;
+        const adjacentPlus = /\+\s*$/.test (pre) || /^\s*\+/.test (code.slice (m.index + name.length));
+        if (adjacentPlus && /"/.test (line)) continue;
+        const cast = pre.match (/\(([\w$.<>, ]+)\)\s*$/);
+        if (cast !== null && (cast[1].trim () === (token ?? '') || cast[1].trim () === 'Object' || cast[1].trim () === 'java.lang.Object')) continue;
+        return false;
+    }
+    return true;
+}
+
+// the write whitelist of the non-final copy shape: every later `NAME = <value>` must produce a
+// value the declared token can hold without a cast.
+function retypeWrittenValueMatches (rhs: string, token: string): boolean {
+    const value = rhs.trim ().replace (/;$/, '');
+    if (/^"[^"]*"$/.test (value)) return true;
+    if (/^-?[\d.]+[LlDd]?$/.test (value) && (token === 'Long' || token === 'Double' || token === 'Integer')) return true;
+    const callee = value.match (/^([\w.$]+)\s*\(/);
+    if (callee !== null && RETYPE_STRING_RETURN_CALLEES.has (callee[1]) && (token === 'String' || token === 'java.lang.String')) return true;
+    if (value.indexOf ('+') !== -1 && /"/.test (value)) return true;
+    if (new RegExp (`\\(\\s*${token}\\s*\\)`).test (value)) return true;
+    return false;
+}
+
+// SPEC-copy-cascade: a later declaration of the same name is a DIFFERENT variable (Java forbids
+// redeclaring a name in one scope), so its LHS is not a use of the hoisted name.
+function retypeDeclaresName (code: string, name: string): boolean {
+    return new RegExp (`^\s*(?:final\s+)?[A-Za-z_$][\w$.]*(?:<[^;=]*>)?(?:\[\])*\s+${name}\s*(?:=|;)`).test (code);
+}
+
+function retypeUseIsAudited (line: string, name: string, token?: string): boolean {
+    const code = retypeCodeOnly (line);
+    if (retypeDeclaresName (code, name)) return true;
+    if (!new RegExp (`\\b${name}\\b`).test (code)) return true;   // no mention outside literals
     for (const shape of RETYPE_AUDITED_USE_SHAPES) {
         if (new RegExp (shape.source.replace (/NAME/g, name)).test (line)) return true;
     }
-    return false;
+    return retypeMentionContextsOk (code, name, token, line);
+}
+
+// SPEC-copy-cascade: the text indentation of the printer's spliced wrappers does not track block
+// nesting, so the indent guard keeps missing declarations that ARE in scope (240 sites at the pin).
+// The lookup below replaces it with a real brace-depth test; the scanner carries the block-comment
+// state across lines because the generated javadoc carries `{`/`}` in its example blocks.
+function retypeDepthScan (lines: string[]): number[] {
+    const depths: number[] = [];
+    let depth = 0;
+    let inComment = false;
+    for (const line of lines) {
+        let code = '';
+        let i = 0;
+        while (i < line.length) {
+            if (inComment) {
+                const j = line.indexOf ('*/', i);
+                if (j === -1) { i = line.length; break; }
+                i = j + 2; inComment = false; continue;
+            }
+            if (line.startsWith ('//', i)) break;
+            if (line.startsWith ('/*', i)) {
+                const j = line.indexOf ('*/', i + 2);
+                if (j === -1) { inComment = true; break; }
+                i = j + 2; continue;
+            }
+            const c = line[i];
+            if (c === '"') {
+                i++;
+                while (i < line.length) {
+                    if (line[i] === '\\') { i += 2; continue; }
+                    if (line[i] === '"') { i++; break; }
+                    i++;
+                }
+                continue;
+            }
+            if (c === "'") {
+                const j = line.indexOf ("'", i + 1);
+                if (j !== -1 && j - i <= 3) { i = j + 1; continue; }
+                code += c; i++; continue;
+            }
+            code += c; i++;
+        }
+        depths.push (depth);
+        depth += (code.match (/{/g) ?? []).length - (code.match (/}/g) ?? []).length;
+    }
+    return depths;
 }
 
 // every ts/src/prediction/*.ts venue — read by getPredictionImplementedNames() to decide
@@ -4078,9 +4234,11 @@ class NewTranspiler {
         for (let i = 0; i < lines.length; i++) {
             const hoistMatch = lines[i].match (RETYPE_HOIST_LINE);
             const snapshotMatch = hoistMatch === null ? lines[i].match (RETYPE_SNAPSHOT_LINE) : null;
-            const match = hoistMatch !== null ? hoistMatch : snapshotMatch;
-            if (match === null) continue;
-            const isSnapshot = hoistMatch === null;
+            const copyMatch = hoistMatch === null && snapshotMatch === null ? lines[i].match (RETYPE_COPY_LINE) : null;
+            const match = hoistMatch !== null ? hoistMatch : (snapshotMatch !== null ? snapshotMatch : copyMatch);
+            if (match === null || match === undefined) continue;
+            const isSnapshot = hoistMatch === null && snapshotMatch !== null;
+            const isCopy = copyMatch !== null && copyMatch !== undefined;
             const indent = match[1];
             const hoistedName = match[2];
             const sourceName = match[3];
@@ -4091,13 +4249,28 @@ class NewTranspiler {
             //    member, or — for the async snapshot shape — the parameter type from the signature
             let typeToken: string | undefined;
             if (!isSnapshot) {
+                const depths = retypeDepthScan (lines);
+                let sawDeclaration = false;
                 for (let j = i - 1; j > start; j--) {
                     const decl = lines[j].match (new RegExp (`^(\\s*)(?:final\\s+)?([A-Za-z_$][\\w$.]*(?:<[^;=]*>)?)\\s+${sourceName}\\s*=`));
                     if (decl !== null) {
-                        if (decl[1].length > indent.length) break;      // deeper scope: a shadow
+                        sawDeclaration = true;
+                        // SPEC-copy-cascade: in scope = the declaration's block is still open at the
+                        // hoist (brace depth never drops below it), not the printer's text indent.
+                        let inScope = true;
+                        for (let k = j; k < i; k++) {
+                            if (depths[k] < depths[j]) { inScope = false; break; }
+                        }
+                        if (!inScope) continue;                 // a closed block: keep scanning outward
                         typeToken = decl[2];
                         break;
                     }
+                }
+                // SPEC-copy-cascade: the source may be a fixed parameter (the printed signature
+                // carries its own type) even when no declaration exists in the member.
+                if (typeToken === undefined && !sawDeclaration) {
+                    const signature = retypeSignatureLine (lines, start, i - 1);
+                    if (signature !== -1) typeToken = retypeParameterType (lines[signature], sourceName);
                 }
             } else {
                 const signature = retypeSignatureLine (lines, start, i - 1);
@@ -4113,14 +4286,24 @@ class NewTranspiler {
             //    fixed-parameter Object position
             let audited = true;
             for (let j = i + 1; j <= end; j++) {
-                if (!retypeUseIsAudited (lines[j], hoistedName)) { audited = false; break; }
+                if (isCopy) {
+                    // SPEC-copy-cascade: the copy is not final, so every later write is audited too
+                    const write = lines[j].match (new RegExp (`^\\s*${hoistedName}\\s*=\\s*(?!=)(.+)$`));
+                    if (write !== null) {
+                        if (!retypeWrittenValueMatches (write[1], reference)) { audited = false; break; }
+                        continue;
+                    }
+                }
+                if (!retypeUseIsAudited (lines[j], hoistedName, reference)) { audited = false; break; }
             }
             if (!audited) {
                 if (debug) console.log (`final-hoist decline ${hoistedName} (use not audited)`);
                 continue;
             }
 
-            lines[i] = `${indent}final ${reference} ${hoistedName} = ${sourceName};`;
+            lines[i] = isCopy
+                ? `${indent}${reference} ${hoistedName} = ${sourceName};`
+                : `${indent}final ${reference} ${hoistedName} = ${sourceName};`;
             if (debug) console.log (`final-hoist retype ${hoistedName} -> ${reference} (source ${sourceName})`);
         }
         return lines.join ('\n');
