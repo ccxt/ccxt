@@ -3395,7 +3395,7 @@ public class Gate extends GateApi
     {
         final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
+            Object code = code3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3429,7 +3429,7 @@ public class Gate extends GateApi
                 String network = this.safeString(entry, "chain");
                 String address = this.safeString(entry, "address");
                 String tag = this.safeString(entry, "payment_id");
-                final String finalCode = code;
+                final Object finalCode = code;
                 ((Map<String, Object>)result).put((String)network, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "code", finalCode );

@@ -84,7 +84,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     {
         final Map<String, Object> subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> subscription = subscription3;
+            Object subscription = subscription3;
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId(url);
             Map<String, Object> request = this.extend(message, new HashMap<String, Object>() {{
@@ -463,7 +463,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     {
         final Map<String, Object> subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> subscription = subscription3;
+            Object subscription = subscription3;
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId(url);
             Map<String, Object> request = this.extend(message, new HashMap<String, Object>() {{
@@ -678,7 +678,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     {
         final Map<String, Object> subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> subscription = subscription3;
+            Object subscription = subscription3;
             (this.authenticate()).join();
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId(url);

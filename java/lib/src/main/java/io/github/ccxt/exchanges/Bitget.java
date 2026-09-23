@@ -3675,7 +3675,7 @@ public class Bitget extends BitgetApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+            Object parameters = parameters3;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "uta");
             uta = ((List<Object>) utaparametersVariable).get(0);

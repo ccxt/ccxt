@@ -7680,7 +7680,7 @@ public class Okx extends OkxApi
         final String code3 = code2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
+            Object code = code3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {

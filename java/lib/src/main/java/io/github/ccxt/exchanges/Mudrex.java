@@ -760,7 +760,7 @@ public class Mudrex extends MudrexApi
     public Object parseMarket(Object asset)
     {
         String ms = this.safeString(asset, "symbol");
-        String base = ms;
+        Object base = ms;
         if (!java.util.Objects.equals(ms, null) && Helpers.isTrue(ms.endsWith(((String)"USDT"))))
         {
             base = (ms == null ? null : ((String)ms).substring(0, Math.max(((String)ms).length() - 4, 0)));
@@ -776,7 +776,7 @@ public class Mudrex extends MudrexApi
         String qtyStep = this.safeString(asset, "quantity_step", "0.001");
         final String finalMs = ms;
         final String finalSymbol = symbol;
-        final String finalBase = base;
+        final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalMs );
             put( "lowercaseId", null );
