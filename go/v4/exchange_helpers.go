@@ -2104,7 +2104,10 @@ func GetArgStringPtr(args []any, index int, def *string) *string {
 		}
 		return res
 	}
-	if val = derefScalar(val); val != nil {
+	// A typed nil pointer is an omitted argument.
+	if val = derefScalar(val); val == nil {
+		return def
+	} else {
 		if res, isStr := val.(string); isStr {
 			return &res
 		}
@@ -2128,7 +2131,10 @@ func GetArgInt64Ptr(args []any, index int, def *int64) *int64 {
 		}
 		return res
 	}
-	if val = derefScalar(val); val != nil {
+	// A typed nil pointer is an omitted argument.
+	if val = derefScalar(val); val == nil {
+		return def
+	} else {
 		switch res := val.(type) {
 		case int64:
 			return &res
@@ -2174,7 +2180,10 @@ func GetArgFloat64Ptr(args []any, index int, def *float64) *float64 {
 		}
 		return res
 	}
-	if val = derefScalar(val); val != nil {
+	// A typed nil pointer is an omitted argument.
+	if val = derefScalar(val); val == nil {
+		return def
+	} else {
 		switch res := val.(type) {
 		case float64:
 			return &res
@@ -2220,7 +2229,10 @@ func GetArgBoolPtr(args []any, index int, def *bool) *bool {
 		}
 		return res
 	}
-	if val = derefScalar(val); val != nil {
+	// A typed nil pointer is an omitted argument.
+	if val = derefScalar(val); val == nil {
+		return def
+	} else {
 		if res, isBool := val.(bool); isBool {
 			return &res
 		}
