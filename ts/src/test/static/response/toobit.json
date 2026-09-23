@@ -1742,7 +1742,9 @@
                 "description": "fetchBalance type spot",
                 "method": "fetchBalance",
                 "input": [
-                    "{type:\\\"spot\\\"}"
+                    {
+                        "type": "spot"
+                    }
                 ],
                 "httpResponse": {
                     "userId": "912902020",

@@ -861,6 +861,20 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         throw new ClassCastException("ccxt: expected a number, got " + value.getClass().getName());
     }
 
+    /** a value passed to a typed `String` core parameter: the getArgString conversion */
+    public static String toStringArg(Object value) {
+        return value == null ? null : (value instanceof String ? (String) value : String.valueOf(value));
+    }
+
+    /** a value passed to a typed `Map` core parameter: the getArgMap check */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> toMapArg(Object value) {
+        if (value == null || value instanceof Map) {
+            return (Map<String, Object>) value;
+        }
+        throw new ClassCastException("ccxt: expected a dictionary, got " + value.getClass().getName());
+    }
+
     /** the `String` slot reader: omitted -> def, explicit null -> null, non-String -> its string form */
     public static String getArgString(Object[] v, int index, String def) {
         if (v == null || v.length <= index) {
