@@ -1087,11 +1087,11 @@ func (this *Coinbaseinternational) WatchFundingRate(symbol string, options ...cc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchFundingRateAsync(symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.FundingRate{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchFundingRateAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return ccxt.FundingRate{}, res.Err
 	}
-	return ccxt.NewFundingRate(res), nil
+	return ccxt.NewFundingRate(res.Value), nil
 }
 
 /**
@@ -1110,11 +1110,11 @@ func (this *Coinbaseinternational) WatchFundingRates(options ...ccxt.WatchFundin
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchFundingRatesAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.FundingRates{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchFundingRatesAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return ccxt.FundingRates{}, res.Err
 	}
-	return ccxt.NewFundingRates(res), nil
+	return ccxt.NewFundingRates(res.Value), nil
 }
 
 /**
@@ -1134,11 +1134,11 @@ func (this *Coinbaseinternational) WatchTicker(symbol string, options ...ccxt.Wa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTickerAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return ccxt.Ticker{}, res.Err
 	}
-	return ccxt.NewTicker(res), nil
+	return ccxt.NewTicker(res.Value), nil
 }
 
 /**
@@ -1158,11 +1158,11 @@ func (this *Coinbaseinternational) WatchTickers(options ...ccxt.WatchTickersOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTickersAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return ccxt.Tickers{}, res.Err
 	}
-	return ccxt.NewTickers(res), nil
+	return ccxt.NewTickers(res.Value), nil
 }
 
 /**
@@ -1184,11 +1184,11 @@ func (this *Coinbaseinternational) WatchOHLCV(symbol string, options ...ccxt.Wat
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOHLCVArray(res), nil
+	return ccxt.NewOHLCVArray(res.Value), nil
 }
 
 /**
@@ -1209,11 +1209,11 @@ func (this *Coinbaseinternational) WatchTrades(symbol string, options ...ccxt.Wa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res), nil
+	return ccxt.NewTradeArray(res.Value), nil
 }
 
 /**
@@ -1233,11 +1233,11 @@ func (this *Coinbaseinternational) WatchTradesForSymbols(symbols []string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res), nil
+	return ccxt.NewTradeArray(res.Value), nil
 }
 
 /**
@@ -1257,11 +1257,11 @@ func (this *Coinbaseinternational) WatchOrderBook(symbol string, options ...ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return ccxt.OrderBook{}, res.Err
 	}
-	return ccxt.NewOrderBookFromWs(res), nil
+	return ccxt.NewOrderBookFromWs(res.Value), nil
 }
 func (this *Coinbaseinternational) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
 
@@ -1270,9 +1270,9 @@ func (this *Coinbaseinternational) WatchOrderBookForSymbols(symbols []string, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return ccxt.OrderBook{}, res.Err
 	}
-	return ccxt.NewOrderBookFromWs(res), nil
+	return ccxt.NewOrderBookFromWs(res.Value), nil
 }
