@@ -825,6 +825,60 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         return v[index];
     }
 
+    // Slot readers for the generated `Object... optionalArgs` fronts: an omitted slot takes the
+    // default, an explicit null stays null, and any Number widens to Long.
+
+    /** the `Long` slot reader: omitted -> def, explicit null -> null, Number -> longValue() */
+    public static Long getArgLong(Object[] v, int index, Long def) {
+        if (v == null || v.length <= index) {
+            return def;
+        }
+        Object value = v[index];
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        throw new ClassCastException("ccxt: expected a number for optional argument " + index
+                + ", got " + value.getClass().getName());
+    }
+
+    /** the `String` slot reader: omitted -> def, explicit null -> null, non-String -> its string form */
+    public static String getArgString(Object[] v, int index, String def) {
+        if (v == null || v.length <= index) {
+            return def;
+        }
+        Object value = v[index];
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof String) {
+            return (String) value;
+        }
+        return String.valueOf(value);
+    }
+
+    /** the `Map<String, Object>` slot reader: omitted -> def, explicit null -> null */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> getArgMap(Object[] v, int index, Map<String, Object> def) {
+        if (v == null || v.length <= index) {
+            return def;
+        }
+        Object value = v[index];
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Map) {
+            return (Map<String, Object>) value;
+        }
+        throw new ClassCastException("ccxt: expected a dictionary for optional argument " + index
+                + ", got " + value.getClass().getName());
+    }
+
 
     /**
      * Snapshot-copy of a Map's keys under the map's intrinsic lock, so concurrent

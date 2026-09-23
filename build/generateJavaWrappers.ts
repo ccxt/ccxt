@@ -369,7 +369,11 @@ function genMethod(m: MethodInfo, coreType: string, castToObject = false): strin
     //     catch (NetworkError e) { ... }
     //
     // — same shape as JDK exceptions, no .getCause() unwrap needed.
-    if (typedCore) {
+    // No full-arity sync overload: the typed core owns that arity and returns the future, so
+    // callers `.join()` it or use `<name>Async`. A method without optional parameters keeps it.
+    if (m.optionalParams.length > 0) {
+        suppressedSyncDefaults.push(m.name);
+    } else if (typedCore) {
         lines.push(`    default ${m.javaReturnType} ${methodName}(${fullParamDecl}) { return Helpers.joinUnwrapped(${delegateCall}); }`);
     } else {
         lines.push(`    @SuppressWarnings("unchecked")`);
@@ -403,10 +407,11 @@ function genMethod(m: MethodInfo, coreType: string, castToObject = false): strin
         for (let k = 0; k < m.optionalParams.length; k++) {
             const presentParams = [...m.requiredParams, ...m.optionalParams.slice(0, k)];
             const presentDecl = presentParams.map(p => `${p.javaType} ${p.name}`).join(', ');
-            const presentArgs = presentParams.map(p => p.name).join(', ');
-            const trailingDefaults = m.optionalParams.slice(k).map(defaultExpr).join(', ');
-            const allArgs = presentArgs ? `${presentArgs}, ${trailingDefaults}` : trailingDefaults;
-            lines.push(`    default ${m.javaReturnType} ${methodName}(${presentDecl}) { return ${methodName}(${allArgs}); }`);
+            const presentArgs = presentParams.map(p => p.name);
+            const trailingDefaults = m.optionalParams.slice(k).map(defaultExpr);
+            // (Object) casts bind the untyped front, never the same-arity typed core
+            const allArgs = [...presentArgs, ...trailingDefaults].map(a => `(Object) (${a})`).join(', ');
+            lines.push(`    default ${m.javaReturnType} ${methodName}(${presentDecl}) { return Helpers.joinUnwrapped(this.${methodName}(${allArgs})); }`);
         }
     }
 
@@ -494,6 +499,13 @@ function eraseParams(paramList: string): string {
 function eraseReturn(t: string): string {
     return t.replace(/\bjava\.util\./g, '').replace(/\bio\.github\.ccxt\.types\./g, '');
 }
+
+const CORE_DECL_RE = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+)> (\w+)\((.*)\)\s*\{?\s*$/;
+// names whose full-arity sync overload is not generated (the typed core owns that arity)
+const suppressedSyncDefaults: string[] = [];
+export function suppressedSyncDefaultNames(): string[] {
+    return Array.from(new Set(suppressedSyncDefaults)).sort();
+}
 // A per-tier override whose signature differs from the abstract decl is a silent OVERLOAD (the
 // base tier's body runs) or a compile error. Returns `file:line: m expected ... actual ...`.
 let erasureChecked = 0;
@@ -503,16 +515,27 @@ function assertErasureMatches(methods: MethodInfo[], table: Map<string, MethodIn
         const d = genAbstractDecl(m, coreReturnType(m, table)).match(/CompletableFuture<(.+)> (\w+)\((.*)\);$/)!;
         expected.set(d[2], `<${d[1]}> (${eraseParams(d[3])})`);
     }
-    const declRe = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+)> (\w+)\((.*)\)\s*\{?\s*$/;
+    const declRe = CORE_DECL_RE;
     const out: string[] = [];
+    const seen = new Map<string, string[]>();
     for (const file of files) {
         const lines = fs.readFileSync(file, 'utf-8').split('\n');
         for (let i = 0; i < lines.length; i++) {
             const d = lines[i].match(declRe);
             if (!d || !expected.has(d[2])) continue;
-            erasureChecked++;
-            const actual = `<${eraseReturn(d[1])}> (${eraseParams(d[3])})`;
-            if (actual !== expected.get(d[2])) out.push(`${file}:${i + 1}: ${d[2]} expected ${expected.get(d[2])} actual ${actual}`);
+            const actual = `${eraseReturn(d[1])} (${eraseParams(d[3])})`;
+            if (!seen.has(d[2])) seen.set(d[2], []);
+            seen.get(d[2])!.push(`${actual}  [${file}:${i + 1}]`);
+        }
+    }
+    // a name with a typed core also declares the untyped front; one of them must match
+    for (const name of expected.keys()) {
+        const actuals = seen.get(name);
+        if (actuals === undefined) continue;
+        erasureChecked++;
+        const want = expected.get(name)!.replace(/^<(.+)> \((.*)\)$/, '$1 ($2)');
+        if (!actuals.some((a) => a.startsWith(`${want}  [`))) {
+            out.push(`${name}: expected ${want}, found ${actuals.join(' | ')}`);
         }
     }
     return out;
@@ -703,6 +726,7 @@ function main() {
     const predictionMethods = predictionRestMethods.concat(predictionExtra);
     fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', applyJavaImports(generateTypedSurfaceInterface('PredictionTypedSurface', predictionMethods, 'prediction'), true), 'utf-8');
     console.log(`Generated TypedSurface (${restMethods.length} REST + ${wsMethods.length} WS methods) and PredictionTypedSurface (${predictionMethods.length} methods)`);
+    console.log(`Full-arity sync overloads not generated: ${suppressedSyncDefaultNames().length} names`);
 
     const exchangesDir = BASE_PKG + 'exchanges/';
     const javaFiles = (dir: string) => fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.java')).map(f => dir + f) : [];

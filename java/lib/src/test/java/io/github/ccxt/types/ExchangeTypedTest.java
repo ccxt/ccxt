@@ -225,7 +225,7 @@ class ExchangeTypedTest {
 
     @Test
     void testFetchOHLCVWithTimeframe() {
-        List<OHLCV> candles = exchange.fetchOHLCV("BTC/USDT", "1h", null, 5L, null);
+        List<OHLCV> candles = exchange.fetchOHLCVAsync("BTC/USDT", "1h", null, 5L, null).join();
         assertNotNull(candles);
         assertFalse(candles.isEmpty());
         assertTrue(candles.size() <= 5, "Should respect limit");
