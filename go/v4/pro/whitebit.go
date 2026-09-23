@@ -255,7 +255,7 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	//     "id":null
 	//  }
 	//
-	var params any = this.SafeList(message, "params", []any{})
+	var params []any = ccxt.SafeListTypedDefault(message, "params", []any{})
 	var isSnapshot any = this.SafeValue(params, 0)
 	var marketId *string = this.SafeString(params, 2)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
@@ -273,8 +273,8 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol)
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
-		var asks any = this.SafeList(data, "asks", []any{})
-		var bids any = this.SafeList(data, "bids", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 	}
@@ -392,11 +392,11 @@ func (this *Whitebit) HandleTicker(client any, message map[string]any) any {
 	//       "id": null
 	//   }
 	//
-	var tickers any = this.SafeList(message, "params", []any{})
+	var tickers []any = ccxt.SafeListTypedDefault(message, "params", []any{})
 	var marketId *string = this.SafeString(tickers, 0)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var rawTicker any = this.SafeDict(tickers, 1, map[string]any{})
+	var rawTicker map[string]any = ccxt.MapTyped(this.SafeDict(tickers, 1, map[string]any{}))
 	var messageHash string = "ticker" + ":" + *symbol
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(rawTicker, market))
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -490,7 +490,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var params any = this.SafeList(message, "params", []any{})
+	var params []any = ccxt.SafeListTypedDefault(message, "params", []any{})
 	var marketId *string = this.SafeString(params, 0)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -500,7 +500,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var data any = this.SafeList(params, 1, []any{})
+	var data []any = ccxt.SafeListTypedDefault(params, 1, []any{})
 	var parsedTrades any = this.ParseTrades(data, market)
 	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
@@ -741,7 +741,7 @@ func (this *Whitebit) HandleOrder(client any, message map[string]any, optionalAr
 	//
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = subscription
-	var params any = this.SafeList(message, "params", []any{})
+	var params []any = ccxt.SafeListTypedDefault(message, "params", []any{})
 	var data any = this.SafeDict(params, 1)
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -1012,8 +1012,8 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 		}
 		return strings.Index(*method, "Margin")
 	}() >= 0)
-	var data any = this.SafeList(message, "params", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+	var data []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	for i := 0; i < len(data); i++ {
 		var balanceDict any = this.SafeDict(data, i, map[string]any{})
 		ccxt.AddElementToObject(this.Balance, "info", balanceDict)
 		if isMargin {

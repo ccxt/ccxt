@@ -510,7 +510,7 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo any, outcomeId any, opti
 	_ = question
 	var description *string = this.SafeString(outcomeInfo, "description", "")
 	var name *string = this.SafeString(outcomeInfo, "name", "")
-	var sideSpecs any = this.SafeList(outcomeInfo, "sideSpecs", []any{})
+	var sideSpecs []any = ccxt.SafeListTypedDefault(outcomeInfo, "sideSpecs", []any{})
 	var desc map[string]any = this.ParseOutcomeDescription(description)
 	var parentSymbol any = this.BuildOutcomeParentSymbol(desc, outcomeId, name, question)
 	var yesEncoding any = this.OutcomeEncoding(outcomeId, 0)
@@ -856,9 +856,9 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
 	// the 2nd arg carries the outcome object (callers pass the resolved outcome)
 	var mkt any = this.SafeOutcome(nil, market)
 	var outcome *string = this.SafeString(mkt, "outcome")
-	var levels any = this.SafeList(raw, "levels", []any{})
-	var rawBids any = this.SafeList(levels, 0, []any{})
-	var rawAsks any = this.SafeList(levels, 1, []any{})
+	var levels []any = ccxt.SafeListTypedDefault(raw, "levels", []any{})
+	var rawBids []any = ccxt.SafeListTypedDefault(levels, 0, []any{})
+	var rawAsks []any = ccxt.SafeListTypedDefault(levels, 1, []any{})
 	var topBid any = this.SafeDict(rawBids, 0)
 	var topAsk any = this.SafeDict(rawAsks, 0)
 	var bid *float64 = func() *float64 {
@@ -1371,7 +1371,7 @@ func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...a
 func (this *Hyperliquid) FindOutcomeInMarket(market any, optionalArgs ...any) any {
 	sideHint := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = sideHint
-	var outcomesList any = this.SafeList(market, "outcomes", []any{})
+	var outcomesList []any = ccxt.SafeListTypedDefault(market, "outcomes", []any{})
 	var normalizedHint any = func() any {
 		if (sideHint != nil) && (!ccxt.IsEqual(sideHint, "")) {
 			return ccxt.ToUpper(sideHint)
@@ -1379,8 +1379,8 @@ func (this *Hyperliquid) FindOutcomeInMarket(market any, optionalArgs ...any) an
 		return nil
 	}()
 	if normalizedHint != nil {
-		for i := 0; i < ccxt.GetArrayLength(outcomesList); i++ {
-			var oc any = this.SafeDict(outcomesList, i, map[string]any{})
+		for i := 0; i < len(outcomesList); i++ {
+			var oc map[string]any = ccxt.MapTyped(this.SafeDict(outcomesList, i, map[string]any{}))
 			var ocSymbol *string = this.SafeString2(oc, "outcome", "symbol", "")
 			var ocLabel *string = this.SafeStringUpper(oc, "label")
 			if ccxt.IsEqual(ocLabel, normalizedHint) || ccxt.EndsWith(ocSymbol, ccxt.Add(":", normalizedHint)) {
@@ -1388,8 +1388,8 @@ func (this *Hyperliquid) FindOutcomeInMarket(market any, optionalArgs ...any) an
 			}
 		}
 	}
-	for i := 0; i < ccxt.GetArrayLength(outcomesList); i++ {
-		var oc any = this.SafeDict(outcomesList, i, map[string]any{})
+	for i := 0; i < len(outcomesList); i++ {
+		var oc map[string]any = ccxt.MapTyped(this.SafeDict(outcomesList, i, map[string]any{}))
 		var info map[string]any = ccxt.SafeMapTyped(oc, "info")
 		if ccxt.IsEqual(this.SafeInteger(info, "side"), 0) {
 			return oc
@@ -2546,12 +2546,17 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
  */
 func (this *Hyperliquid) ParseEvent(raw map[string]any) any {
 	var parentSymbol *string = this.SafeString(raw, "parentSymbol")
-	var markets any = this.SafeList(raw, "markets", []any{})
+	var markets []any = ccxt.SafeListTypedDefault(raw, "markets", []any{})
 	// Extract info from first market
-	var marketsLength int = ccxt.GetArrayLength(markets)
+	var marketsLength int = len(markets)
 	var firstMarket any = func() any {
 		if marketsLength > 0 {
-			return ccxt.GetValue(markets, 0)
+			return func() any {
+				if 0 >= 0 && 0 < len(markets) {
+					return ccxt.DerefScalar(markets[0])
+				}
+				return nil
+			}()
 		}
 		return map[string]any{}
 	}()

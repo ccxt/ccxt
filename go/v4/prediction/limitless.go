@@ -1358,8 +1358,8 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) an
 			}
 		}
 	}
-	var prices any = this.SafeList(raw, "prices", []any{})
-	var pricesLength int = ccxt.GetArrayLength(prices)
+	var prices []any = ccxt.SafeListTypedDefault(raw, "prices", []any{})
+	var pricesLength int = len(prices)
 	if (ccxt.IsEqual(lastStr, nil)) && (pricesLength > 0) {
 		lastStr = func() any {
 			if isYes {
@@ -3455,8 +3455,8 @@ func (this *Limitless) GetOutcomeBySlugAndLabel(slug any, label any, optionalArg
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var mkt map[string]any = ccxt.MapTyped(this.SafeMarket(slug, market))
-	var outcomes any = this.SafeList(mkt, "outcomes", []any{})
-	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+	var outcomes []any = ccxt.SafeListTypedDefault(mkt, "outcomes", []any{})
+	for i := 0; i < len(outcomes); i++ {
 		var outcome any = this.SafeDict(outcomes, i)
 		var outcomeLabel *string = this.SafeString(outcome, "label")
 		if ccxt.IsEqual(outcomeLabel, label) {
@@ -3608,7 +3608,7 @@ func (this *Limitless) GetPositionFromClobEntry(label any, optionalArgs ...any) 
 		return nil
 	}
 	var positions map[string]any = ccxt.SafeMapTyped(entry, "positions")
-	var position any = this.SafeDict(positions, label, map[string]any{})
+	var position map[string]any = ccxt.MapTyped(this.SafeDict(positions, label, map[string]any{}))
 	var rawMarket map[string]any = ccxt.SafeMapTyped(entry, "market")
 	var slug *string = this.SafeString(rawMarket, "slug")
 	var outcomeObj any = this.GetOutcomeBySlugAndLabel(slug, label)
@@ -3764,7 +3764,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		// tags scope: resolve the tags to limitless categories and page only those
 		// categories' listings server-side — never the whole active listing
-		var requestedTags any = this.SafeList(params, "tags", []any{})
+		var requestedTags []any = ccxt.SafeListTypedDefault(params, "tags", []any{})
 
 		var listRaw []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawMarketsByTagsAsync(requestedTags, params))))
 		var listRawLength int = ccxt.GetArrayLength(listRaw)

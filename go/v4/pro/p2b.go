@@ -437,7 +437,7 @@ func (this *P2b) HandleTrade(client any, message map[string]any) any {
 	//        "id": null
 	//    }
 	//
-	var data any = this.SafeList(message, "params", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "params", []any{})
 	var trades any = this.SafeList(data, 1)
 	var marketId *string = this.SafeString(data, 0)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
@@ -490,7 +490,7 @@ func (this *P2b) HandleTicker(client any, message map[string]any) any {
 	//        "id": null
 	//    }
 	//
-	var data any = this.SafeList(message, "params", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "params", []any{})
 	var marketId *string = this.SafeString(data, 0)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var method *string = this.SafeString(message, "method")
@@ -533,7 +533,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	//        "id": null
 	//    }
 	//
-	var params any = this.SafeList(message, "params", []any{})
+	var params []any = ccxt.SafeListTypedDefault(message, "params", []any{})
 	var isFullUpdate *bool = this.SafeBool(params, 0, false)
 	var data map[string]any = ccxt.SafeMapTyped(params, 1)
 	var asks any = this.SafeList(data, "asks")
@@ -558,7 +558,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	}
 	if !ccxt.IsEqual(bids, nil) {
 		for i := 0; i < ccxt.GetArrayLength(bids); i++ {
-			var bid any = this.SafeList(bids, i)
+			var bid []any = ccxt.SafeListTyped(bids, i)
 			var price *float64 = this.SafeNumber(bid, 0)
 			var amount *float64 = this.SafeNumber(bid, 1)
 			var bookSide any = ccxt.GetValue(orderbook, "bids")
@@ -567,7 +567,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	}
 	if !ccxt.IsEqual(asks, nil) {
 		for i := 0; i < ccxt.GetArrayLength(asks); i++ {
-			var ask any = this.SafeList(asks, i)
+			var ask []any = ccxt.SafeListTyped(asks, i)
 			var price *float64 = this.SafeNumber(ask, 0)
 			var amount *float64 = this.SafeNumber(ask, 1)
 			var bookside any = ccxt.GetValue(orderbook, "asks")

@@ -1048,7 +1048,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "type", finalType );
                 put( "params", finalParameters );
             }};
-            Object orderbook = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -1730,7 +1730,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object trades = (this.watchMultiple((String) (url), messageHashes, this.extend(request, query), messageHashes, subscribe)).join();
+            List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, this.extend(request, query), messageHashes, subscribe)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -6125,7 +6125,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Map<String, Object> stockSubscribe = new HashMap<String, Object>() {{
                     put( "id", stockRequestId );
                 }};
-                Object stockOrders = (this.watch(stockUrl, stockMessageHash, this.extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe)).join();
+                List<Object> stockOrders = (this.<List<Object>>watch(stockUrl, stockMessageHash, this.extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe)).join();
                 if (this.newUpdates)
                 {
                     limit = Helpers.callDynamically(stockOrders, "getLimit", new Object[]{symbol, limit});
@@ -6193,7 +6193,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             this.setBalanceCache(client, type, isPortfolioMargin);
             this.setPositionsCache(client, type, null, isPortfolioMargin);
             Object message = null;
-            Object orders = (this.watch(url, messageHash, message, type, null)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, message, type, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -7507,7 +7507,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             this.setBalanceCache(client, type, isPortfolioMargin);
             this.setPositionsCache(client, type, null, isPortfolioMargin);
             Object message = null;
-            Object trades = (this.watch(url, messageHash, message, type, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, type, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});

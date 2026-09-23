@@ -2682,7 +2682,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId == nil {
-		clientOrderId = SafeStringPtr(ToString(this.Nonce())+"000"+ToString(this.RequestId()))
+		clientOrderId = SafeStringPtr(ToString(this.Nonce()) + "000" + ToString(this.RequestId()))
 	}
 	params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))

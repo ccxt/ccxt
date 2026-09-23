@@ -235,7 +235,7 @@ func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
 		var request map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var timeframeId *string = this.SafeString(request, "granularity")
 		var timeframe *string = this.FindTimeframe(timeframeId)
-		var ohlcv any = this.SafeList(message, "price", []any{})
+		var ohlcv []any = ccxt.SafeListTypedDefault(message, "price", []any{})
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
@@ -836,8 +836,8 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else if event != nil && *event == "updated" {
-		var asks any = this.SafeList(message, "asks", []any{})
-		var bids any = this.SafeList(message, "bids", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(message, "asks", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)

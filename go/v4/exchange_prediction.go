@@ -1773,7 +1773,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	var status *string = this.SafeString(outcomeOrder, "status")
 	var lastTradeTimestamp *int64 = this.SafeInteger(outcomeOrder, "lastTradeTimestamp")
 	// parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
-	var rawTrades any = this.SafeList(outcomeOrder, "trades", []any{})
+	var rawTrades []any = SafeListTypedDefault(outcomeOrder, "trades", []any{})
 	var trades any = this.ParsePredictionTrades(rawTrades, outcomeObj)
 	var tradesLength int = GetArrayLength(trades)
 	var feeList []any = []any{}

@@ -3631,7 +3631,7 @@ func (this *Predictfun) OrderBookMessageHashes(marketId any) any {
  * @param {object} subscription the subscription that request registered, empty when it cannot be attributed
  */
 func (this *Predictfun) HandleSubscriptionError(client any, message any, subscription any) {
-	var rawError any = this.SafeDict(message, "error", map[string]any{})
+	var rawError map[string]any = ccxt.MapTyped(this.SafeDict(message, "error", map[string]any{}))
 	error := ccxt.ExchangeError(ccxt.Add(this.Id+" subscribe request rejected ", this.Json(rawError)))
 	// watch () registers a subscription before it sends and only sends while the hash is still
 	// unregistered, so a rejected request has to take its own entry down - otherwise a retry
@@ -4282,7 +4282,7 @@ func (this *Predictfun) HandleWalletEvent(client any, message any) {
 	// sends but does not document), orderTransactionSubmitted, orderTransactionSuccess and
 	// orderCancelled - the latter arrives with the same envelope and no fill
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var order any = this.ParseWalletEventOrder(data)
 	this.HandleWalletEventOrder(client, order)
 	// only a confirmed on-chain settlement is a trade: a submitted transaction has not landed
@@ -4398,7 +4398,7 @@ func (this *Predictfun) WalletEventOutcome(details any) any {
  * @param {object} event the raw event
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Predictfun) ParseWalletEventOrder(event any) any {
+func (this *Predictfun) ParseWalletEventOrder(event map[string]any) any {
 	//
 	//     {
 	//         "type": "orderTransactionSuccess",
@@ -4431,7 +4431,7 @@ func (this *Predictfun) ParseWalletEventOrder(event any) any {
 	//         }
 	//     }
 	//
-	var details any = this.SafeDict(event, "details", map[string]any{})
+	var details map[string]any = ccxt.MapTyped(this.SafeDict(event, "details", map[string]any{}))
 	var outcomeObj any = this.WalletEventOutcome(details)
 	var eventType *string = this.SafeString(event, "type")
 	var amount *string = this.SafeString(details, "quantity")

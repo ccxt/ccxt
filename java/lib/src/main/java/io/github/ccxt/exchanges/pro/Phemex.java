@@ -790,7 +790,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 put( "params", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -855,7 +855,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 put( "params", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -919,7 +919,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 put( "params", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), Phemex.this.safeInteger(Phemex.this.timeframes, timeframe))) );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});

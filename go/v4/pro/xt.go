@@ -1182,7 +1182,7 @@ func (this *Xt) HandlePosition(client any, message map[string]any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var position map[string]any = ccxt.MapTyped(this.ParsePosition(data))
 	cache.(ccxt.Appender).Append(position)
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "position::contract"))
@@ -1264,7 +1264,7 @@ func (this *Xt) HandleTicker(client any, message map[string]any) any {
 	//       }
 	//    }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	if marketId != nil {
 		var cv *string = this.SafeString(data, "cv")
@@ -1354,7 +1354,7 @@ func (this *Xt) HandleTickers(client any, message map[string]any) any {
 	//        ]
 	//    }
 	//
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var firstTicker map[string]any = ccxt.SafeMapTyped(data, 0)
 	var spotTest *string = this.SafeString2(firstTicker, "cv", "aq")
 	var tradeType string = func() string {
@@ -1364,8 +1364,13 @@ func (this *Xt) HandleTickers(client any, message map[string]any) any {
 		return "contract"
 	}()
 	var newTickers []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var tickerData any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var tickerData any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(tickerData))
 		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
@@ -1433,12 +1438,12 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	if marketId != nil {
 		var timeframe *string = this.SafeString(data, "i", "")
 		var tradeType string = func() string {
-			if ccxt.InOp(data, "q") {
+			if func() bool { _, ok := data["q"]; return ok }() {
 				return "spot"
 			}
 			return "contract"
@@ -1491,7 +1496,7 @@ func (this *Xt) HandleTrade(client any, message map[string]any) any {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeStringLower(data, "s")
 	if marketId != nil {
 		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(data))
@@ -1830,11 +1835,11 @@ func (this *Xt) HandleOrder(client any, message map[string]any) any {
 		orders = ccxt.NewArrayCacheBySymbolById(limit)
 		this.Orders = orders
 	}
-	var order any = this.SafeDict(message, "data", map[string]any{})
+	var order map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString2(order, "s", "symbol")
 	if marketId != nil {
 		var tradeType string = func() string {
-			if ccxt.InOp(order, "symbol") {
+			if func() bool { _, ok := order["symbol"]; return ok }() {
 				return "contract"
 			}
 			return "spot"
@@ -1935,7 +1940,7 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var stored any = this.MyTrades
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

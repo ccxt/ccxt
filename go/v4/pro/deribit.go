@@ -332,7 +332,7 @@ func (this *Deribit) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data any = this.SafeDict(params, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data))
@@ -415,14 +415,14 @@ func (this *Deribit) HandleBidAsk(client any, message map[string]any) {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data any = this.SafeDict(params, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
 	var ticker any = this.ParseWsBidAsk(data)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 	ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 	var messageHash *string = this.SafeString(params, "channel")
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Deribit) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Deribit) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instrument_name")
@@ -656,7 +656,7 @@ func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel", "")
-	var trades any = this.SafeList(params, "data", []any{})
+	var trades []any = ccxt.SafeListTypedDefault(params, "data", []any{})
 	var cachedTrades any = this.MyTrades
 	if ccxt.IsEqual(cachedTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -825,8 +825,8 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.CountedOrderBook())
 	}
 	var storedOrderBook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var asks any = this.SafeList(data, "asks", []any{})
-	var bids any = this.SafeList(data, "bids", []any{})
+	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
+	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "asks"), asks)
 	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "bids"), bids)
 	ccxt.AddElementToObject(storedOrderBook, "nonce", timestamp)
@@ -1119,7 +1119,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe, ccxt.NewArrayCacheByTimestamp(limit))
 	}
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe)
-	var ohlcv any = this.SafeDict(params, "data", map[string]any{})
+	var ohlcv map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
 	// data contains a single ccxt.OHLCV candle
 	var parsed any = this.ParseWsOHLCV(ohlcv, market)
 	stored.(ccxt.Appender).Append(parsed)

@@ -180,7 +180,7 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) any {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data any = this.SafeDict(params, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
 	var parsedTrade map[string]any = ccxt.MapTyped(this.ParseTrade(data))
 	var symbol *string = ccxt.SafeStringPtr(parsedTrade["symbol"])
 	var messageHash *string = this.SafeString(params, "channel")
@@ -488,7 +488,7 @@ func (this *Paradex) HandleOrder(client any, message map[string]any) {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data any = this.SafeDict(params, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
 	var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(data))
 	var symbol *string = this.SafeString(parsed, "symbol")
 	if ccxt.IsEqual(this.Orders, nil) {
@@ -529,7 +529,7 @@ func (this *Paradex) HandleTicker(client any, message map[string]any) any {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data any = this.SafeDict(params, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -664,7 +664,7 @@ func (this *Paradex) HandleFundingRate(client any, message map[string]any) {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data any = this.SafeDict(params, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
 	var fundingRate any = this.ParseFundingRateWs(data)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
@@ -672,7 +672,7 @@ func (this *Paradex) HandleFundingRate(client any, message map[string]any) {
 	var messageHash any = ccxt.Add(ccxt.Add(channel, "."), symbol)
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
-func (this *Paradex) ParseFundingRateWs(contract any, optionalArgs ...any) any {
+func (this *Paradex) ParseFundingRateWs(contract map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "market": "TRUMP-USD-PERP",

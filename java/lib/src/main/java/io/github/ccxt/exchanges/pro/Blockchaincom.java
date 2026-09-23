@@ -206,7 +206,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             }};
             request = this.deepExtend(request, parameters);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object ohlcv = (this.watch(url, messageHash, request, messageHash, request)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, request)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -591,7 +591,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             }};
             String messageHash = "orders";
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -849,7 +849,7 @@ final String finalTradeId = tradeId;
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 

@@ -207,7 +207,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "receivedSnapshot", false );
             }};
-            Object orderbook = (this.watch(url, messageHash, null, messageHash, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, null, messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 

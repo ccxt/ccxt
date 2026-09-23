@@ -1176,7 +1176,106 @@ function goGofmtSplicedText (content: string): string {
     if (content.indexOf ('(') < 0) {
         return content;
     }
-    return goGofmtTightenSplicedArithmetic (goGofmtLevelOneChains (goGofmtSliceColons (content)));
+    return goGofmtLevelOneSums (goGofmtTightenSplicedArithmetic (goGofmtLevelOneChains (goGofmtSliceColons (content))));
+}
+
+// the RHS of a one-to-one assignment is level 1, and so is the sole argument of a one-argument
+// call there: a chain of level-4 operators only (cutoff 6) keeps both blanks, e.g. gofmt's
+// `x += "::" + Join(s, ",")` and `x = SafeStringPtr(*a + "-" + b)`
+function goGofmtLevelOneSums (content: string): string {
+    const lines = content.split ('\n');
+    for (let l = 0; l < lines.length; l++) {
+        const statement = /^(\t*[A-Za-z_][A-Za-z0-9_.]* (?:[-+|^]?=|:=) )(.+)$/.exec (lines[l]);
+        if (statement === null) {
+            continue;
+        }
+        let rhs = statement[2];
+        let head = statement[1];
+        let tail = '';
+        for (let call = /^[A-Za-z_][A-Za-z0-9_.]*\(/.exec (rhs); call !== null; call = /^[A-Za-z_][A-Za-z0-9_.]*\(/.exec (rhs)) {
+            const open = call[0].length - 1;
+            if ((goMatchingCloseText (rhs, open) !== rhs.length - 1) || (goCountFrameArgsText (rhs, open) !== 1)) {
+                break;
+            }
+            head += rhs.slice (0, open + 1);
+            tail = ')' + tail;
+            rhs = rhs.slice (open + 1, rhs.length - 1);
+        }
+        const widened = goWidenLevelFourChainText (rhs);
+        if (widened !== null) {
+            lines[l] = head + widened + tail;
+        }
+    }
+    return lines.join ('\n');
+}
+
+// index of the bracket closing the one at `open` (strings skipped), -1 when unbalanced
+function goMatchingCloseText (text: string, open: number): number {
+    let depth = 0;
+    for (let i = open; i < text.length; i++) {
+        const char = text[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (text, i);
+        } else if (char === '(' || char === '[' || char === '{') {
+            depth += 1;
+        } else if (char === ')' || char === ']' || char === '}') {
+            depth -= 1;
+            if (depth === 0) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+// `text` with a blank on each side of every top-level binary operator, when all of them are
+// level 4 (`+ - | ^`); null when there is none, another operator, or nothing to change
+function goWidenLevelFourChainText (text: string): string | null {
+    const operators: number[] = [];
+    let depth = 0;
+    let operand = false;
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (text, i);
+            operand = true;
+        } else if (/[0-9.]/.test (char) && !operand) {
+            i += /^[0-9.]*(?:[eEpP][-+]?)?[0-9A-Za-z_.]*/.exec (text.slice (i))[0].length - 1;   // `1e-9` is one literal
+            operand = true;
+        } else if (char === '/' && (text[i + 1] === '/' || text[i + 1] === '*')) {
+            return null;
+        } else if (char === '(' || char === '[' || char === '{') {
+            depth += 1;
+        } else if (char === ')' || char === ']' || char === '}') {
+            depth -= 1;
+            operand = true;
+        } else if ((depth === 0) && (char !== ' ') && (char !== '\t')) {
+            const value = goGoOperatorText (text, i);
+            if ((value !== null) || (char === '=') || (char === '!') || (char === ':') || (char === ',')) {
+                if (operand) {
+                    if ((value === null) || (value.precedence !== 4)) {
+                        return null;
+                    }
+                    operators.push (i);
+                }
+                operand = false;
+                i += (value === null) ? 0 : value.token.length - 1;
+            } else {
+                operand = true;
+            }
+        }
+    }
+    if (operators.length === 0) {
+        return null;
+    }
+    let out = text;
+    for (let o = operators.length - 1; o >= 0; o--) {
+        const at = operators[o];
+        const right = (out[at + 1] === ' ') ? '' : ' ';
+        const left = (out[at - 1] === ' ') ? '' : ' ';
+        out = out.slice (0, at) + left + out[at] + right + out.slice (at + 1);
+    }
+    return (out === text) ? null : out;
 }
 
 // the characters a Go operand can end with, i.e. the left neighbour of a binary operator
@@ -2030,6 +2129,17 @@ function gofmtSelfTest (): string[] {
     ok (untouched === GOFMT_SELFTEST_SINGLE_SEND, 'a core that never multi-sends must pass through byte-identical');
     const asserted = formatGoSource ('selftest.go', GOFMT_SELFTEST_ELEMENT_ACCESS);
     ok (asserted.indexOf ('GetValue(keys, 0).(string)') !== -1, 'formatGoSource must keep the element-access assertion');
+    const sums: [ string, string ][] = [
+        [ '\tstreamHash += "::"+ccxt.Join(symbols, ",")', '\tstreamHash += "::" + ccxt.Join(symbols, ",")' ],
+        [ '\tname = ccxt.SafeStringPtr("D"+*depth+"/"+*speed)', '\tname = ccxt.SafeStringPtr("D" + *depth + "/" + *speed)' ],
+        [ '\tx = F(a+b, c)', '\tx = F(a+b, c)' ],
+        [ '\tx = a*b + c', '\tx = a*b + c' ],
+        [ '\tOrderRouterTolerance = 1e-9', '\tOrderRouterTolerance = 1e-9' ],
+    ];
+    for (const [ input, expected ] of sums) {
+        const got = goGofmtSplicedText ('func f() {\n' + input + '\n}\n');
+        ok (got === 'func f() {\n' + expected + '\n}\n', 'level-1 sum: ' + JSON.stringify (input) + ' -> ' + JSON.stringify (got));
+    }
     // the gate's listing parser, against a real gofmt and a throwaway tree
     const gofmt = resolveGofmt ();
     if (gofmt === null) {

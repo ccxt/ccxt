@@ -12596,7 +12596,7 @@ func (this *Binance) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 				var keys []string = ObjectKeys(accountsByType)
 				panic(ExchangeError(this.Id + " toAccount parameter must be one of " + strings.Join(keys, ", ")))
 			}
-			typeVar = SafeStringPtr(*fromId+"_"+*toId)
+			typeVar = SafeStringPtr(*fromId + "_" + *toId)
 		}
 		request["type"] = typeVar
 		limitKey = "size"
@@ -16286,7 +16286,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 						var defaultId string = "x-xcKtGhcu" // batchOrders can not be spot or margin
 						var broker map[string]any = SafeMapTyped(this.Options, "broker")
 						var brokerId *string = this.SafeString(broker, "future", defaultId)
-						newClientOrderId = SafeStringPtr(*brokerId+this.Uuid22())
+						newClientOrderId = SafeStringPtr(*brokerId + this.Uuid22())
 						AddElementToObject(batchOrder, "newClientOrderId", newClientOrderId)
 					}
 					AppendToArray(&checkedBatchOrders, batchOrder)

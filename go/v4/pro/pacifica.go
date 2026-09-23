@@ -698,7 +698,7 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(entry, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var levels any = this.SafeList(entry, "l", []any{})
+	var levels []any = ccxt.SafeListTypedDefault(entry, "l", []any{})
 	var result map[string]any = map[string]any{
 		"bids": this.SafeList(levels, 0, []any{}),
 		"asks": this.SafeList(levels, 1, []any{}),
@@ -1197,7 +1197,7 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	//   ]
 	// }
 	//
-	var entry any = this.SafeList(message, "data", []any{})
+	var entry []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var first map[string]any = ccxt.SafeMapTyped(entry, 0)
 	var marketId *string = this.SafeString(first, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
@@ -1208,8 +1208,8 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var trades any = ccxt.GetValue(this.Trades, symbol)
-	for i := 0; i < ccxt.GetArrayLength(entry); i++ {
-		var data any = this.SafeDict(entry, i, map[string]any{})
+	for i := 0; i < len(entry); i++ {
+		var data map[string]any = ccxt.MapTyped(this.SafeDict(entry, i, map[string]any{}))
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 		trades.(ccxt.Appender).Append(trade)
 	}
@@ -1438,7 +1438,7 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 	//   }
 	// }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1654,7 +1654,7 @@ func (this *Pacifica) HandleErrorMessage(client any, message any) any {
 	//
 	var error *string = this.SafeString(message, "err", "")
 	var postType *string = this.SafeString(message, "type", "")
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var id *string = this.SafeString(message, "id")
 	if id == nil {
 		id = this.SafeString(data, "id")
@@ -1683,7 +1683,7 @@ func (this *Pacifica) HandleErrorMessage(client any, message any) any {
 	}
 	return false
 }
-func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription any) {
+func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription map[string]any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1694,7 +1694,7 @@ func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription any
 		ccxt.Remove(this.Orderbooks, symbol)
 	}
 }
-func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
+func (this *Pacifica) HandleTradesUnsubscription(client any, subscription map[string]any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1705,7 +1705,7 @@ func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
 		ccxt.Remove(this.Trades, symbol)
 	}
 }
-func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) {
+func (this *Pacifica) HandleTickersUnsubscription(client any, subscription map[string]any) {
 	var subMessageHash string = "tickers"
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -1714,7 +1714,7 @@ func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) 
 		ccxt.Remove(this.Tickers, ccxt.GetValue(symbols, i))
 	}
 }
-func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
+func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription map[string]any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1732,7 +1732,7 @@ func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
 		}
 	}
 }
-func (this *Pacifica) HandleOrderUnsubscription(client any, subscription any) {
+func (this *Pacifica) HandleOrderUnsubscription(client any, subscription map[string]any) {
 	var subHash string = "order"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
@@ -1741,7 +1741,7 @@ func (this *Pacifica) HandleOrderUnsubscription(client any, subscription any) {
 	}
 	this.CleanCache(topicStructure)
 }
-func (this *Pacifica) HandleMyTradesUnsubscription(client any, subscription any) {
+func (this *Pacifica) HandleMyTradesUnsubscription(client any, subscription map[string]any) {
 	var subHash string = "myTrades"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
@@ -1772,7 +1772,7 @@ func (this *Pacifica) HandleSubscriptionResponse(client any, message map[string]
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var method *string = this.SafeString(message, "channel")
 	if method != nil && *method == "unsubscribe" {
-		var subscription any = this.SafeDict(data, "data", map[string]any{})
+		var subscription map[string]any = ccxt.MapTyped(this.SafeDict(data, "data", map[string]any{}))
 		var typeVar *string = this.SafeString(subscription, "source")
 		if typeVar != nil && *typeVar == "book" {
 			this.HandleOrderBookUnsubscription(client, subscription)

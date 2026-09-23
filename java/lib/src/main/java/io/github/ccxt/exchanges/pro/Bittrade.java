@@ -209,7 +209,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "symbol", finalSymbol );
                 put( "params", parameters );
             }};
-            Object trades = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -326,7 +326,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "timeframe", timeframe );
                 put( "params", parameters );
             }};
-            Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -443,7 +443,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "params", parameters );
                 put( "method", "handleOrderBookSubscription");
             }};
-            Object orderbook = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -536,7 +536,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                     put( "params", parameters );
                     put( "method", "handleOrderBookSnapshot");
                 }};
-                Object orderbook = (this.watch(url, requestId, request, requestId, snapshotSubscription)).join();
+                io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, requestId, request, requestId, snapshotSubscription)).join();
                 return Helpers.callDynamically(orderbook, "limit", new Object[]{});
             } catch(Exception e)
             {

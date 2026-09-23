@@ -117,7 +117,7 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 	//         "seq": 1
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "m")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -325,8 +325,8 @@ func (this *Extended) HandleBalance(client any, message any) {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
-	var spotBalances any = this.SafeList(data, "spotBalances", []any{})
-	for i := 0; i < ccxt.GetArrayLength(spotBalances); i++ {
+	var spotBalances []any = ccxt.SafeListTypedDefault(data, "spotBalances", []any{})
+	for i := 0; i < len(spotBalances); i++ {
 		var spotBalance map[string]any = ccxt.SafeMapTyped(spotBalances, i)
 		var currencyId *string = this.SafeString(spotBalance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -426,14 +426,19 @@ func (this *Extended) HandleMyTrades(client any, message any) {
 	}
 	var stored any = this.MyTrades
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawTrades any = this.SafeList(data, "trades", []any{})
+	var rawTrades []any = ccxt.SafeListTypedDefault(data, "trades", []any{})
 	var symbols map[string]any = map[string]any{}
 	var first any = this.SafeDict(rawTrades, 0)
 	if ccxt.IsEqual(first, nil) {
 		return
 	}
-	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
-		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(ccxt.GetValue(rawTrades, i)))
+	for i := 0; i < len(rawTrades); i++ {
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
+			if i >= 0 && i < len(rawTrades) {
+				return ccxt.DerefScalar(rawTrades[i])
+			}
+			return nil
+		}()))
 		var symbol *string = this.SafeString(trade, "symbol")
 		ccxt.AddElementToObject(symbols, symbol, true)
 		stored.(ccxt.Appender).Append(trade)
@@ -487,7 +492,7 @@ func (this *Extended) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
 	if symbols != nil {
-		messageHash += "::"+ccxt.Join(symbols, ",")
+		messageHash += "::" + ccxt.Join(symbols, ",")
 	}
 
 	positions := (<-this.WatchPrivateAsync(messageHash, map[string]any{
@@ -533,14 +538,19 @@ func (this *Extended) HandlePositions(client any, message any) {
 	}
 	var stored any = this.Positions
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawPositions any = this.SafeList(data, "positions", []any{})
+	var rawPositions []any = ccxt.SafeListTypedDefault(data, "positions", []any{})
 	var newPositions []any = []any{}
 	var first any = this.SafeDict(rawPositions, 0)
 	if ccxt.IsEqual(first, nil) {
 		return
 	}
-	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
-		var rawPosition any = ccxt.GetValue(rawPositions, i)
+	for i := 0; i < len(rawPositions); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(rawPositions) {
+				return ccxt.DerefScalar(rawPositions[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(rawPosition, "market")
 		if marketId == nil {
 			continue
@@ -683,14 +693,14 @@ func (this *Extended) HandleFundingRate(client any, message any) {
 	//         "seq": 2
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var fundingRate any = this.ParseWsFundingRate(data, nil, message)
 	var symbol *string = this.SafeString(fundingRate, "symbol")
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 	var messageHash any = ccxt.Add("fundingRate:", symbol)
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
-func (this *Extended) ParseWsFundingRate(fundingRate any, optionalArgs ...any) any {
+func (this *Extended) ParseWsFundingRate(fundingRate map[string]any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var message map[string]any = ccxt.GetArgMap(optionalArgs, 1, nil)
@@ -862,7 +872,7 @@ func (this *Extended) HandleTrades(client any, message any) {
 	//         "seq": 2
 	//     }
 	//
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var first any = this.SafeDict(data, 0)
 	if ccxt.IsEqual(first, nil) {
 		return
@@ -885,8 +895,13 @@ func (this *Extended) HandleTrades(client any, message any) {
 		return
 	}
 	ccxt.AddElementToObject(subscription, "nonce", nonce)
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(ccxt.GetValue(data, i), market))
+	for i := 0; i < len(data); i++ {
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), market))
 		stored.(ccxt.Appender).Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

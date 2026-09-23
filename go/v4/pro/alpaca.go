@@ -328,8 +328,8 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
-		var asks any = this.SafeList(message, "a", []any{})
-		var bids any = this.SafeList(message, "b", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(message, "a", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(message, "b", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -584,7 +584,7 @@ func (this *Alpaca) HandleOrder(client any, message map[string]any) {
 	//      }
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawOrder any = this.SafeDict(data, "order", map[string]any{})
+	var rawOrder map[string]any = ccxt.MapTyped(this.SafeDict(data, "order", map[string]any{}))
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -648,7 +648,7 @@ func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
 	if (event == nil || *event != "fill") && (event == nil || *event != "partial_fill") {
 		return
 	}
-	var rawOrder any = this.SafeDict(data, "order", map[string]any{})
+	var rawOrder map[string]any = ccxt.MapTyped(this.SafeDict(data, "order", map[string]any{}))
 	var myTrades any = this.MyTrades
 	if ccxt.IsEqual(myTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -664,7 +664,7 @@ func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
 	messageHash = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
 }
-func (this *Alpaca) ParseMyTrade(trade any, optionalArgs ...any) any {
+func (this *Alpaca) ParseMyTrade(trade map[string]any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",

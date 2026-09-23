@@ -795,10 +795,10 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+	for i := 0; i < len(data); i++ {
 		var ticker any = this.SafeDict(data, i)
 		if ccxt.IsEqual(ticker, nil) {
 			continue
@@ -1922,7 +1922,7 @@ func (this *Woo) HandleFundingRate(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var fundingRate any = this.ParseFundingRate(data)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 	if symbol != nil {

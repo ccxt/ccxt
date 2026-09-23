@@ -216,7 +216,7 @@ func (this *Lighter) HandleOrderBook(client any, message any) {
 	//     "type": "update/order_book"
 	// }
 	//
-	var data any = this.SafeDict(message, "order_book", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "order_book", map[string]any{}))
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = ccxt.Split(channel, ":")
 	var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
@@ -364,7 +364,7 @@ func (this *Lighter) HandleTicker(client any, message any) {
 	//     "type": "update/market_stats"
 	// }
 	//
-	var data any = this.SafeDict(message, "market_stats", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "market_stats", map[string]any{}))
 	var channel *string = this.SafeString(message, "channel")
 	if channel != nil && *channel == "market_stats:all" {
 		var marketIds []string = ccxt.ObjectKeys(data)
@@ -372,7 +372,7 @@ func (this *Lighter) HandleTicker(client any, message any) {
 			var marketId string = ccxt.GetValue(marketIds, i).(string)
 			var market any = this.SafeMarket(marketId)
 			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
-			var ticker any = this.ParseTicker(ccxt.GetValue(data, marketId), market)
+			var ticker any = this.ParseTicker(data[marketId], market)
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 			client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
 			client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker"))

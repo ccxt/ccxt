@@ -249,7 +249,7 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 	var timeframes any = this.SafeDict(watchOHLCVOptions, "timeframes", map[string]any{})
 	var records any = this.SafeList(message, "records")
 	if !ccxt.IsEqual(records, nil) {
-		var rawOHLCV any = this.SafeList(records, 0, []any{})
+		var rawOHLCV []any = ccxt.SafeListTypedDefault(records, 0, []any{})
 		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
 		var timeframeId *string = this.SafeString(message, "kbar")
 		var timeframe *string = this.FindTimeframe(timeframeId, timeframes)

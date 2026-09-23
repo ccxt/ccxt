@@ -762,7 +762,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     ((List<Object>)messageHashes).add(((name + "::") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
                 }
             }
-            Object trades = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);

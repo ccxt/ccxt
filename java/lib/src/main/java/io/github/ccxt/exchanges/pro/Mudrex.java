@@ -209,7 +209,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 put( "params", new ArrayList<Object>(Arrays.asList(stream)) );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
-            Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});

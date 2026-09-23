@@ -83,7 +83,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 put( "channel", "v4_trades" );
                 put( "id", ((Map<String, Object>)market).get("id") );
             }};
-            Object trades = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -264,7 +264,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 put( "channel", "v4_orderbook" );
                 put( "id", ((Map<String, Object>)market).get("id") );
             }};
-            Object orderbook = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -421,7 +421,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 put( "channel", "v4_candles" );
                 put( "id", Helpers.add((((Map<String, Object>)market).get("id") + "/"), resolution) );
             }};
-            Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});

@@ -2251,7 +2251,7 @@ func (this *Nado) ParseWsAllBidsAsks(message map[string]any) any {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-		var bbo any = this.SafeDict(bbos, marketId, map[string]any{})
+		var bbo map[string]any = ccxt.MapTyped(this.SafeDict(bbos, marketId, map[string]any{}))
 		var bid *string = this.SafeString(bbo, "bid")
 		var ask *string = this.SafeString(bbo, "ask")
 		var maxPrice string = "170141183460469231731687303715884105727"
@@ -2330,8 +2330,8 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return
 	}
-	var asks any = this.SafeList(message, "asks", []any{})
-	var bids any = this.SafeList(message, "bids", []any{})
+	var asks []any = ccxt.SafeListTypedDefault(message, "asks", []any{})
+	var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
 	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 	var timestamp any = this.ParseWsTimestamp(message, "max_timestamp")

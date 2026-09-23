@@ -5603,6 +5603,8 @@ export function installJavaLocalTypes (transpiler) {
     // (11) literal/null locals joined over copies, ternaries and producer writes (section 16)
     patchJavaConcreteInitLocalTypes (transpiler);
     patchJavaConcreteTernaryStringTypes (transpiler);
+    // (12) ws receive locals typed from the resolved cache class (section 18)
+    patchJavaWsReceiveTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -10654,5 +10656,101 @@ export function patchJavaConcreteTernaryStringTypes (transpiler) {
             ok = false;
         }
         return ok ? printed.slice (0, at) + `${iden}String ` + printed.slice (at + iden.length + printer.VAR_TOKEN.length + 1) : printed;
+    };
+}
+
+// ===== 18. ws receive locals (J10-R15) =====
+// `const x = await this.watch|watchMultiple (...)` takes the class the handlers resolve, proven by
+// the local's own receiver calls: `.getLimit (...)` marks a list stream (an ArrayCache or a plain
+// resolved list, so List<Object>), `.limit ()` a WsOrderBook. Both print through callDynamically,
+// scanned as the ws box. The typed base `<T> watch` binds the type through a witness.
+const JAVA_WS_RECEIVE_WITNESS = { 'getLimit': JAVA_ARRAY_TYPE, 'limit': ORDERBOOK_TYPE };
+const JAVA_WS_RECEIVE_SCAN = { [JAVA_ARRAY_TYPE]: ARRAYCACHE_TYPE, [ORDERBOOK_TYPE]: ORDERBOOK_TYPE };
+
+function wsReceiveCall (declaration) {
+    const value = unwrapParens (declaration.initializer);
+    if (value === undefined || value.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    const call = unwrapParens (value.expression);
+    if (!isThisCall (call)) {
+        return undefined;
+    }
+    const name = String (call.expression.name.escapedText);
+    return (name === 'watch' || name === 'watchMultiple') ? name : undefined;
+}
+
+function wsReceiveTypeOf (printer, declaration) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || wsReceiveCall (declaration) === undefined) {
+        return undefined;
+    }
+    const fileName = declaration.getSourceFile ().fileName;
+    if (!/[\\/](pro|prediction)[\\/]/.test (fileName) || /[\\/]test[\\/]/.test (fileName)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const sourceName = String (declaration.name.escapedText);
+    const index = identifierIndex (scope);
+    if (index.has ('io') || index.has ('java') || (index.get (sourceName) ?? []).some ((n) => n !== declaration.name
+        && ts.isVariableDeclaration (n.parent) && n.parent.name === n)) {
+        return undefined;
+    }
+    let type;
+    for (const n of (index.get (sourceName) ?? [])) {
+        const parent = n.parent;
+        if (n === declaration.name || parent === undefined || !ts.isPropertyAccessExpression (parent) || parent.expression !== n) {
+            continue;
+        }
+        const member = String (parent.name.escapedText);
+        const witness = JAVA_WS_RECEIVE_WITNESS[member];
+        if (witness === undefined || (type !== undefined && type !== witness)
+            || !ts.isCallExpression (parent.parent) || parent.parent.expression !== parent) {
+            return undefined;
+        }
+        type = witness;
+    }
+    if (type === undefined) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (fileName);
+    return isSafeToNarrow (printer, declaration, sourceName, JAVA_WS_RECEIVE_SCAN[type], isProFile, { noCastAssertions: true })
+        ? type : undefined;
+}
+
+// additive patcher: rewrites only a declaration still printing `Object <name> = (this.watch*(`
+export function patchJavaWsReceiveTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaWsReceivePatched) {
+        return;
+    }
+    printer._javaWsReceivePatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined) {
+            return printed;
+        }
+        let type;
+        try {
+            type = wsReceiveTypeOf (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (type === undefined) {
+            return printed;
+        }
+        const method = wsReceiveCall (declaration);
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = (this.${method}(`;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || !printed.trimEnd ().replace (/;$/, '').endsWith (').join()')) {
+            return printed;
+        }
+        return printed.slice (0, at) + `${iden}${type} ${printedName} = (this.<${type}>${method}(` + printed.slice (at + marker.length);
     };
 }

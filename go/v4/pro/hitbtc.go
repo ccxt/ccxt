@@ -291,9 +291,9 @@ func (this *Hitbtc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var depth *string = this.SafeString(params, "depth", "20")
 	var speed *string = this.SafeString(params, "depth", "100")
 	if name != nil && *name == "orderbook/{depth}/{speed}" {
-		name = ccxt.SafeStringPtr("orderbook/D"+*depth+"/"+*speed+"ms")
+		name = ccxt.SafeStringPtr("orderbook/D" + *depth + "/" + *speed + "ms")
 	} else if name != nil && *name == "orderbook/{depth}/{speed}/batch" {
-		name = ccxt.SafeStringPtr("orderbook/D"+*depth+"/"+*speed+"ms/batch")
+		name = ccxt.SafeStringPtr("orderbook/D" + *depth + "/" + *speed + "ms/batch")
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -358,8 +358,8 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 			var parsedSnapshot map[string]any = this.ParseOrderBook(item, symbol, timestamp, "b", "a")
 			orderbook.(ccxt.OrderBookInterface).Reset(parsedSnapshot)
 		} else {
-			var asks any = this.SafeList(item, "a", []any{})
-			var bids any = this.SafeList(item, "b", []any{})
+			var asks []any = ccxt.SafeListTypedDefault(item, "a", []any{})
+			var bids []any = ccxt.SafeListTypedDefault(item, "b", []any{})
 			this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 			this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		}

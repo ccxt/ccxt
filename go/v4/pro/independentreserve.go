@@ -105,7 +105,7 @@ func (this *Independentreserve) HandleTrades(client any, message map[string]any)
 	//        "Event": "Trade"
 	//    }
 	//
-	var data any = this.SafeDict(message, "Data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "Data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "Pair")
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var messageHash string = "trades:" + *symbol
@@ -231,7 +231,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
-	var orderBook any = this.SafeDict(message, "Data", map[string]any{})
+	var orderBook map[string]any = ccxt.MapTyped(this.SafeDict(message, "Data", map[string]any{}))
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), depth)
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
 	var receivedSnapshot *bool = this.SafeBool(subscription, "receivedSnapshot", false)
@@ -250,8 +250,8 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 			"receivedSnapshot": true,
 		}))
 	} else {
-		var asks any = this.SafeList(orderBook, "Offers", []any{})
-		var bids any = this.SafeList(orderBook, "Bids", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(orderBook, "Offers", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(orderBook, "Bids", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)

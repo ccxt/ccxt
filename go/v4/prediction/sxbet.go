@@ -2504,8 +2504,8 @@ func (this *Sxbet) fetchSxbetBestOddsBody(ch chan any, marketHashes any, optiona
  */
 func (this *Sxbet) ParseSxbetSnapshotBestOdds(snapshot any) map[string]any {
 	// levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
-	var oneLevels any = this.SafeList(snapshot, "outcomeOne", []any{})
-	var twoLevels any = this.SafeList(snapshot, "outcomeTwo", []any{})
+	var oneLevels []any = ccxt.SafeListTypedDefault(snapshot, "outcomeOne", []any{})
+	var twoLevels []any = ccxt.SafeListTypedDefault(snapshot, "outcomeTwo", []any{})
 	var bestOne map[string]any = ccxt.SafeMapTyped(oneLevels, 0)
 	var bestTwo map[string]any = ccxt.SafeMapTyped(twoLevels, 0)
 	return map[string]any{

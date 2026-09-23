@@ -155,7 +155,7 @@ func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 	// }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data any = this.SafeDict(params, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -285,7 +285,7 @@ func (this *Derive) HandleTicker(client any, message map[string]any) any {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var rawData any = this.SafeDict(params, "data")
-	var data any = this.SafeDict(rawData, "instrument_ticker", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(rawData, "instrument_ticker", map[string]any{}))
 	var topic *string = this.SafeString(params, "channel")
 	var ticker any = nil
 	if (topic != nil) && ccxt.StartsWith(topic, "ticker_slim") {

@@ -974,8 +974,8 @@ func (this *Okx) HandleBidAsk(client any, message map[string]any) {
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var data any = this.SafeList(message, "data", []any{})
-	var ticker any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var ticker map[string]any = ccxt.MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var parsedTicker any = this.ParseWsBidAsk(ticker, market)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsedTicker, "symbol"))
 	if symbol != nil {
@@ -984,7 +984,7 @@ func (this *Okx) HandleBidAsk(client any, message map[string]any) {
 	var messageHash any = ccxt.Add("bidask::", symbol)
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
-func (this *Okx) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Okx) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instId")
@@ -996,14 +996,14 @@ func (this *Okx) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 	var bid *string = this.SafeString(ticker, "bidPx")
 	var bidVolume *string = this.SafeString(ticker, "bidSz")
 	if ask == nil {
-		var asks any = this.SafeList(ticker, "asks", []any{})
-		var firstAsk any = this.SafeList(asks, 0, []any{})
+		var asks []any = ccxt.SafeListTypedDefault(ticker, "asks", []any{})
+		var firstAsk []any = ccxt.SafeListTypedDefault(asks, 0, []any{})
 		ask = this.SafeString(firstAsk, 0)
 		askVolume = this.SafeString(firstAsk, 1)
 	}
 	if bid == nil {
-		var bids any = this.SafeList(ticker, "bids", []any{})
-		var firstBid any = this.SafeList(bids, 0, []any{})
+		var bids []any = ccxt.SafeListTypedDefault(ticker, "bids", []any{})
+		var firstBid []any = ccxt.SafeListTypedDefault(bids, 0, []any{})
 		bid = this.SafeString(firstBid, 0)
 		bidVolume = this.SafeString(firstBid, 1)
 	}
@@ -1305,7 +1305,7 @@ func (this *Okx) ParseWsMyLiquidation(liquidation any, optionalArgs ...any) any 
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var posData any = this.SafeList(liquidation, "posData", []any{})
+	var posData []any = ccxt.SafeListTypedDefault(liquidation, "posData", []any{})
 	var firstPosData map[string]any = ccxt.SafeMapTyped(posData, 0)
 	var marketId *string = this.SafeString(firstPosData, "instId")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
@@ -1345,7 +1345,7 @@ func (this *Okx) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var details any = this.SafeList(liquidation, "details", []any{})
+	var details []any = ccxt.SafeListTypedDefault(liquidation, "details", []any{})
 	var liquidationDetails map[string]any = ccxt.SafeMapTyped(details, 0)
 	var marketId *string = this.SafeString(liquidation, "instId")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
@@ -1870,8 +1870,8 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var asks any = this.SafeList(message, "asks", []any{})
-	var bids any = this.SafeList(message, "bids", []any{})
+	var asks []any = ccxt.SafeListTypedDefault(message, "asks", []any{})
+	var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
 	var storedAsks any = ccxt.GetValue(orderbook, "asks")
 	var storedBids any = ccxt.GetValue(orderbook, "bids")
 	this.HandleDeltas(storedAsks, asks)
@@ -2242,7 +2242,7 @@ func (this *Okx) HandleBalance(client any, message map[string]any) {
 func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var info any = this.SafeDict(order, "info", map[string]any{})
+	var info map[string]any = ccxt.MapTyped(this.SafeDict(order, "info", map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(info, "fillTime")
 	var feeMarketId *string = this.SafeString(info, "fillFeeCcy")
 	var isTaker bool = (this.SafeString(info, "execType", "") != nil && *this.SafeString(info, "execType", "") == "T")
@@ -2535,7 +2535,7 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 	}
 	var messageHash *string = channel
 	if symbol != nil {
-		messageHash = ccxt.SafeStringPtr(*channel+"::"+*symbol)
+		messageHash = ccxt.SafeStringPtr(*channel + "::" + *symbol)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, messageHash)
 }
@@ -2689,8 +2689,8 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 	this.HandleMyTrades(client, message)
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel")
-	var orders any = this.SafeList(message, "data", []any{})
-	var ordersLength int = ccxt.GetArrayLength(orders)
+	var orders []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var ordersLength int = len(orders)
 	if ordersLength > 0 {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		if ccxt.IsEqual(this.Orders, nil) {
@@ -3172,7 +3172,7 @@ func (this *Okx) HandleCancelAllOrders(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	client.(ccxt.ClientInterface).Resolve(data, messageHash)
 }
 func (this *Okx) HandleSubscriptionStatus(client any, message map[string]any) any {

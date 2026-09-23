@@ -90,7 +90,7 @@ func (this *Ndax) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	return nil
 }
 func (this *Ndax) HandleTicker(client any, message map[string]any) {
-	var payload any = this.SafeDict(message, "o", map[string]any{})
+	var payload map[string]any = ccxt.MapTyped(this.SafeDict(message, "o", map[string]any{}))
 	//
 	//     {
 	//         "OMSId": 1,
@@ -539,7 +539,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	//         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
 	//     }
 	//
-	var payload any = this.SafeList(message, "o", []any{})
+	var payload []any = ccxt.SafeListTypedDefault(message, "o", []any{})
 	//
 	//     [
 	//         0,   // 0 MDUpdateId
@@ -554,7 +554,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	//         0,   // 9 Side
 	//     ],
 	//
-	var firstBidAsk any = this.SafeList(payload, 0, []any{})
+	var firstBidAsk []any = ccxt.SafeListTypedDefault(payload, 0, []any{})
 	var marketId *string = this.SafeString(firstBidAsk, 7)
 	if marketId == nil {
 		return
@@ -567,8 +567,13 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	}
 	var timestamp any = nil
 	var nonce any = nil
-	for i := 0; i < ccxt.GetArrayLength(payload); i++ {
-		var bidask any = ccxt.GetValue(payload, i)
+	for i := 0; i < len(payload); i++ {
+		var bidask any = func() any {
+			if i >= 0 && i < len(payload) {
+				return ccxt.DerefScalar(payload[i])
+			}
+			return nil
+		}()
 		if ccxt.IsEqual(timestamp, nil) {
 			timestamp = ccxt.DerefScalar(this.SafeInteger(bidask, 2))
 		} else {
@@ -643,7 +648,7 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	//         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
 	//     }
 	//
-	var payload any = this.SafeList(message, "o", []any{})
+	var payload []any = ccxt.SafeListTypedDefault(message, "o", []any{})
 	//
 	//     [
 	//         [

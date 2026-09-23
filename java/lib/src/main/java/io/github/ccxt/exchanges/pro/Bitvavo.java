@@ -473,7 +473,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     }})) );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object trades = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+            List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, message, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -633,7 +633,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     }})) );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -961,7 +961,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "params", parameters );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object orderbook = (this.watch(url, messageHash, message, messageHash, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -1028,7 +1028,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "params", parameters );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object orderbook = (this.watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -1256,7 +1256,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "action", finalName );
                 put( "market", marketId );
             }};
-            Object orderbook = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
 
@@ -1464,7 +1464,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         put( "markets", new ArrayList<Object>(Arrays.asList(marketId)) );
     }})) );
             }};
-            Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -1527,7 +1527,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         put( "markets", new ArrayList<Object>(Arrays.asList(marketId)) );
     }})) );
             }};
-            Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});

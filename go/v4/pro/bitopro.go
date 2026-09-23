@@ -218,7 +218,7 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
-	var rawData any = this.SafeList(message, "data", []any{})
+	var rawData []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var trades any = this.ParseTrades(rawData, market)
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesCache, nil) {
@@ -304,7 +304,7 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var baseId *string = this.SafeString(data, "base")
 	var quoteId *string = this.SafeString(data, "quote")
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -546,7 +546,7 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var event *string = this.SafeString(message, "event")
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	var datetime *string = this.SafeString(message, "datetime")
 	var currencies []string = ccxt.ObjectKeys(data)

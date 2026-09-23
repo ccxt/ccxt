@@ -447,7 +447,7 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	var marketId any = this.CoinToMarketId(coin)
 	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var rawData any = this.SafeList(entry, "levels", []any{})
+	var rawData []any = ccxt.SafeListTypedDefault(entry, "levels", []any{})
 	var data map[string]any = map[string]any{
 		"bids": this.SafeList(rawData, 0, []any{}),
 		"asks": this.SafeList(rawData, 1, []any{}),
@@ -788,7 +788,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) any
 	//
 	// handle hip3 mids
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var mids any = this.SafeDict(data, "mids", map[string]any{})
+	var mids map[string]any = ccxt.MapTyped(this.SafeDict(data, "mids", map[string]any{}))
 	if !ccxt.IsEqual(mids, nil) {
 		var keys []string = ccxt.ObjectKeys(mids)
 		for i := 0; i < len(keys); i++ {
@@ -804,7 +804,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) any
 		var messageHash string = "tickers"
 		var dexMessage *string = this.SafeString(data, "dex")
 		if dexMessage != nil {
-			messageHash += ":"+*dexMessage
+			messageHash += ":" + *dexMessage
 		}
 		client.(ccxt.ClientInterface).Resolve(this.Tickers, messageHash)
 	}
@@ -838,7 +838,7 @@ func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any
 	var marketId any = this.CoinToMarketId(coin)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var ctx any = this.SafeDict(data, "ctx", map[string]any{})
+	var ctx map[string]any = ccxt.MapTyped(this.SafeDict(data, "ctx", map[string]any{}))
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(ctx, market))
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	var messageHash string = "ticker:" + *symbol
@@ -1031,8 +1031,8 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var entry any = this.SafeList(message, "data", []any{})
-	var entryLength int = ccxt.GetArrayLength(entry)
+	var entry []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var entryLength int = len(entry)
 	if entryLength == 0 {
 		return
 	}
@@ -1047,8 +1047,8 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var trades any = ccxt.GetValue(this.Trades, symbol)
-	for i := 0; i < ccxt.GetArrayLength(entry); i++ {
-		var data any = this.SafeDict(entry, i, map[string]any{})
+	for i := 0; i < len(entry); i++ {
+		var data map[string]any = ccxt.MapTyped(this.SafeDict(entry, i, map[string]any{}))
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 		trades.(ccxt.Appender).Append(trade)
 	}
@@ -1256,7 +1256,7 @@ func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var base *string = this.SafeString(data, "s")
 	var marketId any = this.CoinToMarketId(base)
 	var symbol *string = this.SafeSymbol(marketId)
@@ -1962,7 +1962,7 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message any) any {
 		id = this.SafeString(data, "id")
 	}
 	var response map[string]any = ccxt.SafeMapTyped(data, "response")
-	var payload any = this.SafeDict(response, "payload", map[string]any{})
+	var payload map[string]any = ccxt.MapTyped(this.SafeDict(response, "payload", map[string]any{}))
 	var status *string = this.SafeString(payload, "status")
 	if (status != nil) && (status == nil || *status != "ok") {
 		error := ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(payload)))
@@ -1999,7 +1999,7 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message any) any {
 	}
 	return false
 }
-func (this *Hyperliquid) HandleOrderBookUnsubscription(client any, subscription any) {
+func (this *Hyperliquid) HandleOrderBookUnsubscription(client any, subscription map[string]any) {
 	//
 	//        "subscription":{
 	//           "type":"l2Book",
@@ -2018,7 +2018,7 @@ func (this *Hyperliquid) HandleOrderBookUnsubscription(client any, subscription 
 		ccxt.Remove(this.Orderbooks, symbol)
 	}
 }
-func (this *Hyperliquid) HandleTradesUnsubscription(client any, subscription any) {
+func (this *Hyperliquid) HandleTradesUnsubscription(client any, subscription map[string]any) {
 	//
 	var coin *string = this.SafeString(subscription, "coin")
 	var marketId any = this.CoinToMarketId(coin)
@@ -2030,7 +2030,7 @@ func (this *Hyperliquid) HandleTradesUnsubscription(client any, subscription any
 		ccxt.Remove(this.Trades, symbol)
 	}
 }
-func (this *Hyperliquid) HandleTickersUnsubscription(client any, subscription any) {
+func (this *Hyperliquid) HandleTickersUnsubscription(client any, subscription map[string]any) {
 	//
 	var subMessageHash string = "tickers"
 	var messageHash string = "unsubscribe:" + subMessageHash
@@ -2040,7 +2040,7 @@ func (this *Hyperliquid) HandleTickersUnsubscription(client any, subscription an
 		ccxt.Remove(this.Tickers, ccxt.GetValue(symbols, i))
 	}
 }
-func (this *Hyperliquid) HandleTickerUnsubscription(client any, subscription any) {
+func (this *Hyperliquid) HandleTickerUnsubscription(client any, subscription map[string]any) {
 	//
 	var coin *string = this.SafeString(subscription, "coin")
 	var marketId any = this.CoinToMarketId(coin)
@@ -2052,7 +2052,7 @@ func (this *Hyperliquid) HandleTickerUnsubscription(client any, subscription any
 		ccxt.Remove(this.Tickers, symbol)
 	}
 }
-func (this *Hyperliquid) HandleOHLCVUnsubscription(client any, subscription any) {
+func (this *Hyperliquid) HandleOHLCVUnsubscription(client any, subscription map[string]any) {
 	var coin *string = this.SafeString(subscription, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var symbol *string = this.SafeSymbol(marketId)
@@ -2067,7 +2067,7 @@ func (this *Hyperliquid) HandleOHLCVUnsubscription(client any, subscription any)
 		}
 	}
 }
-func (this *Hyperliquid) HandleOrderUnsubscription(client any, subscription any) {
+func (this *Hyperliquid) HandleOrderUnsubscription(client any, subscription map[string]any) {
 	var subHash string = "order"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
@@ -2085,7 +2085,7 @@ func (this *Hyperliquid) HandleOrderUnsubscription(client any, subscription any)
 	}
 	this.CleanCache(topicStructure)
 }
-func (this *Hyperliquid) HandleMyTradesUnsubscription(client any, subscription any) {
+func (this *Hyperliquid) HandleMyTradesUnsubscription(client any, subscription map[string]any) {
 	var subHash string = "myTrades"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
@@ -2103,7 +2103,7 @@ func (this *Hyperliquid) HandleMyTradesUnsubscription(client any, subscription a
 	}
 	this.CleanCache(topicStructure)
 }
-func (this *Hyperliquid) HandlePositionsUnsubscription(client any, subscription any) {
+func (this *Hyperliquid) HandlePositionsUnsubscription(client any, subscription map[string]any) {
 	var subHash string = "clearinghouseState"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
@@ -2116,7 +2116,7 @@ func (this *Hyperliquid) HandlePositionsUnsubscription(client any, subscription 
 		ccxt.Remove(this.Balance, "swap")
 	}
 }
-func (this *Hyperliquid) HandleSpotBalanceUnsubscription(client any, subscription any) {
+func (this *Hyperliquid) HandleSpotBalanceUnsubscription(client any, subscription map[string]any) {
 	var subHash string = "spotState"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
@@ -2152,7 +2152,7 @@ func (this *Hyperliquid) HandleSubscriptionResponse(client any, message map[stri
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var method *string = this.SafeString(data, "method")
 	if method != nil && *method == "unsubscribe" {
-		var subscription any = this.SafeDict(data, "subscription", map[string]any{})
+		var subscription map[string]any = ccxt.MapTyped(this.SafeDict(data, "subscription", map[string]any{}))
 		var typeVar *string = this.SafeString(subscription, "type")
 		if typeVar != nil && *typeVar == "l2Book" {
 			this.HandleOrderBookUnsubscription(client, subscription)

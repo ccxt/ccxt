@@ -1397,7 +1397,7 @@ func (this *Myriad) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var side *string = this.SafeString(o, "side")
 		var amount *float64 = this.SafeNumber(o, "amount")
 		var price *float64 = this.SafeNumber(o, "price")
-		var orderParams any = this.SafeDict(o, "params", map[string]any{})
+		var orderParams map[string]any = ccxt.MapTyped(this.SafeDict(o, "params", map[string]any{}))
 
 		placed := (<-this.CreateOrderbookOrderAsync(outcome, typeVar, side, amount, price, this.Extend(orderParams, params)))
 		ccxt.PanicOnError(placed)
@@ -1735,7 +1735,7 @@ func (this *Myriad) GetOrderResponseFromParams(id any, optionalArgs ...any) any 
 	if !ccxt.IsEqual(orderResponses, nil) {
 		var responsesLength int = ccxt.GetArrayLength(orderResponses)
 		for i := 0; i < responsesLength; i++ {
-			var current any = this.SafeDict(orderResponses, i, map[string]any{})
+			var current map[string]any = ccxt.MapTyped(this.SafeDict(orderResponses, i, map[string]any{}))
 			var currentId *string = this.SafeStringN(current, []any{"orderHash", "hash", "id"})
 			if (currentId != nil) && (ccxt.IsEqual(currentId, id)) {
 				return current
@@ -2838,7 +2838,7 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 	var networkId *string = this.SafeString(raw, "networkId")
 	var marketId *string = this.SafeString(raw, "id")
 	var slug *string = this.SafeString(raw, "slug", marketId)
-	var rawOutcomes any = this.SafeList(raw, "outcomes", []any{})
+	var rawOutcomes []any = ccxt.SafeListTypedDefault(raw, "outcomes", []any{})
 	var endDate *string = this.SafeString(raw, "expiresAt")
 	var state *string = this.SafeString(raw, "state", "open")
 	var active bool = (state != nil && *state == "open")
@@ -2865,7 +2865,7 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 	var takerFee *float64 = this.SafeNumber(buyFees, "fee", 0.01)
 	var makerFee *float64 = this.SafeNumber(sellFees, "fee", 0)
 	var outcomes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawOutcomes); i++ {
+	for i := 0; i < len(rawOutcomes); i++ {
 		var outcome map[string]any = ccxt.SafeMapTyped(rawOutcomes, i)
 		var outcomeId *string = this.SafeString(outcome, "outcomeId", this.SafeString(outcome, "id", ccxt.ToString(i)))
 		var outcomeLabel *string = this.SafeString(outcome, "label", this.SafeString(outcome, "title", outcomeId))
@@ -4316,7 +4316,7 @@ func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
 		return
 	}
 	var pub map[string]any = ccxt.SafeMapTyped(push, "pub")
-	var data any = this.SafeDict(pub, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(pub, "data", map[string]any{}))
 	var parts []string = ccxt.Split(channel, ":")
 	var channelType *string = this.SafeString(parts, 0)
 	if channelType != nil && *channelType == "orderbook" {

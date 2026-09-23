@@ -600,7 +600,7 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 			// since te and tu updates are duplicated on the public stream
 			return
 		}
-		var trade any = this.SafeList(message, 2, []any{})
+		var trade []any = ccxt.SafeListTypedDefault(message, 2, []any{})
 		var parsed any = this.ParseWsTrade(trade, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
@@ -1448,7 +1448,7 @@ func (this *Bitfinex) HandleOrders(client any, message []any, subscription map[s
 	//        ]
 	//    ]
 	//
-	var data any = this.SafeList(message, 2, []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, 2, []any{})
 	var messageType *string = this.SafeString(message, 1)
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -1457,12 +1457,17 @@ func (this *Bitfinex) HandleOrders(client any, message []any, subscription map[s
 	var orders any = this.Orders
 	var symbolIds map[string]any = map[string]any{}
 	if messageType != nil && *messageType == "os" {
-		var snapshotLength int = ccxt.GetArrayLength(data)
+		var snapshotLength int = len(data)
 		if snapshotLength == 0 {
 			return
 		}
-		for i := 0; i < ccxt.GetArrayLength(data); i++ {
-			var value any = ccxt.GetValue(data, i)
+		for i := 0; i < len(data); i++ {
+			var value any = func() any {
+				if i >= 0 && i < len(data) {
+					return ccxt.DerefScalar(data[i])
+				}
+				return nil
+			}()
 			var parsed any = this.ParseWsOrder(value)
 			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 			ccxt.AddElementToObject(symbolIds, symbol, true)

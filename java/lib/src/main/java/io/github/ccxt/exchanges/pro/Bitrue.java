@@ -277,7 +277,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }} );
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -622,7 +622,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }} );
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -779,7 +779,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }} );
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});

@@ -461,8 +461,8 @@ func (this *Bitget) ParseWsTicker(message map[string]any, optionalArgs ...any) a
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
-	var data any = this.SafeList(message, "data", []any{})
-	var ticker any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var ticker map[string]any = ccxt.MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var utaTimestamp *int64 = this.SafeInteger(message, "ts")
 	var timestamp *int64 = this.SafeInteger(ticker, "ts", utaTimestamp)
 	var instType *string = this.SafeStringLower(arg, "instType")
@@ -595,8 +595,8 @@ func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) a
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
-	var data any = this.SafeList(message, "data", []any{})
-	var ticker any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var ticker map[string]any = ccxt.MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var utaTimestamp *int64 = this.SafeInteger(message, "ts")
 	var timestamp *int64 = this.SafeInteger(ticker, "ts", utaTimestamp)
 	var instType *string = this.SafeStringLower(arg, "instType")
@@ -1161,8 +1161,8 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "orderbook:" + *symbol
-	var data any = this.SafeList(message, "data")
-	var rawOrderBook any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
+	var rawOrderBook map[string]any = ccxt.MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(rawOrderBook, "ts")
 	var incrementalBook bool = (channel != nil && *channel == "books")
 	if incrementalBook {
@@ -1174,8 +1174,8 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 			ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 		}
 		var storedOrderBook any = ccxt.GetValue(this.Orderbooks, symbol)
-		var asks any = this.SafeList2(rawOrderBook, "asks", "a", []any{})
-		var bids any = this.SafeList2(rawOrderBook, "bids", "b", []any{})
+		var asks []any = ccxt.SafeList2Typed(rawOrderBook, "asks", "a", []any{})
+		var bids []any = ccxt.SafeList2Typed(rawOrderBook, "bids", "b", []any{})
 		this.HandleDeltas(ccxt.GetValue(storedOrderBook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(storedOrderBook, "bids"), bids)
 		ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
@@ -1213,13 +1213,13 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		var bidsKey string = "bids"
 		var asksKey string = "asks"
 		// bitget UTA has `a` and `b` instead of `asks` and `bids`
-		if ccxt.InOp(rawOrderBook, "a") {
-			if !(ccxt.InOp(rawOrderBook, "asks")) {
+		if func() bool { _, ok := rawOrderBook["a"]; return ok }() {
+			if !(func() bool { _, ok := rawOrderBook["asks"]; return ok }()) {
 				asksKey = "a"
 			}
 		}
-		if ccxt.InOp(rawOrderBook, "b") {
-			if !(ccxt.InOp(rawOrderBook, "bids")) {
+		if func() bool { _, ok := rawOrderBook["b"]; return ok }() {
+			if !(func() bool { _, ok := rawOrderBook["bids"]; return ok }()) {
 				bidsKey = "b"
 			}
 		}
@@ -1612,7 +1612,7 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) any {
 		market = ccxt.MapTyped(this.SafeMarket(instId, nil, nil, defaultType))
 	}
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"uTime", "cTime", "ts", "T", "execTime"})
-	var feeDetail any = this.SafeList(trade, "feeDetail", []any{})
+	var feeDetail []any = ccxt.SafeListTypedDefault(trade, "feeDetail", []any{})
 	var first any = this.SafeDict(feeDetail, 0)
 	var fee map[string]any = nil
 	if !ccxt.IsEqual(first, nil) {
@@ -2202,7 +2202,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 	} else {
 		marketType = "contract"
 	}
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var category *string = this.SafeStringLower(first, "category", instType)
 	var isLinearSwap bool = (category != nil && *category == "usdt-futures")
@@ -2238,8 +2238,13 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 		return "order"
 	}()
 	var marketSymbols map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var order any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString2(order, "instId", "symbol", argInstId)
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order, market))
@@ -2442,7 +2447,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(order, "cTime", "createdTime")
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var rawStatus *string = this.SafeString2(order, "status", "orderStatus")
-	var orderFee any = this.SafeList(order, "feeDetail", []any{})
+	var orderFee []any = ccxt.SafeListTypedDefault(order, "feeDetail", []any{})
 	var fee map[string]any = ccxt.SafeMapTyped(orderFee, 0)
 	var feeAmount *string = this.SafeString(fee, "fee")
 	var feeObject map[string]any = nil

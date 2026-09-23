@@ -1017,7 +1017,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 put( "id", Deribit.this.requestId() );
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object orders = (this.watch(url, channel, request, channel, request)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, channel, request, channel, request)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});

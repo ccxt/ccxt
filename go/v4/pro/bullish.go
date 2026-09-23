@@ -225,7 +225,7 @@ func (this *Bullish) HandleTrades(client any, message any) {
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var rawTrades any = this.SafeList(data, "trades", []any{})
+	var rawTrades []any = ccxt.SafeListTypedDefault(data, "trades", []any{})
 	var trades any = this.ParseTrades(rawTrades, market)
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -318,7 +318,7 @@ func (this *Bullish) HandleTicker(client any, message any) {
 	//     }
 	//
 	var updateType *string = this.SafeString(message, "type", "")
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -412,9 +412,9 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 		"asks": asks,
 	}
 	var parsed map[string]any = this.ParseOrderBook(snapshot, symbol, timestamp)
-	var sequenceNumberRange any = this.SafeList(data, "sequenceNumberRange", []any{})
-	if ccxt.GetArrayLength(sequenceNumberRange) > 0 {
-		var lastIndex int64 = ccxt.Subtract(ccxt.GetArrayLength(sequenceNumberRange), 1).(int64)
+	var sequenceNumberRange []any = ccxt.SafeListTypedDefault(data, "sequenceNumberRange", []any{})
+	if len(sequenceNumberRange) > 0 {
+		var lastIndex any = ccxt.Subtract(len(sequenceNumberRange), 1)
 		parsed["nonce"] = this.SafeInteger(sequenceNumberRange, lastIndex)
 	}
 	orderbook.(ccxt.OrderBookInterface).Reset(parsed)
@@ -540,7 +540,7 @@ func (this *Bullish) HandleOrders(client any, message any) {
 	var typeVar *string = this.SafeString(message, "type")
 	var rawOrders any = []any{}
 	if typeVar != nil && *typeVar == "update" {
-		var data any = this.SafeDict(message, "data", map[string]any{})
+		var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 		ccxt.AppendToArray(&rawOrders, data) // update is a single order
 	} else {
 		rawOrders = this.SafeList(message, "data", []any{}) // snapshot is a list of orders
@@ -669,7 +669,7 @@ func (this *Bullish) HandleMyTrades(client any, message any) {
 	var typeVar *string = this.SafeString(message, "type")
 	var rawTrades any = []any{}
 	if typeVar != nil && *typeVar == "update" {
-		var data any = this.SafeDict(message, "data", map[string]any{})
+		var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 		ccxt.AppendToArray(&rawTrades, data) // update is a single trade
 	} else {
 		rawTrades = this.SafeList(message, "data", []any{}) // snapshot is a list of trades
@@ -733,7 +733,7 @@ func (this *Bullish) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if tradingAccountId != nil {
 		params = ccxt.MapTyped(this.Omit(params, "tradingAccountId"))
 		request["tradingAccountId"] = tradingAccountId
-		messageHash += "::"+*tradingAccountId
+		messageHash += "::" + *tradingAccountId
 	}
 
 	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, messageHash, request, params)))
@@ -790,7 +790,7 @@ func (this *Bullish) HandleBalance(client any, message any) {
 	}
 	var messageType *string = this.SafeString(message, "type")
 	if messageType != nil && *messageType == "snapshot" {
-		var data any = this.SafeList(message, "data", []any{})
+		var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.ParseBalance(data))
 	} else {
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")
@@ -870,7 +870,7 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	var messageType *string = this.SafeString(message, "type")
 	var rawPositions any = []any{}
 	if messageType != nil && *messageType == "update" {
-		var data any = this.SafeDict(message, "data", map[string]any{})
+		var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 		ccxt.AppendToArray(&rawPositions, data)
 	} else {
 		rawPositions = this.SafeList(message, "data", []any{})
@@ -916,7 +916,7 @@ func (this *Bullish) HandleErrorMessage(client any, message any) {
 	//         "type": "error"
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var feedback any = ccxt.Add(this.Id+" ", this.Json(data))
 
 	{

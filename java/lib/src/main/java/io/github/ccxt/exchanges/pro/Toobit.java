@@ -270,7 +270,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 put( "topic", "trade" );
                 put( "event", "sub" );
             }};
-            Object trades = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -817,7 +817,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 put( "topic", finalChannel );
                 put( "event", "sub" );
             }};
-            Object orderbook = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -1152,7 +1152,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 messageHash = ((messageHash + ":") + symbol);
             }
             Object url = this.getUserStreamUrl();
-            Object orders = (this.watch(url, messageHash, parameters, messageHash, null)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, parameters, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -1315,7 +1315,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 messageHash = ((messageHash + ":") + symbol);
             }
             Object url = this.getUserStreamUrl();
-            Object trades = (this.watch(url, messageHash, parameters, messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, parameters, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
