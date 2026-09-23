@@ -796,7 +796,7 @@ public class Example {
         System.out.println(ticker.symbol + " last=" + ticker.last);
 
         // Fetch OHLCV
-        var candles = binance.fetchOHLCV("BTC/USDT", "1h", null, 10L, null);
+        var candles = binance.fetchOHLCV("BTC/USDT", "1h", null, 10L);
         System.out.println("Got " + candles.size() + " candles");
 
         // Private API (requires API keys)
@@ -808,7 +808,7 @@ public class Example {
         System.out.println("Order id: " + order.id + " status: " + order.status);
 
         // Cancel it
-        binance.cancelOrder(order.id, "BTC/USDT", null);
+        binance.cancelOrder(order.id, "BTC/USDT");
     }
 }
 ```
