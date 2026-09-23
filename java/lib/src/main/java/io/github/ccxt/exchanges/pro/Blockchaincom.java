@@ -512,13 +512,13 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object parsed = this.parseWsTrade((Map<String, Object>) (message), market);
+        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (message), market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -535,7 +535,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         //
         String marketId = this.safeString(trade, "symbol");
         String datetime = this.safeString(trade, "timestamp");
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Blockchaincom.this.safeString(trade, "trade_id") );
             put( "timestamp", Blockchaincom.this.parse8601(datetime) );
             put( "datetime", datetime );
@@ -549,9 +549,9 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             put( "cost", null );
             put( "fee", null );
             put( "info", trade );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

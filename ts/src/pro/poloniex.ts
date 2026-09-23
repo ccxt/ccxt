@@ -683,7 +683,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // handleTrade
         //

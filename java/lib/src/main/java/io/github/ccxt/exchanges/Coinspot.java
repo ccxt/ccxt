@@ -1302,7 +1302,7 @@ public class Coinspot extends CoinspotApi
         if (java.util.Objects.equals(accessType, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = this.nonce();
+            Long nonce = this.nonce();
             body = (String) (this.json(this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters)));

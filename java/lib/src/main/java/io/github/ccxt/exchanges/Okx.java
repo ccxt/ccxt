@@ -2753,9 +2753,9 @@ public class Okx extends OkxApi
         return this.fetchAccounts(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     /**
@@ -4684,7 +4684,7 @@ public class Okx extends OkxApi
         return this.createMarketSellOrderWithCost(symbol, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -5051,9 +5051,9 @@ public class Okx extends OkxApi
             ((Map<String, Object>)request).put("clOrdId", clientOrderId);
             parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId"))));
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -5208,7 +5208,7 @@ public class Okx extends OkxApi
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
@@ -5253,7 +5253,7 @@ public class Okx extends OkxApi
         return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object editOrderRequest(Object id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> editOrderRequest(Object id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5366,9 +5366,9 @@ public class Okx extends OkxApi
             }
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit", "postOnly"))));
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object editOrderRequest(Object id, String symbol, String type, String side, Object... optionalArgs)
+    public Map<String, Object> editOrderRequest(Object id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrderRequest(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -5414,7 +5414,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Boolean isAlgoOrder = null;
             if ((java.util.Objects.equals(type, "trigger")) || (java.util.Objects.equals(type, "conditional")) || (java.util.Objects.equals(type, "move_order_stop")) || (java.util.Objects.equals(type, "oco")) || (java.util.Objects.equals(type, "iceberg")) || (java.util.Objects.equals(type, "twap")))
             {

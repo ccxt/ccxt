@@ -1445,9 +1445,9 @@ public class Bit2c extends Bit2cApi
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
@@ -1459,7 +1459,7 @@ public class Bit2c extends Bit2cApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = this.nonce();
+            Long nonce = this.nonce();
             Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters);

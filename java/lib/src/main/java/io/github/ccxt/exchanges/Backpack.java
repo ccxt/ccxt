@@ -2451,7 +2451,7 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostApiV1Order(orderRequest)).join();
             return this.parseOrder(response, market);
         }).thenApply(Order::new);
@@ -2521,7 +2521,7 @@ public class Backpack extends BackpackApi
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             List<Object> response = (this.privatePostApiV1Orders(ordersRequests)).join();
@@ -2543,7 +2543,7 @@ public class Backpack extends BackpackApi
         return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -2648,9 +2648,9 @@ public class Backpack extends BackpackApi
                 ((Map<String, Object>)request).put("selfTradePrevention", "RejectBoth");
             }
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3308,9 +3308,9 @@ public class Backpack extends BackpackApi
         return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

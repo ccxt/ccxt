@@ -135,7 +135,7 @@ export default class htx extends htxRest {
         });
     }
 
-    requestId () {
+    requestId (): string {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;

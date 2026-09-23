@@ -2831,7 +2831,7 @@ public class Grvt extends GrvtApi
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                clientOrderId = Helpers.add((String.valueOf(this.nonce()) + "000"), String.valueOf(this.requestId()));
+                clientOrderId = ((String.valueOf(this.nonce()) + "000") + String.valueOf(this.requestId()));
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
@@ -4482,11 +4482,11 @@ public class Grvt extends GrvtApi
         return this.handleUntilOptionString(key, request, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : 1);
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
-        return requestId;
+        return Helpers.toLongOrNull(requestId);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

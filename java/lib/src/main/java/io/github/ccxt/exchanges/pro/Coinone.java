@@ -404,7 +404,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object trade = this.parseWsTrade((Map<String, Object>) (data));
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data));
         Object symbol = ((Map<String, Object>)trade).get("symbol");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -418,7 +418,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -448,7 +448,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String amountString = this.safeString(trade, "qty");
         final Map<String, Object> finalMarket = market;
         final String finalSide = side;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Coinone.this.safeString(trade, "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -462,9 +462,9 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

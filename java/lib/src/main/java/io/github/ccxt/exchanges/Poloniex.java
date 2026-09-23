@@ -4962,9 +4962,9 @@ public class Poloniex extends PoloniexApi
         return this.addMargin(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

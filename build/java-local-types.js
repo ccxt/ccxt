@@ -1836,6 +1836,120 @@ function isAsyncMethodCall (printer, callNode) {
         && ts.isIdentifier (returnType.typeName) && returnType.typeName.escapedText === 'Promise';
 }
 
+// ===== venue producers typed from their TS return annotation (J4-R11) =====
+// Closed name -> admitted Java types. The declaration's own annotation picks the type; every
+// ancestor declaration must pick the same one (override invariance). Signature, return casts
+// and local admission all go through venueReturnJavaType.
+const VENUE_RETURN_KINDS = {
+    'requestId': [ 'Long', 'String' ], 'nonce': [ 'Long' ],
+    'getMessageHash': [ 'String' ], 'getUrl': [ 'String' ],
+    'parseWsTrade': [ JAVA_ARRAY_TYPE_MAP () ],
+    'createOrderRequest': [ JAVA_ARRAY_TYPE_MAP (), 'java.util.List<Object>' ],
+    'editOrderRequest': [ JAVA_ARRAY_TYPE_MAP () ], 'createSpotOrderRequest': [ JAVA_ARRAY_TYPE_MAP () ],
+    'createSwapOrderRequest': [ JAVA_ARRAY_TYPE_MAP () ], 'createTriggerOrderRequest': [ JAVA_ARRAY_TYPE_MAP () ],
+    'createRegularOrderRequest': [ JAVA_ARRAY_TYPE_MAP () ], 'postActionRequest': [ JAVA_ARRAY_TYPE_MAP () ],
+    'getBybitType': [ 'java.util.List<Object>' ], 'getInstType': [ 'java.util.List<Object>' ],
+    'getMarginMode': [ 'java.util.List<Object>' ], 'resolveAuthType': [ 'java.util.List<Object>' ],
+};
+
+function JAVA_ARRAY_TYPE_MAP () {
+    return 'java.util.Map<String, Object>';
+}
+
+function venueAnnotationJavaType (printer, node) {
+    if (node?.kind !== ts.SyntaxKind.MethodDeclaration || node.type === undefined || node.body === undefined) {
+        return undefined;
+    }
+    if (typeof printer.isAsyncFunction === 'function' && printer.isAsyncFunction (node)) {
+        return undefined;
+    }
+    const kinds = VENUE_RETURN_KINDS[node.name?.escapedText];
+    if (kinds === undefined) {
+        return undefined;
+    }
+    let type;
+    try {
+        type = printer.getChecker ().getTypeAtLocation (node.type);
+    } catch (e) {
+        return undefined;
+    }
+    if (type?.isUnion?.()) {
+        const parts = type.types.filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+        if (parts.length !== 1) {
+            return undefined;
+        }
+        type = parts[0];
+    }
+    const checker = printer.getChecker ();
+    let java;
+    if (type === undefined || (type.flags & ts.TypeFlags.Any) !== 0) {
+        java = undefined;
+    } else if ((type.flags & ts.TypeFlags.StringLike) !== 0) {
+        java = 'String';
+    } else if ((type.flags & ts.TypeFlags.NumberLike) !== 0) {
+        java = 'Long';
+    } else if (checker.isArrayType (type) || checker.isTupleType (type)) {
+        java = 'java.util.List<Object>';
+    } else if (isParseStructureReturnType (printer, type)) {
+        java = JAVA_ARRAY_TYPE_MAP ();
+    }
+    return kinds.includes (java) ? java : undefined;
+}
+
+// the one predicate: own annotation type, equal on every ancestor declaration
+function venueReturnJavaType (printer, node) {
+    const own = venueAnnotationJavaType (printer, node);
+    if (own === undefined) {
+        return undefined;
+    }
+    try {
+        let ancestor = printer.getMethodOverride (node);
+        while (ancestor !== undefined) {
+            if (venueAnnotationJavaType (printer, ancestor) !== own) {
+                return undefined;
+            }
+            ancestor = printer.getMethodOverride (ancestor);
+        }
+    } catch (e) {
+        return undefined;
+    }
+    return own;
+}
+
+function venueCallJavaType (printer, call) {
+    if (!isThisOrSuperCall (call) || VENUE_RETURN_KINDS[call.expression.name?.escapedText] === undefined) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (call)?.declaration;
+    } catch (e) {
+        return undefined;
+    }
+    return declaration === undefined ? undefined : venueReturnJavaType (printer, declaration);
+}
+
+// `return X;` of a venue-typed method: literals of the type pass, everything else is checkcast
+function venueReturnCast (printer, node, method, javaType) {
+    let expression = node.expression;
+    while (expression !== undefined && (ts.isAsExpression (expression) || ts.isNonNullExpression (expression))) {
+        expression = expression.expression;
+    }
+    if (expression === undefined || expression.kind === ts.SyntaxKind.NullKeyword
+        || (ts.isIdentifier (expression) && expression.escapedText === 'undefined')) {
+        return undefined;
+    }
+    if ((javaType === 'String' && ts.isStringLiteralLike (expression))
+        || (javaType === 'java.util.List<Object>' && ts.isArrayLiteralExpression (expression))
+        || (javaType === JAVA_ARRAY_TYPE_MAP () && ts.isObjectLiteralExpression (expression))) {
+        return undefined;
+    }
+    if (enclosingFunction (node) !== method) {
+        return undefined;
+    }
+    return '(' + javaType + ')';
+}
+
 // ===== method signature retype =====
 
 function javaMethodReturnType (printer, node, own) {
@@ -1855,7 +1969,7 @@ function javaMethodReturnType (printer, node, own) {
     if (JAVA_LIST_RETURN_METHODS.has (name)) {
         return JAVA_ARRAY_TYPE;
     }
-    return undefined;
+    return venueReturnJavaType (printer, node);
 }
 
 // ===== return-statement casts =====
@@ -2509,6 +2623,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     }
     if (!asserted && JAVA_LIST_RETURN_METHODS.has (name)) {
         return resolvesToMethodNamed (printer, initializer, name) ? { type: JAVA_ARRAY_TYPE } : undefined;
+    }
+    const venue = asserted ? undefined : venueCallJavaType (printer, initializer);
+    if (venue !== undefined) {
+        return { type: venue };
     }
     const accessor = LOCAL_THIS_RETURN_TYPES[name];
     if (!asserted && accessor !== undefined && accessorResolvesToBase (printer, initializer, name, accessor)) {
@@ -5234,6 +5352,22 @@ export function installJavaLocalTypes (transpiler) {
             return printed;
         }
         const methodName = method.name.escapedText;
+        const venueType = venueReturnJavaType (printer, method);
+        if (venueType !== undefined) {
+            const venueCast = venueReturnCast (printer, node, method, venueType);
+            const at = venueCast === undefined ? -1 : printed.lastIndexOf ('return ');
+            if (at === -1) {
+                return printed;
+            }
+            const tail = printed.slice (at + 'return '.length);
+            const end = tail.lastIndexOf (';');
+            if (end === -1) {
+                return printed;
+            }
+            // numeric boxes (sum/subtract may hand back Integer or Double) convert, not checkcast
+            const open = venueType === 'Long' ? 'Helpers.toLongOrNull(' : venueCast + ' (';
+            return printed.slice (0, at + 'return '.length) + open + tail.slice (0, end) + ')' + tail.slice (end);
+        }
         if (!JAVA_LIST_RETURN_METHODS.has (methodName)
             && !JAVA_STRING_RETURN_METHODS_CAST.has (methodName)) {
             return printed;

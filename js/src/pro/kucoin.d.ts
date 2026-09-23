@@ -5,7 +5,7 @@ export default class kucoin extends kucoinRest {
     describe(): any;
     negotiate(privateChannel: any, isFuturesMethod?: boolean, params?: Dict): Promise<any>;
     negotiateHelper(privateChannel: any, connectId: string, params?: Dict): Promise<Str>;
-    requestId(): any;
+    requestId(): number;
     subscribe(url: string, messageHash: string, subscriptionHash: string, params?: Dict, subscription?: NullableDict): Promise<any>;
     subscribePublicUta(messageHash: string, channel: string, symbol: string, params?: Dict, subscription?: NullableDict): Promise<any>;
     subscribePrivateUta(messageHashes: string[], subscribeHash: string, channel: string, symbol?: Str, params?: Dict, subscription?: NullableDict): Promise<any>;

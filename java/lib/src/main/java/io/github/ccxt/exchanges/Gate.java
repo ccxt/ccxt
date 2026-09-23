@@ -2933,7 +2933,7 @@ public class Gate extends GateApi
         return this.multiOrderSpotPrepareRequest(Helpers.getArgMap(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : false, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public Object getMarginMode(Boolean trigger, Map<String, Object> parameters)
+    public List<Object> getMarginMode(Boolean trigger, Map<String, Object> parameters)
     {
         /**
          * @ignore
@@ -6246,7 +6246,7 @@ final Object finalPointFee = pointFee;
             Boolean isTakeProfitOrder = !java.util.Objects.equals(takeProfitPrice, null);
             Boolean isTpsl = Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder);
             Boolean nonTriggerOrder = !Boolean.TRUE.equals(isTpsl) && (java.util.Objects.equals(trigger, null));
-            Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("margin"), true)))
             {
@@ -6418,7 +6418,7 @@ final Object finalPointFee = pointFee;
                 throw new NotSupported((this.id + " createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)")) ;
             }
             ((Map<String, Object>)extendedParams).put("textIsRequired", true); // the exchange requires a text parameter for each order here
-            Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
+            Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((List<Object>)ordersRequests).add(orderRequest);
         }
         Object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -6484,7 +6484,7 @@ final Object finalPointFee = pointFee;
         return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -6800,9 +6800,9 @@ final Object finalPointFee = pointFee;
                 }
             }
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -6910,7 +6910,7 @@ final Object finalPointFee = pointFee;
         {
             ((Map<String, Object>)request).put("settle", ((Map<String, Object>)market).get("settleId"));
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
     public Object editOrderRequest(Object id, String symbol, String type, String side, Object... optionalArgs)
     {
@@ -9899,9 +9899,9 @@ final Object finalI = i;
         return this.parseBorrowInterest(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
@@ -9999,8 +9999,8 @@ final Object finalI = i;
             }
             Object bodyPayload = (((java.util.Objects.equals(body, null)))) ? "" : body;
             Object bodySignature = this.hash(this.encode(bodyPayload), sha512());
-            Object nonce = this.nonce();
-            Long timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
+            Long nonce = this.nonce();
+            Long timestamp = this.parseToInt((((double) nonce) / ((double) 1000)));
             String timestampString = String.valueOf(timestamp);
             String signaturePath = (("/api/" + this.version) + entirePath);
             Object payloadArray = new ArrayList<Object>(Arrays.asList(((String)method).toUpperCase(), signaturePath, rawQueryString, bodySignature, timestampString));

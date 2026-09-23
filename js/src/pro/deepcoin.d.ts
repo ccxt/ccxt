@@ -5,7 +5,7 @@ export default class deepcoin extends deepcoinRest {
     describe(): any;
     ping(client: Client): Str;
     handlePong(client: Client, message: Dict): Dict;
-    requestId(): any;
+    requestId(): number;
     createPublicRequest(market: any, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): Dict;
     watchPublic(market: any, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
     unWatchPublic(market: any, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;

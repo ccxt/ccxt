@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
     describeData(): any;
-    requestId(): any;
+    requestId(): number;
     getUrlByMarketType(symbol?: Str, isPrivate?: Bool, method?: Str, params?: Dict): Promise<string>;
     cleanParams(params: Dict): Dict;
     /**

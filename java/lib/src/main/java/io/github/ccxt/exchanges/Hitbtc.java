@@ -858,9 +858,9 @@ public class Hitbtc extends HitbtcApi
         }});
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     /**

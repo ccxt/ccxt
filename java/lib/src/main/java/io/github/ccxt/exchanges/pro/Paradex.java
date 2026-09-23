@@ -67,11 +67,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }});
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
-        return requestId;
+        return Helpers.toLongOrNull(requestId);
     }
 
     public CompletableFuture<Object> authenticate(Map<String, Object> parameters)

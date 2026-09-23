@@ -8164,7 +8164,7 @@ final Object finalMinNotional = minNotional;
                 }
             } else
             {
-                Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+                Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
                     if (Boolean.TRUE.equals(isTriggerOrder))
@@ -8433,7 +8433,7 @@ final Object finalMinNotional = minNotional;
         return this.createUtaOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -8752,9 +8752,9 @@ final Object finalMinNotional = minNotional;
         {
             throw new NotSupported((((this.id + " createOrder() does not support ") + marketType) + " orders")) ;
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -8901,7 +8901,7 @@ final Object finalMinNotional = minNotional;
                         }
                     }
                 }
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -16351,9 +16351,9 @@ final Object finalMinNotional = minNotional;
         return null;
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

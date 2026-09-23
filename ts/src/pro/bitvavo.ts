@@ -1227,7 +1227,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    requestId () {
+    requestId (): number {
         const ts = this.milliseconds ().toString ();
         const randomNumber = this.randNumber (4);
         const randomPart = randomNumber.toString ();

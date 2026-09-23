@@ -3722,7 +3722,7 @@ final Object finalMarketSymbol = marketSymbol;
             // complement - so a single subscription serves both outcomes and each waits on its own hash
             String topic = ("predictOrderbook/" + marketId);
             String messageHash = ("orderbook::" + outcomeHandle);
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "requestId", requestId );
@@ -3798,7 +3798,7 @@ final Object finalMarketSymbol = marketSymbol;
                     ((List<Object>)messageHashes).add(("unsubscribe::orderbook::" + handle));
                 }
             }
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "requestId", requestId );
@@ -4328,7 +4328,7 @@ final Object finalSubHash = subHash;
      * @description a monotonic id the venue echoes back so a subscription reply can be matched to its request
      * @returns {int} the next request id
      */
-    public Object requestId()
+    public Long requestId()
     {
         Object next;
         synchronized (this) {
@@ -4336,7 +4336,7 @@ final Object finalSubHash = subHash;
         next = this.sum(previous, 1);
         Helpers.addElementToObject(this.options, "requestId", next);
         }
-        return next;
+        return Helpers.toLongOrNull(next);
     }
 
     /**
@@ -4957,11 +4957,11 @@ final Object finalBids = bids;
         }
     }
 
-    public Object nonce()
+    public Long nonce()
     {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     /**

@@ -272,7 +272,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.editOrderRequest(id, (String) (symbol), type, (String) (side), amount, price, (Map<String, Object>) (market), parameters);
+            Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), type, (String) (side), amount, price, (Map<String, Object>) (market), parameters);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("originAddress", "agentAddress", "expiryWindow", "clientOrderId")));
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
@@ -1174,7 +1174,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Object parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
+            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1343,14 +1343,14 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         for (var i = 0; i < ((List<?>)entry).size(); i++)
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(entry, i, new HashMap<String, Object>() {{}});
-            Object trade = this.parseWsTrade((Map<String, Object>) (data));
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data));
             Helpers.callDynamically(trades, "append", new Object[]{trade});
         }
         String messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // fetchMyTrades
@@ -1422,7 +1422,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Pacifica.this.iso8601(timestamp) );
@@ -1439,9 +1439,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 put( "cost", fee );
                 put( "currency", "USDC" );
             }} );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -2052,9 +2052,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         return message;
     }
 
-    public Object requestId()
+    public String requestId()
     {
-        return this.uuid();  // uuid v4
+        return (String) (this.uuid());  // uuid v4
     }
 
     public Object wrapAsPostAction(String operationType, Map<String, Object> request)
@@ -2063,7 +2063,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             throw new ArgumentsRequired((this.id + "postAction() requires a \"operationType\" argument!")) ;
         }
-        Object requestId = this.requestId();
+        String requestId = this.requestId();
         Map<String, Object> payload = new HashMap<String, Object>() {{
             put( "id", requestId );
             put( "params", new HashMap<String, Object>() {{}} );

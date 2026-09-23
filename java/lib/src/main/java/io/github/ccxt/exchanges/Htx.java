@@ -10268,9 +10268,9 @@ public class Htx extends HtxApi
         return this.parseBorrowInterest(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

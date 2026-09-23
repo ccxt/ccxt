@@ -120,14 +120,14 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         return this.fromEr(er, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object requestId;
         synchronized (this) {
         requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
         }
-        return requestId;
+        return Helpers.toLongOrNull(requestId);
     }
 
     public Object parseSwapTicker(Map<String, Object> ticker, Map<String, Object> market)
@@ -648,7 +648,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 name = ((Boolean.TRUE.equals(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             String subscriptionHash = (name + ".subscribe");
             String messageHash = ("ticker:" + symbol);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -709,7 +709,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 name = ((Boolean.TRUE.equals(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             String subscriptionHash = (name + ".subscribe");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -777,7 +777,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
@@ -842,7 +842,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
@@ -906,7 +906,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
@@ -1962,7 +1962,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             this.checkRequiredCredentials();
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Client client = this.client(url);
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             String messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(future, null))
@@ -1981,7 +1981,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 Map<String, Object> message = this.extend(request, parameters);
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                 {
-                    Helpers.addElementToObject(client.subscriptions, subscriptionHash, "handleAuthenticate");
+                    ((Map)client.subscriptions).put((String)subscriptionHash, "handleAuthenticate");
                 }
                 future = (this.watch(url, messageHash, message, messageHash, null)).join();
                 ((Map)client.subscriptions).put((String)messageHash, future);

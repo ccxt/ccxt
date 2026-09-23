@@ -428,7 +428,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, i);
-                Object parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
+                Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
                 Helpers.callDynamically(stored, "append", new Object[]{parsed});
             }
         }
@@ -774,7 +774,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object tradesArray = this.myTrades;
-        Object parsed = this.parseWsTrade((Map<String, Object>) (message));
+        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (message));
         Helpers.callDynamically(tradesArray, "append", new Object[]{parsed});
         this.myTrades = tradesArray;
         String messageHash = "myTrades";
@@ -788,7 +788,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         this.handleMyTrade(client, message, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // watchTrades
@@ -838,7 +838,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         final Map<String, Object> finalMarket = market;
         final Object finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString2(trade, "v", "T") );
             put( "timestamp", timestamp );
             put( "datetime", Hashkey.this.iso8601(timestamp) );
@@ -852,9 +852,9 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             put( "order", Hashkey.this.safeString(trade, "o") );
             put( "fee", null );
             put( "info", trade );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

@@ -71,13 +71,13 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }});
     }
 
-    public Object requestId(Object url)
+    public Long requestId(Object url)
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
-        return newValue;
+        return Helpers.toLongOrNull(newValue);
     }
 
     public CompletableFuture<Object> watchPublic(Object messageHash, Map<String, Object> message, Map<String, Object> subscription2)
@@ -86,7 +86,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         return BaseExchange.supplyAsync(() -> {
             Object subscription = subscription3;
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> request = this.extend(message, new HashMap<String, Object>() {{
                 put( "id", requestId );
             }});
@@ -465,7 +465,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         return BaseExchange.supplyAsync(() -> {
             Object subscription = subscription3;
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> request = this.extend(message, new HashMap<String, Object>() {{
                 put( "id", requestId );
             }});
@@ -644,7 +644,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Object requestId = this.requestId(url);
+                Long requestId = this.requestId(url);
                 String now = String.valueOf(this.milliseconds());
                 Object signature = this.signMessage(now, this.privateKey);
                 String deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
@@ -681,7 +681,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Object subscription = subscription3;
             (this.authenticate()).join();
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> request = this.extend(message, new HashMap<String, Object>() {{
                 put( "id", requestId );
             }});

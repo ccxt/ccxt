@@ -2190,7 +2190,7 @@ public class Bithumb extends BithumbApi
             ((Map<String, Object>)request).put("client_order_id", clientOrderId);
             parameters = (Map<String, Object>) (this.omit(parameters, "clientOrderId"));
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
     public Object createOrderRequest(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
@@ -4402,9 +4402,9 @@ public class Bithumb extends BithumbApi
         return finalNumberStr;
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object urlencodeWithArrayBrackets(Map<String, Object> query)

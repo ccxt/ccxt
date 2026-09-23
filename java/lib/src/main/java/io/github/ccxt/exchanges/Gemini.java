@@ -2574,14 +2574,14 @@ public class Gemini extends GeminiApi
         return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
         String nonceMethod = this.safeString(this.options, "nonce", "milliseconds");
         if (java.util.Objects.equals(nonceMethod, "milliseconds"))
         {
-            return this.milliseconds();
+            return Helpers.toLongOrNull(this.milliseconds());
         }
-        return this.seconds();
+        return Helpers.toLongOrNull(this.seconds());
     }
 
     /**
