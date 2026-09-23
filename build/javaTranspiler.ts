@@ -174,6 +174,8 @@ const RETYPE_METHOD_END = /^ {0,4}\}$/;
 const RETYPE_AUDITED_USE_SHAPES = [
     /^\s*(?:[A-Za-z_$][\w$.]*\s*\.\s*)?put\s*\([^;]*,\s*NAME\s*\)\s*;$/,
     /^\s*(?:final\s+)?Object\s+[A-Za-z_$][\w$]*\s*=\s*NAME\s*;$/,
+    // a value line of a multi-line `Helpers.newMap("k", v, ...)` (Object... parameter)
+    /^\s*"[^"]*",\s*NAME,?\s*(?:\/\/.*)?$/,
 ];
 
 // the plain copy shape `Object x = y;` (the async-param inside-wrapper
@@ -182,7 +184,7 @@ const RETYPE_COPY_LINE = /^(\s*)Object ([A-Za-z_$][A-Za-z0-9_$]*) = ([A-Za-z_$][
 // every one of these callees declares an `Object` parameter at the position the hoisted name can
 // occupy (BaseExchange.java/Helpers.java/Precise.java read at 5faa2c21), so a narrower static
 // argument type cannot move the overload; the receivers themselves are untouched.
-const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.equals|Boolean\.TRUE\.equals|Helpers\.(?:add|isEqual|isGreaterThan|isLessThan|divide|multiply|GetValue|replace|toString|newMap)|Precise\.(?:stringAbs|stringMul|stringAdd|stringSub|stringDiv)|(?:java\.util\.)?Arrays\.asList|(?:this|[A-Za-z_$][\w$.]*\.this)\.\w+|\w*(?:\.\w+)*\.put)$/;
+const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.equals|Boolean\.TRUE\.equals|Helpers\.(?:add|isEqual|isGreaterThan|isLessThan|divide|multiply|GetValue|replace|toString|newMap|task)|Precise\.(?:stringAbs|stringMul|stringAdd|stringSub|stringDiv)|(?:java\.util\.)?Arrays\.asList|(?:this|[A-Za-z_$][\w$.]*\.this)\.\w+|\w*(?:\.\w+)*\.put)$/;
 // callees whose Java return type is String (BaseExchange.java:8623 symbol, :10911 safeSymbol,
 // :1080 numberToString, :1264 iso8601, :1101 safeString, :10697 safeCurrencyCode, :1232 capitalize,
 // Helpers.java:521 toString, :797 replace, Precise.stringMul/stringAdd/stringAbs): a write whose
