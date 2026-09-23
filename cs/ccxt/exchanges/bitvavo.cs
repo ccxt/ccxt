@@ -1231,7 +1231,7 @@ public partial class bitvavo : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 1440, max 1440
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1440); // default 1440, max 1440
         }
         return this.extend(request, parameters);
     }
