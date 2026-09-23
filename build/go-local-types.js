@@ -5077,6 +5077,14 @@ function ccxtGoElementReadInitializer (declaration) {
     return node;
 }
 
+const CCXT_GO_ELEMENT_READ_STRUCT_NAMES = /OrderBook|ArrayCache|Client|Future/;
+
+function ccxtGoElementReadIsObject (checker, type) {
+    const parts = (type?.isUnion?. ()) ? type.types : [ type ];
+    return parts.some ((t) => (t?.symbol !== undefined) && (((t.symbol.flags & ts.SymbolFlags.Class) !== 0)
+        || CCXT_GO_ELEMENT_READ_STRUCT_NAMES.test (checker.typeToString (t))));
+}
+
 function ccxtGoElementReadLocalType (goTranspiler, declaration, family) {
     if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || (declaration.name?.kind !== ts.SyntaxKind.Identifier)) {
         return undefined;
@@ -5084,8 +5092,8 @@ function ccxtGoElementReadLocalType (goTranspiler, declaration, family) {
     if (declaration.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement) {
         return undefined;
     }
-    // ws caches, order-book sides and structs live only outside the REST tier
-    if ((ccxtGoElementReadInitializer (declaration) === undefined) || !ccxtGoSafeCollectionIsRestSource (declaration)) {
+    const initializer = ccxtGoElementReadInitializer (declaration);
+    if (initializer === undefined) {
         return undefined;
     }
     if ((typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function') || (typeof goTranspiler.goSafeDictUseReadsTheMap !== 'function')
@@ -5126,6 +5134,15 @@ function ccxtGoElementReadLocalType (goTranspiler, declaration, family) {
         return undefined;
     }
     if (dictLike && parts.some ((t) => isList (t) || ((t.flags & scalarFlags) !== 0))) {
+        return undefined;
+    }
+    // ws caches, order books and clients are Go structs read by reflect: MapTyped would drop them
+    for (let node = initializer; node?.kind === ts.SyntaxKind.ElementAccessExpression; node = node.expression) {
+        if (ccxtGoElementReadIsObject (checker, checker.getTypeAtLocation (node.expression))) {
+            return undefined;
+        }
+    }
+    if (ccxtGoElementReadIsObject (checker, valueType)) {
         return undefined;
     }
     // the key must fit the container family, or the typed conversion would hide the value
