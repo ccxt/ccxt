@@ -3,8 +3,9 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Currency, Dict, Endpoint, Int, List, Market, NullableDict, Str, int } from './base/types.js';
+import type { Currencies, Currency, Dict, Endpoint, Int, List, Market, NullableDict, OrderBook, Str, Strings, Ticker, Tickers, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -77,15 +78,15 @@ export default class umx extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
@@ -259,6 +260,7 @@ export default class umx extends Exchange {
                     'margin': 'spot',
                     'swap': 'linear_perpetual',
                     'future': 'linear_futures',
+                    'option': 'options',
                 },
             },
             'features': {
@@ -745,7 +747,10 @@ export default class umx extends Exchange {
         // every instrument is quoted and settled in USDT, so there are no inverse contracts
         const linear = (contract) ? true : undefined;
         const inverse = (contract) ? false : undefined;
-        const contractSize = (contract) ? this.safeNumber (market, 'ctVal') : undefined;
+        // the venue quotes qty in the base currency on every contract market, so one contract is
+        // one unit of base, ctVal is the nominal face value and not an order size multiplier,
+        // verified live as fillAmount / fillQty == the base price across ctVal from 1e-4 to 1e6
+        const contractSize = (contract) ? this.parseNumber ('1') : undefined;
         const strike = (option) ? this.parseNumber (strikePrice) : undefined;
         return this.safeMarketStructure ({
             'id': id,
@@ -798,6 +803,223 @@ export default class umx extends Exchange {
             'created': this.safeInteger (market, 'onlineTime'),
             'info': market,
         });
+    }
+
+    /**
+     * @method
+     * @name umx#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-24-hour-ticker-data
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const businessTypes = this.safeDict (this.options, 'businessTypes', {});
+        const marketType = market['type'];
+        const businessType = this.safeString (businessTypes, marketType, marketType);
+        // unlike fetchTickers, this endpoint answers for an option market once the symbol is given
+        const request: Dict = {
+            'businessType': businessType,
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV1MarketTicker24hr (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "businessType": "spot",
+        //                 "symbol": "ETH-USDT",
+        //                 "priceChange": "-30.46",
+        //                 "priceChangePercent": "-0.011",
+        //                 "lastPrice": "2722.76",
+        //                 "openPrice": "2753.22",
+        //                 "highPrice": "2788.61",
+        //                 "lowPrice": "2713.98",
+        //                 "fillQty": "420.3057",
+        //                 "fillAmount": "1155317.195959",
+        //                 "count": "18853",
+        //                 "baseCurrency": "ETH",
+        //                 "indexPrice": "2722.73",
+        //                 "markPrice": "0",
+        //                 "fundingRate": "0",
+        //                 "toNextFundRateTime": "0",
+        //                 "markIv": null,
+        //                 "underlyingPrice": null,
+        //                 "delta": "0",
+        //                 "gamma": "0",
+        //                 "vega": "0",
+        //                 "theta": "0"
+        //             }
+        //         ],
+        //         "ts": "1790167770773"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        // a listed market that has never traded answers with code 0 and an empty data array,
+        // the parsed ticker then carries the symbol and the timestamp with empty values
+        const first = this.safeDict (data, 0, {});
+        const timestamp = this.safeInteger (response, 'ts');
+        return this.parseTicker (this.extend (first, {
+            'ts': timestamp,
+        }), market);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-24-hour-ticker-data
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all markets of one instrument type are returned if not given
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] the instrument type to query, one of 'spot', 'swap' or 'future', defaults to options['defaultType'], option markets are not supported
+     * @param {string} [params.baseCurrency] *spot only* base currency id
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        let market: Market = undefined;
+        if (symbols !== undefined) {
+            market = this.getMarketFromSymbols (symbols);
+        }
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        if (marketType === 'option') {
+            // the endpoint serves option tickers for one base currency per call and silently
+            // defaults to btc, so the whole option universe cannot be returned by a single request
+            // even with a base currency specified, the endpoint does not return tickers for all
+            // of that currency's option markets, e.g. 9 tickers against 840 listed eth options
+            throw new NotSupported (this.id + ' fetchTickers() does not support option markets');
+        }
+        const businessTypes = this.safeDict (this.options, 'businessTypes', {});
+        const businessType = this.safeString (businessTypes, marketType, marketType);
+        const request: Dict = {
+            'businessType': businessType,
+        };
+        const response = await this.publicGetV1MarketTicker24hr (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "businessType": "linear_perpetual",
+        //                 "symbol": "ETH-USDT-PERP",
+        //                 "priceChange": "-30.3",
+        //                 "priceChangePercent": "-0.011",
+        //                 "lastPrice": "2721.27",
+        //                 "openPrice": "2751.57",
+        //                 "highPrice": "2787.63",
+        //                 "lowPrice": "2709.91",
+        //                 "fillQty": "7004.355",
+        //                 "fillAmount": "19267598.6709",
+        //                 "count": "26317",
+        //                 "baseCurrency": "ETH",
+        //                 "indexPrice": "2722.74",
+        //                 "markPrice": "2721.27",
+        //                 "fundingRate": "-0.000024",
+        //                 "toNextFundRateTime": "11429182",
+        //                 "markIv": null,
+        //                 "underlyingPrice": null,
+        //                 "delta": "0",
+        //                 "gamma": "0",
+        //                 "vega": "0",
+        //                 "theta": "0"
+        //             }
+        //         ],
+        //         "ts": "1790167771743"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        // the entries carry no timestamp of their own, only the envelope does
+        const timestamp = this.safeInteger (response, 'ts');
+        const rawTickers: List = [];
+        for (let i = 0; i < data.length; i++) {
+            rawTickers.push (this.extend (this.safeDict (data, i, {}), {
+                'ts': timestamp,
+            }));
+        }
+        return this.parseTickers (rawTickers, symbols);
+    }
+
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (ticker, 'ts');
+        const last = this.safeString (ticker, 'lastPrice');
+        // priceChangePercent is a ratio, e.g. "-0.011" for -1.1%
+        const percentage = Precise.stringMul (this.safeString (ticker, 'priceChangePercent'), '100');
+        // the endpoint reports no order book top, and it zero fills markPrice on spot markets
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'openPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'priceChange'),
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'fillQty'),
+            'quoteVolume': this.safeString (ticker, 'fillAmount'),
+            'indexPrice': this.omitZero (this.safeString (ticker, 'indexPrice')),
+            'markPrice': this.omitZero (this.safeString (ticker, 'markPrice')),
+            'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-order-book-depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'], // businessType is accepted but not needed, every market id is unique across the venue
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV1MarketDepth (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": {
+        //             "bids": [ [ "85496.65", "1.2485" ], [ "85490.24", "0.60673" ] ],
+        //             "asks": [ [ "85496.66", "14.99583" ], [ "85500.08", "1.88534" ] ],
+        //             "lastUpdateId": "2995940926"
+        //         },
+        //         "ts": "1790166895485"
+        //     }
+        //
+        // the docs cap limit at 100, the endpoint actually returns every level it has
+        //
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (response, 'ts');
+        const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks');
+        orderbook['nonce'] = this.safeInteger (data, 'lastUpdateId');
+        return orderbook;
     }
 
     /**

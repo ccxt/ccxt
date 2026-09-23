@@ -8,6 +8,130 @@
     ],
     "options": {},
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "ticker of a market that has never traded",
+                "method": "fetchTicker",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=options&symbol=ETH-USDT-27SEP26-2560-C",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C"
+                ],
+                "output": null
+            },
+            {
+                "description": "option ticker",
+                "method": "fetchTicker",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=options&symbol=ETH-USDT-25SEP26-2700-C",
+                "input": [
+                    "ETH/USDT:USDT-260925-2700-C"
+                ],
+                "output": null
+            },
+            {
+                "description": "future ticker",
+                "method": "fetchTicker",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=linear_futures&symbol=ETH-USDT-25SEP26",
+                "input": [
+                    "ETH/USDT:USDT-260925"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=linear_perpetual&symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=spot&symbol=ETH-USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "future tickers",
+                "method": "fetchTickers",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=linear_futures",
+                "input": [
+                    [
+                        "ETH/USDT:USDT-260925"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=linear_perpetual",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=spot",
+                "input": [
+                    [
+                        "ETH/USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "option order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.umx.com/api/v1/market/depth?symbol=ETH-USDT-27SEP26-2560-C&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "future order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.umx.com/api/v1/market/depth?symbol=ETH-USDT-25SEP26&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "swap order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.umx.com/api/v1/market/depth?symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "spot order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.umx.com/api/v1/market/depth?symbol=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    2
+                ],
+                "output": null
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetch currencies",

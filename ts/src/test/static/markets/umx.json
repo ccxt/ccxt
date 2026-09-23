@@ -132,7 +132,7 @@
         "subType": "linear",
         "taker": null,
         "maker": null,
-        "contractSize": 0.001,
+        "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -247,7 +247,7 @@
         "subType": "linear",
         "taker": null,
         "maker": null,
-        "contractSize": 0.001,
+        "contractSize": 1,
         "expiry": 1790323200000,
         "expiryDatetime": "2026-09-25T08:00:00.000Z",
         "strike": null,
@@ -411,6 +411,118 @@
             "pricePrecision": "1",
             "quantityPrecision": "1",
             "onlineTime": "1790151930208",
+            "riskEngineRate": null,
+            "maxLeverage": null,
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "0.1",
+                "minOrderAmt": null,
+                "maxOrderNum": "8",
+                "maxBaseNum": "4000",
+                "maxComboleg": "20",
+                "maxTriggerOrderNum": "8",
+                "maxTpslOrderNum": "8",
+                "maxLmtOrderAmt": null,
+                "maxMktOrderAmt": null,
+                "maxLmtOrderQty": null,
+                "maxMktOrderQty": null,
+                "basisLimitRatio": null,
+                "minRfqQty": "0.1",
+                "minComboQty": "0.1"
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": null,
+                "minLmtPriceDown": null,
+                "maxMktPriceUp": null,
+                "minMktPriceDown": null
+            },
+            "positionParameters": {
+                "positionRatioThreshold": null,
+                "positionMaxRatio": null,
+                "positionCidMaxRatio": null,
+                "defaultLeverRatio": null,
+                "maxShortQty": "10000"
+            },
+            "group": [
+                "0.1"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "ETH/USDT:USDT-260925-2700-C": {
+        "id": "ETH-USDT-25SEP26-2700-C",
+        "lowercaseId": null,
+        "symbol": "ETH/USDT:USDT-260925-2700-C",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "option",
+        "spot": false,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": true,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": 1790323200000,
+        "expiryDatetime": "2026-09-25T08:00:00.000Z",
+        "strike": 2700,
+        "optionType": "call",
+        "precision": {
+            "amount": 0.1,
+            "price": 0.2
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.1,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1771335630247,
+        "info": {
+            "businessType": "options",
+            "symbol": "ETH-USDT-25SEP26-2700-C",
+            "symbolFamily": "ETH-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "ETH",
+            "settleCurrency": "USDT",
+            "ctVal": "1",
+            "optType": "call",
+            "strikePrice": "2700",
+            "tickSize": "0.2",
+            "status": "trading",
+            "deliveryTime": "1790323200000",
+            "deliveryFeeRate": null,
+            "pricePrecision": "1",
+            "quantityPrecision": "1",
+            "onlineTime": "1771335630247",
             "riskEngineRate": null,
             "maxLeverage": null,
             "contractType": null,

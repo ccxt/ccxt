@@ -8,6 +8,913 @@
     ],
     "options": {},
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "ticker of a market that has never traded",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [],
+                    "ts": "1790170761017"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT-260927-2560-C",
+                    "timestamp": 1790170761017,
+                    "datetime": "2026-09-23T13:39:21.017Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "indexPrice": null,
+                    "markPrice": null,
+                    "info": {
+                        "ts": 1790170761017
+                    }
+                }
+            },
+            {
+                "description": "option ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT:USDT-260925-2700-C"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "options",
+                            "symbol": "ETH-USDT-25SEP26-2700-C",
+                            "priceChange": "0",
+                            "priceChangePercent": "0",
+                            "lastPrice": "20.8",
+                            "openPrice": "20.8",
+                            "highPrice": "20.8",
+                            "lowPrice": "20.8",
+                            "fillQty": "0",
+                            "fillAmount": "0",
+                            "count": "0",
+                            "baseCurrency": "ETH",
+                            "indexPrice": "2722",
+                            "markPrice": "48",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": "0.4604",
+                            "underlyingPrice": "2723.3",
+                            "delta": "0.61626021",
+                            "gamma": "0.00438268",
+                            "vega": "0.72273276",
+                            "theta": "-10.17272664"
+                        }
+                    ],
+                    "ts": "1790170758069"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT-260925-2700-C",
+                    "timestamp": 1790170758069,
+                    "datetime": "2026-09-23T13:39:18.069Z",
+                    "high": 20.8,
+                    "low": 20.8,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 20.8,
+                    "close": 20.8,
+                    "last": 20.8,
+                    "previousClose": null,
+                    "change": 0,
+                    "percentage": 0,
+                    "average": 20.8,
+                    "baseVolume": 0,
+                    "quoteVolume": 0,
+                    "indexPrice": 2722,
+                    "markPrice": 48,
+                    "info": {
+                        "businessType": "options",
+                        "symbol": "ETH-USDT-25SEP26-2700-C",
+                        "priceChange": "0",
+                        "priceChangePercent": "0",
+                        "lastPrice": "20.8",
+                        "openPrice": "20.8",
+                        "highPrice": "20.8",
+                        "lowPrice": "20.8",
+                        "fillQty": "0",
+                        "fillAmount": "0",
+                        "count": "0",
+                        "baseCurrency": "ETH",
+                        "indexPrice": "2722",
+                        "markPrice": "48",
+                        "fundingRate": "0",
+                        "toNextFundRateTime": "0",
+                        "markIv": "0.4604",
+                        "underlyingPrice": "2723.3",
+                        "delta": "0.61626021",
+                        "gamma": "0.00438268",
+                        "vega": "0.72273276",
+                        "theta": "-10.17272664",
+                        "ts": 1790170758069
+                    }
+                }
+            },
+            {
+                "description": "future ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT:USDT-260925"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "linear_futures",
+                            "symbol": "ETH-USDT-25SEP26",
+                            "priceChange": "-25.24",
+                            "priceChangePercent": "-0.0091",
+                            "lastPrice": "2722.6",
+                            "openPrice": "2747.84",
+                            "highPrice": "2789.89",
+                            "lowPrice": "2709.59",
+                            "fillQty": "14.864",
+                            "fillAmount": "40881.59996",
+                            "count": "3856",
+                            "baseCurrency": "ETH",
+                            "indexPrice": "2721.29",
+                            "markPrice": "2723.72",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": null,
+                            "underlyingPrice": null,
+                            "delta": "0",
+                            "gamma": "0",
+                            "vega": "0",
+                            "theta": "0"
+                        }
+                    ],
+                    "ts": "1790170755230"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT-260925",
+                    "timestamp": 1790170755230,
+                    "datetime": "2026-09-23T13:39:15.230Z",
+                    "high": 2789.89,
+                    "low": 2709.59,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 2750.3767465016144,
+                    "open": 2747.84,
+                    "close": 2722.6,
+                    "last": 2722.6,
+                    "previousClose": null,
+                    "change": -25.24,
+                    "percentage": -0.91,
+                    "average": 2735.22,
+                    "baseVolume": 14.864,
+                    "quoteVolume": 40881.59996,
+                    "indexPrice": 2721.29,
+                    "markPrice": 2723.72,
+                    "info": {
+                        "businessType": "linear_futures",
+                        "symbol": "ETH-USDT-25SEP26",
+                        "priceChange": "-25.24",
+                        "priceChangePercent": "-0.0091",
+                        "lastPrice": "2722.6",
+                        "openPrice": "2747.84",
+                        "highPrice": "2789.89",
+                        "lowPrice": "2709.59",
+                        "fillQty": "14.864",
+                        "fillAmount": "40881.59996",
+                        "count": "3856",
+                        "baseCurrency": "ETH",
+                        "indexPrice": "2721.29",
+                        "markPrice": "2723.72",
+                        "fundingRate": "0",
+                        "toNextFundRateTime": "0",
+                        "markIv": null,
+                        "underlyingPrice": null,
+                        "delta": "0",
+                        "gamma": "0",
+                        "vega": "0",
+                        "theta": "0",
+                        "ts": 1790170755230
+                    }
+                }
+            },
+            {
+                "description": "swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "priceChange": "-26.73",
+                            "priceChangePercent": "-0.0097",
+                            "lastPrice": "2719.47",
+                            "openPrice": "2746.2",
+                            "highPrice": "2787.63",
+                            "lowPrice": "2706.48",
+                            "fillQty": "6887.931",
+                            "fillAmount": "18943153.71862",
+                            "count": "26253",
+                            "baseCurrency": "ETH",
+                            "indexPrice": "2720.87",
+                            "markPrice": "2719.38",
+                            "fundingRate": "-0.000029",
+                            "toNextFundRateTime": "8448889",
+                            "markIv": null,
+                            "underlyingPrice": null,
+                            "delta": "0",
+                            "gamma": "0",
+                            "vega": "0",
+                            "theta": "0"
+                        }
+                    ],
+                    "ts": "1790170752634"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "timestamp": 1790170752634,
+                    "datetime": "2026-09-23T13:39:12.634Z",
+                    "high": 2787.63,
+                    "low": 2706.48,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 2750.195046759324,
+                    "open": 2746.2,
+                    "close": 2719.47,
+                    "last": 2719.47,
+                    "previousClose": null,
+                    "change": -26.73,
+                    "percentage": -0.97,
+                    "average": 2732.83,
+                    "baseVolume": 6887.931,
+                    "quoteVolume": 18943153.71862,
+                    "indexPrice": 2720.87,
+                    "markPrice": 2719.38,
+                    "info": {
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "priceChange": "-26.73",
+                        "priceChangePercent": "-0.0097",
+                        "lastPrice": "2719.47",
+                        "openPrice": "2746.2",
+                        "highPrice": "2787.63",
+                        "lowPrice": "2706.48",
+                        "fillQty": "6887.931",
+                        "fillAmount": "18943153.71862",
+                        "count": "26253",
+                        "baseCurrency": "ETH",
+                        "indexPrice": "2720.87",
+                        "markPrice": "2719.38",
+                        "fundingRate": "-0.000029",
+                        "toNextFundRateTime": "8448889",
+                        "markIv": null,
+                        "underlyingPrice": null,
+                        "delta": "0",
+                        "gamma": "0",
+                        "vega": "0",
+                        "theta": "0",
+                        "ts": 1790170752634
+                    }
+                }
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "priceChange": "-26.97",
+                            "priceChangePercent": "-0.0098",
+                            "lastPrice": "2720.31",
+                            "openPrice": "2747.28",
+                            "highPrice": "2788.61",
+                            "lowPrice": "2707.72",
+                            "fillQty": "398.6086",
+                            "fillAmount": "1095441.157106",
+                            "count": "18733",
+                            "baseCurrency": "ETH",
+                            "indexPrice": "2720.73",
+                            "markPrice": "0",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": null,
+                            "underlyingPrice": null,
+                            "delta": "0",
+                            "gamma": "0",
+                            "vega": "0",
+                            "theta": "0"
+                        }
+                    ],
+                    "ts": "1790170749721"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "timestamp": 1790170749721,
+                    "datetime": "2026-09-23T13:39:09.721Z",
+                    "high": 2788.61,
+                    "low": 2707.72,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 2748.1623755884843,
+                    "open": 2747.28,
+                    "close": 2720.31,
+                    "last": 2720.31,
+                    "previousClose": null,
+                    "change": -26.97,
+                    "percentage": -0.98,
+                    "average": 2733.79,
+                    "baseVolume": 398.6086,
+                    "quoteVolume": 1095441.157106,
+                    "indexPrice": 2720.73,
+                    "markPrice": null,
+                    "info": {
+                        "businessType": "spot",
+                        "symbol": "ETH-USDT",
+                        "priceChange": "-26.97",
+                        "priceChangePercent": "-0.0098",
+                        "lastPrice": "2720.31",
+                        "openPrice": "2747.28",
+                        "highPrice": "2788.61",
+                        "lowPrice": "2707.72",
+                        "fillQty": "398.6086",
+                        "fillAmount": "1095441.157106",
+                        "count": "18733",
+                        "baseCurrency": "ETH",
+                        "indexPrice": "2720.73",
+                        "markPrice": "0",
+                        "fundingRate": "0",
+                        "toNextFundRateTime": "0",
+                        "markIv": null,
+                        "underlyingPrice": null,
+                        "delta": "0",
+                        "gamma": "0",
+                        "vega": "0",
+                        "theta": "0",
+                        "ts": 1790170749721
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "future tickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "ETH/USDT:USDT-260925"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "linear_futures",
+                            "symbol": "ETH-USDT-25SEP26",
+                            "priceChange": "-33.57",
+                            "priceChangePercent": "-0.0121",
+                            "lastPrice": "2722.6",
+                            "openPrice": "2756.17",
+                            "highPrice": "2789.89",
+                            "lowPrice": "2716.83",
+                            "fillQty": "15.126",
+                            "fillAmount": "41623.44748",
+                            "count": "3899",
+                            "baseCurrency": "ETH",
+                            "indexPrice": "2720.47",
+                            "markPrice": "2721.8",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": null,
+                            "underlyingPrice": null,
+                            "delta": "0",
+                            "gamma": "0",
+                            "vega": "0",
+                            "theta": "0"
+                        }
+                    ],
+                    "ts": "1790168301635"
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT-260925": {
+                        "symbol": "ETH/USDT:USDT-260925",
+                        "timestamp": 1790168301635,
+                        "datetime": "2026-09-23T12:58:21.635Z",
+                        "high": 2789.89,
+                        "low": 2716.83,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 2751.78153378289,
+                        "open": 2756.17,
+                        "close": 2722.6,
+                        "last": 2722.6,
+                        "previousClose": null,
+                        "change": -33.57,
+                        "percentage": -1.21,
+                        "average": 2739.38,
+                        "baseVolume": 15.126,
+                        "quoteVolume": 41623.44748,
+                        "indexPrice": 2720.47,
+                        "markPrice": 2721.8,
+                        "info": {
+                            "businessType": "linear_futures",
+                            "symbol": "ETH-USDT-25SEP26",
+                            "priceChange": "-33.57",
+                            "priceChangePercent": "-0.0121",
+                            "lastPrice": "2722.6",
+                            "openPrice": "2756.17",
+                            "highPrice": "2789.89",
+                            "lowPrice": "2716.83",
+                            "fillQty": "15.126",
+                            "fillAmount": "41623.44748",
+                            "count": "3899",
+                            "baseCurrency": "ETH",
+                            "indexPrice": "2720.47",
+                            "markPrice": "2721.8",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": null,
+                            "underlyingPrice": null,
+                            "delta": "0",
+                            "gamma": "0",
+                            "vega": "0",
+                            "theta": "0",
+                            "ts": 1790168301635
+                        }
+                    }
+                }
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "priceChange": "-34.63",
+                            "priceChangePercent": "-0.0125",
+                            "lastPrice": "2718.87",
+                            "openPrice": "2753.5",
+                            "highPrice": "2787.63",
+                            "lowPrice": "2709.91",
+                            "fillQty": "7000.523",
+                            "fillAmount": "19256975.64664",
+                            "count": "26289",
+                            "baseCurrency": "ETH",
+                            "indexPrice": "2720.47",
+                            "markPrice": "2718.91",
+                            "fundingRate": "-0.000026",
+                            "toNextFundRateTime": "10901305",
+                            "markIv": null,
+                            "underlyingPrice": null,
+                            "delta": "0",
+                            "gamma": "0",
+                            "vega": "0",
+                            "theta": "0"
+                        }
+                    ],
+                    "ts": "1790168298934"
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1790168298934,
+                        "datetime": "2026-09-23T12:58:18.934Z",
+                        "high": 2787.63,
+                        "low": 2709.91,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 2750.790997564039,
+                        "open": 2753.5,
+                        "close": 2718.87,
+                        "last": 2718.87,
+                        "previousClose": null,
+                        "change": -34.63,
+                        "percentage": -1.25,
+                        "average": 2736.18,
+                        "baseVolume": 7000.523,
+                        "quoteVolume": 19256975.64664,
+                        "indexPrice": 2720.47,
+                        "markPrice": 2718.91,
+                        "info": {
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "priceChange": "-34.63",
+                            "priceChangePercent": "-0.0125",
+                            "lastPrice": "2718.87",
+                            "openPrice": "2753.5",
+                            "highPrice": "2787.63",
+                            "lowPrice": "2709.91",
+                            "fillQty": "7000.523",
+                            "fillAmount": "19256975.64664",
+                            "count": "26289",
+                            "baseCurrency": "ETH",
+                            "indexPrice": "2720.47",
+                            "markPrice": "2718.91",
+                            "fundingRate": "-0.000026",
+                            "toNextFundRateTime": "10901305",
+                            "markIv": null,
+                            "underlyingPrice": null,
+                            "delta": "0",
+                            "gamma": "0",
+                            "vega": "0",
+                            "theta": "0",
+                            "ts": 1790168298934
+                        }
+                    }
+                }
+            },
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "ETH/USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "priceChange": "-34.73",
+                            "priceChangePercent": "-0.0126",
+                            "lastPrice": "2720.47",
+                            "openPrice": "2755.2",
+                            "highPrice": "2788.61",
+                            "lowPrice": "2713.98",
+                            "fillQty": "401.2204",
+                            "fillAmount": "1102750.53426",
+                            "count": "18834",
+                            "baseCurrency": "ETH",
+                            "indexPrice": "2720.47",
+                            "markPrice": "0",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": null,
+                            "underlyingPrice": null,
+                            "delta": "0",
+                            "gamma": "0",
+                            "vega": "0",
+                            "theta": "0"
+                        }
+                    ],
+                    "ts": "1790168295896"
+                },
+                "parsedResponse": {
+                    "ETH/USDT": {
+                        "symbol": "ETH/USDT",
+                        "timestamp": 1790168295896,
+                        "datetime": "2026-09-23T12:58:15.896Z",
+                        "high": 2788.61,
+                        "low": 2713.98,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 2748.4906905531225,
+                        "open": 2755.2,
+                        "close": 2720.47,
+                        "last": 2720.47,
+                        "previousClose": null,
+                        "change": -34.73,
+                        "percentage": -1.26,
+                        "average": 2737.83,
+                        "baseVolume": 401.2204,
+                        "quoteVolume": 1102750.53426,
+                        "indexPrice": 2720.47,
+                        "markPrice": null,
+                        "info": {
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "priceChange": "-34.73",
+                            "priceChangePercent": "-0.0126",
+                            "lastPrice": "2720.47",
+                            "openPrice": "2755.2",
+                            "highPrice": "2788.61",
+                            "lowPrice": "2713.98",
+                            "fillQty": "401.2204",
+                            "fillAmount": "1102750.53426",
+                            "count": "18834",
+                            "baseCurrency": "ETH",
+                            "indexPrice": "2720.47",
+                            "markPrice": "0",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": null,
+                            "underlyingPrice": null,
+                            "delta": "0",
+                            "gamma": "0",
+                            "vega": "0",
+                            "theta": "0",
+                            "ts": 1790168295896
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "option order book",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "bids": [
+                            [
+                                "162.8",
+                                "1.6"
+                            ],
+                            [
+                                "159.2",
+                                "6.6"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "185",
+                                "1"
+                            ],
+                            [
+                                "186",
+                                "8.6"
+                            ]
+                        ],
+                        "lastUpdateId": "3258"
+                    },
+                    "ts": "1790167364773"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT-260927-2560-C",
+                    "bids": [
+                        [
+                            162.8,
+                            1.6
+                        ],
+                        [
+                            159.2,
+                            6.6
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            185,
+                            1
+                        ],
+                        [
+                            186,
+                            8.6
+                        ]
+                    ],
+                    "timestamp": 1790167364773,
+                    "datetime": "2026-09-23T12:42:44.773Z",
+                    "nonce": 3258
+                }
+            },
+            {
+                "description": "future order book",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "bids": [
+                            [
+                                "2725.26",
+                                "2.475"
+                            ],
+                            [
+                                "2724.89",
+                                "0.009"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "2725.64",
+                                "5.228"
+                            ],
+                            [
+                                "2726.84",
+                                "7.519"
+                            ]
+                        ],
+                        "lastUpdateId": "760741367"
+                    },
+                    "ts": "1790167362471"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT-260925",
+                    "bids": [
+                        [
+                            2725.26,
+                            2.475
+                        ],
+                        [
+                            2724.89,
+                            0.009
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            2725.64,
+                            5.228
+                        ],
+                        [
+                            2726.84,
+                            7.519
+                        ]
+                    ],
+                    "timestamp": 1790167362471,
+                    "datetime": "2026-09-23T12:42:42.471Z",
+                    "nonce": 760741367
+                }
+            },
+            {
+                "description": "swap order book",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT:USDT",
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "bids": [
+                            [
+                                "2722.01",
+                                "43.077"
+                            ],
+                            [
+                                "2721.96",
+                                "80.754"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "2722.02",
+                                "42.373"
+                            ],
+                            [
+                                "2722.06",
+                                "91.908"
+                            ]
+                        ],
+                        "lastUpdateId": "12453663730"
+                    },
+                    "ts": "1790167359645"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "bids": [
+                        [
+                            2722.01,
+                            43.077
+                        ],
+                        [
+                            2721.96,
+                            80.754
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            2722.02,
+                            42.373
+                        ],
+                        [
+                            2722.06,
+                            91.908
+                        ]
+                    ],
+                    "timestamp": 1790167359645,
+                    "datetime": "2026-09-23T12:42:39.645Z",
+                    "nonce": 12453663730
+                }
+            },
+            {
+                "description": "spot order book",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT",
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "bids": [
+                            [
+                                "2723.49",
+                                "5.8883"
+                            ],
+                            [
+                                "2723.37",
+                                "113.9232"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "2723.5",
+                                "65.0386"
+                            ],
+                            [
+                                "2723.62",
+                                "100.4735"
+                            ]
+                        ],
+                        "lastUpdateId": "1962165315"
+                    },
+                    "ts": "1790167352761"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "bids": [
+                        [
+                            2723.49,
+                            5.8883
+                        ],
+                        [
+                            2723.37,
+                            113.9232
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            2723.5,
+                            65.0386
+                        ],
+                        [
+                            2723.62,
+                            100.4735
+                        ]
+                    ],
+                    "timestamp": 1790167352761,
+                    "datetime": "2026-09-23T12:42:32.761Z",
+                    "nonce": 1962165315
+                }
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetch server time",
@@ -24,5 +931,5 @@
                 "parsedResponse": 1790163177386
             }
         ]
-  }
+    }
 }
