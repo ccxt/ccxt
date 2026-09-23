@@ -746,8 +746,9 @@
             }
         ],
         "fetchTicker": [
+           
             {
-                "description": "Fill this with a description of the method call",
+                "description": "default",
                 "method": "fetchTicker",
                 "input": [
                     "BTC/BRL"
@@ -757,27 +758,28 @@
                         {
                             "market_symbol": "btcbrl",
                             "last_trade": {
-                                "price": "1.77510000",
-                                "volume": "55.77150583",
-                                "date": "2024-08-02T00:12:21.000Z"
+                                "price": "439220.00000000",
+                                "volume": "0.00003441",
+                                "date": "2026-09-23T11:50:54.000Z"
                             },
                             "rolling_24h": {
-                                "price_change": "-0.01120000",
-                                "price_change_percent": "-0.62699435",
-                                "volume": "68017.36498606",
-                                "trades_count": "550",
-                                "open": "1.78630000",
-                                "high": "1.80630000",
-                                "low": "1.67830000"
+                                "price_change": "-1896.00000000",
+                                "price_change_percent": "-0.42981891",
+                                "volume": "17.63757429",
+                                "trades_count": 10835,
+                                "open": "441116.00000000",
+                                "high": "446832.00000000",
+                                "low": "438002.00000000",
+                                "quote_volume": "7792622.22901232"
                             },
                             "best": {
                                 "ask": {
-                                    "price": "1.78930000",
-                                    "volume": "3737.61618465"
+                                    "price": "439218.00000000",
+                                    "volume": "0.00028997"
                                 },
                                 "bid": {
-                                    "price": "1.78160000",
-                                    "volume": "5116.51950000"
+                                    "price": "439131.00000000",
+                                    "volume": "0.00220437"
                                 }
                             }
                         }
@@ -785,48 +787,49 @@
                 },
                 "parsedResponse": {
                     "symbol": "BTC/BRL",
-                    "timestamp": 1722557541000,
-                    "datetime": "2024-08-02T00:12:21.000Z",
-                    "high": 1.8063,
-                    "low": 1.6783,
-                    "bid": 1.7816,
-                    "bidVolume": 5116.5195,
-                    "ask": 1.7893,
-                    "askVolume": 3737.61618465,
-                    "vwap": null,
-                    "open": 1.7863,
-                    "close": 1.7751,
-                    "last": 1.7751,
+                    "timestamp": 1790164254000,
+                    "datetime": "2026-09-23T11:50:54.000Z",
+                    "high": 446832,
+                    "low": 438002,
+                    "bid": 439131,
+                    "bidVolume": 0.00220437,
+                    "ask": 439218,
+                    "askVolume": 0.00028997,
+                    "vwap": 441819.3851878211,
+                    "open": 441116,
+                    "close": 439220,
+                    "last": 439220,
                     "previousClose": null,
-                    "change": -0.0112,
-                    "percentage": -0.62699435,
-                    "average": 1.7807,
-                    "baseVolume": 68017.36498606,
-                    "quoteVolume": null,
+                    "change": -1896,
+                    "percentage": -0.42981891,
+                    "average": 440168,
+                    "baseVolume": 17.63757429,
+                    "quoteVolume": 7792622.22901232,
                     "info": {
                         "market_symbol": "btcbrl",
                         "last_trade": {
-                            "price": "1.77510000",
-                            "volume": "55.77150583",
-                            "date": "2024-08-02T00:12:21.000Z"
+                            "price": "439220.00000000",
+                            "volume": "0.00003441",
+                            "date": "2026-09-23T11:50:54.000Z"
                         },
                         "rolling_24h": {
-                            "price_change": "-0.01120000",
-                            "price_change_percent": "-0.62699435",
-                            "volume": "68017.36498606",
-                            "trades_count": "550",
-                            "open": "1.78630000",
-                            "high": "1.80630000",
-                            "low": "1.67830000"
+                            "price_change": "-1896.00000000",
+                            "price_change_percent": "-0.42981891",
+                            "volume": "17.63757429",
+                            "trades_count": 10835,
+                            "open": "441116.00000000",
+                            "high": "446832.00000000",
+                            "low": "438002.00000000",
+                            "quote_volume": "7792622.22901232"
                         },
                         "best": {
                             "ask": {
-                                "price": "1.78930000",
-                                "volume": "3737.61618465"
+                                "price": "439218.00000000",
+                                "volume": "0.00028997"
                             },
                             "bid": {
-                                "price": "1.78160000",
-                                "volume": "5116.51950000"
+                                "price": "439131.00000000",
+                                "volume": "0.00220437"
                             }
                         }
                     },
