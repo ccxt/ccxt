@@ -340,7 +340,7 @@ export default class coinone extends coinoneRest {
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
         const timestamp = this.safeInteger (trade, 'timestamp');
-        market = this.safeMarket (symbol, market);
+        const marketResolved: Market = this.safeMarket (symbol, market);
         const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
         let side: Str = undefined;
         if (isSellerMaker !== undefined) {
@@ -354,7 +354,7 @@ export default class coinone extends coinoneRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -362,7 +362,7 @@ export default class coinone extends coinoneRest {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     handleErrorMessage (client: Client, message: any): Bool {

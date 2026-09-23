@@ -456,7 +456,7 @@ export default class bitbank extends Exchange {
         //    }
         //
         const timestamp = this.safeInteger (trade, 'executed_at');
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString2 (trade, 'transaction_id', 'trade_id');
@@ -465,7 +465,7 @@ export default class bitbank extends Exchange {
         const feeCostString = this.safeString (trade, 'fee_amount_quote');
         if (feeCostString !== undefined) {
             fee = {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': feeCostString,
             };
         }
@@ -475,7 +475,7 @@ export default class bitbank extends Exchange {
         return this.safeTrade ({
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': id,
             'order': orderId,
             'type': type,
@@ -486,7 +486,7 @@ export default class bitbank extends Exchange {
             'cost': undefined,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -737,7 +737,7 @@ export default class bitbank extends Exchange {
     override parseOrder (order: Dict, market: Market = undefined): Order {
         const id = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'pair');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'ordered_at');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'start_amount');
@@ -754,7 +754,7 @@ export default class bitbank extends Exchange {
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -769,7 +769,7 @@ export default class bitbank extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1006,8 +1006,8 @@ export default class bitbank extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        if (!('uuid' in params)) {
+        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        if (!('uuid' in paramsWithdrawTag)) {
             throw new ExchangeError (this.id + ' uuid is required for withdrawal');
         }
         if (this.markets === undefined) {
@@ -1018,7 +1018,7 @@ export default class bitbank extends Exchange {
             'asset': currency['id'],
             'amount': amount,
         };
-        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
+        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, paramsWithdrawTag));
         //
         //     {
         //         "success": 1,
@@ -1058,7 +1058,7 @@ export default class bitbank extends Exchange {
         //     }
         //
         const txid = this.safeString (transaction, 'txid');
-        currency = this.safeCurrency (undefined, currency);
+        const currencyResolved: Currency = this.safeCurrency (undefined, currency);
         return {
             'id': txid,
             'txid': txid,
@@ -1070,7 +1070,7 @@ export default class bitbank extends Exchange {
             'addressTo': undefined,
             'amount': undefined,
             'type': undefined,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': undefined,
             'updated': undefined,
             'tagFrom': undefined,

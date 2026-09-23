@@ -614,25 +614,25 @@ export default class bitmex extends Exchange {
     }
 
     override amountToPrecision (symbol: Str, amount: any): Str {
-        symbol = this.safeSymbol (symbol);
-        const market = this.market (symbol);
+        const symbolValue: Str = this.safeSymbol (symbol);
+        const market = this.market (symbolValue);
         const oldPrecision = this.safeBool (this.options, 'oldPrecision');
         if ((market['spot'] === true) && (oldPrecision !== true)) {
             amount = this.convertFromRealAmount (market['base'], amount);
         }
-        return super.amountToPrecision (symbol, amount);
+        return super.amountToPrecision (symbolValue, amount);
     }
 
     convertFromRawQuantity (symbol: Str, rawQuantity: Str, currencySide: Str = 'base'): Num {
         if (this.safeBool (this.options, 'oldPrecision') === true) {
             return this.parseNumber (rawQuantity);
         }
-        symbol = this.safeSymbol (symbol);
-        const marketExists = this.inArray (symbol, this.symbols);
+        const symbolValue: Str = this.safeSymbol (symbol);
+        const marketExists = this.inArray (symbolValue, this.symbols);
         if (!marketExists) {
             return this.parseNumber (rawQuantity);
         }
-        const market = this.market (symbol);
+        const market = this.market (symbolValue);
         if (market['spot'] === true) {
             return this.parseNumber (this.convertToRealAmount (this.safeString (market, currencySide), rawQuantity));
         }
@@ -1421,7 +1421,7 @@ export default class bitmex extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const amountString = this.safeString (item, 'amount');
         let amount = this.convertToRealAmount (code, amountString);
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
@@ -1469,7 +1469,7 @@ export default class bitmex extends Exchange {
             'after': this.parseNumber (after),
             'status': status,
             'fee': fee,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     /**
@@ -1595,7 +1595,7 @@ export default class bitmex extends Exchange {
         //    }
         //
         const currencyId = this.safeString (transaction, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         // For deposits, transactTime == timestamp
         // For withdrawals, transactTime is submission, timestamp is processed
         const transactTime = this.parse8601 (this.safeString (transaction, 'transactTime'));
@@ -1615,14 +1615,14 @@ export default class bitmex extends Exchange {
         }
         const amountString = this.safeString (transaction, 'amount');
         const amountStringAbs = Precise.stringAbs (amountString);
-        const amount = this.convertToRealAmount (currency['code'], amountStringAbs);
+        const amount = this.convertToRealAmount (currencyResolved['code'], amountStringAbs);
         const feeCostString = this.safeString (transaction, 'fee');
-        const feeCost = this.convertToRealAmount (currency['code'], feeCostString);
+        const feeCost = this.convertToRealAmount (currencyResolved['code'], feeCostString);
         let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
         }
-        const code = currency['code'];
+        const code = currencyResolved['code'];
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'transactID'),
@@ -1644,7 +1644,7 @@ export default class bitmex extends Exchange {
             'internal': undefined,
             'comment': undefined,
             'fee': {
-                'currency': currency['code'],
+                'currency': currencyResolved['code'],
                 'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
@@ -1689,7 +1689,7 @@ export default class bitmex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         // same response as under "fetchMarkets"
         const result: Dict = {};
@@ -1701,7 +1701,7 @@ export default class bitmex extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1755,8 +1755,8 @@ export default class bitmex extends Exchange {
         //     }
         //
         const marketId = this.safeString (ohlcv, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const volume = this.convertFromRawQuantity (market['symbol'], this.safeString (ohlcv, 'volume'));
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const volume = this.convertFromRawQuantity (marketResolved['symbol'], this.safeString (ohlcv, 'volume'));
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
             this.safeNumber (ohlcv, 'open'),
@@ -2028,8 +2028,8 @@ export default class bitmex extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const qty = this.safeString (order, 'orderQty');
         let cost: Num = undefined;
         let amount: Num = undefined;
@@ -2038,7 +2038,7 @@ export default class bitmex extends Exchange {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
         } else {
-            isInverse = this.safeBool (market, 'inverse', false);
+            isInverse = this.safeBool (marketResolved, 'inverse', false);
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity (symbol, qty);
@@ -2086,7 +2086,7 @@ export default class bitmex extends Exchange {
             'status': this.parseOrderStatus (this.safeString (order, 'ordStatus')),
             'fee': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2716,17 +2716,17 @@ export default class bitmex extends Exchange {
         //         "lastValue": 39283900
         //     }
         //
-        market = this.safeMarket (this.safeString (position, 'symbol'), market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (this.safeString (position, 'symbol'), market);
+        const symbol = marketResolved['symbol'];
         const datetime = this.safeString (position, 'timestamp');
         const crossMargin = this.safeBool (position, 'crossMargin');
         const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
         const notionalString = Precise.stringAbs (this.safeString2 (position, 'foreignNotional', 'homeNotional'));
-        const settleCurrencyCode = this.safeString (market, 'settle');
+        const settleCurrencyCode = this.safeString (marketResolved, 'settle');
         const maintenanceMargin = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'maintMargin'));
         const unrealisedPnl = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'unrealisedPnl'));
         const contracts = this.parseNumber (Precise.stringAbs (this.safeString (position, 'currentQty')));
-        const contractSize = this.safeNumber (market, 'contractSize');
+        const contractSize = this.safeNumber (marketResolved, 'contractSize');
         let side: Str = undefined;
         const homeNotional = this.safeString (position, 'homeNotional');
         if (homeNotional !== undefined) {
@@ -2780,15 +2780,14 @@ export default class bitmex extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
         const qty = this.convertFromRealAmount (code, amount);
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         const request: Dict = {
             'currency': currency['id'],
             'amount': qty,
@@ -2800,7 +2799,7 @@ export default class bitmex extends Exchange {
         if (this.twofa !== undefined) {
             request['otpToken'] = totp (this.twofa);
         }
-        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
+        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, paramsNetworkCode));
         //
         //     {
         //         "transactID": "3aece414-bb29-76c8-6c6d-16a477a51a1e",
@@ -2847,9 +2846,9 @@ export default class bitmex extends Exchange {
                 filteredResponse.push (item);
             }
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const result = this.parseFundingRates (filteredResponse);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArray (result, 'symbol', symbolsNormalized);
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
@@ -2927,14 +2926,14 @@ export default class bitmex extends Exchange {
             request['count'] = limit;
         }
         const until = this.safeInteger (params, 'until');
-        params = this.omit (params, [ 'until' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
         if (until !== undefined) {
             request['endTime'] = this.iso8601 (until);
         }
         if ((since === undefined) && (until === undefined)) {
             request['reverse'] = true;
         }
-        const response = await this.publicGetFunding (this.extend (request, params));
+        const response = await this.publicGetFunding (this.extend (request, paramsOmitted));
         //
         //    [
         //        {
@@ -3015,8 +3014,8 @@ export default class bitmex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        marginMode = marginMode.toLowerCase ();
-        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+        const marginModeValue: string = marginMode.toLowerCase ();
+        if (marginModeValue !== 'isolated' && marginModeValue !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
         if (this.markets === undefined) {
@@ -3026,7 +3025,7 @@ export default class bitmex extends Exchange {
         if ((market['type'] !== 'swap') && (market['type'] !== 'future')) {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap and future contracts only');
         }
-        const enabled = (marginMode === 'cross') ? false : true;
+        const enabled = (marginModeValue === 'cross') ? false : true;
         const request: Dict = {
             'symbol': market['id'],
             'enabled': enabled,
@@ -3048,19 +3047,18 @@ export default class bitmex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
         }
         const currency = this.currency (code);
-        params = this.omit (params, 'network');
+        const paramsOmitted: Dict = this.omit (paramsNetworkCode, 'network');
         const parsedNetwork = this.networkCodeToId (networkCode, currency['code']);
         const request: Dict = {
             'currency': currency['id'],
             'network': parsedNetwork,
         };
-        const response = await this.privateGetUserDepositAddress (this.extend (request, params));
+        const response = await this.privateGetUserDepositAddress (this.extend (request, paramsOmitted));
         //
         //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         //
@@ -3214,8 +3212,8 @@ export default class bitmex extends Exchange {
         //        ...
         //    ]
         //
-        symbols = this.marketSymbols (symbols);
-        return this.parseOpenInterests (response, symbols) as OpenInterests;
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.parseOpenInterests (response, symbolsNormalized) as OpenInterests;
     }
 
     override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
@@ -3283,13 +3281,12 @@ export default class bitmex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLiquidations', symbol, since, limit, params) as Liquidation[];
+            return await this.fetchPaginatedCallDynamic ('fetchLiquidations', symbol, since, limit, paramsPaginate) as Liquidation[];
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -3298,8 +3295,8 @@ export default class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.publicGetLiquidation (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
+        const response = await this.publicGetLiquidation (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -3352,7 +3349,7 @@ export default class bitmex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
         const response = await this.privateGetPosition (params);
         //
         //     [
@@ -3470,7 +3467,7 @@ export default class bitmex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseADLRanks (response, symbols);
+        return this.parseADLRanks (response, symbolsNormalized);
     }
 
     override parseADLRank (info: Dict, market: Market = undefined): ADL {

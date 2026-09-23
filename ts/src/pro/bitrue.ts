@@ -321,8 +321,8 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'orderbook:' + symbolValue;
         let url: Str = undefined;
         let channel: Str = undefined;
         let cbId: Str = undefined;
@@ -477,7 +477,7 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchTrades is only supported for swap markets');
         }
@@ -485,7 +485,7 @@ export default class bitrue extends bitrueRest {
         const quoteIdLower = this.safeStringLower (market, 'quoteId');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_trade_ticker';
-        const messageHash = 'trades:' + symbol;
+        const messageHash = 'trades:' + symbolValue;
         const url = this.urls['api']['ws']['futurePublic'];
         const message: Dict = {
             'event': 'sub',
@@ -497,7 +497,7 @@ export default class bitrue extends bitrueRest {
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -592,7 +592,7 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchOHLCV is only supported for swap markets');
         }
@@ -605,7 +605,7 @@ export default class bitrue extends bitrueRest {
         const quoteIdLower = this.safeStringLower (market, 'quoteId');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_kline_' + interval;
-        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
         const url = this.urls['api']['ws']['futurePublic'];
         const message: Dict = {
             'event': 'sub',
@@ -617,7 +617,7 @@ export default class bitrue extends bitrueRest {
         const request = this.deepExtend (message, params);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
@@ -697,7 +697,7 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchTicker is only supported for swap markets');
         }
@@ -705,7 +705,7 @@ export default class bitrue extends bitrueRest {
         const quoteIdLower = this.safeStringLower (market, 'quoteId');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_ticker';
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbolValue;
         const url = this.urls['api']['ws']['futurePublic'];
         const message: Dict = {
             'event': 'sub',

@@ -262,7 +262,7 @@ export default class paradex extends paradexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
+        const symbolValue: string = this.symbol (symbol);
         const channel = 'markets_summary';
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -272,7 +272,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHash = channel + '.' + symbol;
+        const messageHash = channel + '.' + symbolValue;
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
@@ -289,7 +289,7 @@ export default class paradex extends paradexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const channel = 'markets_summary';
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -300,9 +300,9 @@ export default class paradex extends paradexRest {
             },
         };
         const messageHashes: string[] = [];
-        if (symbols !== undefined && Array.isArray (symbols)) {
-            for (let i = 0; i < symbols.length; i++) {
-                const messageHash = channel + '.' + symbols[i];
+        if (symbolsNormalized !== undefined && Array.isArray (symbolsNormalized)) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const messageHash = channel + '.' + symbolsNormalized[i];
                 messageHashes.push (messageHash);
             }
         } else {
@@ -314,7 +314,7 @@ export default class paradex extends paradexRest {
             result[newTicker['symbol']] = newTicker;
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -455,7 +455,7 @@ export default class paradex extends paradexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
+        const symbolValue: string = this.symbol (symbol);
         const channel = 'funding_data';
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -465,7 +465,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHash = channel + '.' + symbol;
+        const messageHash = channel + '.' + symbolValue;
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
@@ -482,7 +482,7 @@ export default class paradex extends paradexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const channel = 'funding_data';
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -493,11 +493,11 @@ export default class paradex extends paradexRest {
             },
         };
         const messageHashes: string[] = [];
-        if (symbols !== undefined) {
-            const symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 0) {
-                for (let i = 0; i < symbols.length; i++) {
-                    const messageHash = channel + '.' + symbols[i];
+                for (let i = 0; i < symbolsNormalized.length; i++) {
+                    const messageHash = channel + '.' + symbolsNormalized[i];
                     messageHashes.push (messageHash);
                 }
             } else {
@@ -512,7 +512,7 @@ export default class paradex extends paradexRest {
             result[newFundingRates['symbol']] = newFundingRates;
             return result;
         }
-        return this.filterByArray (this.fundingRates, 'symbol', symbols);
+        return this.filterByArray (this.fundingRates, 'symbol', symbolsNormalized);
     }
 
     handleFundingRate (client: Client, message: Dict) {

@@ -952,7 +952,7 @@ export default class coinbaseexchange extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {};
         const response = await this.publicGetProductsSparkLines (this.extend (request, params));
         //
@@ -986,7 +986,7 @@ export default class coinbaseexchange extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (first, market);
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -1064,24 +1064,24 @@ export default class coinbaseexchange extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'created_at'));
         const marketId = this.safeString (trade, 'product_id');
-        market = this.safeMarket (marketId, market, '-');
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
         let feeRate: Str = undefined;
         let takerOrMaker: Str = undefined;
         let cost: Str = undefined;
-        const feeCurrencyId = this.safeStringLower (market, 'quoteId');
+        const feeCurrencyId = this.safeStringLower (marketResolved, 'quoteId');
         if (feeCurrencyId !== undefined) {
             const costField = feeCurrencyId + '_value';
             cost = this.safeString (trade, costField);
             const liquidity = this.safeString (trade, 'liquidity');
             if (liquidity !== undefined) {
                 takerOrMaker = (liquidity === 'T') ? 'taker' : 'maker';
-                feeRate = this.safeString (market, takerOrMaker);
+                feeRate = this.safeString (marketResolved, takerOrMaker);
             }
         }
         const feeCost = this.safeString2 (trade, 'fill_fees', 'fee');
         const fee = {
             'cost': feeCost,
-            'currency': market['quote'],
+            'currency': marketResolved['quote'],
             'rate': feeRate,
         };
         const id = this.safeString (trade, 'trade_id');
@@ -1095,7 +1095,7 @@ export default class coinbaseexchange extends Exchange {
         }
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
-        const symbol = market['symbol'];
+        const symbol = marketResolved['symbol'];
         return this.safeTrade ({
             'id': id,
             'order': orderId,
@@ -1110,7 +1110,7 @@ export default class coinbaseexchange extends Exchange {
             'amount': amount,
             'fee': fee,
             'cost': cost,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1270,10 +1270,9 @@ export default class coinbaseexchange extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 300) as OHLCV[];
         }
         const market = this.market (symbol);
         const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
@@ -1285,8 +1284,8 @@ export default class coinbaseexchange extends Exchange {
         } else {
             request['granularity'] = timeframe;
         }
-        const until = this.safeValue2 (params, 'until', 'end');
-        params = this.omit (params, [ 'until' ]);
+        const until = this.safeValue2 (paramsPaginate, 'until', 'end');
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (since !== undefined) {
             request['start'] = this.iso8601 (since);
             if (limit === undefined) {
@@ -1306,7 +1305,7 @@ export default class coinbaseexchange extends Exchange {
                 request['end'] = this.iso8601 (until);
             }
         }
-        const response = await this.publicGetProductsIdCandles (this.extend (request, params));
+        const response = await this.publicGetProductsIdCandles (this.extend (request, paramsOmitted));
         //
         //     [
         //         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
@@ -1371,7 +1370,7 @@ export default class coinbaseexchange extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const marketId = this.safeString (order, 'product_id');
-        market = this.safeMarket (marketId, market, '-');
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         const doneReason = this.safeString (order, 'done_reason');
         if ((status === 'closed') && (doneReason === 'canceled')) {
@@ -1386,7 +1385,7 @@ export default class coinbaseexchange extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'rate': undefined,
             };
         }
@@ -1405,7 +1404,7 @@ export default class coinbaseexchange extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -1419,7 +1418,7 @@ export default class coinbaseexchange extends Exchange {
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1732,7 +1731,7 @@ export default class coinbaseexchange extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1743,16 +1742,16 @@ export default class coinbaseexchange extends Exchange {
             'amount': amount,
         };
         let response = undefined;
-        if ('payment_method_id' in params) {
-            response = await this.privatePostWithdrawalsPaymentMethod (this.extend (request, params));
-        } else if ('coinbase_account_id' in params) {
-            response = await this.privatePostWithdrawalsCoinbaseAccount (this.extend (request, params));
+        if ('payment_method_id' in paramsWithdrawTag) {
+            response = await this.privatePostWithdrawalsPaymentMethod (this.extend (request, paramsWithdrawTag));
+        } else if ('coinbase_account_id' in paramsWithdrawTag) {
+            response = await this.privatePostWithdrawalsCoinbaseAccount (this.extend (request, paramsWithdrawTag));
         } else {
             request['crypto_address'] = address;
-            if (tag !== undefined) {
-                request['destination_tag'] = tag;
+            if (tagWithdrawTag !== undefined) {
+                request['destination_tag'] = tagWithdrawTag;
             }
-            response = await this.privatePostWithdrawalsCrypto (this.extend (request, params));
+            response = await this.privatePostWithdrawalsCrypto (this.extend (request, paramsWithdrawTag));
         }
         if (response === undefined) {
             throw new ExchangeError (this.id + ' withdraw() error: ' + this.json (response));

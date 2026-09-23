@@ -757,16 +757,15 @@ export default class deepcoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        const market = this.getMarketFromSymbols (symbols);
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        const market = this.getMarketFromSymbols (symbolsNormalized);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
-        const response = await this.publicGetDeepcoinMarketTickers (this.extend (request, params));
+        const response = await this.publicGetDeepcoinMarketTickers (this.extend (request, paramsMarketType));
         const tickers = this.safeList (response, 'data', []);
-        return this.parseTickers (tickers, symbols);
+        return this.parseTickers (tickers, symbolsNormalized);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -792,13 +791,13 @@ export default class deepcoin extends Exchange {
         //
         const timestamp = this.safeIntegerOmitZero (ticker, 'ts');
         const marketId = this.safeString (ticker, 'instId');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
+        const symbol = marketResolved['symbol'];
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');
         let quoteVolume = this.safeString (ticker, 'volCcy24h');
         let baseVolume = this.safeString (ticker, 'vol24h');
-        if ((market['swap'] === true) && (market['inverse'] === true)) {
+        if ((marketResolved['swap'] === true) && (marketResolved['inverse'] === true)) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
@@ -828,7 +827,7 @@ export default class deepcoin extends Exchange {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -905,7 +904,7 @@ export default class deepcoin extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'instId');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'ts');
         const side = this.safeString (trade, 'side');
         const execType = this.safeString (trade, 'execType');
@@ -923,7 +922,7 @@ export default class deepcoin extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': this.safeString (trade, 'tradeId'),
             'order': this.safeString (trade, 'ordId'),
             'type': undefined,
@@ -933,7 +932,7 @@ export default class deepcoin extends Exchange {
             'amount': this.safeString2 (trade, 'fillSz', 'sz'),
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     parseTakerOrMaker (execType: Str) {
@@ -957,12 +956,12 @@ export default class deepcoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, marketType);
+        const marketType: Str = undefined;
+        const [ marketTypeOption, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, marketType);
         const request: Dict = {
-            'instType': this.convertToInstrumentType (marketType),
+            'instType': this.convertToInstrumentType (marketTypeOption),
         };
-        const response = await this.privateGetDeepcoinAccountBalances (this.extend (request, params));
+        const response = await this.privateGetDeepcoinAccountBalances (this.extend (request, paramsMarketType));
         return this.parseBalance (response);
     }
 
@@ -1365,7 +1364,7 @@ export default class deepcoin extends Exchange {
         const amount = Precise.stringAbs (change);
         const direction = Precise.stringLt (change, '0') ? 'out' : 'in';
         const currencyId = this.safeString (item, 'ccy');
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const type = this.safeString (item, 'type');
         return this.safeLedgerEntry ({
             'info': item,
@@ -1375,7 +1374,7 @@ export default class deepcoin extends Exchange {
             'referenceAccount': undefined,
             'referenceId': undefined,
             'type': this.parseLedgerEntryType (type),
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'amount': amount,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1383,7 +1382,7 @@ export default class deepcoin extends Exchange {
             'after': this.safeString (item, 'bal'),
             'status': undefined,
             'fee': undefined,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     parseLedgerEntryType (type: Str): Str {
@@ -1741,16 +1740,16 @@ export default class deepcoin extends Exchange {
         } else if (type === 'limit') {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit trigger orders');
         }
-        let marginMode = 'cross';
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, marginMode);
+        const marginMode = 'cross';
+        const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', params, marginMode);
         let isCrossMargin = 1;
-        if (marginMode === 'isolated') {
+        if (marginModeOption === 'isolated') {
             isCrossMargin = 0;
         }
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        params = this.omit (params, 'reduceOnly');
+        const reduceOnly = this.safeBool (paramsMarginMode, 'reduceOnly', false);
+        const paramsOmitted: Dict = this.omit (paramsMarginMode, 'reduceOnly');
         request['isCrossMargin'] = isCrossMargin;
-        request['tdMode'] = marginMode;
+        request['tdMode'] = marginModeOption;
         if (market['swap'] === true) {
             if (reduceOnly === true) {
                 if (side === 'buy') {
@@ -1766,24 +1765,23 @@ export default class deepcoin extends Exchange {
                 }
             }
         }
-        let mrgPosition = 'merge';
-        [ mrgPosition, params ] = this.handleOptionAndParams (params, 'createOrder', 'mrgPosition', mrgPosition);
-        request['mrgPosition'] = mrgPosition;
-        return this.extend (request, params);
+        const mrgPosition = 'merge';
+        const [ mrgPositionOption, paramsMrgPosition ] = this.handleOptionAndParams (paramsOmitted, 'createOrder', 'mrgPosition', mrgPosition);
+        request['mrgPosition'] = mrgPositionOption;
+        return this.extend (request, paramsMrgPosition);
     }
 
     handleTypePostOnlyAndTimeInForce (type: Str, params: Dict): [Str, Dict] {
-        let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
+        const [ postOnly, paramsPostOnly ]: [ boolean, Dict ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         if (postOnly) {
             type = 'post_only';
         }
-        const timeInForce = this.handleTimeInForce (params);
-        params = this.omit (params, 'timeInForce');
+        const timeInForce = this.handleTimeInForce (paramsPostOnly);
+        const paramsOmitted: Dict = this.omit (paramsPostOnly, 'timeInForce');
         if ((timeInForce !== undefined) && (timeInForce === 'IOC')) {
             type = 'ioc';
         }
-        return [ type, params ];
+        return [ type, paramsOmitted ];
     }
 
     /**
@@ -1797,8 +1795,8 @@ export default class deepcoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}): Promise<Order> {
-        params = this.extend (params, { 'cost': cost });
-        return await this.createOrder (symbol, 'market', side, 0, undefined, params);
+        const paramsExtended: Dict = this.extend (params, { 'cost': cost });
+        return await this.createOrder (symbol, 'market', side, 0, undefined, paramsExtended);
     }
 
     /**
@@ -1811,8 +1809,8 @@ export default class deepcoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
-        params = this.extend (params, { 'cost': cost });
-        return await this.createOrder (symbol, 'market', 'buy', 0, undefined, params);
+        const paramsExtended: Dict = this.extend (params, { 'cost': cost });
+        return await this.createOrder (symbol, 'market', 'buy', 0, undefined, paramsExtended);
     }
 
     /**
@@ -1825,8 +1823,8 @@ export default class deepcoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
-        params = this.extend (params, { 'cost': cost });
-        return await this.createOrder (symbol, 'market', 'sell', 0, undefined, params);
+        const paramsExtended: Dict = this.extend (params, { 'cost': cost });
+        return await this.createOrder (symbol, 'market', 'sell', 0, undefined, paramsExtended);
     }
 
     /**
@@ -2081,9 +2079,9 @@ export default class deepcoin extends Exchange {
      */
     override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const methodName = 'fetchCanceledOrders';
-        params = this.extend (params, { 'methodName': methodName });
-        params = this.extend (params, { 'state': 'canceled' });
-        return await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        const paramsExtended: Dict = this.extend (params, { 'methodName': methodName });
+        const paramsExtended2: Dict = this.extend (paramsExtended, { 'state': 'canceled' });
+        return await this.fetchCanceledAndClosedOrders (symbol, since, limit, paramsExtended2);
     }
 
     /**
@@ -2100,9 +2098,9 @@ export default class deepcoin extends Exchange {
      */
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const methodName = 'fetchClosedOrders';
-        params = this.extend (params, { 'methodName': methodName });
-        params = this.extend (params, { 'state': 'filled' });
-        return await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        const paramsExtended: Dict = this.extend (params, { 'methodName': methodName });
+        const paramsExtended2: Dict = this.extend (paramsExtended, { 'state': 'filled' });
+        return await this.fetchCanceledAndClosedOrders (symbol, since, limit, paramsExtended2);
     }
 
     /**
@@ -2471,7 +2469,7 @@ export default class deepcoin extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'instId');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let timestamp = this.safeInteger (order, 'cTime');
         const timestampString = this.safeString (order, 'cTime', '') as string;
         if (timestampString.length < 13) {
@@ -2500,7 +2498,7 @@ export default class deepcoin extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger (order, 'uTime'),
             'status': this.parseOrderStatus (state),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType (orderType),
             'timeInForce': this.parseOrderTimeInForce (orderType),
             'side': this.safeString (order, 'side'),
@@ -2518,7 +2516,7 @@ export default class deepcoin extends Exchange {
             'reduceOnly': undefined,
             'postOnly': (orderType !== undefined && orderType !== '') ? (orderType === 'post_only') : undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderStatus (status: Str): Str {
@@ -2590,19 +2588,19 @@ export default class deepcoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true);
-        let marketType = 'swap';
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
+        const marketType = 'swap';
         let market: Market = undefined;
-        if (symbols !== undefined) {
-            const firstSymbol = this.safeString (symbols, 0);
+        if (symbolsNormalized !== undefined) {
+            const firstSymbol = this.safeString (symbolsNormalized, 0);
             market = this.market (firstSymbol);
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params, marketType);
-        const instrumentType = this.convertToInstrumentType (marketType);
+        const [ marketTypeOption, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchPositions', market, params, marketType);
+        const instrumentType = this.convertToInstrumentType (marketTypeOption);
         const request: Dict = {
             'instType': instrumentType,
         };
-        const response = await this.privateGetDeepcoinAccountPositions (this.extend (request, params));
+        const response = await this.privateGetDeepcoinAccountPositions (this.extend (request, paramsMarketType));
         //
         //     {
         //         "code": "0",
@@ -2628,7 +2626,7 @@ export default class deepcoin extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []) as List;
-        return this.parsePositions (data, symbols);
+        return this.parsePositions (data, symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -2651,10 +2649,10 @@ export default class deepcoin extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'instId');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (position, 'cTime');
         return this.safePosition ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': this.safeString (position, 'posId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2710,23 +2708,23 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let marginMode = 'cross';
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, marginMode);
-        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
+        const marginMode = 'cross';
+        const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('setLeverage', params, marginMode);
+        if ((marginModeOption !== 'cross') && (marginModeOption !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
-        let mrgPosition = 'merge';
-        [ mrgPosition, params ] = this.handleOptionAndParams (params, 'setLeverage', 'mrgPosition', mrgPosition);
-        if (mrgPosition !== 'merge' && mrgPosition !== 'split') {
+        const mrgPosition = 'merge';
+        const [ mrgPositionOption, paramsMrgPosition ] = this.handleOptionAndParams (paramsMarginMode, 'setLeverage', 'mrgPosition', mrgPosition);
+        if (mrgPositionOption !== 'merge' && mrgPositionOption !== 'split') {
             throw new BadRequest (this.id + ' setLeverage() mrgPosition parameter must be either merge or split');
         }
         const request: Dict = {
             'lever': leverage,
-            'mgnMode': marginMode,
+            'mgnMode': marginModeOption,
             'instId': market['id'],
-            'mrgPosition': mrgPosition,
+            'mrgPosition': mrgPositionOption,
         };
-        const response = await this.privatePostDeepcoinAccountSetLeverage (this.extend (request, params));
+        const response = await this.privatePostDeepcoinAccountSetLeverage (this.extend (request, paramsMrgPosition));
         //
         //     {
         //         code: '0',
@@ -2758,24 +2756,24 @@ export default class deepcoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, 'swap', true, true, true);
-        let subType: SubType = 'linear';
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, 'swap', true, true, true);
+        const subType: SubType = 'linear';
         let firstMarket: Market = undefined;
-        if (symbols !== undefined) {
-            const firstSymbol = this.safeString (symbols, 0);
+        if (symbolsNormalized !== undefined) {
+            const firstSymbol = this.safeString (symbolsNormalized, 0);
             firstMarket = this.market (firstSymbol);
         }
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', firstMarket, params, subType);
+        const [ subTypeOption, paramsSubType ] = this.handleSubTypeAndParams ('fetchFundingRates', firstMarket, params, subType);
         let instType = 'SwapU';
-        if (subType === 'inverse') {
+        if (subTypeOption === 'inverse') {
             instType = 'Swap';
-        } else if (subType !== 'linear') {
+        } else if (subTypeOption !== 'linear') {
             throw new BadRequest (this.id + ' fetchFundingRates() subType parameter must be either linear or inverse');
         }
         const request: Dict = {
             'instType': instType,
         };
-        const response = await this.publicGetDeepcoinTradeFundRateCurrentFundingRate (this.extend (request, params));
+        const response = await this.publicGetDeepcoinTradeFundRateCurrentFundingRate (this.extend (request, paramsSubType));
         //
         //     {
         //         "code": "0",
@@ -2796,7 +2794,7 @@ export default class deepcoin extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const rates = this.safeList (data, 'current_fund_rates', []);
-        return this.parseFundingRates (rates, symbols);
+        return this.parseFundingRates (rates, symbolsNormalized);
     }
 
     /**
@@ -2937,10 +2935,10 @@ export default class deepcoin extends Exchange {
         //
         const timestamp = this.safeTimestamp (info, 'CreateTime');
         const instrumentID = this.safeString2 (info, 'instrumentID', 'instrumentId');
-        market = this.safeMarket (instrumentID, market, undefined, 'swap');
+        const marketResolved: Market = this.safeMarket (instrumentID, market, undefined, 'swap');
         return {
             'info': info,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'fundingRate': this.safeNumber (info, 'rate') as number,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3044,8 +3042,8 @@ export default class deepcoin extends Exchange {
         if (symbol === undefined && marketType === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument or a market type in the params');
         }
-        params = this.extend ({ 'ordId': id }, params);
-        return await this.fetchMyTrades (symbol, since, limit, params);
+        const paramsExtended: Dict = this.extend ({ 'ordId': id }, params);
+        return await this.fetchMyTrades (symbol, since, limit, paramsExtended);
     }
 
     /**

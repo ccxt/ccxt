@@ -79,7 +79,7 @@ export default class whitebit extends whitebitRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const timeframes = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeInteger (timeframes, timeframe);
         const marketId = market['id'];
@@ -87,12 +87,12 @@ export default class whitebit extends whitebitRest {
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
         // to one timeframe per symbol
-        const messageHash = 'candles:' + symbol;
+        const messageHash = 'candles:' + symbolValue;
         const reqParams = [ marketId, interval ];
         const method = 'candles_subscribe';
         const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
@@ -164,14 +164,14 @@ export default class whitebit extends whitebitRest {
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const defaultPriceInterval = this.safeString (options, 'priceInterval', '0');
         const priceInterval = this.safeString (params, 'priceInterval', defaultPriceInterval);
-        params = this.omit (params, 'priceInterval');
+        const paramsOmitted: Dict = this.omit (params, 'priceInterval');
         const reqParams = [
             market['id'],
             limit,
             priceInterval,
             true, // true for allowing multiple subscriptions
         ];
-        const orderbook = await this.watchPublic (messageHash, method, reqParams, params);
+        const orderbook = await this.watchPublic (messageHash, method, reqParams, paramsOmitted);
         return orderbook.limit ();
     }
 
@@ -266,11 +266,11 @@ export default class whitebit extends whitebitRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const method = 'market_subscribe';
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbolValue;
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
-        return await this.watchMultipleSubscription (messageHash, method, symbol, false, params);
+        return await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
     }
 
     /**
@@ -286,14 +286,14 @@ export default class whitebit extends whitebitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const method = 'market_subscribe';
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const messageHashes: string[] = [];
         const args: List = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
             messageHashes.push ('ticker:' + market['symbol']);
             args.push (market['id']);
         }
@@ -303,7 +303,7 @@ export default class whitebit extends whitebitRest {
             'params': args,
         };
         await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     handleTicker (client: Client, message: Dict): Dict {
@@ -372,13 +372,13 @@ export default class whitebit extends whitebitRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trades' + ':' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'trades' + ':' + symbolValue;
         const method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        const trades = await this.watchMultipleSubscription (messageHash, method, symbol, false, params);
+        const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -447,14 +447,14 @@ export default class whitebit extends whitebitRest {
         }
         await this.authenticate ();
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'myTrades:' + symbol;
+        const symbolValue: Str = market['symbol'];
+        const messageHash = 'myTrades:' + symbolValue;
         const method = 'deals_subscribe';
-        const trades = await this.watchMultipleSubscription (messageHash, method, symbol, true, params);
+        const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, true, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limit, true);
     }
 
     handleMyTrades (client: Client, message: Dict , subscription: Dict | undefined = undefined) {
@@ -512,12 +512,12 @@ export default class whitebit extends whitebitRest {
         const price = this.safeString (trade, 4);
         const amount = this.safeString (trade, 5);
         const marketId = this.safeString (trade, 2);
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 6);
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 10);
-            const feeCurrencyCode = (feeCurrencyId !== undefined) ? this.safeCurrencyCode (feeCurrencyId) : market['quote'];
+            const feeCurrencyCode = (feeCurrencyId !== undefined) ? this.safeCurrencyCode (feeCurrencyId) : marketResolved['quote'];
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -542,7 +542,7 @@ export default class whitebit extends whitebitRest {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -551,7 +551,7 @@ export default class whitebit extends whitebitRest {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -574,14 +574,14 @@ export default class whitebit extends whitebitRest {
         }
         await this.authenticate ();
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orders:' + symbol;
+        const symbolValue: Str = market['symbol'];
+        const messageHash = 'orders:' + symbolValue;
         const method = 'ordersPending_subscribe';
-        const trades = await this.watchMultipleSubscription (messageHash, method, symbol, false, params);
+        const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limit, true);
     }
 
     handleOrder (client: Client, message: Dict , subscription: Dict | undefined = undefined) {
@@ -651,7 +651,7 @@ export default class whitebit extends whitebitRest {
         //
         const status = this.safeInteger (order, 'status');
         const marketId = this.safeString (order, 'market');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const id = this.safeString (order, 'id');
         const clientOrderId = this.omitZero (this.safeString (order, 'client_order_id'));
         const price = this.safeString (order, 'price');
@@ -671,7 +671,7 @@ export default class whitebit extends whitebitRest {
         }
         const timestamp = this.safeTimestamp (order, 'ctime');
         const lastTradeTimestamp = this.safeTimestamp (order, 'mtime');
-        const symbol = market['symbol'];
+        const symbol = marketResolved['symbol'];
         const rawSide = this.safeInteger (order, 'side');
         const side = (rawSide === 1) ? 'sell' : 'buy';
         const dealFee = this.safeString (order, 'deal_fee');
@@ -679,7 +679,7 @@ export default class whitebit extends whitebitRest {
         if (dealFee !== undefined) {
             fee = {
                 'cost': this.parseNumber (dealFee),
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         let unifiedStatus: Str = undefined;
@@ -715,7 +715,7 @@ export default class whitebit extends whitebitRest {
             'status': unifiedStatus,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     parseWsOrderType (status: any) {
@@ -749,8 +749,7 @@ export default class whitebit extends whitebitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let messageHash = 'wallet:';
         let method: Str = undefined;
         if (type === 'spot') {
@@ -763,16 +762,14 @@ export default class whitebit extends whitebitRest {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         this.setBalanceCache (client, type, messageHash);
-        let fetchBalanceSnapshot = undefined;
-        let awaitBalanceSnapshot = undefined;
-        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', true);
+        const [ fetchBalanceSnapshot, paramsFetchBalanceSnapshot ] = this.handleOptionAndParams (paramsMarketType, 'watchBalance', 'fetchBalanceSnapshot', true);
+        const [ awaitBalanceSnapshot, paramsAwaitBalanceSnapshot ] = this.handleOptionAndParams (paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', true);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
         // an empty params array subscribes to updates for all assets,
         // listing all tickers explicitly is rejected with "invalid argument"
-        return await this.watchPrivate (messageHash, method, [], params);
+        return await this.watchPrivate (messageHash, method, [], paramsAwaitBalanceSnapshot);
     }
 
     setBalanceCache (client: Client, type: any, subscriptionHash: any) {

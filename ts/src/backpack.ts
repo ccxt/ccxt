@@ -880,8 +880,8 @@ export default class backpack extends Exchange {
         //     }, ...
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         const open = this.safeString (ticker, 'firstPrice');
         const last = this.safeString (ticker, 'lastPrice');
         const high = this.safeString (ticker, 'high');
@@ -918,7 +918,7 @@ export default class backpack extends Exchange {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
         return parsedTicker;
     }
 
@@ -1077,8 +1077,8 @@ export default class backpack extends Exchange {
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         const nextFundingTimestamp = this.safeInteger (contract, 'nextFundingTimestamp');
         return {
             'info': contract,
@@ -1310,7 +1310,7 @@ export default class backpack extends Exchange {
         //
         const id = this.safeString2 (trade, 'id', 'tradeId');
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
         const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
@@ -1344,7 +1344,7 @@ export default class backpack extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': id,
             'order': orderId,
             'type': undefined,
@@ -1354,7 +1354,7 @@ export default class backpack extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1475,12 +1475,11 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'until');
+        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchDeposits', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetWapiV1CapitalDeposits (this.extend (request, params));
+        const response = await this.privateGetWapiV1CapitalDeposits (this.extend (request, paramsUntil));
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1511,12 +1510,11 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'until');
+        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'until');
         if (until !== undefined) {
             request['to'] = until;
         }
-        const response = await this.privateGetWapiV1CapitalWithdrawals (this.extend (request, params));
+        const response = await this.privateGetWapiV1CapitalWithdrawals (this.extend (request, paramsUntil));
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1702,8 +1700,7 @@ export default class backpack extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes');
         }
@@ -1711,7 +1708,7 @@ export default class backpack extends Exchange {
         const request: Dict = {
             'blockchain': this.networkCodeToId (networkCode, currency['code']),
         };
-        const response = await this.privateGetWapiV1CapitalDepositAddress (this.extend (request, params));
+        const response = await this.privateGetWapiV1CapitalDepositAddress (this.extend (request, paramsNetworkCode));
         return this.parseDepositAddress (response, currency);
     }
 
@@ -1723,10 +1720,10 @@ export default class backpack extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         const currencyId = this.safeString (depositAddress, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         return {
             'info': depositAddress,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'network': undefined, // network is not returned by the API
             'address': address,
             'tag': undefined,
@@ -2203,8 +2200,8 @@ export default class backpack extends Exchange {
         if (this.isEmpty (symbols)) {
             return positions;
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized, false);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -2244,8 +2241,8 @@ export default class backpack extends Exchange {
         //
         const id = this.safeString (position, 'positionId');
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const entryPrice = this.safeString (position, 'entryPrice');
         const markPrice = this.safeString (position, 'markPrice');
         const netCost = this.safeString (position, 'netCost');

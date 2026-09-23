@@ -53,11 +53,11 @@ export default class luno extends lunoRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
-        const subscription: Dict = { 'symbol': symbol };
+        const subscription: Dict = { 'symbol': symbolValue };
         const url = this.urls['api']['ws'] + subscriptionHash;
-        const messageHash = 'trades:' + symbol;
+        const messageHash = 'trades:' + symbolValue;
         const subscribe: Dict = {
             'api_key_id': this.apiKey,
             'api_key_secret': this.secret,
@@ -65,7 +65,7 @@ export default class luno extends lunoRest {
         const request = this.deepExtend (subscribe, params);
         const trades = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -157,11 +157,11 @@ export default class luno extends lunoRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
-        const subscription: Dict = { 'symbol': symbol };
+        const subscription: Dict = { 'symbol': symbolValue };
         const url = this.urls['api']['ws'] + subscriptionHash;
-        const messageHash = 'orderbook:' + symbol;
+        const messageHash = 'orderbook:' + symbolValue;
         const subscribe: Dict = {
             'api_key_id': this.apiKey,
             'api_key_secret': this.secret,
@@ -240,10 +240,10 @@ export default class luno extends lunoRest {
     }
 
     override parseOrderBookBidsAsks (bidasks: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
-        bidasks = this.toArray (bidasks);
+        const bidasksValue: any = this.toArray (bidasks);
         const result: any[] = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            result.push (this.customParseBidAsk (bidasks[i], priceKey, amountKey, thirdKey));
+        for (let i = 0; i < bidasksValue.length; i++) {
+            result.push (this.customParseBidAsk (bidasksValue[i], priceKey, amountKey, thirdKey));
         }
         return result;
     }

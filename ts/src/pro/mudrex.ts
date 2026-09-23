@@ -70,8 +70,8 @@ export default class mudrex extends mudrexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'ticker:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'ticker:' + symbolValue;
         const url = this.urls['api']['ws'];
         this.setBrokerHeaders ();
         const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
@@ -91,12 +91,12 @@ export default class mudrex extends mudrexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const messageHashes: string[] = [];
         const assets: string[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const market = this.market (symbols[i]);
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const market = this.market (symbolsNormalized[i]);
                 messageHashes.push ('ticker:' + market['symbol']);
                 const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
                 const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
@@ -118,7 +118,7 @@ export default class mudrex extends mudrexRest {
             result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArrayTickers (this.tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (this.tickers, 'symbol', symbolsNormalized);
     }
 
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
@@ -126,9 +126,9 @@ export default class mudrex extends mudrexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const priceType = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
+        const paramsOmitted: Dict = this.omit (params, 'price');
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         if (interval !== '1s' && interval !== '1m') {
             throw new NotSupported (this.id + ' watchOHLCV() supports 1s and 1m timeframes only');
@@ -148,10 +148,10 @@ export default class mudrex extends mudrexRest {
             'method': 'SUBSCRIBE',
             'params': [ stream ],
         };
-        const request = this.extend (subscribe, params);
+        const request = this.extend (subscribe, paramsOmitted);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }

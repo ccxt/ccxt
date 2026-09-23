@@ -1093,14 +1093,14 @@ export default class delta extends Exchange {
         //
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.001);
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const last = this.safeString (ticker, 'close');
         const quotes = this.safeDict (ticker, 'quotes', {});
         // turnover_symbol names the currency turnover is denominated in, and on
         // spot markets that is the base currency rather than the quote
         const turnoverSymbol = this.safeStringUpper (ticker, 'turnover_symbol');
-        const quoteId = this.safeStringUpper (market, 'quoteId');
+        const quoteId = this.safeStringUpper (marketResolved, 'quoteId');
         const baseDenominated = (turnoverSymbol !== undefined) && (quoteId !== undefined) && (turnoverSymbol !== quoteId);
         const quoteVolume = baseDenominated ? this.safeNumber (ticker, 'turnover_usd') : this.safeNumber (ticker, 'turnover');
         return this.safeTicker ({
@@ -1126,7 +1126,7 @@ export default class delta extends Exchange {
             'markPrice': this.safeNumber (ticker, 'mark_price'),
             'indexPrice': this.safeNumber (ticker, 'spot_price'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1284,7 +1284,7 @@ export default class delta extends Exchange {
      */
     override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
         //
         // spot
@@ -1431,7 +1431,7 @@ export default class delta extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -1654,7 +1654,7 @@ export default class delta extends Exchange {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
-        limit = (limit !== undefined && limit !== null && limit !== 0) ? limit : 2000; // max 2000
+        const limitValue: Int = (limit !== undefined && limit !== null && limit !== 0) ? limit : 2000; // max 2000
         let until = this.safeIntegerProduct (params, 'until', 0.001);
         const untilIsDefined = (until !== undefined);
         if (untilIsDefined) {
@@ -1666,11 +1666,11 @@ export default class delta extends Exchange {
             if (end === undefined) {
                 throw new ExchangeError (this.id + ' fetchOHLCV() missing end');
             }
-            request['start'] = end - limit * duration;
+            request['start'] = end - limitValue * duration;
         } else {
             const start = this.parseToInt (since / 1000);
             request['start'] = start;
-            request['end'] = untilIsDefined ? until : this.sum (start, limit * duration);
+            request['end'] = untilIsDefined ? until : this.sum (start, limitValue * duration);
         }
         const price = this.safeString (params, 'price');
         if (price === 'mark') {
@@ -1680,8 +1680,8 @@ export default class delta extends Exchange {
         } else {
             request['symbol'] = market['id'];
         }
-        params = this.omit (params, [ 'price', 'until' ]);
-        const response = await this.publicGetHistoryCandles (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'price', 'until' ]);
+        const response = await this.publicGetHistoryCandles (this.extend (request, paramsOmitted));
         //
         //     {
         //         "success":true,
@@ -1693,7 +1693,7 @@ export default class delta extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
+        return this.parseOHLCVs (result, market, timeframe, since, limitValue);
     }
 
     override parseBalance (response: any): Balances {
@@ -1844,8 +1844,8 @@ export default class delta extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'product_symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeIntegerProduct (position, 'timestamp', 0.001);
         const sizeString = this.safeString (position, 'size');
         let side: Str = undefined;
@@ -1867,7 +1867,7 @@ export default class delta extends Exchange {
             'unrealizedPnl': undefined, // todo - realized_pnl ?
             'percentage': undefined,
             'contracts': this.parseNumber (sizeString),
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'markPrice': undefined,
             'side': side,
             'hedged': undefined,
@@ -1966,8 +1966,8 @@ export default class delta extends Exchange {
         }
         const marketId = this.safeString (order, 'product_id');
         const marketsByNumericId = this.safeDict (this.options, 'marketsByNumericId', {});
-        market = this.safeValue (marketsByNumericId, marketId, market);
-        const symbol = (market === undefined) ? marketId : market['symbol'];
+        const marketValue: Market = this.safeValue (marketsByNumericId, marketId, market);
+        const symbol = (marketValue === undefined) ? marketId : marketValue['symbol'];
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const side = this.safeString (order, 'side');
         let type = this.safeString (order, 'order_type');
@@ -1982,8 +1982,8 @@ export default class delta extends Exchange {
         const feeCostString = this.safeString (order, 'paid_commission');
         if (feeCostString !== undefined) {
             let feeCurrencyCode: Str = undefined;
-            if (market !== undefined) {
-                const settlingAsset = this.safeDict (market['info'], 'settling_asset', {});
+            if (marketValue !== undefined) {
+                const settlingAsset = this.safeDict (marketValue['info'], 'settling_asset', {});
                 const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
                 feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             }
@@ -2011,7 +2011,7 @@ export default class delta extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketValue);
     }
 
     /**
@@ -2266,15 +2266,15 @@ export default class delta extends Exchange {
             market = this.market (symbol);
         }
         const clientOrderId = this.safeStringN (params, [ 'clientOrderId', 'client_oid', 'clientOid' ]);
-        params = this.omit (params, [ 'clientOrderId', 'client_oid', 'clientOid' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_oid', 'clientOid' ]);
         const request: Dict = {};
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['client_oid'] = clientOrderId;
-            response = await this.privateGetOrdersClientOrderIdClientOid (this.extend (request, params));
+            response = await this.privateGetOrdersClientOrderIdClientOid (this.extend (request, paramsOmitted));
         } else {
             request['order_id'] = id;
-            response = await this.privateGetOrdersOrderId (this.extend (request, params));
+            response = await this.privateGetOrdersOrderId (this.extend (request, paramsOmitted));
         }
         //
         //     {
@@ -2574,8 +2574,8 @@ export default class delta extends Exchange {
         type = this.parseLedgerEntryType (type);
         const currencyId = this.safeString (item, 'asset_id');
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
-        currency = this.safeValue (currenciesByNumericId, currencyId, currency);
-        const code = (currency === undefined) ? undefined : currency['code'];
+        const currencyValue: Currency = this.safeValue (currenciesByNumericId, currencyId, currency);
+        const code = (currencyValue === undefined) ? undefined : currencyValue['code'];
         const amount = this.safeString (item, 'amount');
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
         const after = this.safeString (item, 'balance');
@@ -2597,7 +2597,7 @@ export default class delta extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': undefined,
-        }, currency) as LedgerEntry;
+        }, currencyValue) as LedgerEntry;
     }
 
     /**
@@ -2750,7 +2750,7 @@ export default class delta extends Exchange {
      */
     override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {
             'contract_types': 'perpetual_futures',
         };
@@ -2803,7 +2803,7 @@ export default class delta extends Exchange {
         //     }
         //
         const rates = this.safeList (response, 'result', []);
-        return this.parseFundingRates (rates, symbols);
+        return this.parseFundingRates (rates, symbolsNormalized);
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
@@ -2964,10 +2964,10 @@ export default class delta extends Exchange {
         //     }
         //
         const marketId = this.safeString (data, 'product_symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
@@ -3771,13 +3771,13 @@ export default class delta extends Exchange {
         //     }
         //
         const marketId = this.safeString (chain, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const quotes = this.safeDict (chain, 'quotes', {});
         const timestamp = this.safeIntegerProduct (chain, 'timestamp', 0.001);
         return {
             'info': chain,
             'currency': this.safeString (chain, 'currency'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'impliedVolatility': this.safeNumber (quotes, 'mark_iv'),
@@ -3806,7 +3806,7 @@ export default class delta extends Exchange {
      */
     override async fetchPositionsADLRank (symbols: Strings = undefined, params: Dict = {}): Promise<ADL[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
         const response = await this.privateGetPositionsMargined (params);
         //
         //     {
@@ -3979,7 +3979,7 @@ export default class delta extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        return this.parseADLRanks (result, symbols);
+        return this.parseADLRanks (result, symbolsNormalized);
     }
 
     override parseADLRank (info: Dict, market: Market = undefined): ADL {

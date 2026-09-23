@@ -735,7 +735,7 @@ export default class indodax extends Exchange {
         const selectedTimeframe = this.safeString (this.timeframes, timeframe, timeframe);
         const now = this.seconds ();
         const until = this.safeInteger (params, 'until', now);
-        params = this.omit (params, [ 'until' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
         const request: Dict = {
             'to': until,
             'tf': selectedTimeframe,
@@ -750,7 +750,7 @@ export default class indodax extends Exchange {
             const duration = this.parseTimeframe (timeframe);
             request['from'] = now - limit * duration - 1;
         }
-        const response = await this.publicGetTradingviewHistoryV2 (this.extend (request, params));
+        const response = await this.publicGetTradingviewHistoryV2 (this.extend (request, paramsOmitted));
         //
         //     [
         //         {
@@ -829,15 +829,15 @@ export default class indodax extends Exchange {
         let remaining: Str = undefined;
         let filled: Str = undefined;
         const marketId = this.safeString (order, 'pair');
-        market = this.safeMarket (marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            let quoteId = market['quoteId'];
-            let baseId = market['baseId'];
-            if ((market['quoteId'] === 'idr') && ('order_rp' in order)) {
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        if (marketResolved !== undefined) {
+            symbol = marketResolved['symbol'];
+            let quoteId = marketResolved['quoteId'];
+            let baseId = marketResolved['baseId'];
+            if ((marketResolved['quoteId'] === 'idr') && ('order_rp' in order)) {
                 quoteId = 'rp';
             }
-            if ((market['baseId'] === 'idr') && ('remain_rp' in order)) {
+            if ((marketResolved['baseId'] === 'idr') && ('remain_rp' in order)) {
                 baseId = 'rp';
             }
             cost = this.safeString (order, 'order_' + quoteId);
@@ -1288,7 +1288,7 @@ export default class indodax extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1307,10 +1307,10 @@ export default class indodax extends Exchange {
             'withdraw_address': address,
             'request_id': requestId.toString (),
         };
-        if ((tag !== undefined) && (tag !== '')) {
-            request['withdraw_memo'] = tag;
+        if ((tagWithdrawTag !== undefined) && (tagWithdrawTag !== '')) {
+            request['withdraw_memo'] = tagWithdrawTag;
         }
-        const response = await this.privatePostWithdrawCoin (this.extend (request, params));
+        const response = await this.privatePostWithdrawCoin (this.extend (request, paramsWithdrawTag));
         //
         //     {
         //         "success": 1,

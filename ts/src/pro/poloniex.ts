@@ -389,9 +389,9 @@ export default class poloniex extends poloniexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const tickers = await this.watchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol);
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbolValue ], params);
+        return this.safeValue (tickers, symbolValue);
     }
 
     /**
@@ -408,12 +408,12 @@ export default class poloniex extends poloniexRest {
             await this.loadMarkets ();
         }
         const name = 'ticker';
-        symbols = this.marketSymbols (symbols);
-        const newTickers = await this.subscribe (name, name, false, symbols, params);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        const newTickers = await this.subscribe (name, name, false, symbolsNormalized, params);
         if (this.newUpdates) {
             return newTickers;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -446,10 +446,10 @@ export default class poloniex extends poloniexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         const name = 'trades';
         const url = this.urls['api']['ws']['public'];
-        const marketIds = this.marketIds (symbols);
+        const marketIds = this.marketIds (symbolsNormalized);
         const subscribe: Dict = {
             'event': 'subscribe',
             'channel': [
@@ -459,9 +459,9 @@ export default class poloniex extends poloniexRest {
         };
         const request = this.extend (subscribe, params);
         const messageHashes: string[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                messageHashes.push (name + '::' + symbols[i]);
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                messageHashes.push (name + '::' + symbolsNormalized[i]);
             }
         }
         const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
@@ -488,9 +488,9 @@ export default class poloniex extends poloniexRest {
             await this.loadMarkets ();
         }
         const watchOrderBookOptions = this.safeDict (this.options, 'watchOrderBook');
-        let name = this.safeString (watchOrderBookOptions, 'name', 'book_lv2');
-        [ name, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'name', name);
-        const orderbook = await this.subscribe (name, name, false, [ symbol ], params);
+        const name = this.safeString (watchOrderBookOptions, 'name', 'book_lv2');
+        const [ nameOption, paramsName ] = this.handleOptionAndParams (params, 'watchOrderBook', 'name', name);
+        const orderbook = await this.subscribe (nameOption, nameOption, false, [ symbol ], paramsName);
         return orderbook.limit ();
     }
 
@@ -727,13 +727,13 @@ export default class poloniex extends poloniexRest {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'createTime');
         const takerMaker = this.safeStringLower2 (trade, 'matchRole', 'taker');
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString2 (trade, 'id', 'tradeId'),
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': this.safeString (trade, 'orderId'),
@@ -748,7 +748,7 @@ export default class poloniex extends poloniexRest {
                 'cost': this.safeString (trade, 'tradeFee'),
                 'currency': this.safeString (trade, 'feeCurrency'),
             },
-        }, market);
+        }, marketResolved);
     }
 
     parseStatus (status: Str): Str {

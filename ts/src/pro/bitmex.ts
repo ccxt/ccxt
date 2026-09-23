@@ -72,9 +72,9 @@ export default class bitmex extends bitmexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const tickers = await this.watchTickers ([ symbol ], params);
-        return tickers[symbol];
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbolValue ], params);
+        return tickers[symbolValue];
     }
 
     /**
@@ -90,14 +90,14 @@ export default class bitmex extends bitmexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true);
         const name = 'instrument';
         const url = this.urls['api']['ws'];
         const messageHashes: List = [];
         const rawSubscriptions: List = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 const subscription = name + ':' + market['id'];
                 rawSubscriptions.push (subscription);
@@ -118,7 +118,7 @@ export default class bitmex extends bitmexRest {
             result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     handleTicker (client: Client, message: Dict): Dict {
@@ -398,15 +398,15 @@ export default class bitmex extends bitmexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, true, true);
         const messageHashes: List = [];
         const subscriptionHashes: List = [];
-        if (this.isEmpty (symbols)) {
+        if (this.isEmpty (symbolsNormalized)) {
             subscriptionHashes.push ('liquidation');
             messageHashes.push ('liquidations');
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 subscriptionHashes.push ('liquidation:' + market['id']);
                 messageHashes.push ('liquidations::' + symbol);
@@ -421,7 +421,7 @@ export default class bitmex extends bitmexRest {
         if (this.newUpdates) {
             return newLiquidations;
         }
-        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbolsNormalized, since, limit, true);
     }
 
     handleLiquidation (client: Client, message: Dict) {
@@ -1353,11 +1353,11 @@ export default class bitmex extends bitmexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const topics: List = [];
         const messageHashes: List = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const topic = table + ':' + market['id'];
             topics.push (topic);
@@ -1388,12 +1388,12 @@ export default class bitmex extends bitmexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const table = 'trade';
         const topics: List = [];
         const messageHashes: List = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const topic = table + ':' + market['id'];
             topics.push (topic);
@@ -1431,7 +1431,7 @@ export default class bitmex extends bitmexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const table = 'tradeBin' + this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = table + ':' + market['id'];
         const url = this.urls['api']['ws'];
@@ -1443,7 +1443,7 @@ export default class bitmex extends bitmexRest {
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }

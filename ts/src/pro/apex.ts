@@ -85,16 +85,16 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        const symbolsLength = symbols.length;
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
+        const symbolsLength = symbolsNormalized.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const topic = 'recentlyTrade.H.' + (market as Dict)['id2'];
             topics.push (topic);
@@ -170,8 +170,8 @@ export default class apex extends apexRest {
         //
         const id = this.safeStringN (trade, [ 'i', 'id', 'v' ]);
         const marketId = this.safeString2 (trade, 's', 'symbol');
-        market = this.safeMarket (marketId, market, undefined);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeIntegerN (trade, [ 't', 'T', 'createdAt' ]);
         const side = this.safeStringLower2 (trade, 'S', 'side');
         const price = this.safeString2 (trade, 'p', 'price');
@@ -190,7 +190,7 @@ export default class apex extends apexRest {
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -225,12 +225,12 @@ export default class apex extends apexRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             if (limit === undefined) {
                 limit = 25;
@@ -380,9 +380,9 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const url = this.getWsPublicUrl ();
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbolValue;
         const topic = 'instrumentInfo' + '.H.' + (market as Dict)['id2'];
         const topics = [ topic ];
         return await this.watchTopics (url, [ messageHash ], topics, params);
@@ -401,12 +401,12 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
-        for (let i = 0; i < (symbols as string[]).length; i++) {
-            const symbol = (symbols as string[])[i];
+        for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
+            const symbol = (symbolsNormalized as string[])[i];
             const market = this.market (symbol);
             const topic = 'instrumentInfo' + '.H.' + (market as Dict)['id2'];
             topics.push (topic);
@@ -419,7 +419,7 @@ export default class apex extends apexRest {
             result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     handleTicker (client: Client, message: Dict) {

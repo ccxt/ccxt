@@ -171,7 +171,7 @@ export default class modetrade extends modetradeRest {
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        market['symbol'];
         const topic = market['id'] + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
@@ -261,7 +261,7 @@ export default class modetrade extends modetradeRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const name = 'tickers';
         const topic = name;
         const request: Dict = {
@@ -270,7 +270,7 @@ export default class modetrade extends modetradeRest {
         };
         const message = this.extend (request, params);
         const tickers = await this.watchPublic (topic, message);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArray (tickers, 'symbol', symbolsNormalized);
     }
 
     handleTickers (client: Client, message: Dict) {
@@ -320,7 +320,7 @@ export default class modetrade extends modetradeRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const name = 'bbos';
         const topic = name;
         const request: Dict = {
@@ -329,7 +329,7 @@ export default class modetrade extends modetradeRest {
         };
         const message = this.extend (request, params);
         const tickers = await this.watchPublic (topic, message);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArray (tickers, 'symbol', symbolsNormalized);
     }
 
     handleBidAsk (client: Client, message: Dict) {
@@ -365,8 +365,8 @@ export default class modetrade extends modetradeRest {
 
     parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 'ts');
         return this.safeTicker ({
             'symbol': symbol,
@@ -377,7 +377,7 @@ export default class modetrade extends modetradeRest {
             'bid': this.safeString (ticker, 'bid'),
             'bidVolume': this.safeString (ticker, 'bidSize'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -480,7 +480,7 @@ export default class modetrade extends modetradeRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const topic = market['id'] + '@trade';
         const request: Dict = {
             'event': 'subscribe',
@@ -491,7 +491,7 @@ export default class modetrade extends modetradeRest {
         if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limit, true);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -563,8 +563,8 @@ export default class modetrade extends modetradeRest {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString2 (trade, 'executedPrice', 'price');
         const amount = this.safeString2 (trade, 'executedQuantity', 'size');
         const cost = Precise.stringMul (price, amount);
@@ -597,7 +597,7 @@ export default class modetrade extends modetradeRest {
             'type': this.safeStringLower (trade, 'type'),
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     handleAuth (client: Client, message: Dict) {
@@ -696,7 +696,7 @@ export default class modetrade extends modetradeRest {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -707,7 +707,7 @@ export default class modetrade extends modetradeRest {
             'event': 'subscribe',
             'topic': topic,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -734,7 +734,7 @@ export default class modetrade extends modetradeRest {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
-        params = this.omit (params, 'stop');
+        const paramsOmitted: Dict = this.omit (params, 'stop');
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -745,7 +745,7 @@ export default class modetrade extends modetradeRest {
             'event': 'subscribe',
             'topic': topic,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -821,8 +821,8 @@ export default class modetrade extends modetradeRest {
         //
         const orderId = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (order, 'timestamp');
         const fee: Dict = {
             'cost': this.safeString (order, 'totalFee'),
@@ -1021,10 +1021,10 @@ export default class modetrade extends modetradeRest {
             await this.loadMarkets ();
         }
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols);
-        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if ((symbolsNormalized !== undefined) && !this.isEmpty (symbolsNormalized)) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push ('positions::' + symbol);
             }
         } else {
@@ -1032,12 +1032,12 @@ export default class modetrade extends modetradeRest {
         }
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const client = this.client (url);
-        this.setPositionsCache (client, symbols);
+        this.setPositionsCache (client, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -1047,7 +1047,7 @@ export default class modetrade extends modetradeRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
@@ -1161,7 +1161,7 @@ export default class modetrade extends modetradeRest {
         //     }
         //
         const contract = this.safeString (position, 'symbol');
-        market = this.safeMarket (contract, market);
+        const marketResolved: Market = this.safeMarket (contract, market);
         let size = this.safeString (position, 'positionQty');
         let side: Str = undefined;
         if (Precise.stringGt (size, '0')) {
@@ -1169,7 +1169,7 @@ export default class modetrade extends modetradeRest {
         } else {
             side = 'short';
         }
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeString (marketResolved, 'contractSize');
         const markPrice = this.safeString (position, 'markPrice');
         const timestamp = this.safeInteger (position, 'timestamp');
         const entryPrice = this.safeString (position, 'averageOpenPrice');
@@ -1179,7 +1179,7 @@ export default class modetrade extends modetradeRest {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,

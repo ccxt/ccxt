@@ -513,12 +513,12 @@ export default class upbit extends upbitRest {
         const timestamp = this.parse8601 (this.safeString (order, 'order_timestamp'));
         const status = this.parseWsOrderStatus (this.safeString (order, 'state'));
         const marketId = this.safeString (order, 'code');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let fee: FeeString = undefined;
         const feeCost = this.safeString (order, 'paid_fee');
         if (feeCost !== undefined) {
             fee = {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': feeCost,
             };
         }
@@ -529,7 +529,7 @@ export default class upbit extends upbitRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeString (order, 'trade_timestamp'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.safeString (order, 'order_type'),
             'timeInForce': this.safeString (order, 'time_in_force'),
             'postOnly': undefined,
@@ -558,12 +558,12 @@ export default class upbit extends upbitRest {
         }
         const timestamp = this.parse8601 (this.safeString (trade, 'trade_timestamp'));
         const marketId = this.safeString (trade, 'code');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'paid_fee');
         if (feeCost !== undefined) {
             fee = {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': feeCost,
             };
         }
@@ -571,7 +571,7 @@ export default class upbit extends upbitRest {
             'id': this.safeString (trade, 'trade_uuid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'side': side,
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'volume'),
@@ -581,7 +581,7 @@ export default class upbit extends upbitRest {
             'type': this.safeString (trade, 'order_type'),
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     handleMyOrder (client: Client, message: Dict) {

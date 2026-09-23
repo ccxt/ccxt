@@ -56,9 +56,9 @@ export default class independentreserve extends independentreserveRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const url = this.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
-        const messageHash = 'trades:' + symbol;
+        const messageHash = 'trades:' + symbolValue;
         const trades = await this.watch (url, messageHash, undefined, messageHash);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -144,13 +144,13 @@ export default class independentreserve extends independentreserveRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         if (limit === undefined) {
             limit = 100;
         }
         const limitString = this.numberToString (limit);
         const url = this.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
-        const messageHash = 'orderbook:' + symbol + ':' + limitString;
+        const messageHash = 'orderbook:' + symbolValue + ':' + limitString;
         const subscription: Dict = {
             'receivedSnapshot': false,
         };

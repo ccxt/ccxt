@@ -741,8 +741,8 @@ export default class apex extends Exchange {
         // }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         const last = this.safeString (ticker, 'lastPrice');
         const percentage = this.safeString (ticker, 'price24hPcnt');
         const quoteVolume = this.safeString (ticker, 'turnover24h');
@@ -772,7 +772,7 @@ export default class apex extends Exchange {
             'markPrice': this.safeString (ticker, 'markPrice'),
             'indexPrice': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -834,7 +834,7 @@ export default class apex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'symbol': this.safeString (market, 'id2'),
         };
@@ -843,11 +843,11 @@ export default class apex extends Exchange {
         }
         limit = Math.min (limit, 200); // fix maxcap
         request['limit'] = limit; // max 200, default 200
-        [ request, params ] = this.handleUntilOption ('end', request, params, 0.001);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params, 0.001);
         if (since !== undefined) {
-            request['start'] = Math.floor (since / 1000);
+            requestUntil['start'] = Math.floor (since / 1000);
         }
-        const response = await this.publicGetV3Klines (this.extend (request, params));
+        const response = await this.publicGetV3Klines (this.extend (requestUntil, paramsUntil));
         const data = this.safeDict (response, 'data', {});
         const OHLCVs = this.safeList (data, this.safeString (market, 'id2'), []);
         return this.parseOHLCVs (OHLCVs, market, timeframe, since, limit);
@@ -997,7 +997,7 @@ export default class apex extends Exchange {
         //  ]
         //
         const marketId = this.safeString2 (trade, 's', 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const id = this.safeString2 (trade, 'i', 'id');
         const timestamp = this.safeIntegerN (trade, [ 't', 'T', 'createdAt' ]);
         const priceString = this.safeString2 (trade, 'p', 'price');
@@ -1011,7 +1011,7 @@ export default class apex extends Exchange {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'takerOrMaker': undefined,
             'side': side,
@@ -1019,7 +1019,7 @@ export default class apex extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1065,8 +1065,8 @@ export default class apex extends Exchange {
         // }
         //
         const marketId = this.safeString (interest, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         return this.safeOpenInterest ({
             'symbol': symbol,
             'openInterestAmount': this.safeString (interest, 'openInterest'),
@@ -1074,7 +1074,7 @@ export default class apex extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'info': interest,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1207,8 +1207,8 @@ export default class apex extends Exchange {
         const orderId = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'clientId');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'size');
         const orderType = this.safeString (order, 'type');
@@ -1243,10 +1243,10 @@ export default class apex extends Exchange {
             'trades': undefined,
             'fee': {
                 'cost': this.safeString (order, 'fee'),
-                'currency': market['settleId'],
+                'currency': marketResolved['settleId'],
             },
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1409,15 +1409,15 @@ export default class apex extends Exchange {
                 timeInForce = 'IMMEDIATE_OR_CANCEL';
             }
         }
-        params = this.omit (params, 'timeInForce');
-        params = this.omit (params, 'postOnly');
-        let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
+        const paramsOmitted: Dict = this.omit (params, 'timeInForce');
+        const paramsOmitted2: Dict = this.omit (paramsOmitted, 'postOnly');
+        let clientOrderId = this.safeStringN (paramsOmitted2, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
         const accountId = await this.getAccountId ();
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni (accountId);
         }
         const finalClientOrderId = clientOrderId; // java req
-        params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
+        const paramsOmitted3: Dict = this.omit (paramsOmitted2, [ 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
         const finalOrderPrice = orderPrice; // java req
         const orderToSign: Dict = {
             'accountId': accountId,
@@ -1450,7 +1450,7 @@ export default class apex extends Exchange {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         request['signature'] = signature;
-        const response = await this.privatePostV3Order (this.extend (request, params));
+        const response = await this.privatePostV3Order (this.extend (request, paramsOmitted3));
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
@@ -1518,7 +1518,7 @@ export default class apex extends Exchange {
             clientOrderId = this.generateRandomClientIdOmni (this.safeString (this.options, 'accountId'));
         }
         const finalClientOrderId = clientOrderId; // java req
-        params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
         if (fromAccount !== undefined && fromAccount.toLowerCase () === 'contract') {
             const formattedUint32 = '4294967295';
             const zkSignAccountId = Precise.stringMod (accountId, formattedUint32);
@@ -1544,7 +1544,7 @@ export default class apex extends Exchange {
                 'token': code,
                 'ethAddress': ethAddress,
             };
-            const response = await this.privatePostV3ContractTransferOut (this.extend (request, params));
+            const response = await this.privatePostV3ContractTransferOut (this.extend (request, paramsOmitted));
             const data = this.safeDict (response, 'data', {});
             const currentTime = this.milliseconds ();
             const parsedAmount = this.parseNumber (amount);
@@ -1586,7 +1586,7 @@ export default class apex extends Exchange {
                 'receiverAddress': receiverAddress,
                 'nonce': finalNonce,
             };
-            const response = await this.privatePostV3TransferOut (this.extend (request, params));
+            const response = await this.privatePostV3TransferOut (this.extend (request, paramsOmitted));
             const data = this.safeDict (response, 'data', {});
             const currentTime = this.milliseconds ();
             return this.extend (this.parseTransfer (data, this.currency (code)), {
@@ -1785,8 +1785,8 @@ export default class apex extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOrderId', 'clientId' ]);
-        const response = await this.privateGetV3OrderFills (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'clientId' ]);
+        const response = await this.privateGetV3OrderFills (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orders', []);
         return this.parseTrades (orders, undefined, since, limit);
@@ -1891,12 +1891,12 @@ export default class apex extends Exchange {
         // }
         //
         const marketId = this.safeString (income, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'contract');
         const code = 'USDT';
         const timestamp = this.safeInteger (income, 'fundingTime');
         return {
             'info': income,
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (marketId, marketResolved),
             'code': code,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1971,8 +1971,8 @@ export default class apex extends Exchange {
         //     "customInitialMarginRate": "0"
         // }
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower (position, 'side');
         const quantity = this.safeString (position, 'size');
         const timestamp = this.safeInteger (position, 'updatedTime');
@@ -2010,7 +2010,7 @@ export default class apex extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
-        headers = {
+        const headersValue: NullableDict = {
             'User-Agent': 'apex-CCXT',
             'Accept': 'application/json',
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -2034,12 +2034,12 @@ export default class apex extends Exchange {
                 messageString = messageString + signBody;
             }
             const signature = this.hmac (this.encode (messageString), this.encode (this.stringToBase64 (this.secret)), sha256, 'base64');
-            headers['APEX-SIGNATURE'] = signature;
-            headers['APEX-API-KEY'] = this.apiKey;
-            headers['APEX-TIMESTAMP'] = timestamp;
-            headers['APEX-PASSPHRASE'] = this.password;
+            headersValue['APEX-SIGNATURE'] = signature;
+            headersValue['APEX-API-KEY'] = this.apiKey;
+            headersValue['APEX-TIMESTAMP'] = timestamp;
+            headersValue['APEX-PASSPHRASE'] = this.password;
         }
-        return { 'url': url, 'method': method, 'body': signBody, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': signBody, 'headers': headersValue };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

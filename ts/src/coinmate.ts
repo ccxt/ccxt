@@ -558,7 +558,7 @@ export default class coinmate extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetTickerAll (params);
         //
         //     {
@@ -587,7 +587,7 @@ export default class coinmate extends Exchange {
             const ticker = this.parseTicker (this.safeValue (data, keys[i]), market);
             result[market['symbol']] = ticker;
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -766,7 +766,7 @@ export default class coinmate extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -783,10 +783,10 @@ export default class coinmate extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
         };
-        if (tag !== undefined) {
-            request['destinationTag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destinationTag'] = tagWithdrawTag;
         }
-        const requestParams = this.extend (request, params);
+        const requestParams = this.extend (request, paramsWithdrawTag);
         let response = undefined;
         if (method === 'privatePostBitcoinWithdrawal') {
             response = await this.privatePostBitcoinWithdrawal (requestParams);
@@ -825,7 +825,7 @@ export default class coinmate extends Exchange {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
-            transaction['tag'] = tag;
+            transaction['tag'] = tagWithdrawTag;
             transaction['type'] = 'withdrawal';
             transaction['status'] = 'pending';
         }
@@ -894,7 +894,7 @@ export default class coinmate extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'currencyPair');
-        market = this.safeMarket (marketId, market, '_');
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const side = this.safeStringLower2 (trade, 'type', 'tradeType');
@@ -907,7 +907,7 @@ export default class coinmate extends Exchange {
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         let takerOrMaker = this.safeString (trade, 'feeType');
@@ -917,7 +917,7 @@ export default class coinmate extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'side': side,
             'order': orderId,
@@ -926,7 +926,7 @@ export default class coinmate extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**

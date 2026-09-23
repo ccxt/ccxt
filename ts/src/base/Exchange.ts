@@ -4315,7 +4315,7 @@ export class BaseExchange {
     }
 
     safeLedgerEntry (entry: object, currency: Currency = undefined): LedgerEntry {
-        currency = this.safeCurrency (undefined, currency);
+        const currencyResolved: Currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
         let before = this.safeString (entry, 'before');
         let after = this.safeString (entry, 'after');
@@ -4352,7 +4352,7 @@ export class BaseExchange {
             'referenceId': this.safeString (entry, 'referenceId'),
             'referenceAccount': this.safeString (entry, 'referenceAccount'),
             'type': this.safeString (entry, 'type'),
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'amount': this.parseNumber (amount),
             'before': this.parseNumber (before),
             'after': this.parseNumber (after),
@@ -5755,10 +5755,10 @@ export class BaseExchange {
     }
 
     parseOrderBookBidsAsks (bidasks: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): Num[][] {
-        bidasks = this.toArray (bidasks);
+        const bidasksValue: any = this.toArray (bidasks);
         const result: Num[][] = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            result.push (this.parseOrderBookBidAsk (bidasks[i], priceKey, amountKey, countOrIdKey));
+        for (let i = 0; i < bidasksValue.length; i++) {
+            result.push (this.parseOrderBookBidAsk (bidasksValue[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -6056,13 +6056,13 @@ export class BaseExchange {
 
     parseLeverageTiers (response: any, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
         // marketIdKey should only be undefined when response is a dictionary.
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const tiers: Dict = {};
         let symbolsLength = 0;
-        if (symbols !== undefined) {
-            symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
         }
-        const noSymbols = (symbols === undefined) || (symbolsLength === 0);
+        const noSymbols = (symbolsNormalized === undefined) || (symbolsLength === 0);
         if (Array.isArray (response)) {
             for (let i = 0; i < response.length; i++) {
                 const item = response[i];
@@ -6070,7 +6070,7 @@ export class BaseExchange {
                 const market = this.safeMarket (id, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
-                if ((contract === true) && (noSymbols || ((symbols !== undefined) && this.inArray (symbol, symbols)))) {
+                if ((contract === true) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
                 }
             }
@@ -6082,7 +6082,7 @@ export class BaseExchange {
                 const market = this.safeMarket (marketId, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
-                if ((contract === true) && (noSymbols || ((symbols !== undefined) && this.inArray (symbol, symbols)))) {
+                if ((contract === true) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
                 }
             }
@@ -6137,14 +6137,14 @@ export class BaseExchange {
     }
 
     parsePositions (positions: List, symbols: Strings = undefined, params: Dict = {}): Position[] {
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const positionsArray = this.toArray (positions);
         const result: Position[] = [];
         for (let i = 0; i < positionsArray.length; i++) {
             const position = this.extend (this.parsePosition (positionsArray[i]), params);
             result.push (position);
         }
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
     }
 
     parseADLRank (info: Dict, market: Market = undefined): ADL {
@@ -6155,14 +6155,14 @@ export class BaseExchange {
     }
 
     parseADLRanks (ranks: List, symbols: Strings = undefined, params: Dict = {}): ADL[] {
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const ranksArray = this.toArray (ranks);
         const result: ADL[] = [];
         for (let i = 0; i < ranksArray.length; i++) {
             const rank = this.extend (this.parseADLRank (ranksArray[i]), params);
             result.push (rank);
         }
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
     }
 
     parseAccounts (accounts: List, params: Dict = {}): Account[] {
@@ -6363,14 +6363,13 @@ export class BaseExchange {
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
     handleRequestNetwork (params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode:Str = undefined, isRequired: boolean = false): Dict[] {
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request[exchangeSpecificKey] = this.networkCodeToId (networkCode, currencyCode);
         } else if (isRequired) {
             throw new ArgumentsRequired (this.id + ' - "network" param is required for this request');
         }
-        return [ request, params ];
+        return [ request, paramsNetworkCode ];
     }
 
     resolvePath (path: any, params: any): any[] {
@@ -6413,20 +6412,20 @@ export class BaseExchange {
     }
 
     filterByArray (objects: any, key: IndexType, values: any = undefined, indexed = true) {
-        objects = this.toArray (objects);
+        const objectsValue: any = this.toArray (objects);
         // return all of them if no values were passed
         if ((values === undefined) || (values === null) || (values === false) || (values === 0) || (values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
-                return this.indexBy (objects, key);
+                return this.indexBy (objectsValue, key);
             } else {
-                return objects;
+                return objectsValue;
             }
         }
         const results: Dict[] = [];
-        for (let i = 0; i < objects.length; i++) {
-            if (this.inArray (objects[i][key], values)) {
-                results.push (objects[i]);
+        for (let i = 0; i < objectsValue.length; i++) {
+            if (this.inArray (objectsValue[i][key], values)) {
+                results.push (objectsValue[i]);
             }
         }
         // return indexed ? this.indexBy (results, key) : results;
@@ -6437,20 +6436,20 @@ export class BaseExchange {
     }
 
     filterOutByArray (objects: any, key: IndexType, values: any = undefined, indexed = true) {
-        objects = this.toArray (objects);
+        const objectsValue: any = this.toArray (objects);
         // return all of them if no values were passed
         if ((values === undefined) || (values === null) || (values === false) || (values === 0) || (values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
-                return this.indexBy (objects, key);
+                return this.indexBy (objectsValue, key);
             } else {
-                return objects;
+                return objectsValue;
             }
         }
         const results: Dict[] = [];
-        for (let i = 0; i < objects.length; i++) {
-            if (!this.inArray (objects[i][key], values)) {
-                results.push (objects[i]);
+        for (let i = 0; i < objectsValue.length; i++) {
+            if (!this.inArray (objectsValue[i][key], values)) {
+                results.push (objectsValue[i]);
             }
         }
         // return indexed ? this.indexBy (results, key) : results;
@@ -6465,19 +6464,19 @@ export class BaseExchange {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
         }
-        let retries = 0;
-        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', retries);
-        let retryDelay = 0;
-        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', retryDelay);
+        const retries = 0;
+        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', retries);
+        const retryDelay = 0;
+        const [ retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay ] = this.handleOptionAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
-        for (let i = 0; i < retries + 1; i++) {
+        for (let i = 0; i < retriesMaxRetriesOnFailure + 1; i++) {
             let fetchData: NullableDict = undefined;
             if (fetchDataCacheEnabled) {
                 fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
             }
             try {
                 this.setLastRestRequestTimestamp ();
-                const request = this.sign (path, api, method, params, headers, body);
+                const request = this.sign (path, api, method, paramsMaxRetriesOnFailureDelay, headers, body);
                 if (fetchData !== undefined) {
                     fetchData['request'] = request;
                 }
@@ -6494,13 +6493,13 @@ export class BaseExchange {
                     this.addFetchCache (fetchData);
                 }
                 if (e instanceof OperationFailed) {
-                    if (i < retries) {
+                    if (i < retriesMaxRetriesOnFailure) {
                         if (this.verbose) {
                             const index = i + 1;
-                            this.log ('Request failed with the error: ' + e.toString () + ', retrying ' + index.toString () + ' of ' + retries.toString () + '...');
+                            this.log ('Request failed with the error: ' + e.toString () + ', retrying ' + index.toString () + ' of ' + retriesMaxRetriesOnFailure.toString () + '...');
                         }
-                        if ((retryDelay !== undefined) && (retryDelay !== 0)) {
-                            await this.sleep (retryDelay);
+                        if ((retryDelayMaxRetriesOnFailureDelay !== undefined) && (retryDelayMaxRetriesOnFailureDelay !== 0)) {
+                            await this.sleep (retryDelayMaxRetriesOnFailureDelay);
                         }
                     } else {
                         throw e;
@@ -7139,8 +7138,8 @@ export class BaseExchange {
         if (stopLossAmount !== undefined) {
             params['stopLoss']['amount'] = this.parseToNumeric (stopLossAmount);
         }
-        params = this.omit (params, [ 'takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount' ]);
-        return params;
+        const paramsOmitted: Dict = this.omit (params, [ 'takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount' ]);
+        return paramsOmitted;
     }
 
     async createSpotOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
@@ -7583,8 +7582,8 @@ export class BaseExchange {
     }
 
     safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
-        currency = this.safeCurrency (currencyId, currency);
-        return currency['code'];
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
+        return currencyResolved['code'];
     }
 
     filterBySymbolSinceLimit (array: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
@@ -7635,8 +7634,8 @@ export class BaseExchange {
                 results.push (priceData);
             }
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArray (results, 'symbol', symbolsNormalized);
     }
 
     parseTickers (tickers: any, symbols: Strings = undefined, params: Dict = {}): Tickers {
@@ -7679,8 +7678,8 @@ export class BaseExchange {
                 results.push (ticker);
             }
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArray (results, 'symbol', symbolsNormalized);
     }
 
     parseDepositAddresses (addresses: any, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
@@ -7745,8 +7744,8 @@ export class BaseExchange {
     }
 
     safeSymbol (marketId: Str, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): string {
-        market = this.safeMarket (marketId, market, delimiter, marketType);
-        return market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, delimiter, marketType);
+        return marketResolved['symbol'];
     }
 
     parseFundingRate (contract: string, market: Market = undefined): FundingRate {
@@ -7883,7 +7882,7 @@ export class BaseExchange {
         }
     }
 
-    handlePostOnly (isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params: any = {}): any[] {
+    handlePostOnly (isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params: any = {}): [boolean, Dict] {
         /**
          * @ignore
          * @method
@@ -8332,48 +8331,45 @@ export class BaseExchange {
     }
 
     handleMaxEntriesPerRequestAndParams (method: string, maxEntriesPerRequest: Int = undefined, params: Dict = {}): [Int, any] {
-        let newMaxEntriesPerRequest: Int = undefined;
-        [ newMaxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
+        const [ newMaxEntriesPerRequest, paramsMaxEntriesPerRequest ]: [ Int, Dict ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
         if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
             maxEntriesPerRequest = newMaxEntriesPerRequest;
         }
         if (maxEntriesPerRequest === undefined) {
             maxEntriesPerRequest = 1000; // default to 1000
         }
-        return [ maxEntriesPerRequest, params ];
+        return [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ];
     }
 
     async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
-        let maxCalls = 10;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
-        let maxRetries = 3;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
-        let paginationDirection: Str = undefined;
-        [ paginationDirection, params ] = this.handleOptionAndParams (params, method, 'paginationDirection', 'backward');
+        const maxCalls = 10;
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const maxRetries = 3;
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
+        const [ paginationDirection, paramsPaginationDirection ]: [ Str, Dict ] = this.handleOptionAndParams (paramsMaxRetries, method, 'paginationDirection', 'backward');
         let paginationTimestamp: Int = undefined;
-        let removeRepeatedOption = removeRepeated;
-        [ removeRepeatedOption, params ] = this.handleOptionAndParams (params, method, 'removeRepeated', removeRepeated);
+        const [ removeRepeatedOption, paramsRemoveRepeated ] = this.handleOptionAndParams (paramsPaginationDirection, method, 'removeRepeated', removeRepeated);
         let calls = 0;
         let result: any[] = [];
         let errors = 0;
-        const until = this.safeIntegerN (params, [ 'until', 'untill', 'till' ]); // do not omit it from params here
-        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        const until = this.safeIntegerN (paramsRemoveRepeated, [ 'until', 'untill', 'till' ]); // do not omit it from params here
+        const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsRemoveRepeated);
         if ((paginationDirection === 'forward')) {
             if (since === undefined) {
                 throw new ArgumentsRequired (this.id + ' pagination requires a since argument when paginationDirection set to forward');
             }
             paginationTimestamp = since;
         }
-        while ((calls < maxCalls)) {
+        while ((calls < maxCallsPaginationCalls)) {
             calls += 1;
             try {
                 if (paginationDirection === 'backward') {
                     // do it backwards, starting from the last
                     // UNTIL filtering is required in order to work
                     if (paginationTimestamp !== undefined) {
-                        params['until'] = paginationTimestamp - 1;
+                        paramsMaxEntriesPerRequest['until'] = paginationTimestamp - 1;
                     }
-                    const response = await this[method] (symbol, undefined, maxEntriesPerRequest, params);
+                    const response = await this[method] (symbol, undefined, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength = response.length;
                     if (this.verbose) {
                         let backwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
@@ -8397,7 +8393,7 @@ export class BaseExchange {
                     }
                 } else {
                     // do it forwards, starting from the since
-                    const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequest, params);
+                    const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength = response.length;
                     if (this.verbose) {
                         let forwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
@@ -8424,7 +8420,7 @@ export class BaseExchange {
                 }
             } catch (e) {
                 errors += 1;
-                if (errors > maxRetries) {
+                if (errors > maxRetriesOption) {
                     throw e;
                 }
             }
@@ -8439,22 +8435,22 @@ export class BaseExchange {
     }
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}): Promise<any> {
-        let maxRetries = 3;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
+        const maxRetries = 3;
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
         let errors = 0;
-        while (errors <= maxRetries) {
+        while (errors <= maxRetriesOption) {
             try {
                 if ((timeframe !== undefined && timeframe !== '') && method !== 'fetchFundingRateHistory') {
-                    return await this[method] (symbol, timeframe, since, limit, params);
+                    return await this[method] (symbol, timeframe, since, limit, paramsMaxRetries);
                 } else {
-                    return await this[method] (symbol, since, limit, params);
+                    return await this[method] (symbol, since, limit, paramsMaxRetries);
                 }
             } catch (e) {
                 if (e instanceof RateLimitExceeded) {
                     throw e; // if we are rate limited, we should not retry and fail fast
                 }
                 errors += 1;
-                if (errors > maxRetries) {
+                if (errors > maxRetriesOption) {
                     throw e;
                 }
             }
@@ -8463,20 +8459,20 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls = 10;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
-        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        const maxCalls = 10;
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsPaginationCalls);
         // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         // pagination always walks forward internally, so strip it here to avoid leaking an
         // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
-        params = this.omit (params, 'paginationDirection');
+        const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'paginationDirection');
         const current = this.milliseconds ();
         const tasks: Promise<any>[] = [];
         const time = this.parseTimeframe (timeframe) * 1000;
-        maxEntriesPerRequest = this.requireValue (maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
-        const step = time * maxEntriesPerRequest;
-        const until = this.safeInteger2 (params, 'until', 'till'); // do not omit it here
-        let currentSince = current - (maxCalls * step) - 1;
+        const maxEntriesPerRequestValue: Int = this.requireValue (maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
+        const step = time * maxEntriesPerRequestValue;
+        const until = this.safeInteger2 (paramsOmitted, 'until', 'till'); // do not omit it here
+        let currentSince = current - (maxCallsPaginationCalls * step) - 1;
         if (since !== undefined) {
             if (until !== undefined) {
                 // the recent-window floor below would jump past a fully-historical [ since, until ]
@@ -8495,18 +8491,18 @@ export class BaseExchange {
                 throw new ArgumentsRequired (this.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set');
             }
             const requiredCalls = Math.ceil ((until - since) / step);
-            if (requiredCalls > maxCalls) {
-                throw new BadRequest (this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCalls.toString () + ' required calls is ' + requiredCalls.toString ());
+            if (requiredCalls > maxCallsPaginationCalls) {
+                throw new BadRequest (this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCallsPaginationCalls.toString () + ' required calls is ' + requiredCalls.toString ());
             }
         }
-        for (let i = 0; i < maxCalls; i++) {
+        for (let i = 0; i < maxCallsPaginationCalls; i++) {
             if ((until !== undefined) && (currentSince >= until)) {
                 break;
             }
             if (currentSince >= current) {
                 break;
             }
-            tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));
+            tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted));
             currentSince = this.sum (currentSince, step) - 1;
         }
         const results = await Promise.all (tasks);
@@ -8522,30 +8518,30 @@ export class BaseExchange {
     // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
     async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls = 10;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
-        let maxRetries = 3;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
-        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        const maxCalls = 10;
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const maxRetries = 3;
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
+        const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsMaxRetries);
         let cursorValue: Int = undefined;
         let i = 0;
         let errors = 0;
         let result: any[] = [];
-        const timeframe = this.safeString (params, 'timeframe');
-        params = this.omit (params, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
-        while (i < maxCalls) {
+        const timeframe = this.safeString (paramsMaxEntriesPerRequest, 'timeframe');
+        const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
+        while (i < maxCallsPaginationCalls) {
             try {
                 if (cursorValue !== undefined) {
                     if (cursorIncrement !== undefined) {
                         cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
                     }
-                    params[cursorSent as string] = cursorValue;
+                    paramsOmitted[cursorSent as string] = cursorValue;
                 }
                 let response: NullableList = undefined;
                 if (method === 'fetchAccounts') {
-                    response = await this[method] (params);
+                    response = await this[method] (paramsOmitted);
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
-                    response = await this[method] (symbol, params);
+                    response = await this[method] (symbol, paramsOmitted);
                 } else if (method === 'fetchOpenInterestHistory') {
                     if (typeof symbol !== 'string') {
                         // fetchOpenInterestHistory takes a single symbol, never a list
@@ -8554,9 +8550,9 @@ export class BaseExchange {
                     if (timeframe === undefined) {
                         throw new ArgumentsRequired (this.id + ' fetchPaginatedCallCursor() requires a timeframe argument');
                     }
-                    response = await this[method] (symbol, timeframe, since, maxEntriesPerRequest, params);
+                    response = await this[method] (symbol, timeframe, since, maxEntriesPerRequestOption, paramsOmitted);
                 } else {
-                    response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                    response = await this[method] (symbol, since, maxEntriesPerRequestOption, paramsOmitted);
                 }
                 errors = 0;
                 if (response === undefined) {
@@ -8600,7 +8596,7 @@ export class BaseExchange {
                 }
             } catch (e) {
                 errors += 1;
-                if (errors > maxRetries) {
+                if (errors > maxRetriesOption) {
                     throw e;
                 }
             }
@@ -8612,18 +8608,18 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls = 10;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
-        let maxRetries = 3;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
-        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        const maxCalls = 10;
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const maxRetries = 3;
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
+        const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsMaxRetries);
         let i = 0;
         let errors = 0;
         let result: any[] = [];
-        while (i < maxCalls) {
+        while (i < maxCallsPaginationCalls) {
             try {
-                params[pageKey as string] = i + 1;
-                const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                paramsMaxEntriesPerRequest[pageKey as string] = i + 1;
+                const response = await this[method] (symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
@@ -8637,7 +8633,7 @@ export class BaseExchange {
                 result = this.arrayConcat (result, response);
             } catch (e) {
                 errors += 1;
-                if (errors > maxRetries) {
+                if (errors > maxRetriesOption) {
                     throw e;
                 }
             }
@@ -8792,8 +8788,8 @@ export class BaseExchange {
                 results.push (greek);
             }
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArray (results, 'symbol', symbolsNormalized);
     }
 
     parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
@@ -9475,9 +9471,9 @@ export default class Exchange extends BaseExchange {
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        params = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
+        const paramsValue: Dict = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
         if (this.has['createOrderWithTakeProfitAndStopLossWs'] !== undefined && this.has['createOrderWithTakeProfitAndStopLossWs'] !== false) {
-            return await this.createOrderWs (symbol, type, side, amount, price, params);
+            return await this.createOrderWs (symbol, type, side, amount, price, paramsValue);
         }
         throw new NotSupported (this.id + ' createOrderWithTakeProfitAndStopLossWs() is not supported yet');
     }
@@ -9539,9 +9535,9 @@ export default class Exchange extends BaseExchange {
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
         }
-        params = this.extend (params, { 'stopLossPrice': stopLossPrice });
+        const paramsExtended: Dict = this.extend (params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrderWs'] !== undefined && this.has['createStopLossOrderWs'] !== false) {
-            return await this.createOrderWs (symbol, type, side, amount, price, params);
+            return await this.createOrderWs (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createStopLossOrderWs() is not supported yet');
     }
@@ -9582,9 +9578,9 @@ export default class Exchange extends BaseExchange {
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
         }
-        params = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
+        const paramsExtended: Dict = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrderWs'] !== undefined && this.has['createTakeProfitOrderWs'] !== false) {
-            return await this.createOrderWs (symbol, type, side, amount, price, params);
+            return await this.createOrderWs (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createTakeProfitOrderWs() is not supported yet');
     }
@@ -9662,9 +9658,9 @@ export default class Exchange extends BaseExchange {
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
         }
-        params = this.extend (params, { 'triggerPrice': triggerPrice });
+        const paramsExtended: Dict = this.extend (params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrderWs'] !== undefined && this.has['createTriggerOrderWs'] !== false) {
-            return await this.createOrderWs (symbol, type, side, amount, price, params);
+            return await this.createOrderWs (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createTriggerOrderWs() is not supported yet');
     }
@@ -10047,9 +10043,9 @@ export default class Exchange extends BaseExchange {
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTriggerOrder() requires a triggerPrice argument');
         }
-        params = this.extend (params, { 'triggerPrice': triggerPrice });
+        const paramsExtended: Dict = this.extend (params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrder'] !== undefined && this.has['createTriggerOrder'] !== false) {
-            return await this.createOrder (symbol, type, side, amount, price, params);
+            return await this.createOrder (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createTriggerOrder() is not supported yet');
     }
@@ -10071,9 +10067,9 @@ export default class Exchange extends BaseExchange {
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createStopLossOrder() requires a stopLossPrice argument');
         }
-        params = this.extend (params, { 'stopLossPrice': stopLossPrice });
+        const paramsExtended: Dict = this.extend (params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrder'] !== undefined && this.has['createStopLossOrder'] !== false) {
-            return await this.createOrder (symbol, type, side, amount, price, params);
+            return await this.createOrder (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createStopLossOrder() is not supported yet');
     }
@@ -10095,9 +10091,9 @@ export default class Exchange extends BaseExchange {
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
         }
-        params = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
+        const paramsExtended: Dict = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrder'] !== undefined && this.has['createTakeProfitOrder'] !== false) {
-            return await this.createOrder (symbol, type, side, amount, price, params);
+            return await this.createOrder (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createTakeProfitOrder() is not supported yet');
     }
@@ -10125,9 +10121,9 @@ export default class Exchange extends BaseExchange {
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        params = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
+        const paramsValue: Dict = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
         if (this.has['createOrderWithTakeProfitAndStopLoss'] !== undefined && this.has['createOrderWithTakeProfitAndStopLoss'] !== false) {
-            return await this.createOrder (symbol, type, side, amount, price, params);
+            return await this.createOrder (symbol, type, side, amount, price, paramsValue);
         }
         throw new NotSupported (this.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
     }

@@ -726,15 +726,15 @@ export default class coinspot extends Exchange {
         if (side !== 'buy' && side !== 'sell') {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');
         }
-        params = this.omit (params, 'side');
+        const paramsOmitted: Dict = this.omit (params, 'side');
         const request: Dict = {
             'id': id,
         };
         let response: Dict;
         if (side === 'buy') {
-            response = await this.privatePostMyBuyCancel (this.extend (request, params));
+            response = await this.privatePostMyBuyCancel (this.extend (request, paramsOmitted));
         } else {
-            response = await this.privatePostMySellCancel (this.extend (request, params));
+            response = await this.privatePostMySellCancel (this.extend (request, paramsOmitted));
         }
         //
         // status - ok, error

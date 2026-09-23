@@ -131,7 +131,7 @@ export default class bitfinex extends bitfinexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const channel = 'candles';
         const key = 'trade:' + interval + ':' + market['id'];
@@ -145,7 +145,7 @@ export default class bitfinex extends bitfinexRest {
         // not using subscribe here because this message has a different format
         const ohlcv = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
@@ -164,7 +164,7 @@ export default class bitfinex extends bitfinexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const channel = 'candles';
         const subMessageHash = channel + ':' + interval + ':' + market['id'];
@@ -184,7 +184,7 @@ export default class bitfinex extends bitfinexRest {
             'subMessageHashes': [ subMessageHash ],
             'topic': 'ohlcv',
             'unsubscribe': true,
-            'symbols': [ symbol ],
+            'symbols': [ symbolValue ],
         };
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
@@ -507,11 +507,11 @@ export default class bitfinex extends bitfinexRest {
         const numFields = trade.length;
         const isPublic = numFields <= 8;
         let marketId = (!isPublic) ? this.safeString (trade, 1) : undefined;
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const createdKey = isPublic ? 1 : 2;
         const priceKey = isPublic ? 3 : 5;
         const amountKey = isPublic ? 2 : 4;
-        marketId = market['id'];
+        marketId = marketResolved['id'];
         let type = this.safeString (trade, 6);
         if (type !== undefined) {
             if (type.indexOf ('LIMIT') > -1) {
@@ -530,7 +530,7 @@ export default class bitfinex extends bitfinexRest {
         if (amount !== undefined) {
             side = Precise.stringGt (amountString, '0') ? 'buy' : 'sell';
         }
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         const feeValue = this.safeString (trade, 9);
         let fee: FeeString = undefined;
         if (feeValue !== undefined) {
@@ -560,7 +560,7 @@ export default class bitfinex extends bitfinexRest {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     handleTicker (client: Client, message: any[], subscription: Dict) {
@@ -607,8 +607,8 @@ export default class bitfinex extends bitfinexRest {
         //         220.05,        // 10 LOW float Daily low
         //     ]
         //
-        market = this.safeMarket (undefined, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (undefined, market);
+        const symbol = marketResolved['symbol'];
         const last = this.safeString (ticker, 6);
         const change = this.safeString (ticker, 4);
         return this.safeTicker ({
@@ -632,7 +632,7 @@ export default class bitfinex extends bitfinexRest {
             'baseVolume': this.safeString (ticker, 7),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -825,7 +825,6 @@ export default class bitfinex extends bitfinexRest {
             await this.loadMarkets ();
         }
         const balanceType = this.safeString (params, 'wallet', 'exchange'); // exchange, margin
-        params = this.omit (params, 'wallet');
         const messageHash = 'balance:' + balanceType;
         return await this.subscribePrivate (messageHash);
     }
@@ -1223,7 +1222,7 @@ export default class bitfinex extends bitfinexRest {
         const clientOrderId = this.safeString (order, 1);
         const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
-        market = this.safeMarket (symbol);
+        const marketResolved: Market = this.safeMarket (symbol);
         let amount = this.safeString (order, 7);
         let side = 'buy';
         if (Precise.stringLt (amount, '0')) {
@@ -1266,7 +1265,7 @@ export default class bitfinex extends bitfinexRest {
             'fee': undefined,
             'cost': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     override handleMessage (client: Client, message: any) {

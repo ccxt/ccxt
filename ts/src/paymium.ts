@@ -307,10 +307,10 @@ export default class paymium extends Exchange {
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
         const timestamp = this.safeTimestamp (trade, 'created_at_int');
         const id = this.safeString (trade, 'uuid');
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const side = this.safeString (trade, 'side');
         const price = this.safeString (trade, 'price');
-        const amountField = 'traded_' + market['base'].toLowerCase ();
+        const amountField = 'traded_' + marketResolved['base'].toLowerCase ();
         const amount = this.safeString (trade, amountField);
         return this.safeTrade ({
             'info': trade,
@@ -318,7 +318,7 @@ export default class paymium extends Exchange {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -326,7 +326,7 @@ export default class paymium extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**

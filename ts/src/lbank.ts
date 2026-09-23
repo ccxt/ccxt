@@ -389,13 +389,12 @@ export default class lbank extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     override async fetchTime (params: Dict = {}): Promise<Int> {
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response: Dict;
         if (type === 'swap') {
-            response = await this.contractPublicGetCfdOpenApiV1PubGetTime (params);
+            response = await this.contractPublicGetCfdOpenApiV1PubGetTime (paramsMarketType);
         } else {
-            response = await this.spotPublicGetTimestamp (params);
+            response = await this.spotPublicGetTimestamp (paramsMarketType);
         }
         //
         // spot
@@ -768,8 +767,8 @@ export default class lbank extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const tickerData = this.safeDict (ticker, 'ticker', {});
-        market = this.safeMarket (marketId, market);
-        const data = (market['contract'] === true) ? ticker : tickerData;
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const data = (marketResolved['contract'] === true) ? ticker : tickerData;
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -791,7 +790,7 @@ export default class lbank extends Exchange {
             'baseVolume': this.safeString2 (data, 'vol', 'volume'),
             'quoteVolume': this.safeString (data, 'turnover'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -865,15 +864,14 @@ export default class lbank extends Exchange {
             }
         }
         const request: Dict = {};
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response: Dict;
         if (type === 'swap') {
             request['productGroup'] = 'SwapU';
-            response = await this.contractPublicGetCfdOpenApiV1PubMarketData (this.extend (request, params));
+            response = await this.contractPublicGetCfdOpenApiV1PubMarketData (this.extend (request, paramsMarketType));
         } else {
             request['symbol'] = 'all';
-            response = await this.spotPublicGetTicker24hr (this.extend (request, params));
+            response = await this.spotPublicGetTicker24hr (this.extend (request, paramsMarketType));
         }
         //
         // spot
@@ -946,15 +944,14 @@ export default class lbank extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         let response: Dict;
         if (type === 'swap') {
             request['depth'] = limit;
-            response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder (this.extend (request, params));
+            response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder (this.extend (request, paramsMarketType));
         } else {
             request['size'] = limit;
-            response = await this.spotPublicGetDepth (this.extend (request, params));
+            response = await this.spotPublicGetDepth (this.extend (request, paramsMarketType));
         }
         //
         // spot
@@ -1147,12 +1144,12 @@ export default class lbank extends Exchange {
         const options = this.safeDict (this.options, 'fetchTrades', {});
         const defaultMethod = this.safeString (options, 'method', 'spotPublicGetTrades');
         const method = this.safeString (params, 'method', defaultMethod);
-        params = this.omit (params, 'method');
+        const paramsOmitted: Dict = this.omit (params, 'method');
         let response: Dict;
         if (method === 'spotPublicGetSupplementTrades') {
-            response = await this.spotPublicGetSupplementTrades (this.extend (request, params));
+            response = await this.spotPublicGetSupplementTrades (this.extend (request, paramsOmitted));
         } else {
-            response = await this.spotPublicGetTrades (this.extend (request, params));
+            response = await this.spotPublicGetTrades (this.extend (request, paramsOmitted));
         }
         //
         //      {
@@ -1473,7 +1470,7 @@ export default class lbank extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {
             'productGroup': 'SwapU',
         };
@@ -1502,7 +1499,7 @@ export default class lbank extends Exchange {
         //     "success": True,
         // }
         const data = this.safeList (response, 'data', []);
-        return this.parseFundingRates (data, symbols);
+        return this.parseFundingRates (data, symbolsNormalized);
     }
 
     /**
@@ -1858,7 +1855,7 @@ export default class lbank extends Exchange {
         const timestamp = this.safeInteger2 (order, 'time', 'create_time');
         const rawStatus = this.safeString (order, 'status');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let timeInForce: Str = undefined;
         let postOnly = false;
         let type = 'limit';
@@ -1893,7 +1890,7 @@ export default class lbank extends Exchange {
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus (rawStatus),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -1908,7 +1905,7 @@ export default class lbank extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2043,8 +2040,8 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        since = this.safeValue (params, 'start_date', since);
-        params = this.omit (params, 'start_date');
+        const sinceValue: Int = this.safeValue (params, 'start_date', since);
+        const paramsOmitted: Dict = this.omit (params, 'start_date');
         const request: Dict = {
             'symbol': market['id'],
             // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
@@ -2057,11 +2054,11 @@ export default class lbank extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        if (since !== undefined) {
-            request['start_date'] = this.ymd (since, '-'); // max query 2 days ago
-            request['end_date'] = this.ymd (since + 86400000, '-'); // will cover 2 days
+        if (sinceValue !== undefined) {
+            request['start_date'] = this.ymd (sinceValue, '-'); // max query 2 days ago
+            request['end_date'] = this.ymd (sinceValue + 86400000, '-'); // will cover 2 days
         }
-        const response = await this.spotPrivatePostTransactionHistory (this.extend (request, params));
+        const response = await this.spotPrivatePostTransactionHistory (this.extend (request, paramsOmitted));
         //
         //      {
         //          "result":true,
@@ -2083,7 +2080,7 @@ export default class lbank extends Exchange {
         //      }
         //
         const trades = this.safeList (response, 'data', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, sinceValue, limit);
     }
 
     /**
@@ -2227,7 +2224,7 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
-        params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2236,7 +2233,7 @@ export default class lbank extends Exchange {
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         }
-        const response = await this.spotPrivatePostSupplementCancelOrder (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementCancelOrder (this.extend (request, paramsOmitted));
         //
         //   {
         //      "result":true,
@@ -2322,12 +2319,12 @@ export default class lbank extends Exchange {
         const options = this.safeDict (this.options, 'fetchDepositAddress', {});
         const defaultMethod = this.safeString (options, 'method', 'fetchDepositAddressDefault');
         const method = this.safeString (params, 'method', defaultMethod);
-        params = this.omit (params, 'method');
+        const paramsOmitted: Dict = this.omit (params, 'method');
         let response: Dict;
         if (method === 'fetchDepositAddressSupplement') {
-            response = await this.fetchDepositAddressSupplement (code, params);
+            response = await this.fetchDepositAddressSupplement (code, paramsOmitted);
         } else {
-            response = await this.fetchDepositAddressDefault (code, params);
+            response = await this.fetchDepositAddressDefault (code, paramsOmitted);
         }
         return response as DepositAddress;
     }
@@ -2425,13 +2422,13 @@ export default class lbank extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const fee = this.safeString (params, 'fee');
-        params = this.omit (params, 'fee');
+        const fee = this.safeString (paramsWithdrawTag, 'fee');
+        const paramsOmitted: Dict = this.omit (paramsWithdrawTag, 'fee');
         // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
         this.checkRequiredArgument ('withdraw', fee, 'fee');
         const currency = this.currency (code);
@@ -2447,17 +2444,17 @@ export default class lbank extends Exchange {
             // 'withdrawOrderId': withdrawOrderId
             // 'type': type=1 is for intra-site transfer
         };
-        if (tag !== undefined) {
-            request['memo'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['memo'] = tagWithdrawTag;
         }
-        const network = this.safeStringUpper2 (params, 'network', 'networkName');
-        params = this.omit (params, [ 'network', 'networkName' ]);
+        const network = this.safeStringUpper2 (paramsOmitted, 'network', 'networkName');
+        const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'network', 'networkName' ]);
         const networks = this.safeDict (this.options, 'networks');
         const networkId = this.safeString (networks, network, network);
         if (networkId !== undefined) {
             request['networkName'] = networkId;
         }
-        const response = await this.spotPrivatePostSupplementWithdraw (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementWithdraw (this.extend (request, paramsOmitted2));
         //
         //      {
         //          "result":true,
@@ -2800,13 +2797,13 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const code = this.safeString2 (params, 'coin', 'assetCode');
-        params = this.omit (params, [ 'coin', 'assetCode' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'coin', 'assetCode' ]);
         const request: Dict = {};
         if (code !== undefined) {
             const currency = this.currency (code);
             request['assetCode'] = currency['id'];
         }
-        const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, params));
+        const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, paramsOmitted));
         //
         //    {
         //        "result": "true",

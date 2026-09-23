@@ -140,12 +140,10 @@ export default class bitget extends bitgetRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'ticker:' + symbol;
-        let instType: Str = undefined;
-        let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchTicker', 'uta', false);
-        [ instType, params ] = this.getInstType ('watchTicker', market, uta, params);
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'ticker:' + symbolValue;
+        const [ uta, paramsUta ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'watchTicker', 'uta', false);
+        const [ instType, paramsValue ] = this.getInstType ('watchTicker', market, uta, paramsUta);
         const args: Dict = {
             'instType': instType,
         };
@@ -153,7 +151,7 @@ export default class bitget extends bitgetRest {
         const symbolOrInstId = uta ? 'symbol' : 'instId';
         args[topicOrChannel] = 'ticker';
         args[symbolOrInstId] = market['id'];
-        return await this.watchPublic (uta, messageHash, args, params);
+        return await this.watchPublic (uta, messageHash, args, paramsValue);
     }
 
     /**
@@ -191,10 +189,8 @@ export default class bitget extends bitgetRest {
             symbols = [];
         }
         const market = this.market (symbols[0]);
-        let instType: Str = undefined;
-        let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchTickers', 'uta', false);
-        [ instType, params ] = this.getInstType ('watchTickers', market, uta, params);
+        const [ uta, paramsUta ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'watchTickers', 'uta', false);
+        const [ instType, paramsValue ] = this.getInstType ('watchTickers', market, uta, paramsUta);
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -210,7 +206,7 @@ export default class bitget extends bitgetRest {
             topics.push (args);
             messageHashes.push ('ticker:' + symbol);
         }
-        const tickers = await this.watchPublicMultiple (uta, messageHashes, topics, params);
+        const tickers = await this.watchPublicMultiple (uta, messageHashes, topics, paramsValue);
         if (this.newUpdates) {
             const result: Dict = {};
             result[tickers['symbol']] = tickers;
@@ -388,12 +384,12 @@ export default class bitget extends bitgetRest {
         const marketType = (instType === 'spot') ? 'spot' : 'contract';
         const utaMarketId = this.safeString (arg, 'symbol');
         const marketId = this.safeString (ticker, 'instId', utaMarketId);
-        market = this.safeMarket (marketId, market, undefined, marketType);
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         const close = this.safeString2 (ticker, 'lastPr', 'lastPrice');
         const changeCoefficient = this.safeString2 (ticker, 'price24hPcnt', 'change24h');
         const changePercentage = Precise.stringMul (changeCoefficient, '100');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString2 (ticker, 'high24h', 'highPrice24h'),
@@ -413,7 +409,7 @@ export default class bitget extends bitgetRest {
             'baseVolume': this.safeString2 (ticker, 'baseVolume', 'volume24h'),
             'quoteVolume': this.safeString2 (ticker, 'quoteVolume', 'turnover24h'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -437,10 +433,8 @@ export default class bitget extends bitgetRest {
             symbols = [];
         }
         const market = this.market (symbols[0]);
-        let instType: Str = undefined;
-        let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'uta', false);
-        [ instType, params ] = this.getInstType ('watchBidsAsks', market, uta, params);
+        const [ uta, paramsUta ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'uta', false);
+        const [ instType, paramsValue ] = this.getInstType ('watchBidsAsks', market, uta, paramsUta);
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -456,7 +450,7 @@ export default class bitget extends bitgetRest {
             topics.push (args);
             messageHashes.push ('bidask:' + symbol);
         }
-        const tickers = await this.watchPublicMultiple (uta, messageHashes, topics, params);
+        const tickers = await this.watchPublicMultiple (uta, messageHashes, topics, paramsValue);
         if (this.newUpdates) {
             const result: Dict = {};
             result[tickers['symbol']] = tickers;
@@ -485,9 +479,9 @@ export default class bitget extends bitgetRest {
         const marketType = (instType === 'spot') ? 'spot' : 'contract';
         const utaMarketId = this.safeString (arg, 'symbol');
         const marketId = this.safeString (ticker, 'instId', utaMarketId);
-        market = this.safeMarket (marketId, market, undefined, marketType);
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'ask': this.safeString2 (ticker, 'askPr', 'ask1Price'),
@@ -495,7 +489,7 @@ export default class bitget extends bitgetRest {
             'bid': this.safeString2 (ticker, 'bidPr', 'bid1Price'),
             'bidVolume': this.safeString2 (ticker, 'bidSz', 'bid1Size'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -518,7 +512,7 @@ export default class bitget extends bitgetRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const timeframes = this.safeDict (this.options, 'timeframes');
         const interval = this.safeString (timeframes, timeframe);
         let messageHash: Str = undefined;
@@ -534,15 +528,15 @@ export default class bitget extends bitgetRest {
             args['symbol'] = market['id'];
             args['interval'] = interval;
             params = this.extend (params, { 'uta': true });
-            messageHash = 'kline:' + symbol;
+            messageHash = 'kline:' + symbolValue;
         } else {
             args['channel'] = 'candle' + interval;
             args['instId'] = market['id'];
-            messageHash = 'candles:' + timeframe + ':' + symbol;
+            messageHash = 'candles:' + timeframe + ':' + symbolValue;
         }
         const ohlcv = await this.watchPublic (uta, messageHash, args, params);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
@@ -817,7 +811,7 @@ export default class bitget extends bitgetRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
@@ -828,8 +822,8 @@ export default class bitget extends bitgetRest {
         const messageHashes: string[] = [];
         let uta: Bool = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'uta', false);
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             let instType: Str = undefined;
             [ instType, params ] = this.getInstType ('watchOrderBookForSymbols', market, uta, params);
@@ -1038,13 +1032,13 @@ export default class bitget extends bitgetRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         let uta: Bool = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'uta', false);
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             let instType: Str = undefined;
             [ instType, params ] = this.getInstType ('watchTradesForSymbols', market, uta, params);
@@ -1315,9 +1309,9 @@ export default class bitget extends bitgetRest {
         let instType: Str = 'USDT-FUTURES';
         let uta: Bool = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchPositions', 'uta', false);
-        symbols = this.marketSymbols (symbols);
-        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
-            market = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if ((symbolsNormalized !== undefined) && !this.isEmpty (symbolsNormalized)) {
+            market = this.getMarketFromSymbols (symbolsNormalized);
             [ instType, params ] = this.getInstType ('watchPositions', market, uta, params);
         }
         if (uta) {
@@ -1339,7 +1333,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (newPositions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (newPositions, symbolsNormalized, since, limit, true);
     }
 
     handlePositions (client: Client, message: Dict) {
@@ -1973,9 +1967,9 @@ export default class bitget extends bitgetRest {
             isMargin = true;
         }
         const marketId = this.safeString2 (order, 'instId', 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'cTime', 'createdTime');
-        const symbol = market['symbol'];
+        const symbol = marketResolved['symbol'];
         const rawStatus = this.safeString2 (order, 'status', 'orderStatus');
         const orderFee = this.safeList (order, 'feeDetail', []);
         const fee = this.safeDict (orderFee, 0);
@@ -2064,7 +2058,7 @@ export default class bitget extends bitgetRest {
             'status': this.parseWsOrderStatus (rawStatus),
             'fee': feeObject,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     parseWsOrderStatus (status: Str): Str {

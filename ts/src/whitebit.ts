@@ -912,7 +912,7 @@ export default class whitebit extends Exchange {
         //    }
         //
         const depositWithdrawFees: Dict = {};
-        codes = this.marketCodes (codes);
+        const codesValue: Strings = this.marketCodes (codes);
         const currencyIds = Object.keys (response);
         for (let i = 0; i < currencyIds.length; i++) {
             const entry = currencyIds[i];
@@ -920,7 +920,7 @@ export default class whitebit extends Exchange {
             const currencyId = splitEntry[0];
             const feeInfo = response[entry];
             const code = this.safeCurrencyCode (currencyId);
-            if ((code !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
+            if ((code !== undefined) && ((codesValue === undefined) || (this.inArray (code, codesValue)))) {
                 const depositWithdrawFee = this.safeDict (depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee ({});
@@ -1412,13 +1412,13 @@ export default class whitebit extends Exchange {
         //     }
         //
         const marketId = this.safeString2 (ticker, 'tradingPairs', 'ticker_id');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         // last price is provided as "last" or "last_price"
         const last = this.safeStringN (ticker, [ 'last', 'last_price', 'lastPrice' ]);
         // if "close" is provided, use it, otherwise use <last>
         const close = this.safeString (ticker, 'close', last);
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'high': this.safeString (ticker, 'high'),
@@ -1439,7 +1439,7 @@ export default class whitebit extends Exchange {
             'quoteVolume': this.safeStringN (ticker, [ 'quote_volume', 'deal', 'quoteVolume24h', 'money_volume' ]),
             'indexPrice': this.safeString (ticker, 'index_price'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1462,7 +1462,7 @@ export default class whitebit extends Exchange {
         // Extract control parameters from params
         const checkActive = this.safeBool (params, 'checkActive', true);
         const checkExecuted = this.safeBool (params, 'checkExecuted', true);
-        params = this.omit (params, [ 'checkActive', 'checkExecuted' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'checkActive', 'checkExecuted' ]);
         const request: Dict = {
             'orderId': id,
         };
@@ -1474,7 +1474,7 @@ export default class whitebit extends Exchange {
         // Try active orders first (if enabled)
         if (checkActive === true) {
             try {
-                const response = await this.v4PrivatePostOrders (this.extend (request, params));
+                const response = await this.v4PrivatePostOrders (this.extend (request, paramsOmitted));
                 // Search for order in active orders response (array format)
                 const orders = this.toArray (response);
                 for (let i = 0; i < orders.length; i++) {
@@ -1495,7 +1495,7 @@ export default class whitebit extends Exchange {
         // Try executed orders (if enabled)
         if (checkExecuted === true) {
             try {
-                const response = await this.v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
+                const response = await this.v4PrivatePostTradeAccountOrderHistory (this.extend (request, paramsOmitted));
                 // Search for order in executed orders response (object format)
                 const marketIds = Object.keys (response);
                 for (let i = 0; i < marketIds.length; i++) {
@@ -1535,11 +1535,11 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         let onlyContractSymbols = true;
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 if (market['contract'] !== true) {
                     onlyContractSymbols = false;
@@ -1621,7 +1621,7 @@ export default class whitebit extends Exchange {
         }
         const resultList = this.safeList (response, 'result');
         if (resultList !== undefined) {
-            return this.parseTickers (resultList, symbols);
+            return this.parseTickers (resultList, symbolsNormalized);
         }
         const marketIds = Object.keys (response);
         const result: Dict = {};
@@ -1632,7 +1632,7 @@ export default class whitebit extends Exchange {
             const symbol = ticker['symbol'];
             result[(symbol as string)] = ticker;
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -1835,7 +1835,7 @@ export default class whitebit extends Exchange {
         //          "feeAsset": "USDT"
         //      }
         //
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const timestamp = this.safeTimestamp2 (trade, 'time', 'trade_timestamp');
         const orderId = this.safeString2 (trade, 'dealOrderId', 'orderId');
         const cost = this.safeString (trade, 'deal');
@@ -1843,7 +1843,7 @@ export default class whitebit extends Exchange {
         const amount = this.safeString2 (trade, 'amount', 'quote_volume');
         const id = this.safeString2 (trade, 'id', 'tradeID');
         const side = this.safeString2 (trade, 'type', 'side');
-        const symbol = market['symbol'];
+        const symbol = marketResolved['symbol'];
         const role = this.safeInteger (trade, 'role');
         let takerOrMaker: Str = undefined;
         if (role !== undefined) {
@@ -1871,7 +1871,7 @@ export default class whitebit extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2201,8 +2201,8 @@ export default class whitebit extends Exchange {
         if (!hasModifiableParam) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires at least one of: amount, price, activationPrice, or total parameters');
         }
-        params = this.omit (params, [ 'clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total' ]);
-        const response = await this.v4PrivatePostOrderModify (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total' ]);
+        const response = await this.v4PrivatePostOrderModify (this.extend (request, paramsOmitted));
         return this.parseOrder (response);
     }
 
@@ -2347,7 +2347,7 @@ export default class whitebit extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires a symbol argument in params');
         }
         const market = this.market (symbol);
-        params = this.omit (params, 'symbol');
+        const paramsOmitted: Dict = this.omit (params, 'symbol');
         if (timeout === undefined) {
             throw new ExchangeError (this.id + ' cancelAllOrdersAfter() missing timeout');
         }
@@ -2360,7 +2360,7 @@ export default class whitebit extends Exchange {
         } else {
             request['timeout'] = 'null';
         }
-        const response = await this.v4PrivatePostOrderKillSwitch (this.extend (request, params));
+        const response = await this.v4PrivatePostOrderKillSwitch (this.extend (request, paramsOmitted));
         //
         //     {
         //         "market": "BTC_USDT", // currency market,
@@ -2613,8 +2613,8 @@ export default class whitebit extends Exchange {
         //      }
         //
         const marketId = this.safeString (order, 'market');
-        market = this.safeMarket (marketId, market, '_');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
+        const symbol = marketResolved['symbol'];
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
         let remaining = this.safeString (order, 'left');
@@ -2640,7 +2640,7 @@ export default class whitebit extends Exchange {
         if (dealFee !== undefined) {
             fee = {
                 'cost': this.parseNumber (dealFee),
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         const timestamp = this.safeTimestamp2 (order, 'ctime', 'timestamp');
@@ -2675,7 +2675,7 @@ export default class whitebit extends Exchange {
             'cost': cost,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderStatus (status: Str) {
@@ -3201,7 +3201,7 @@ export default class whitebit extends Exchange {
         //         "centralized": false,
         //     }
         //
-        currency = this.safeCurrency (undefined, currency);
+        const currencyResolved: Currency = this.safeCurrency (undefined, currency);
         const address = this.safeString (transaction, 'address');
         const timestamp = this.safeTimestamp (transaction, 'createdAt');
         const currencyId = this.safeString (transaction, 'ticker');
@@ -3218,7 +3218,7 @@ export default class whitebit extends Exchange {
             'addressTo': (method === '2') ? address : undefined,
             'amount': this.safeNumber (transaction, 'amount'),
             'type': (method === '1') ? 'deposit' : 'withdrawal',
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': this.safeCurrencyCode (currencyId, currencyResolved),
             'status': this.parseTransactionStatus (status),
             'updated': undefined,
             'tagFrom': undefined,
@@ -3228,7 +3228,7 @@ export default class whitebit extends Exchange {
             'internal': undefined,
             'fee': {
                 'cost': this.safeNumber (transaction, 'fee'),
-                'currency': this.safeCurrencyCode (currencyId, currency),
+                'currency': this.safeCurrencyCode (currencyId, currencyResolved),
             },
             'info': transaction,
         } as Transaction;
@@ -3495,9 +3495,9 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const response = await this.fetchFundingRates ([ symbol ], params);
-        return this.safeValue (response, symbol);
+        const symbolValue: string = this.symbol (symbol);
+        const response = await this.fetchFundingRates ([ symbolValue ], params);
+        return this.safeValue (response, symbolValue);
     }
 
     /**
@@ -3513,7 +3513,7 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.v4PublicGetFutures (params);
         //
         //    [
@@ -3560,7 +3560,7 @@ export default class whitebit extends Exchange {
         //    ]
         //
         const data = this.safeList (response, 'result', []);
-        return this.parseFundingRates (data, symbols);
+        return this.parseFundingRates (data, symbolsNormalized);
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
@@ -3644,7 +3644,7 @@ export default class whitebit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (since !== undefined) {
@@ -3653,8 +3653,8 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('endDate', request, params);
-        const response = await this.v4PrivatePostCollateralAccountFundingHistory (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endDate', request, params);
+        const response = await this.v4PrivatePostCollateralAccountFundingHistory (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "records": [
@@ -3878,7 +3878,7 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         if (code !== undefined) {
             request['fromTicker'] = code;
         }
@@ -3889,8 +3889,8 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('to', request, params, 0.001);
-        const response = await this.v4PrivatePostConvertHistory (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('to', request, params, 0.001);
+        const response = await this.v4PrivatePostConvertHistory (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "records": [
@@ -3996,7 +3996,7 @@ export default class whitebit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (since !== undefined) {
@@ -4005,8 +4005,8 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('endDate', request, params);
-        const response = await this.v4PrivatePostCollateralAccountPositionsHistory (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endDate', request, params);
+        const response = await this.v4PrivatePostCollateralAccountPositionsHistory (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -4047,7 +4047,7 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.v4PrivatePostCollateralAccountPositionsOpen (params);
         //
         //     [
@@ -4070,7 +4070,7 @@ export default class whitebit extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions (response, symbols);
+        return this.parsePositions (response, symbolsNormalized);
     }
 
     /**
@@ -4218,26 +4218,25 @@ export default class whitebit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const maxLimit = 100;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, maxLimit) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit) as FundingRateHistory[];
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (since !== undefined) {
             request['startDate'] = Math.round (since / 1000);
         }
-        [ request, params ] = this.handleUntilOption ('until_timestamp', request, params, 0.001);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('until_timestamp', request, paramsPaginate, 0.001);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            requestUntil['limit'] = limit;
         }
-        const response = await this.v4PublicGetFundingHistoryMarket (this.extend (request, params));
+        const response = await this.v4PublicGetFundingHistoryMarket (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -4254,11 +4253,11 @@ export default class whitebit extends Exchange {
 
     override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
         const marketId = this.safeString (info, 'market');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (info, 'fundingTime');
         return {
             'info': info,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'fundingRate': this.safeNumber (info, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

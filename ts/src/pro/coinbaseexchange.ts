@@ -93,11 +93,11 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const messageHashes: string[] = [];
         const productIds: Str[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             market = this.market (symbol);
             productIds.push (market['id']);
             messageHashes.push (messageHashStart + ':' + market['symbol']);
@@ -176,11 +176,11 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
+        const symbolValue: string = this.symbol (symbol);
         const name = 'matches';
-        const trades = await this.subscribe (name, symbol, name, params);
+        const trades = await this.subscribe (name, symbolValue, name, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -203,9 +203,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const name = 'matches';
-        const trades = await this.subscribeMultiple (name, symbols, name, params);
+        const trades = await this.subscribeMultiple (name, symbolsNormalized, name, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -231,13 +231,13 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
+        const symbolValue: Str = this.symbol (symbol);
         const name = 'user';
         const messageHash = 'myTrades';
         const authentication = this.authenticate ();
-        const trades = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
+        const trades = await this.subscribe (name, symbolValue, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -253,14 +253,14 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const name = 'user';
         const messageHash = 'myTrades';
         const authentication = this.authenticate ();
-        const trades = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
+        const trades = await this.subscribeMultiple (name, symbolsNormalized, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -283,11 +283,11 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const name = 'user';
         const messageHash = 'orders';
         const authentication = this.authenticate ();
-        const orders = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
+        const orders = await this.subscribeMultiple (name, symbolsNormalized, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
             const first = this.safeDict (orders, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -313,13 +313,13 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
+        const symbolValue: Str = this.symbol (symbol);
         const name = 'user';
         const messageHash = 'orders';
         const authentication = this.authenticate ();
-        const orders = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
+        const orders = await this.subscribe (name, symbolValue, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limit = orders.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
@@ -342,8 +342,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        const marketIds = this.marketIds (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbolsNormalized);
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsLength; i++) {
             const marketId = marketIds[i];
@@ -360,7 +360,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const request = this.extend (subscribe, params);
         const subscription: Dict = {
             'messageHash': name,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'marketIds': marketIds,
             'limit': limit,
         };
@@ -384,7 +384,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const subscribe: Dict = {
@@ -399,7 +399,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const request = this.extend (subscribe, params);
         const subscription: Dict = {
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'marketId': market['id'],
             'limit': limit,
         };
@@ -535,8 +535,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
         const idKey = isMaker ? 'maker_order_id' : 'taker_order_id';
         parsed['order'] = this.safeString (trade, idKey);
-        market = this.market (parsed['symbol']);
-        const feeCurrency = market['quote'];
+        const marketResolved: Market = this.market (parsed['symbol']);
+        const feeCurrency = marketResolved['quote'];
         let feeCost: Str = undefined;
         if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
             const cost = this.safeString (parsed, 'cost');

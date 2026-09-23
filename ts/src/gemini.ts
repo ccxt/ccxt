@@ -1079,12 +1079,12 @@ export default class gemini extends Exchange {
         const timestamp = this.safeInteger (volume, 'timestamp');
         let symbol: Str = undefined;
         const marketId = this.safeStringLower (ticker, 'pair');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let baseId: Str = undefined;
         let quoteId: Str = undefined;
         let base: Str = undefined;
         let quote: Str = undefined;
-        if ((marketId !== undefined) && (market === undefined)) {
+        if ((marketId !== undefined) && (marketResolved === undefined)) {
             const idLength = marketId.length - 0;
             if (idLength === 7) {
                 baseId = marketId.slice (0, 4);
@@ -1097,10 +1097,10 @@ export default class gemini extends Exchange {
             quote = this.safeCurrencyCode (quoteId);
             symbol = base + '/' + quote;
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            baseId = this.safeStringUpper (market, 'baseId');
-            quoteId = this.safeStringUpper (market, 'quoteId');
+        if ((symbol === undefined) && (marketResolved !== undefined)) {
+            symbol = marketResolved['symbol'];
+            baseId = this.safeStringUpper (marketResolved, 'baseId');
+            quoteId = this.safeStringUpper (marketResolved, 'quoteId');
         }
         const price = this.safeString (ticker, 'price');
         const last = this.safeString2 (ticker, 'last', 'close', price);
@@ -1129,7 +1129,7 @@ export default class gemini extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1660,12 +1660,12 @@ export default class gemini extends Exchange {
             'type': 'exchange limit', // gemini allows limit orders only
             // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         };
-        type = this.safeString (params, 'type', type);
+        const typeValue: OrderType = this.safeString (params, 'type', type);
         params = this.omit (params, 'type');
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price', 'stopPrice' ]);
         params = this.omit (params, [ 'triggerPrice', 'stop_price', 'stopPrice', 'type' ]);
-        if (type === 'stopLimit') {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + type + ' orders');
+        if (typeValue === 'stopLimit') {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders');
         }
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
@@ -1811,7 +1811,7 @@ export default class gemini extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1822,7 +1822,7 @@ export default class gemini extends Exchange {
             'amount': amount,
             'address': address,
         };
-        const response = await this.privatePostV1WithdrawCurrency (this.extend (request, params));
+        const response = await this.privatePostV1WithdrawCurrency (this.extend (request, paramsWithdrawTag));
         //
         //   for BTC
         //     {
@@ -1987,8 +1987,7 @@ export default class gemini extends Exchange {
             await this.loadMarkets ();
         }
         const indexedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode ] = this.handleNetworkCodeAndParams (params);
         return this.safeValue (indexedByNetwork, networkCode) as DepositAddress;
     }
 
@@ -2007,9 +2006,8 @@ export default class gemini extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        code = currency['code'];
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const codeValue: string = currency['code'];
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses() requires a network parameter');
         }
@@ -2017,8 +2015,8 @@ export default class gemini extends Exchange {
         const request: Dict = {
             'network': networkId,
         };
-        const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
-        const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
+        const response = await this.privatePostV1AddressesNetwork (this.extend (request, paramsNetworkCode));
+        const results = this.parseDepositAddresses (response, [ codeValue ], false, { 'network': networkCode, 'currency': codeValue });
         // one address structure per network, like every other venue (the endpoint is scoped to a
         // single network, so the last address the venue lists for it wins — same as before)
         return this.indexBy (results, 'network') as DepositAddresses;

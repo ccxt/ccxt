@@ -687,13 +687,12 @@ export default class poloniex extends Exchange {
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 500) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 500) as OHLCV[];
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -706,9 +705,9 @@ export default class poloniex extends Exchange {
             // limit should in between 100 and 500
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption (keyEnd, request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption (keyEnd, request, paramsPaginate);
         if (market['contract'] === true) {
-            const responseRaw = await this.swapPublicGetV3MarketCandles (this.extend (request, params));
+            const responseRaw = await this.swapPublicGetV3MarketCandles (this.extend (requestUntil, paramsUntil));
             //
             //     {
             //         code: "200",
@@ -729,7 +728,7 @@ export default class poloniex extends Exchange {
             const data = this.safeList (responseRaw, 'data');
             return this.parseOHLCVs (data as object[], market, timeframe, since, limit);
         }
-        const response = await this.publicGetMarketsSymbolCandles (this.extend (request, params));
+        const response = await this.publicGetMarketsSymbolCandles (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         [
@@ -1093,17 +1092,17 @@ export default class poloniex extends Exchange {
         //
         const timestamp = this.safeInteger2 (ticker, 'ts', 'cT');
         const marketId = this.safeString2 (ticker, 'symbol', 's');
-        market = this.safeMarket (marketId);
+        const marketResolved: Market = this.safeMarket (marketId);
         let baseVolume = this.safeString2 (ticker, 'quantity', 'qty');
-        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
+        if ((marketResolved['contract'] === true) && (marketResolved['contractSize'] !== undefined)) {
             // 'quantity' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.stringMul (baseVolume, this.numberToString (market['contractSize']));
+            baseVolume = Precise.stringMul (baseVolume, this.numberToString (marketResolved['contractSize']));
         }
         const relativeChange = this.safeString2 (ticker, 'dailyChange', 'dc');
         const percentage = Precise.stringMul (relativeChange, '100');
         return this.safeTicker ({
             'id': marketId,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString2 (ticker, 'high', 'h'),
@@ -1124,7 +1123,7 @@ export default class poloniex extends Exchange {
             'markPrice': this.safeString2 (ticker, 'markPrice', 'mPx'),
             'indexPrice': this.safeString (ticker, 'iPx'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1151,10 +1150,9 @@ export default class poloniex extends Exchange {
                 }
             }
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (marketType === 'swap') {
-            const responseRaw = await this.swapPublicGetV3MarketTickers (this.extend (request, params));
+            const responseRaw = await this.swapPublicGetV3MarketTickers (this.extend (request, paramsMarketType));
             //
             //    {
             //        "code": "200",
@@ -1184,7 +1182,7 @@ export default class poloniex extends Exchange {
             const data = this.safeList (responseRaw, 'data');
             return this.parseTickers (data, symbols);
         }
-        const response = await this.publicGetMarketsTicker24h (params);
+        const response = await this.publicGetMarketsTicker24h (paramsMarketType);
         //
         //     [
         //         {
@@ -1453,8 +1451,8 @@ export default class poloniex extends Exchange {
         const orderId = this.safeString2 (trade, 'orderId', 'ordId');
         const timestamp = this.safeIntegerN (trade, [ 'ts', 'createTime', 'cT', 'cTime' ]);
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market, '_');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower2 (trade, 'side', 'takerSide');
         let fee: FeeString = undefined;
         const priceString = this.safeString2 (trade, 'price', 'px');
@@ -1483,7 +1481,7 @@ export default class poloniex extends Exchange {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1559,19 +1557,17 @@ export default class poloniex extends Exchange {
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsPaginate);
         const isContract = this.inArray (marketType, [ 'swap', 'future' ]);
-        let request: Dict = {
+        const request: Dict = {
             // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
             // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         };
@@ -1586,9 +1582,9 @@ export default class poloniex extends Exchange {
         if (isContract && symbol !== undefined) {
             request['symbol'] = this.safeString (market, 'id');
         }
-        [ request, params ] = this.handleUntilOption (endKey, request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption (endKey, request, paramsMarketType);
         if (isContract) {
-            const raw = await this.swapPrivateGetV3TradeOrderTrades (this.extend (request, params));
+            const raw = await this.swapPrivateGetV3TradeOrderTrades (this.extend (requestUntil, paramsUntil));
             //
             //    {
             //        "code": "200",
@@ -1623,7 +1619,7 @@ export default class poloniex extends Exchange {
             const data = this.safeList (raw, 'data', []);
             return this.parseTrades (data, market, since, limit);
         }
-        const response = await this.privateGetTrades (this.extend (request, params));
+        const response = await this.privateGetTrades (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -1766,12 +1762,12 @@ export default class poloniex extends Exchange {
             timestamp = this.parse8601 (this.safeString (order, 'date'));
         }
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market, '_');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
+        const symbol = marketResolved['symbol'];
         let resultingTrades = this.safeValue (order, 'resultingTrades');
         if (resultingTrades !== undefined) {
             if (!Array.isArray (resultingTrades)) {
-                resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
+                resultingTrades = this.safeValue (resultingTrades, this.safeString (marketResolved, 'id', marketId));
             }
         }
         const price = this.safeStringN (order, [ 'price', 'rate', 'px' ]);
@@ -1788,7 +1784,7 @@ export default class poloniex extends Exchange {
         let feeCurrencyCode: Str = undefined;
         const rate = this.safeString (order, 'fee');
         if (feeCurrency === undefined) {
-            feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+            feeCurrencyCode = (side === 'buy') ? marketResolved['base'] : marketResolved['quote'];
         } else {
             // poloniex accepts a 30% discount to pay fees in TRX
             feeCurrencyCode = this.safeCurrencyCode (feeCurrency);
@@ -1832,7 +1828,7 @@ export default class poloniex extends Exchange {
             'reduceOnly': reduceOnly,
             'leverage': leverage,
             'hedged': hedged,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderType (status: Str): Str {
@@ -1882,17 +1878,16 @@ export default class poloniex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (limit !== undefined) {
             const max = (marketType === 'spot') ? 2000 : 100;
             request['limit'] = Math.max (limit, max);
         }
-        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
-        params = this.omit (params, [ 'trigger', 'stop' ]);
+        const isTrigger = this.safeBool2 (paramsMarketType, 'trigger', 'stop');
+        const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'trigger', 'stop' ]);
         let response: Dict | List = [];
         if (marketType !== 'spot') {
-            const raw = await this.swapPrivateGetV3TradeOrderOpens (this.extend (request, params));
+            const raw = await this.swapPrivateGetV3TradeOrderOpens (this.extend (request, paramsOmitted));
             //
             //    {
             //        "code": "200",
@@ -1934,9 +1929,9 @@ export default class poloniex extends Exchange {
             //
             response = this.safeList (raw, 'data', []);
         } else if (isTrigger === true) {
-            response = await this.privateGetSmartorders (this.extend (request, params));
+            response = await this.privateGetSmartorders (this.extend (request, paramsOmitted));
         } else {
-            response = await this.privateGetOrders (this.extend (request, params));
+            response = await this.privateGetOrders (this.extend (request, paramsOmitted));
         }
         //
         //     [
@@ -1980,13 +1975,12 @@ export default class poloniex extends Exchange {
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
-        let request: Dict = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params, 'swap');
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params, 'swap');
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchClosedOrders() is not supported for spot markets yet');
         }
@@ -1996,8 +1990,8 @@ export default class poloniex extends Exchange {
         if (since !== undefined) {
             request['sTime'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('eTime', request, params);
-        const response = await this.swapPrivateGetV3TradeOrderHistory (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('eTime', request, paramsMarketType);
+        const response = await this.swapPrivateGetV3TradeOrderHistory (this.extend (requestUntil, paramsUntil));
         //
         //    {
         //        "code": "200",
@@ -2062,7 +2056,7 @@ export default class poloniex extends Exchange {
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
             'side': (side as string).toUpperCase (), // uppercase, both for spot & swap
             // 'timeInForce': timeInForce, // matches unified values
@@ -2070,18 +2064,18 @@ export default class poloniex extends Exchange {
             // 'amount': amount,
         };
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
-        [ request, params ] = this.orderRequest (symbol, type, side, amount, request, price, params);
+        const [ requestValue, paramsValue ] = this.orderRequest (symbol, type, side, amount, request, price, params);
         let response: Dict = {};
         if ((market['swap'] === true) || (market['future'] === true)) {
-            const responseInitial = await this.swapPrivatePostV3TradeOrder (this.extend (request, params));
+            const responseInitial = await this.swapPrivatePostV3TradeOrder (this.extend (requestValue, paramsValue));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             //
             response = this.safeDict (responseInitial, 'data', {});
         } else if (triggerPrice !== undefined) {
-            response = await this.privatePostSmartorders (this.extend (request, params));
+            response = await this.privatePostSmartorders (this.extend (requestValue, paramsValue));
         } else {
-            response = await this.privatePostOrders (this.extend (request, params));
+            response = await this.privatePostOrders (this.extend (requestValue, paramsValue));
         }
         //
         //     {
@@ -2194,17 +2188,17 @@ export default class poloniex extends Exchange {
         if (market['spot'] !== true) {
             throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        let request: Dict = {
+        const request: Dict = {
             'id': id,
             // 'timeInForce': timeInForce,
         };
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
-        [ request, params ] = this.orderRequest (symbol, type, side, amount, request, price, params);
+        const [ requestValue, paramsValue ] = this.orderRequest (symbol, type, side, amount, request, price, params);
         let response: Dict = {};
         if (triggerPrice !== undefined) {
-            response = await this.privatePutSmartordersId (this.extend (request, params));
+            response = await this.privatePutSmartordersId (this.extend (requestValue, paramsValue));
         } else {
-            response = await this.privatePutOrdersId (this.extend (request, params));
+            response = await this.privatePutOrdersId (this.extend (requestValue, paramsValue));
         }
         //
         //     {
@@ -2260,12 +2254,12 @@ export default class poloniex extends Exchange {
         }
         request['id'] = id;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
-        params = this.omit (params, [ 'clientOrderId', 'trigger', 'stop' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'trigger', 'stop' ]);
         let response: Dict = {};
         if (isTrigger === true) {
-            response = await this.privateDeleteSmartordersId (this.extend (request, params));
+            response = await this.privateDeleteSmartordersId (this.extend (request, paramsOmitted));
         } else {
-            response = await this.privateDeleteOrdersId (this.extend (request, params));
+            response = await this.privateDeleteOrdersId (this.extend (request, paramsOmitted));
         }
         //
         //   {
@@ -2305,10 +2299,9 @@ export default class poloniex extends Exchange {
             ];
         }
         let response: Dict | List = [];
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'swap' || marketType === 'future') {
-            const raw = await this.swapPrivateDeleteV3TradeAllOrders (this.extend (request, params));
+            const raw = await this.swapPrivateDeleteV3TradeAllOrders (this.extend (request, paramsMarketType));
             //
             //    {
             //        "code": "200",
@@ -2326,12 +2319,12 @@ export default class poloniex extends Exchange {
             response = this.safeList (raw, 'data', []);
             return this.parseOrders (response, market);
         }
-        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
-        params = this.omit (params, [ 'trigger', 'stop' ]);
+        const isTrigger = this.safeBool2 (paramsMarketType, 'trigger', 'stop');
+        const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'trigger', 'stop' ]);
         if (isTrigger === true) {
-            response = await this.privateDeleteSmartorders (this.extend (request, params));
+            response = await this.privateDeleteSmartorders (this.extend (request, paramsOmitted));
         } else {
-            response = await this.privateDeleteOrders (this.extend (request, params));
+            response = await this.privateDeleteOrders (this.extend (request, paramsOmitted));
         }
         //
         //     [
@@ -2367,28 +2360,27 @@ export default class poloniex extends Exchange {
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
-        id = id.toString ();
+        const idValue: string = id.toString ();
         const request: Dict = {
-            'id': id,
+            'id': idValue,
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         if (marketType !== 'spot') {
             throw new NotSupported (this.id + ' fetchOrder() is not supported for ' + marketType + ' markets yet');
         }
-        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
-        params = this.omit (params, [ 'trigger', 'stop' ]);
+        const isTrigger = this.safeBool2 (paramsMarketType, 'trigger', 'stop');
+        const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'trigger', 'stop' ]);
         let response: Dict = {};
         if (isTrigger === true) {
-            response = await this.privateGetSmartordersId (this.extend (request, params));
+            response = await this.privateGetSmartordersId (this.extend (request, paramsOmitted));
             response = this.safeValue (response, 0);
         } else {
-            response = await this.privateGetOrdersId (this.extend (request, params));
+            response = await this.privateGetOrdersId (this.extend (request, paramsOmitted));
         }
         //
         //     {
@@ -2412,7 +2404,7 @@ export default class poloniex extends Exchange {
         //     }
         //
         const order = this.parseOrder (response);
-        order['id'] = id;
+        order['id'] = idValue;
         return order;
     }
 
@@ -2520,10 +2512,9 @@ export default class poloniex extends Exchange {
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         if (marketType !== 'spot') {
-            const responseRaw = await this.swapPrivateGetV3AccountBalance (params);
+            const responseRaw = await this.swapPrivateGetV3AccountBalance (paramsMarketType);
             //
             //    {
             //        "code": "200",
@@ -2567,7 +2558,7 @@ export default class poloniex extends Exchange {
         const request: Dict = {
             'accountType': 'SPOT',
         };
-        const response = await this.privateGetAccountsBalances (this.extend (request, params));
+        const response = await this.privateGetAccountsBalances (this.extend (request, paramsMarketType));
         //
         //     [
         //         {
@@ -2714,8 +2705,8 @@ export default class poloniex extends Exchange {
     override async createDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
-        params = extraParams;
-        const response = await this.privatePostWalletsAddress (this.extend (request, params));
+        const paramsValue: Dict = extraParams;
+        const response = await this.privatePostWalletsAddress (this.extend (request, paramsValue));
         //
         //     {
         //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
@@ -2736,8 +2727,8 @@ export default class poloniex extends Exchange {
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
-        params = extraParams;
-        const response = await this.privateGetWalletsAddresses (this.extend (request, params));
+        const paramsValue: Dict = extraParams;
+        const response = await this.privateGetWalletsAddresses (this.extend (request, paramsValue));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
@@ -2864,7 +2855,7 @@ export default class poloniex extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         const currency = this.currency (code);
         const request: Dict = {
@@ -2872,17 +2863,16 @@ export default class poloniex extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
         };
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode === undefined) {
             // we need to know the network to find out the currency-junction
             throw new ArgumentsRequired (this.id + ' withdraw requires a network parameter for ' + code + '.');
         }
         request['network'] = this.networkCodeToId (networkCode, code);
-        if (tag !== undefined) {
-            request['paymentId'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['paymentId'] = tagWithdrawTag;
         }
-        const response = await this.privatePostV2WalletsWithdraw (this.extend (request, params));
+        const response = await this.privatePostV2WalletsWithdraw (this.extend (request, paramsNetworkCode));
         //
         //     {
         //         "response": "Withdrew 1.00000000 USDT.",
@@ -3097,13 +3087,13 @@ export default class poloniex extends Exchange {
         //         }
         //
         const depositWithdrawFees: Dict = {};
-        codes = this.marketCodes (codes);
+        const codesValue: Strings = this.marketCodes (codes);
         const responseKeys = Object.keys (response);
         for (let i = 0; i < responseKeys.length; i++) {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode (currencyId);
             const feeInfo = response[currencyId];
-            if ((code !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
+            if ((code !== undefined) && ((codesValue === undefined) || (this.inArray (code, codesValue)))) {
                 const currency = this.currency (code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
                 const childChains = this.safeValue (feeInfo, 'childChains');
@@ -3298,15 +3288,13 @@ export default class poloniex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('setLeverage', params);
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a marginMode parameter "cross" or "isolated"');
         }
-        let hedged: Bool = undefined;
-        [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+        const [ hedged, paramsHedged ]: [ Bool, Dict ] = this.handleParamBool (paramsMarginMode, 'hedged', false);
         if (hedged === true) {
-            if (!('posSide' in params)) {
+            if (!('posSide' in paramsHedged)) {
                 throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide parameter for hedged mode: "LONG" or "SHORT"');
             }
         }
@@ -3315,7 +3303,7 @@ export default class poloniex extends Exchange {
             'mgnMode': marginMode.toUpperCase (),
             'symbol': market['id'],
         };
-        const response = await this.swapPrivatePostV3PositionLeverage (this.extend (request, params));
+        const response = await this.swapPrivatePostV3PositionLeverage (this.extend (request, paramsHedged));
         return response;
     }
 
@@ -3334,13 +3322,12 @@ export default class poloniex extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchLeverage', params);
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a marginMode parameter "cross" or "isolated"');
         }
         request['mgnMode'] = marginMode.toUpperCase ();
-        const response = await this.swapPrivateGetV3PositionLeverages (this.extend (request, params));
+        const response = await this.swapPrivateGetV3PositionLeverages (this.extend (request, paramsMarginMode));
         //
         //  for one-way mode:
         //
@@ -3480,7 +3467,7 @@ export default class poloniex extends Exchange {
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.swapPrivateGetV3TradePositionOpens (params);
         //
         //    {
@@ -3518,7 +3505,7 @@ export default class poloniex extends Exchange {
         //    }
         //
         const positions = this.safeList (response, 'data', []);
-        return this.parsePositions (positions, symbols);
+        return this.parsePositions (positions, symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -3552,7 +3539,7 @@ export default class poloniex extends Exchange {
         //            }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (position, 'cTime');
         const marginMode = this.safeStringLower (position, 'mgnMode');
         const leverage = this.safeString (position, 'lever');
@@ -3565,7 +3552,7 @@ export default class poloniex extends Exchange {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'notional': notional,
             'marginMode': marginMode,
             'liquidationPrice': this.safeNumber (position, 'liqPx'),
@@ -3629,12 +3616,12 @@ export default class poloniex extends Exchange {
 
     override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         const marketId = this.safeString (data, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const rawType = this.safeString (data, 'type');
         const type = (rawType === 'ADD') ? 'add' : 'reduce';
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'marginMode': undefined,
             'amount': this.safeNumber (data, 'amt'),

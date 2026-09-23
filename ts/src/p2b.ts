@@ -1141,7 +1141,7 @@ export default class p2b extends Exchange {
             await this.loadMarkets ();
         }
         let until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
+        const paramsOmitted: Dict = this.omit (params, 'until');
         if (until === undefined) {
             if (since === undefined) {
                 until = this.milliseconds ();
@@ -1166,7 +1166,7 @@ export default class p2b extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostAccountMarketDealHistory (this.extend (request, params));
+        const response = await this.privatePostAccountMarketDealHistory (this.extend (request, paramsOmitted));
         //
         //    {
         //        "success": true,
@@ -1218,7 +1218,7 @@ export default class p2b extends Exchange {
             await this.loadMarkets ();
         }
         let until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
+        const paramsOmitted: Dict = this.omit (params, 'until');
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1248,7 +1248,7 @@ export default class p2b extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostAccountOrderHistory (this.extend (request, params));
+        const response = await this.privatePostAccountOrderHistory (this.extend (request, paramsOmitted));
         //
         //    {
         //        "success": true,
@@ -1327,7 +1327,7 @@ export default class p2b extends Exchange {
         //
         const timestamp = this.safeIntegerProduct2 (order, 'timestamp', 'ctime', 1000);
         const marketId = this.safeString (order, 'market');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'id', 'orderId'),
@@ -1335,7 +1335,7 @@ export default class p2b extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.safeString (order, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1349,32 +1349,32 @@ export default class p2b extends Exchange {
             'remaining': this.safeString (order, 'left'),
             'status': undefined,
             'fee': {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': this.safeString (order, 'dealFee'),
             },
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        params = this.omit (params, this.extractParams (path));
+        const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
-            if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
+            if (Object.keys (paramsOmitted).length > 0) {
+                url += '?' + this.urlencode (paramsOmitted);
             }
         }
         if (api === 'private') {
-            params['request'] = '/api/v2/' + path;
-            params['nonce'] = this.nonce ().toString ();
-            const payload = this.stringToBase64 (this.json (params));  // Body json encoded in base64
+            paramsOmitted['request'] = '/api/v2/' + path;
+            paramsOmitted['nonce'] = this.nonce ().toString ();
+            const payload = this.stringToBase64 (this.json (paramsOmitted));  // Body json encoded in base64
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': this.hmac (this.encode (payload), this.encode (this.secret), sha512),
             };
-            body = this.json (params);
+            body = this.json (paramsOmitted);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

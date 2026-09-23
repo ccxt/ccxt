@@ -489,7 +489,7 @@ export default class cryptomus extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetV1ExchangeMarketTickers (params);
         //
         //     {
@@ -504,7 +504,7 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTickers (data, symbols);
+        return this.parseTickers (data, symbolsNormalized);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -517,8 +517,8 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'currency_pair');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': symbol,
@@ -541,7 +541,7 @@ export default class cryptomus extends Exchange {
             'baseVolume': this.safeString (ticker, 'base_volume'),
             'quoteVolume': this.safeString (ticker, 'quote_volume'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -563,10 +563,10 @@ export default class cryptomus extends Exchange {
         const request: Dict = {
             'currencyPair': market['id'],
         };
-        let level = 0;
-        [ level, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'level', level);
-        request['level'] = level;
-        const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair (this.extend (request, params));
+        const level = 0;
+        const [ levelOption, paramsLevel ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'level', level);
+        request['level'] = levelOption;
+        const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair (this.extend (request, paramsLevel));
         //
         //     {
         //         "data": {
@@ -1007,7 +1007,7 @@ export default class cryptomus extends Exchange {
         //
         const id = this.safeString2 (order, 'order_id', 'id');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const dateTime = this.safeString (order, 'createdAt');
         const timestamp = this.parse8601 (dateTime);
         const deal = this.safeDict (order, 'deal', {});
@@ -1038,7 +1038,7 @@ export default class cryptomus extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1055,7 +1055,7 @@ export default class cryptomus extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderStatus (status: Str = undefined): Str {
@@ -1177,7 +1177,7 @@ export default class cryptomus extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const endpoint = this.implodeParams (path, params);
-        params = this.omit (params, this.extractParams (path));
+        const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -1186,11 +1186,11 @@ export default class cryptomus extends Exchange {
                 'userId': this.uid,
             };
             if (method !== 'GET') {
-                body = this.json (params);
+                body = this.json (paramsOmitted);
                 jsonParams = body;
                 headers['Content-Type'] = 'application/json';
             } else {
-                const query = this.urlencode (params);
+                const query = this.urlencode (paramsOmitted);
                 if (query.length !== 0) {
                     url += '?' + query;
                 }
@@ -1200,7 +1200,7 @@ export default class cryptomus extends Exchange {
             const signature = this.hash (this.encode (stringToSign), md5);
             headers['sign'] = signature;
         } else {
-            const query = this.urlencode (params);
+            const query = this.urlencode (paramsOmitted);
             if (query.length !== 0) {
                 url += '?' + query;
             }

@@ -2131,7 +2131,7 @@ export default class mexc extends Exchange {
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let timestamp: Int = undefined;
         let bid: Str = undefined;
         let ask: Str = undefined;
@@ -2145,7 +2145,7 @@ export default class mexc extends Exchange {
         let changePcnt: Str = undefined;
         let changeValue: Str = undefined;
         let prevClose: Str = undefined;
-        const isSwap = this.safeBool (market, 'swap');
+        const isSwap = this.safeBool (marketResolved, 'swap');
         // if swap
         if ((isSwap === true) || ('timestamp' in ticker)) {
             //
@@ -2224,7 +2224,7 @@ export default class mexc extends Exchange {
             changePcnt = Precise.stringMul (changePcnt, '100');
         }
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'open': open,
@@ -2243,7 +2243,7 @@ export default class mexc extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2458,8 +2458,8 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const test = this.safeBool (params, 'test', false);
-        params = this.omit (params, 'test');
-        const request = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, params);
+        const paramsOmitted = this.omit (params, 'test');
+        const request = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, paramsOmitted);
         let response: Dict;
         if (test === true) {
             response = await this.spotPrivatePostOrderTest (request);
@@ -2853,13 +2853,13 @@ export default class mexc extends Exchange {
             request['symbol'] = market['id'];
         }
         const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const paramsOmitted: Dict = this.omit (params, 'until');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, paramsOmitted);
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for spot market');
             }
-            const [ marginMode, queryInner ] = this.handleMarginModeAndParams ('fetchOrders', params);
+            const [ marginMode, queryInner ] = this.handleMarginModeAndParams ('fetchOrders', paramsOmitted);
             if (since !== undefined) {
                 request['startTime'] = since;
             }
@@ -2930,7 +2930,7 @@ export default class mexc extends Exchange {
         } else {
             if (since !== undefined) {
                 request['start_time'] = since;
-                const end = this.safeInteger (params, 'end_time', until);
+                const end = this.safeInteger (paramsOmitted, 'end_time', until);
                 if (end === undefined) {
                     request['end_time'] = this.sum (since, this.options['maxTimeTillEnd']);
                 } else {
@@ -3020,7 +3020,7 @@ export default class mexc extends Exchange {
                 ordersOfTrigger = this.safeValue (response, 'data');
             }
             const merged = this.arrayConcat (ordersOfTrigger, ordersOfRegular);
-            return this.parseOrders (merged, market, since, limit, params);
+            return this.parseOrders (merged, market, since, limit, paramsOmitted);
         }
     }
 
@@ -3099,16 +3099,15 @@ export default class mexc extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
-        let marketType: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol !== undefined) {
                 request['symbol'] = this.safeString (market, 'id');
             }
-            const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+            const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', paramsMarketType);
             let response: Dict;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
@@ -3171,9 +3170,9 @@ export default class mexc extends Exchange {
             if (limit === undefined) {
                 request['page_size'] = 100; // max
             }
-            const swapResponse = await this.contractPrivateGetOrderListOpenOrders (this.extend (request, params));
+            const swapResponse = await this.contractPrivateGetOrderListOpenOrders (this.extend (request, paramsMarketType));
             const data = this.safeList (swapResponse, 'data', []);
-            return this.parseOrders (data, market, since, limit, params);
+            return this.parseOrders (data, market, since, limit, paramsMarketType);
         }
     }
 
@@ -3406,11 +3405,10 @@ export default class mexc extends Exchange {
             market = this.market (symbol);
         }
         const request: Dict = {};
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
-                await this.spotPrivateDeleteOrderAll (params);
+                await this.spotPrivateDeleteOrderAll (paramsMarketType);
                 //
                 //     {
                 //         "code": 200,
@@ -3421,7 +3419,7 @@ export default class mexc extends Exchange {
                 return [];
             }
             request['symbol'] = this.safeString (market, 'id');
-            const response = await this.spotPrivateDeleteOpenOrders (this.extend (request, params));
+            const response = await this.spotPrivateDeleteOpenOrders (this.extend (request, paramsMarketType));
             //
             // spot
             //
@@ -3444,12 +3442,12 @@ export default class mexc extends Exchange {
             // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let method = this.safeString (this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
-            method = this.safeString (params, 'method', method);
+            method = this.safeString (paramsMarketType, 'method', method);
             let response: Dict = {};
             if (method === 'contractPrivatePostOrderCancelAll') {
-                response = await this.contractPrivatePostOrderCancelAll (this.extend (request, params));
+                response = await this.contractPrivatePostOrderCancelAll (this.extend (request, paramsMarketType));
             } else if (method === 'contractPrivatePostPlanorderCancelAll') {
-                response = await this.contractPrivatePostPlanorderCancelAll (this.extend (request, params));
+                response = await this.contractPrivatePostPlanorderCancelAll (this.extend (request, paramsMarketType));
             }
             //
             //     {
@@ -3654,7 +3652,7 @@ export default class mexc extends Exchange {
             timeInForce = this.getTifFromRawOrderType (typeRaw) as string;
         }
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'transactTime' ]);
         let fee: Fee = undefined;
         const feeCurrency = this.safeString (order, 'feeCurrency');
@@ -3675,7 +3673,7 @@ export default class mexc extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
             'status': this.parseOrderStatus (this.safeString2 (order, 'status', 'state')),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType (typeRaw),
             'timeInForce': timeInForce,
             'side': this.parseOrderSide (this.safeString (order, 'side')),
@@ -3689,7 +3687,7 @@ export default class mexc extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderSide (status: Str): Str {
@@ -4685,7 +4683,7 @@ export default class mexc extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, 'swap', true, true);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, 'swap', true, true);
         const response = await this.contractPublicGetDetail (params);
         //
         //     {
@@ -4733,7 +4731,7 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseLeverageTiers (data, symbols, 'symbol');
+        return this.parseLeverageTiers (data, symbolsNormalized, 'symbol');
     }
 
     override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
@@ -4877,8 +4875,8 @@ export default class mexc extends Exchange {
         if (networkId !== undefined) {
             request['network'] = networkId;
         }
-        params = this.omit (params, 'network');
-        const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'network');
+        const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, paramsOmitted));
         //
         //    [
         //        {
@@ -4930,8 +4928,8 @@ export default class mexc extends Exchange {
         if (networkId !== undefined) {
             request['network'] = networkId;
         }
-        params = this.omit (params, 'network');
-        const response = await this.spotPrivatePostCapitalDepositAddress (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'network');
+        const response = await this.spotPrivatePostCapitalDepositAddress (this.extend (request, paramsOmitted));
         //     {
         //        "coin": "EOS",
         //        "network": "EOS",
@@ -5395,8 +5393,8 @@ export default class mexc extends Exchange {
         //        positionShowStatus: 'CLOSED'
         //    }
         //
-        market = this.safeMarket (this.safeString (position, 'symbol'), market, undefined, 'swap');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (this.safeString (position, 'symbol'), market, undefined, 'swap');
+        const symbol = marketResolved['symbol'];
         const contracts = this.safeString (position, 'holdVol');
         const entryPrice = this.safeNumber (position, 'openAvgPrice');
         const initialMargin = this.safeString (position, 'im');
@@ -5494,8 +5492,7 @@ export default class mexc extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5504,8 +5501,7 @@ export default class mexc extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        let fromAccountType: Str = undefined;
-        [ fromAccountType, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'fromAccountType');
+        const [ fromAccountType, paramsFromAccountType ]: [ Str, Dict ] = this.handleOptionAndParams (paramsMarketType, 'fetchTransfers', 'fromAccountType');
         const accountTypes: Dict = {
             'spot': 'SPOT',
             'swap': 'FUTURES',
@@ -5518,8 +5514,7 @@ export default class mexc extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a fromAccountType parameter, one of "SPOT", "FUTURES"');
         }
-        let toAccountType: Str = undefined;
-        [ toAccountType, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'toAccountType');
+        const [ toAccountType, paramsToAccountType ]: [ Str, Dict ] = this.handleOptionAndParams (paramsFromAccountType, 'fetchTransfers', 'toAccountType');
         if (toAccountType !== undefined) {
             request['toAccountType'] = this.safeString (accountTypes, toAccountType, toAccountType);
         } else {
@@ -5536,7 +5531,7 @@ export default class mexc extends Exchange {
                 }
                 request['size'] = limit;
             }
-            const response = await this.spotPrivateGetCapitalTransfer (this.extend (request, params));
+            const response = await this.spotPrivateGetCapitalTransfer (this.extend (request, paramsToAccountType));
             //
             //
             // {
@@ -5560,7 +5555,7 @@ export default class mexc extends Exchange {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            const response = await this.contractPrivateGetAccountTransferRecord (this.extend (request, params));
+            const response = await this.contractPrivateGetAccountTransferRecord (this.extend (request, paramsToAccountType));
             const data = this.safeDict (response, 'data');
             resultList = this.safeValue (data, 'resultList');
             //
@@ -6271,8 +6266,8 @@ export default class mexc extends Exchange {
         if (direction !== undefined) {
             request['positionType'] = (direction === 'short') ? 2 : 1;
         }
-        params = this.omit (params, 'direction');
-        const response = await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'direction');
+        const response = await this.contractPrivatePostPositionChangeLeverage (this.extend (request, paramsOmitted));
         //
         // { success: true, code: '0' }
         //

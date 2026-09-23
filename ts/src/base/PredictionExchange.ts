@@ -452,13 +452,13 @@ export default class PredictionExchange extends BaseExchange {
             return outcomeObj;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
-        outcomeObj = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {}};
-        return outcomeObj;
+        const outcomeObjValue: any = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {}};
+        return outcomeObjValue;
     }
 
     safeOutcomeSymbol (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): Str {
-        outcomeObj = this.safeOutcome (outcomeIdOrSymbol, outcomeObj);
-        return outcomeObj['outcome'];
+        const outcomeObjValue: any = this.safeOutcome (outcomeIdOrSymbol, outcomeObj);
+        return outcomeObjValue['outcome'];
     }
 
     shortenSlug (slug: Str): string {

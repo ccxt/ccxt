@@ -183,9 +183,9 @@ export default class coinbase extends coinbaseRest {
         }
         const productIds: Str[] = [];
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols, undefined, false);
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId = market['id'];
             productIds.push (marketId);
@@ -226,9 +226,9 @@ export default class coinbase extends coinbaseRest {
         const productIds: Str[] = [];
         const watchMessageHashes: string[] = [];
         const unWatchMessageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols, undefined, false);
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId = market['id'];
             productIds.push (marketId);
@@ -249,7 +249,7 @@ export default class coinbase extends coinbaseRest {
             'subMessageHashes': watchMessageHashes,
             'topic': topic,
             'unsubscribe': true,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
         };
         this.options['unSubscription'] = subscription;
         const res = await this.watchMultiple (url, unWatchMessageHashes, message, unWatchMessageHashes, subscription);
@@ -546,11 +546,11 @@ export default class coinbase extends coinbaseRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
+        const symbolValue: string = this.symbol (symbol);
         const name = 'market_trades';
-        const trades = await this.subscribe (name, false, symbol, params);
+        const trades = await this.subscribe (name, false, symbolValue, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -670,8 +670,8 @@ export default class coinbase extends coinbaseRest {
         }
         const name = 'level2';
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const orderbook = await this.subscribe (name, false, symbol, params);
+        const symbolValue: string = market['symbol'];
+        const orderbook = await this.subscribe (name, false, symbolValue, params);
         return orderbook.limit ();
     }
 
@@ -688,9 +688,9 @@ export default class coinbase extends coinbaseRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
+        const symbolValue: string = this.symbol (symbol);
         const name = 'level2';
-        return await this.unSubscribe ('orderbook', name, false, symbol);
+        return await this.unSubscribe ('orderbook', name, false, symbolValue);
     }
 
     /**
@@ -856,11 +856,11 @@ export default class coinbase extends coinbaseRest {
         const clientOrderId = this.safeString (order, 'client_order_id');
         const marketId = this.safeString (order, 'product_id');
         const datetime = this.safeString2 (order, 'time', 'creation_time');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const stopPrice = this.safeString (order, 'stop_price');
         return this.safeOrder ({
             'info': order,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': this.parse8601 (datetime),
@@ -881,7 +881,7 @@ export default class coinbase extends coinbaseRest {
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': {
                 'amount': this.safeString (order, 'total_fees'),
-                'currency': this.safeString (market, 'quote'),
+                'currency': this.safeString (marketResolved, 'quote'),
             },
             'trades': undefined,
         });

@@ -261,8 +261,7 @@ export default class coinex extends coinexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, 'spot');
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, 'spot');
         await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
         // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
@@ -283,7 +282,7 @@ export default class coinex extends coinexRest {
             'params': { 'ccy_list': currencies },
             'id': this.requestId (),
         };
-        const request = this.deepExtend (subscribe, params);
+        const request = this.deepExtend (subscribe, paramsMarketType);
         return await this.watch (url, messageHash, request, messageHash);
     }
 
@@ -434,8 +433,7 @@ export default class coinex extends coinexRest {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, 'spot');
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, 'spot');
         await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
         const subscribedSymbols: any[] = [];
@@ -455,7 +453,7 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': subscribedSymbols },
             'id': this.requestId (),
         };
-        const request = this.deepExtend (message, params);
+        const request = this.deepExtend (message, paramsMarketType);
         const trades = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -609,11 +607,11 @@ export default class coinex extends coinexRest {
         const isSpot = ('margin_market' in trade);
         const defaultType = isSpot ? 'spot' : 'swap';
         const marketId = this.safeString (trade, 'market');
-        market = this.safeMarket (marketId, market, undefined, defaultType);
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: Dict = {};
         const feeCost = this.omitZero (this.safeString (trade, 'fee'));
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'fee_ccy', market['quote']);
+            const feeCurrencyId = this.safeString (trade, 'fee_ccy', marketResolved['quote']);
             fee = {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
                 'cost': feeCost,
@@ -624,7 +622,7 @@ export default class coinex extends coinexRest {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeSymbol (marketId, market, undefined, defaultType),
+            'symbol': this.safeSymbol (marketId, marketResolved, undefined, defaultType),
             'order': this.safeString (trade, 'order_id'),
             'type': undefined,
             'side': this.safeString (trade, 'side'),
@@ -633,7 +631,7 @@ export default class coinex extends coinexRest {
             'amount': this.safeString (trade, 'amount'),
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -683,8 +681,7 @@ export default class coinex extends coinexRest {
             marketIds = [];
             messageHashes.push ('tickers');
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const url = this.urls['api']['ws'][type];
         const subscriptionHashes = [ 'all@ticker' ];
         const subscribe: Dict = {
@@ -692,7 +689,7 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': marketIds },
             'id': this.requestId (),
         };
-        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, paramsMarketType), subscriptionHashes);
         if (this.newUpdates) {
             return result;
         }
@@ -735,8 +732,7 @@ export default class coinex extends coinexRest {
         const subscribedSymbols: any[] = [];
         const messageHashes: string[] = [];
         let market: Market = undefined;
-        let callerMethodName: Str = undefined;
-        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
+        const [ callerMethodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -748,8 +744,7 @@ export default class coinex extends coinexRest {
         } else {
             messageHashes.push ('trades');
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, market, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams (callerMethodName, market, paramsCallerMethodName);
         const url = this.urls['api']['ws'][type];
         // const subscriptionHashes = [ 'trades' ];
         const subscribe: Dict = {
@@ -757,7 +752,7 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': subscribedSymbols },
             'id': this.requestId (),
         };
-        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), messageHashes);
+        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, paramsMarketType), messageHashes);
         if (this.newUpdates) {
             return trades;
         }
@@ -782,9 +777,7 @@ export default class coinex extends coinexRest {
         const watchOrderBookSubscriptions: Dict = {};
         const messageHashes: string[] = [];
         let market: Market = undefined;
-        let type: Str = undefined;
-        let callerMethodName: Str = undefined;
-        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
+        const [ callerMethodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const limits = this.safeList (options, 'limits', []);
         if (limit === undefined) {
@@ -795,11 +788,11 @@ export default class coinex extends coinexRest {
         }
         const defaultAggregation = this.safeString (options, 'defaultAggregation', '0');
         const aggregations = this.safeList (options, 'aggregations', []);
-        const aggregation = this.safeString (params, 'aggregation', defaultAggregation);
+        const aggregation = this.safeString (paramsCallerMethodName, 'aggregation', defaultAggregation);
         if (!this.inArray (aggregation, aggregations)) {
             throw new NotSupported (this.id + ' watchOrderBookForSymbols() aggregation must be one of ' + aggregations.join (', '));
         }
-        params = this.omit (params, 'aggregation');
+        const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'aggregation');
         const symbolsDefined = (symbols !== undefined);
         if (!symbolsDefined) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a symbol argument');
@@ -810,7 +803,7 @@ export default class coinex extends coinexRest {
             messageHashes.push ('orderbook:' + market['symbol']);
             watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
         }
-        [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, market, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams (callerMethodName, market, paramsOmitted);
         const marketList = Object.values (watchOrderBookSubscriptions);
         const subscribe: Dict = {
             'method': 'depth.subscribe',
@@ -819,7 +812,7 @@ export default class coinex extends coinexRest {
         };
         // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         const url = this.urls['api']['ws'][type];
-        const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), messageHashes);
+        const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, paramsMarketType), messageHashes);
         if (this.newUpdates) {
             return orderbooks;
         }
@@ -933,7 +926,7 @@ export default class coinex extends coinexRest {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'trigger', 'stop');
-        params = this.omit (params, [ 'trigger', 'stop' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'trigger', 'stop' ]);
         let messageHash = 'orders';
         let market: Market = undefined;
         let marketList: NullableList = undefined;
@@ -941,8 +934,7 @@ export default class coinex extends coinexRest {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params, 'spot');
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchOrders', market, paramsOmitted, 'spot');
         await this.authenticate (type);
         if (symbol !== undefined) {
             marketList = [ (market as Dict)['id'] ];
@@ -967,7 +959,7 @@ export default class coinex extends coinexRest {
             'id': this.requestId (),
         };
         const url = this.urls['api']['ws'][type];
-        const request = this.deepExtend (message, params);
+        const request = this.deepExtend (message, paramsMarketType);
         const orders = await this.watch (url, messageHash, request, messageHash, request);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -1204,11 +1196,11 @@ export default class coinex extends coinexRest {
         const status = this.safeString (order, 'status');
         const isSpot = ('margin_market' in order);
         const defaultType = isSpot ? 'spot' : 'swap';
-        market = this.safeMarket (marketId, market, undefined, defaultType);
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: FeeString = undefined;
         const feeCost = this.omitZero (this.safeString2 (order, 'fee', 'quote_ccy_fee'));
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (order, 'fee_ccy', market['quote']);
+            const feeCurrencyId = this.safeString (order, 'fee_ccy', marketResolved['quote']);
             fee = {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
                 'cost': feeCost,
@@ -1221,7 +1213,7 @@ export default class coinex extends coinexRest {
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': this.safeInteger (order, 'updated_at'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.safeString (order, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1237,7 +1229,7 @@ export default class coinex extends coinexRest {
             'status': this.parseWsOrderStatus (status),
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     parseWsOrderStatus (status: Str): Str {
@@ -1280,8 +1272,7 @@ export default class coinex extends coinexRest {
         } else {
             messageHashes.push ('bidsasks');
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', market, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBidsAsks', market, params);
         const url = this.urls['api']['ws'][type];
         const subscriptionHashes = [ 'all@bidsasks' ];
         const subscribe: Dict = {
@@ -1289,7 +1280,7 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': marketIds },
             'id': this.requestId (),
         };
-        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, paramsMarketType), subscriptionHashes);
         if (this.newUpdates) {
             return result;
         }
@@ -1332,10 +1323,10 @@ export default class coinex extends coinexRest {
         //
         const defaultType = this.safeString (this.options, 'defaultType');
         const marketId = this.safeString (ticker, 'market');
-        market = this.safeMarket (marketId, market, undefined, defaultType);
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, defaultType);
         const timestamp = this.safeInteger (ticker, 'updated_at');
         return this.safeTicker ({
-            'symbol': this.safeSymbol (marketId, market, undefined, defaultType),
+            'symbol': this.safeSymbol (marketId, marketResolved, undefined, defaultType),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'ask': this.safeNumber (ticker, 'best_ask_price'),
@@ -1343,7 +1334,7 @@ export default class coinex extends coinexRest {
             'bid': this.safeNumber (ticker, 'best_bid_price'),
             'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     override handleMessage (client: Client, message: Dict) {

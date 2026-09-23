@@ -1378,16 +1378,15 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         let response: Dict;
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
         if (limit !== undefined) {
             const maxLimit = (marketType === 'spot') ? 500 : 1000;
             request['limit'] = Math.min (limit, maxLimit);
         }
         if (marketType === 'spot') {
-            response = await this.spotV1PublicGetMarketTrades (this.extend (request, params));
+            response = await this.spotV1PublicGetMarketTrades (this.extend (request, paramsMarketType));
         } else {
-            response = await this.swapV2PublicGetQuoteTrades (this.extend (request, params));
+            response = await this.swapV2PublicGetQuoteTrades (this.extend (request, paramsMarketType));
         }
         //
         // spot
@@ -1626,8 +1625,7 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         let response: Dict;
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         if (limit !== undefined) {
             if (marketType === 'spot') {
                 request['limit'] = Math.min (limit, 1000); // api maximum 1000
@@ -1636,12 +1634,12 @@ export default class bingx extends Exchange {
             }
         }
         if (marketType === 'spot') {
-            response = await this.spotV1PublicGetMarketDepth (this.extend (request, params));
+            response = await this.spotV1PublicGetMarketDepth (this.extend (request, paramsMarketType));
         } else {
             if (market['inverse'] === true) {
-                response = await this.cswapV1PublicGetMarketDepth (this.extend (request, params));
+                response = await this.cswapV1PublicGetMarketDepth (this.extend (request, paramsMarketType));
             } else {
-                response = await this.swapV2PublicGetQuoteDepth (this.extend (request, params));
+                response = await this.swapV2PublicGetQuoteDepth (this.extend (request, paramsMarketType));
             }
         }
         //
@@ -1791,18 +1789,18 @@ export default class bingx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, 'swap', true, true, true);
-        const firstMarket = this.getMarketFromSymbols (symbols);
-        let subType: Str = 'linear';
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', firstMarket, params, subType);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, 'swap', true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
+        const subType: Str = 'linear';
+        const [ subTypeOption, paramsSubType ] = this.handleSubTypeAndParams ('fetchFundingRates', firstMarket, params, subType);
         let response: Dict;
-        if (subType === 'inverse') {
-            response = await this.cswapV1PublicGetMarketPremiumIndex (params);
+        if (subTypeOption === 'inverse') {
+            response = await this.cswapV1PublicGetMarketPremiumIndex (paramsSubType);
         } else {
-            response = await this.swapV2PublicGetQuotePremiumIndex (params);
+            response = await this.swapV2PublicGetQuotePremiumIndex (paramsSubType);
         }
         const data = this.safeList (response, 'data', []);
-        return this.parseFundingRates (data, symbols);
+        return this.parseFundingRates (data, symbolsNormalized);
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
@@ -1871,12 +1869,11 @@ export default class bingx extends Exchange {
         if (market['inverse'] === true) {
             throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported for inverse swap markets');
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
         }
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1885,8 +1882,8 @@ export default class bingx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.swapV2PublicGetQuoteFundingRate (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
+        const response = await this.swapV2PublicGetQuoteFundingRate (this.extend (requestUntil, paramsUntil));
         //
         //    {
         //        "code":0,
@@ -2208,18 +2205,16 @@ export default class bingx extends Exchange {
                 market = this.market (firstSymbol);
             }
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
         let response: Dict;
         if (type === 'spot') {
-            response = await this.spotV1PublicGetTicker24hr (params);
+            response = await this.spotV1PublicGetTicker24hr (paramsSubType);
         } else {
             if (subType === 'inverse') {
-                response = await this.cswapV1PublicGetMarketTicker (params);
+                response = await this.cswapV1PublicGetMarketTicker (paramsSubType);
             } else {
-                response = await this.swapV2PublicGetQuoteTicker (params);
+                response = await this.swapV2PublicGetQuoteTicker (paramsSubType);
             }
         }
         //
@@ -2270,14 +2265,13 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMarkPrice', market, params, 'linear');
+        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchMarkPrice', market, params, 'linear');
         const request: Dict = {
             'symbol': market['id'],
         };
         let response: Dict;
         if (subType === 'inverse') {
-            response = await this.cswapV1PublicGetMarketPremiumIndex (this.extend (request, params));
+            response = await this.cswapV1PublicGetMarketPremiumIndex (this.extend (request, paramsSubType));
             //
             // {
             //     "code": 0,
@@ -2295,7 +2289,7 @@ export default class bingx extends Exchange {
             // }
             //
         } else {
-            response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (request, params));
+            response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (request, paramsSubType));
             //
             // {
             //     "code": 0,
@@ -2338,13 +2332,12 @@ export default class bingx extends Exchange {
                 market = this.market (firstSymbol);
             }
         }
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMarkPrices', market, params, 'linear');
+        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchMarkPrices', market, params, 'linear');
         let response: Dict;
         if (subType === 'inverse') {
-            response = await this.cswapV1PublicGetMarketPremiumIndex (params);
+            response = await this.cswapV1PublicGetMarketPremiumIndex (paramsSubType);
         } else {
-            response = await this.swapV2PublicGetQuotePremiumIndex (params);
+            response = await this.swapV2PublicGetQuotePremiumIndex (paramsSubType);
         }
         //
         // spot and swap
@@ -2434,8 +2427,8 @@ export default class bingx extends Exchange {
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
         const type = (lastQty === undefined) ? 'spot' : 'swap';
-        market = this.safeMarket (marketId, market, undefined, type);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, type);
+        const symbol = marketResolved['symbol'];
         const open = this.safeString (ticker, 'openPrice');
         const high = this.safeString (ticker, 'highPrice');
         const low = this.safeString (ticker, 'lowPrice');
@@ -2479,7 +2472,7 @@ export default class bingx extends Exchange {
             'markPrice': this.safeString (ticker, 'markPrice'),
             'indexPrice': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2500,11 +2493,9 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         let response: Dict;
-        let standard: Bool = undefined;
-        [ standard, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'standard', false);
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
-        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ standard, paramsStandard ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'fetchBalance', 'standard', false);
+        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchBalance', undefined, paramsStandard);
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsSubType);
         if (standard) {
             response = await this.contractV1PrivateGetBalance (marketTypeQuery);
             //
@@ -2740,7 +2731,7 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -2749,10 +2740,10 @@ export default class bingx extends Exchange {
         if (since !== undefined) {
             request['startTs'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('endTs', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTs', request, params);
         let response: Dict;
         if (market['linear'] === true) {
-            response = await this.swapV1PrivateGetTradePositionHistory (this.extend (request, params));
+            response = await this.swapV1PrivateGetTradePositionHistory (this.extend (requestUntil, paramsUntil));
         } else {
             throw new NotSupported (this.id + ' fetchPositionHistory() is not supported for inverse swap positions');
         }
@@ -3173,15 +3164,15 @@ export default class bingx extends Exchange {
         let postOnly: Bool = undefined;
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        type = type.toUpperCase ();
+        const typeValue: Str = type.toUpperCase ();
         const request: Dict = {
             'symbol': market['id'],
-            'type': type,
+            'type': typeValue,
             'side': (side as string).toUpperCase (),
         };
-        const isMarketOrder = type === 'MARKET';
+        const isMarketOrder = typeValue === 'MARKET';
         const isSpot = marketType === 'spot';
-        const isTwapOrder = type === 'TWAP';
+        const isTwapOrder = typeValue === 'TWAP';
         if (isTwapOrder && isSpot) {
             throw new BadSymbol (this.id + ' createOrder() twap order supports swap contracts only');
         }
@@ -3226,16 +3217,16 @@ export default class bingx extends Exchange {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders');
                 }
                 request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
-                if (type === 'LIMIT') {
+                if (typeValue === 'LIMIT') {
                     request['type'] = 'TRIGGER_LIMIT';
-                } else if (type === 'MARKET') {
+                } else if (typeValue === 'MARKET') {
                     request['type'] = 'TRIGGER_MARKET';
                 }
             } else if ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined)) {
                 const stopTakePrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
-                if (type === 'LIMIT') {
+                if (typeValue === 'LIMIT') {
                     request['type'] = 'TAKE_STOP_LIMIT';
-                } else if (type === 'MARKET') {
+                } else if (typeValue === 'MARKET') {
                     request['type'] = 'TAKE_STOP_MARKET';
                 }
                 request['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, stopTakePrice));
@@ -3282,15 +3273,15 @@ export default class bingx extends Exchange {
             if (hasTakeProfit) {
                 params = this.omit (params, 'takeProfit');
             }
-            if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
+            if (((typeValue === 'LIMIT') || (typeValue === 'TRIGGER_LIMIT') || (typeValue === 'STOP') || (typeValue === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
             let reduceOnly = this.safeBool (params, 'reduceOnly', false);
             if (isTriggerOrder) {
                 request['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, triggerPrice));
-                if (isMarketOrder || (type === 'TRIGGER_MARKET')) {
+                if (isMarketOrder || (typeValue === 'TRIGGER_MARKET')) {
                     request['type'] = 'TRIGGER_MARKET';
-                } else if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT')) {
+                } else if ((typeValue === 'LIMIT') || (typeValue === 'TRIGGER_LIMIT')) {
                     request['type'] = 'TRIGGER_LIMIT';
                 }
             } else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
@@ -3298,16 +3289,16 @@ export default class bingx extends Exchange {
                 reduceOnly = true;
                 if (isStopLossPriceOrder) {
                     request['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
-                    if (isMarketOrder || (type === 'STOP_MARKET')) {
+                    if (isMarketOrder || (typeValue === 'STOP_MARKET')) {
                         request['type'] = 'STOP_MARKET';
-                    } else if ((type === 'LIMIT') || (type === 'STOP')) {
+                    } else if ((typeValue === 'LIMIT') || (typeValue === 'STOP')) {
                         request['type'] = 'STOP';
                     }
                 } else if (isTakeProfitPriceOrder) {
                     request['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, takeProfitPrice));
-                    if (isMarketOrder || (type === 'TAKE_PROFIT_MARKET')) {
+                    if (isMarketOrder || (typeValue === 'TAKE_PROFIT_MARKET')) {
                         request['type'] = 'TAKE_PROFIT_MARKET';
-                    } else if ((type === 'LIMIT') || (type === 'TAKE_PROFIT')) {
+                    } else if ((typeValue === 'LIMIT') || (typeValue === 'TAKE_PROFIT')) {
                         request['type'] = 'TAKE_PROFIT';
                     }
                 }
@@ -3435,8 +3426,8 @@ export default class bingx extends Exchange {
         if (test && ((market['swap'] !== true) || (market['inverse'] === true))) {
             throw new NotSupported (this.id + ' createOrder() only supports test orders for linear swap markets');
         }
-        params = this.omit (params, 'test');
-        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const paramsOmitted: Dict = this.omit (params, 'test');
+        const request = this.createOrderRequest (symbol, type, side, amount, price, paramsOmitted);
         let response: Dict | string;
         if (market['swap'] === true) {
             if (test === true) {
@@ -4283,13 +4274,11 @@ export default class bingx extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = 'spot';
-        let subType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
+        const [ marketType, paramsMarketType ]: [ string, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('cancelAllOrders', market, paramsMarketType);
         let response: Dict;
         if (marketType === 'spot') {
-            response = await this.spotV1PrivatePostTradeCancelOpenOrders (this.extend (request, params));
+            response = await this.spotV1PrivatePostTradeCancelOpenOrders (this.extend (request, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -4314,7 +4303,7 @@ export default class bingx extends Exchange {
             //
         } else if (marketType === 'swap') {
             if (subType === 'inverse') {
-                response = await this.cswapV1PrivateDeleteTradeAllOpenOrders (this.extend (request, params));
+                response = await this.cswapV1PrivateDeleteTradeAllOpenOrders (this.extend (request, paramsSubType));
                 //
                 //     {
                 //         "code": 0,
@@ -4371,7 +4360,7 @@ export default class bingx extends Exchange {
                 //     }
                 //
             } else {
-                response = await this.swapV2PrivateDeleteTradeAllOpenOrders (this.extend (request, params));
+                response = await this.swapV2PrivateDeleteTradeAllOpenOrders (this.extend (request, paramsSubType));
                 //
                 //    {
                 //        "code": 0,
@@ -4437,7 +4426,7 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         const clientOrderIds = this.safeList (params, 'clientOrderIds');
-        params = this.omit (params, 'clientOrderIds');
+        const paramsOmitted: Dict = this.omit (params, 'clientOrderIds');
         let idsToParse = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
         if (areClientOrderIds) {
@@ -4453,7 +4442,7 @@ export default class bingx extends Exchange {
         if (market['spot'] === true) {
             const spotReqKey = areClientOrderIds ? 'clientOrderIDs' : 'orderIds';
             request[spotReqKey] = parsedIds.join (',');
-            response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, params));
+            response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, paramsOmitted));
             //
             //    {
             //       "code": 0,
@@ -4486,7 +4475,7 @@ export default class bingx extends Exchange {
             } else {
                 request['orderIdList'] = parsedIds;
             }
-            response = await this.swapV2PrivateDeleteTradeBatchOrders (this.extend (request, params));
+            response = await this.swapV2PrivateDeleteTradeBatchOrders (this.extend (request, paramsOmitted));
             //
             //    {
             //        "code": 0,
@@ -4544,17 +4533,15 @@ export default class bingx extends Exchange {
             'timeOut': (isActive) ? (this.parseToInt ((timeout as number) / 1000)) : 0,
         };
         let response: Dict;
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, params);
-        let subType: SubType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrdersAfter', undefined, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, params);
+        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('cancelAllOrdersAfter', undefined, paramsMarketType);
         if ((type === 'swap') && (subType === 'inverse')) {
             throw new NotSupported (this.id + ' cancelAllOrdersAfter() is not supported for inverse swap markets');
         }
         if (type === 'spot') {
-            response = await this.spotV1PrivatePostTradeCancelAllAfter (this.extend (request, params));
+            response = await this.spotV1PrivatePostTradeCancelAllAfter (this.extend (request, paramsSubType));
         } else if (type === 'swap') {
-            response = await this.swapV2PrivatePostTradeCancelAllAfter (this.extend (request, params));
+            response = await this.swapV2PrivatePostTradeCancelAllAfter (this.extend (request, paramsSubType));
         } else {
             throw new NotSupported (this.id + ' cancelAllOrdersAfter() is not supported for ' + type + ' markets');
         }
@@ -4769,14 +4756,13 @@ export default class bingx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         if (type !== 'swap') {
             throw new NotSupported (this.id + ' fetchOrders() is only supported for swap markets');
         }
@@ -4786,8 +4772,8 @@ export default class bingx extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.swapV1PrivateGetTradeFullOrder (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsMarketType);
+        const response = await this.swapV1PrivateGetTradeFullOrder (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "code": 0,
@@ -5296,8 +5282,7 @@ export default class bingx extends Exchange {
         }
         const currency = this.currency (code);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
+        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('transfer', undefined, params);
         let fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         let toId = this.safeString (accountsByType, toAccount, toAccount);
         if (fromId === 'swap') {
@@ -5320,7 +5305,7 @@ export default class bingx extends Exchange {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.apiAssetV1PrivatePostTransfer (this.extend (request, params));
+        const response = await this.apiAssetV1PrivatePostTransfer (this.extend (request, paramsSubType));
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (response, 'timestamp');
         //
@@ -5366,7 +5351,7 @@ export default class bingx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -5387,20 +5372,19 @@ export default class bingx extends Exchange {
             request['toAccount'] = toId;
         }
         const maxLimit = 100;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, paramsPaginate, maxLimit);
         }
-        params = this.omit (params, [ 'fromAccount', 'toAccount' ]);
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'fromAccount', 'toAccount' ]);
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['pageSize'] = Math.min (limit, maxLimit);
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.apiV3PrivateGetAssetTransferRecord (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsOmitted);
+        const response = await this.apiV3PrivateGetAssetTransferRecord (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "total": 2,
@@ -5510,8 +5494,8 @@ export default class bingx extends Exchange {
      */
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         const network = this.safeString (params, 'network');
-        params = this.omit (params, [ 'network' ]);
-        const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
+        const paramsOmitted: Dict = this.omit (params, [ 'network' ]);
+        const addressStructures = await this.fetchDepositAddressesByNetwork (code, paramsOmitted);
         if (network !== undefined) {
             return this.safeDict (addressStructures, network) as DepositAddress;
         } else {
@@ -5539,8 +5523,8 @@ export default class bingx extends Exchange {
         //
         const tag = this.safeString (depositAddress, 'tag');
         const currencyId = this.safeString (depositAddress, 'coin');
-        currency = this.safeCurrency (currencyId, currency);
-        const code = currency['code'];
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
+        const code = currencyResolved['code'];
         let address = this.safeString2 (depositAddress, 'addressWithPrefix', 'address');
         const networkId = this.safeString (depositAddress, 'network');
         const networkCode = this.networkIdToCode (networkId, code);
@@ -5579,7 +5563,7 @@ export default class bingx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {
+        const request: Dict = {
         };
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -5592,8 +5576,8 @@ export default class bingx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.spotV3PrivateGetCapitalDepositHisrec (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.spotV3PrivateGetCapitalDepositHisrec (this.extend (requestUntil, paramsUntil));
         //
         //    [
         //        {
@@ -5630,7 +5614,7 @@ export default class bingx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {
+        const request: Dict = {
         };
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -5643,8 +5627,8 @@ export default class bingx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.spotV3PrivateGetCapitalWithdrawHistory (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.spotV3PrivateGetCapitalWithdrawHistory (this.extend (requestUntil, paramsUntil));
         //
         //    [
         //        {
@@ -5817,12 +5801,11 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('setMarginMode', market, params);
+        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('setMarginMode', market, params);
         if (subType === 'inverse') {
-            return await this.cswapV1PrivatePostTradeMarginType (this.extend (request, params));
+            return await this.cswapV1PrivatePostTradeMarginType (this.extend (request, paramsSubType));
         } else {
-            return await this.swapV2PrivatePostTradeMarginType (this.extend (request, params));
+            return await this.swapV2PrivatePostTradeMarginType (this.extend (request, paramsSubType));
         }
     }
 
@@ -6022,7 +6005,7 @@ export default class bingx extends Exchange {
         }
         const side = this.safeStringUpper (params, 'side');
         this.checkRequiredArgument ('setLeverage', side, 'side', [ 'LONG', 'SHORT', 'BOTH' ]);
-        params = this.omit (params, 'side');
+        const paramsOmitted: Dict = this.omit (params, 'side');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6033,7 +6016,7 @@ export default class bingx extends Exchange {
             'leverage': leverage,
         };
         if (market['inverse'] === true) {
-            return await this.cswapV1PrivatePostTradeLeverage (this.extend (request, params));
+            return await this.cswapV1PrivatePostTradeLeverage (this.extend (request, paramsOmitted));
             //
             //     {
             //         "code": 0,
@@ -6051,7 +6034,7 @@ export default class bingx extends Exchange {
             //     }
             //
         } else {
-            return await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
+            return await this.swapV2PrivatePostTradeLeverage (this.extend (request, paramsOmitted));
             //
             //     {
             //         "code": 0,
@@ -6373,27 +6356,26 @@ export default class bingx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {
+        const request: Dict = {
             'autoCloseType': 'LIQUIDATION',
         };
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            requestUntil['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = since;
+            requestUntil['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 100); // api maximum 100
+            requestUntil['limit'] = Math.min (limit, 100); // api maximum 100
         }
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, params);
+        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, paramsUntil);
         let response: Dict;
         let liquidations: NullableList = undefined;
         if (subType === 'inverse') {
-            response = await this.cswapV1PrivateGetTradeForceOrders (this.extend (request, params));
+            response = await this.cswapV1PrivateGetTradeForceOrders (this.extend (requestUntil, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -6423,7 +6405,7 @@ export default class bingx extends Exchange {
             //
             liquidations = this.safeList (response, 'data', []);
         } else {
-            response = await this.swapV2PrivateGetTradeForceOrders (this.extend (request, params));
+            response = await this.swapV2PrivateGetTradeForceOrders (this.extend (requestUntil, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -6594,10 +6576,8 @@ export default class bingx extends Exchange {
         }
         const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
         const recvWindow = this.safeInteger (params, 'recvWindow', defaultRecvWindow);
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('closeAllPositions', undefined, params);
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('closeAllPositions', undefined, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('closeAllPositions', undefined, params);
+        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('closeAllPositions', undefined, paramsMarketType);
         if (marketType === 'margin') {
             throw new BadRequest (this.id + ' closePositions () cannot be used for ' + marketType + ' markets');
         }
@@ -6606,7 +6586,7 @@ export default class bingx extends Exchange {
         };
         let response: Dict;
         if (subType === 'inverse') {
-            response = await this.cswapV1PrivatePostTradeCloseAllPositions (this.extend (request, params));
+            response = await this.cswapV1PrivatePostTradeCloseAllPositions (this.extend (request, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -6619,7 +6599,7 @@ export default class bingx extends Exchange {
             //     }
             //
         } else {
-            response = await this.swapV2PrivatePostTradeCloseAllPositions (this.extend (request, params));
+            response = await this.swapV2PrivatePostTradeCloseAllPositions (this.extend (request, paramsSubType));
             //
             //    {
             //        "code": 0,
@@ -6659,12 +6639,11 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
             market = this.market (symbol);
         }
-        let subType: SubType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionMode', market, params);
+        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchPositionMode', market, params);
         if ((subType === 'inverse') || ((market !== undefined) && (market['inverse'] === true))) {
             throw new NotSupported (this.id + ' fetchPositionMode() is not supported for inverse swap markets');
         }
-        const response = await this.swapV1PrivateGetPositionSideDual (params);
+        const response = await this.swapV1PrivateGetPositionSideDual (paramsSubType);
         //
         //     {
         //         "code": "0",
@@ -6699,8 +6678,7 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
             market = this.market (symbol);
         }
-        let subType: SubType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
+        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
         if ((subType === 'inverse') || ((market !== undefined) && (market['inverse'] === true))) {
             throw new NotSupported (this.id + ' setPositionMode() is not supported for inverse swap markets');
         }
@@ -6721,7 +6699,7 @@ export default class bingx extends Exchange {
         //         data: { dualSidePosition: 'false' }
         //     }
         //
-        return await this.swapV1PrivatePostPositionSideDual (this.extend (request, params));
+        return await this.swapV1PrivatePostPositionSideDual (this.extend (request, paramsSubType));
     }
 
     /**
@@ -6885,11 +6863,10 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let subType: Str = undefined;
         let response: Dict;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
+        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
         if (subType === 'inverse') {
-            response = await this.cswapV1PrivateGetTradeMarginType (this.extend (request, params));
+            response = await this.cswapV1PrivateGetTradeMarginType (this.extend (request, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -6902,7 +6879,7 @@ export default class bingx extends Exchange {
             //     }
             //
         } else {
-            response = await this.swapV2PrivateGetTradeMarginType (this.extend (request, params));
+            response = await this.swapV2PrivateGetTradeMarginType (this.extend (request, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -7145,7 +7122,7 @@ export default class bingx extends Exchange {
         if ((isSandbox === true) && url === undefined) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
         }
-        path = this.implodeParams (path, params);
+        const pathValue: any = this.implodeParams (path, params);
         const versionIsTransfer = (version === 'transfer');
         const versionIsAsset = (version === 'asset');
         if (versionIsTransfer || versionIsAsset) {
@@ -7158,20 +7135,20 @@ export default class bingx extends Exchange {
             access = section[3];
         }
         const flatAccountPaths = [ 'account/apiPermissions', 'account/apiRestrictions' ];
-        if (!this.inArray (path, flatAccountPaths)) {
+        if (!this.inArray (pathValue, flatAccountPaths)) {
             if (type === 'spot' && version === 'v3') {
                 url += '/api';
             } else {
                 url += '/' + type;
             }
         }
-        url += '/' + version + '/' + path;
-        params = this.omit (params, this.extractParams (path));
-        params['timestamp'] = this.nonce ();
-        params = this.keysort (params);
+        url += '/' + version + '/' + pathValue;
+        const paramsOmitted: Dict = this.omit (params, this.extractParams (pathValue));
+        paramsOmitted['timestamp'] = this.nonce ();
+        const paramsSorted: Dict = this.keysort (paramsOmitted);
         if (access === 'public') {
-            if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
+            if (Object.keys (paramsSorted).length > 0) {
+                url += '?' + this.urlencode (paramsSorted);
             }
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
@@ -7179,9 +7156,9 @@ export default class bingx extends Exchange {
             let parsedParams: NullableDict = undefined;
             let encodeRequest: Str = undefined;
             if (isJsonContentType) {
-                encodeRequest = this.customEncode (params);
+                encodeRequest = this.customEncode (paramsSorted);
             } else {
-                parsedParams = this.parseParams (params);
+                parsedParams = this.parseParams (paramsSorted);
                 encodeRequest = this.rawencode (parsedParams, true);
             }
             const encodeRequestSafe = (encodeRequest === undefined) ? '' : encodeRequest;
@@ -7192,8 +7169,8 @@ export default class bingx extends Exchange {
             };
             if (isJsonContentType) {
                 headers['Content-Type'] = 'application/json';
-                params['signature'] = signature;
-                body = this.json (params);
+                paramsSorted['signature'] = signature;
+                body = this.json (paramsSorted);
             } else {
                 const query = this.urlencode (parsedParams, true);
                 url += '?' + query + '&' + 'signature=' + signature;

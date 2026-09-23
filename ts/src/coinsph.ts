@@ -990,7 +990,7 @@ export default class coinsph extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const bid = this.safeString (ticker, 'bidPrice');
         const ask = this.safeString (ticker, 'askPrice');
@@ -1007,7 +1007,7 @@ export default class coinsph extends Exchange {
         let changePcnt = this.safeString (ticker, 'priceChangePercent');
         changePcnt = Precise.stringMul (changePcnt, '100');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'open': open,
@@ -1026,7 +1026,7 @@ export default class coinsph extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1114,8 +1114,8 @@ export default class coinsph extends Exchange {
             request['startTime'] = until - (duration * (limit - 1));
         }
         request['limit'] = limit;
-        params = this.omit (params, 'until');
-        const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'until');
+        const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, paramsOmitted));
         //
         //     [
         //         [
@@ -1286,8 +1286,8 @@ export default class coinsph extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString2 (trade, 'id', 'tradeId');
         const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'time');
@@ -1331,7 +1331,7 @@ export default class coinsph extends Exchange {
             'cost': costString,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1531,8 +1531,8 @@ export default class coinsph extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this.privateGetOpenapiV1Order (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
+        const response = await this.privateGetOpenapiV1Order (this.extend (request, paramsOmitted));
         return this.parseOrder (response);
     }
 
@@ -1615,8 +1615,8 @@ export default class coinsph extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
+        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, paramsOmitted));
         return this.parseOrder (response);
     }
 
@@ -1717,7 +1717,7 @@ export default class coinsph extends Exchange {
         //
         const id = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
         const trades = this.safeValue (order, 'fills');
         let triggerPrice = this.safeString (order, 'stopPrice');
@@ -1731,7 +1731,7 @@ export default class coinsph extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType (this.safeString (order, 'type')),
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')),
             'side': this.parseOrderSide (this.safeString (order, 'side')),
@@ -1746,7 +1746,7 @@ export default class coinsph extends Exchange {
             'fees': undefined,
             'trades': trades,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderSide (status: Str) {
@@ -1909,8 +1909,8 @@ export default class coinsph extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         return {
             'info': fee,
             'symbol': symbol,
@@ -1957,8 +1957,8 @@ export default class coinsph extends Exchange {
         if (tag !== undefined) {
             request['withdrawOrderId'] = tag;
         }
-        params = this.omit (params, 'network');
-        const response = await this.privatePostOpenapiWalletV1WithdrawApply (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'network');
+        const response = await this.privatePostOpenapiWalletV1WithdrawApply (this.extend (request, paramsOmitted));
         return this.parseTransaction (response, currency);
     }
 
@@ -2217,8 +2217,8 @@ export default class coinsph extends Exchange {
             'coin': currency['id'],
             'network': networkId,
         };
-        params = this.omit (params, 'network');
-        const response = await this.privateGetOpenapiWalletV1DepositAddress (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'network');
+        const response = await this.privateGetOpenapiWalletV1DepositAddress (this.extend (request, paramsOmitted));
         //
         //     {
         //         "coin": "ETH",

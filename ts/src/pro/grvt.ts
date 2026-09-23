@@ -143,9 +143,9 @@ export default class grvt extends grvtRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const tickers = await this.watchTickers ([ symbol ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
-        return tickers[symbol];
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbolValue ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
+        return tickers[symbolValue];
     }
 
     /**
@@ -161,34 +161,33 @@ export default class grvt extends grvtRest {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchTickers requires a symbols argument');
         }
-        let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
-        let interval = 500;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', interval);
+        const [ channel, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
+        const interval = 500;
+        const [ intervalOption, paramsInterval ] = this.handleOptionAndParams (paramsChannel, 'watchTickers', 'interval', interval);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId = market['id'];
-            rawHashes.push (marketId + '@' + interval.toString ());
+            rawHashes.push (marketId + '@' + intervalOption.toString ());
             messageHashes.push ('ticker::' + market['symbol']);
         }
         const request: Dict = {
             'stream': channel,
             'selectors': rawHashes,
         };
-        const ticker = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
+        const ticker = await this.subscribeMultiple (messageHashes, this.extend (paramsInterval, request), rawHashes);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
             return tickers;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     handleTicker (client: Client, message: Dict) {
@@ -315,11 +314,11 @@ export default class grvt extends grvtRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId = market['id'];
             const limitRaw = this.safeInteger (params, 'limit', 50); // 50, 200, 500, 1000
@@ -399,10 +398,10 @@ export default class grvt extends grvtRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
+        const symbolValue: string = this.symbol (symbol);
         params['callerMethodName'] = 'watchOHLCV';
-        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
-        return result[symbol][timeframe];
+        const result = await this.watchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], since, limit, params);
+        return result[symbolValue][timeframe];
     }
 
     /**
@@ -507,8 +506,8 @@ export default class grvt extends grvtRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+        const symbolValue: string = this.symbol (symbol);
+        return await this.watchOrderBookForSymbols ([ symbolValue ], limit, params);
     }
 
     /**
@@ -538,12 +537,12 @@ export default class grvt extends grvtRest {
         }
         let interval = 500;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const extraPart = isSnapshot ? (interval.toString () + '-' + limit.toString ()) : interval.toString ();
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId = market['id'];
             rawHashes.push (marketId + '@' + extraPart);
@@ -757,12 +756,12 @@ export default class grvt extends grvtRest {
             await this.loadMarkets ();
         }
         const subAccountId = this.getSubAccountId (params);
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 rawHashes.push (subAccountId + '-' + market['id']);
                 messageHashes.push ('positions::' + market['symbol']);
@@ -779,7 +778,7 @@ export default class grvt extends grvtRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     handlePosition (client: Client, message: Dict) {

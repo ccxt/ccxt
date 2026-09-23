@@ -1028,17 +1028,17 @@ export default class grvt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'instrument': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
-            request['start_time'] = this.numberToString (since * 1000000);
+            requestUntilOptionString['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.publicMarketPostFullV1TradeHistory (this.extend (request, params));
+        const response = await this.publicMarketPostFullV1TradeHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
@@ -1109,7 +1109,7 @@ export default class grvt extends Exchange {
         //            }
         //
         const marketId = this.safeString (trade, 'instrument');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerProduct (trade, 'event_time', 0.000001);
         let takerOrMaker: Str = undefined;
         const isTakerBuyer = this.safeBool (trade, 'is_taker_buyer');
@@ -1128,7 +1128,7 @@ export default class grvt extends Exchange {
         if (feeString !== undefined) {
             fee = {
                 'cost': this.parseNumber (feeString),
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'rate': this.safeNumber (trade, 'fee_rate'),
             };
         }
@@ -1137,7 +1137,7 @@ export default class grvt extends Exchange {
             'id': this.safeString (trade, 'trade_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'price'),
@@ -1145,7 +1145,7 @@ export default class grvt extends Exchange {
             'cost': undefined,
             'fee': fee,
             'order': this.safeString (trade, 'order_id'),
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1167,13 +1167,12 @@ export default class grvt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'instrument': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1183,16 +1182,16 @@ export default class grvt extends Exchange {
             'index': 'INDEX',
             // 'median': 'MEDIAN',
         };
-        const selectedPriceType = this.safeString (params, 'priceType', 'last');
+        const selectedPriceType = this.safeString (paramsPaginate, 'priceType', 'last');
         request['type'] = this.safeString (priceTypeMap, selectedPriceType);
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            request['start_time'] = this.numberToString (since * 1000000);
+            requestUntilOptionString['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.publicMarketPostFullV1Kline (this.extend (request, params));
+        const response = await this.publicMarketPostFullV1Kline (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [
@@ -1261,23 +1260,22 @@ export default class grvt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'instrument': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            request['start_time'] = this.numberToString (since * 1000000);
+            requestUntilOptionString['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.publicMarketPostFullV1Funding (this.extend (request, params));
+        const response = await this.publicMarketPostFullV1Funding (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [
@@ -1324,8 +1322,7 @@ export default class grvt extends Exchange {
     }
 
     getSubAccountId (params: Dict): string {
-        let subAccountId: Str = undefined;
-        [ subAccountId, params ] = this.handleOptionAndParams (params, 'getSubAccountId', 'accountId');
+        const [ subAccountId ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'getSubAccountId', 'accountId');
         if (subAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
         }
@@ -1441,7 +1438,7 @@ export default class grvt extends Exchange {
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         await this.loadMarketsAndSignIn ();
-        let request: Dict = {};
+        const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1450,18 +1447,18 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
-            request['start_time'] = this.numberToString (since * 1000000);
+            requestUntilOptionString['start_time'] = this.numberToString (since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint === true) {
-            const transfers = await this.internalFetchTransfers (this.extend (request, params), currency, since, limit);
+            const transfers = await this.internalFetchTransfers (this.extend (requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
             const filteredResults = this.filterTransfersByType (transfers, 'deposit', true);
             const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
             return this.parseTransactions (transactions, currency, since, limit);
         } else {
-            const response = await this.privateTradingPostFullV1DepositHistory (this.extend (request, params));
+            const response = await this.privateTradingPostFullV1DepositHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
             //
             // {
             //     "result": [{
@@ -1496,7 +1493,7 @@ export default class grvt extends Exchange {
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         await this.loadMarketsAndSignIn ();
-        let request: Dict = {};
+        const request: Dict = {};
         let currency: Currency = undefined;
         if (code === undefined) {
             request['currency'] = null;
@@ -1507,18 +1504,18 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
-            request['start_time'] = this.numberToString (since * 1000000);
+            requestUntilOptionString['start_time'] = this.numberToString (since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint === true) {
-            const transfers = await this.internalFetchTransfers (this.extend (request, params), currency, since, limit);
+            const transfers = await this.internalFetchTransfers (this.extend (requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
             const filteredResults = this.filterTransfersByType (transfers, 'withdrawal', true);
             const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
             return this.parseTransactions (transactions, currency, since, limit);
         } else {
-            const response = await this.privateTradingPostFullV1WithdrawalHistory (this.extend (request, params));
+            const response = await this.privateTradingPostFullV1WithdrawalHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
             //
             // {
             //     "result": [{
@@ -1715,22 +1712,21 @@ export default class grvt extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
         }
         await this.loadMarketsAndSignIn ();
-        let request: Dict = {};
+        const request: Dict = {};
         const currency = this.currency (code);
         const maxLimit = 1000;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, paramsPaginate, maxLimit);
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            request['start_time'] = this.numberToString (since * 1000000);
+            requestUntilOptionString['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.privateTradingPostFullV1TransferHistory (this.extend (request, params));
+        const response = await this.privateTradingPostFullV1TransferHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [
@@ -2280,13 +2276,12 @@ export default class grvt extends Exchange {
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarketsAndSignIn ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
-        let request: Dict = {
-            'sub_account_id': this.getSubAccountId (params),
+        const request: Dict = {
+            'sub_account_id': this.getSubAccountId (paramsPaginate),
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -2299,11 +2294,11 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            request['start_time'] = this.numberToString (since * 1000000);
+            requestUntilOptionString['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.privateTradingPostFullV1FillHistory (this.extend (request, params));
+        const response = await this.privateTradingPostFullV1FillHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [
@@ -2610,13 +2605,12 @@ export default class grvt extends Exchange {
      */
     override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         await this.loadMarketsAndSignIn ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, params, 1000) as FundingHistory[];
+            return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 1000) as FundingHistory[];
         }
-        let request: Dict = {
-            'sub_account_id': this.getSubAccountId (params),
+        const request: Dict = {
+            'sub_account_id': this.getSubAccountId (paramsPaginate),
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -2629,11 +2623,11 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            request['start_time'] = this.numberToString (since * 1000000);
+            requestUntilOptionString['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.privateTradingPostFullV1FundingPaymentHistory (this.extend (request, params));
+        const response = await this.privateTradingPostFullV1FundingPaymentHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [
@@ -2694,7 +2688,7 @@ export default class grvt extends Exchange {
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
         const subAccountId = this.getSubAccountId (params);
-        let request: Dict = {
+        const request: Dict = {
             'sub_account_id': subAccountId,
         };
         let market: Market = undefined;
@@ -2708,11 +2702,11 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
-            request['start_time'] = this.numberToString (since * 1000000);
+            requestUntilOptionString['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.privateTradingPostFullV1OrderHistory (this.extend (request, params));
+        const response = await this.privateTradingPostFullV1OrderHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [

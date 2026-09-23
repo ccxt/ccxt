@@ -558,10 +558,10 @@ export default class coincheck extends Exchange {
         const id = this.safeString (trade, 'id');
         const priceString = this.safeString (trade, 'rate');
         const marketId = this.safeString (trade, 'pair');
-        market = this.safeMarket (marketId, market, '_');
-        const baseId = market['baseId'];
-        const quoteId = market['quoteId'];
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
+        const baseId = marketResolved['baseId'];
+        const quoteId = marketResolved['quoteId'];
+        const symbol = marketResolved['symbol'];
         let takerOrMaker: Str = undefined;
         let amountString: Str = undefined;
         let costString: Str = undefined;
@@ -601,7 +601,7 @@ export default class coincheck extends Exchange {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**

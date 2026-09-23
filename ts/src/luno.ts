@@ -806,7 +806,7 @@ export default class luno extends Exchange {
             side = 'buy';
         }
         const marketId = this.safeString (order, 'pair');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const price = this.safeString (order, 'limit_price');
         const amount = this.safeString (order, 'limit_volume');
         const quoteFee = this.safeNumber (order, 'fee_counter');
@@ -817,12 +817,12 @@ export default class luno extends Exchange {
         if (quoteFee !== undefined) {
             fee = {
                 'cost': quoteFee,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         } else if (baseFee !== undefined) {
             fee = {
                 'cost': baseFee,
-                'currency': market['base'],
+                'currency': marketResolved['base'],
             };
         }
         const id = this.safeString (order, 'order_id');
@@ -833,7 +833,7 @@ export default class luno extends Exchange {
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -848,7 +848,7 @@ export default class luno extends Exchange {
             'fee': fee,
             'info': order,
             'average': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -986,7 +986,7 @@ export default class luno extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
         const rawTickers = this.safeList (response, 'tickers', []);
         const tickers = this.indexBy (rawTickers, 'pair');
@@ -999,7 +999,7 @@ export default class luno extends Exchange {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -1510,7 +1510,7 @@ export default class luno extends Exchange {
         const timestamp = this.safeInteger (entry, 'timestamp');
         const currencyId = this.safeString (entry, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const available_delta = this.safeString (entry, 'available_delta');
         const balance_delta = this.safeString (entry, 'balance_delta');
         const after = this.safeString (entry, 'balance');
@@ -1554,7 +1554,7 @@ export default class luno extends Exchange {
             'after': this.parseToNumeric (after),
             'status': status,
             'fee': undefined,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     /**

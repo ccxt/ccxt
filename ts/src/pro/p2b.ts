@@ -132,15 +132,15 @@ export default class p2b extends p2bRest {
             await this.loadMarkets ();
         }
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
-        let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
-        [ name, params ] = this.handleOptionAndParams (params, 'watchTicker', 'name', name);
+        const name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
+        const [ nameOption, paramsName ] = this.handleOptionAndParams (params, 'watchTicker', 'name', name);
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        market['symbol'];
         this.options['tickerSubs'][market['id'] as string] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         const tickerSubs = this.options['tickerSubs'];
         const request = Object.keys (tickerSubs);
-        const messageHash = name + '::' + market['symbol'];
-        return await this.subscribe (name + '.subscribe', messageHash, request, params);
+        const messageHash = nameOption + '::' + market['symbol'];
+        return await this.subscribe (nameOption + '.subscribe', messageHash, request, paramsName);
     }
 
     /**
@@ -158,25 +158,25 @@ export default class p2b extends p2bRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
-        let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
-        [ name, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', name);
+        const name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
+        const [ nameOption, paramsName ] = this.handleOptionAndParams (params, 'watchTickers', 'name', name);
         const messageHashes: string[] = [];
         const args: List = [];
-        for (let i = 0; i < (symbols as string[]).length; i++) {
-            const market = this.market ((symbols as string[])[i]);
-            messageHashes.push (name + '::' + market['symbol']);
+        for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
+            const market = this.market ((symbolsNormalized as string[])[i]);
+            messageHashes.push (nameOption + '::' + market['symbol']);
             args.push (market['id']);
         }
         const url = this.urls['api']['ws'];
         const request: Dict = {
-            'method': name + '.subscribe',
+            'method': nameOption + '.subscribe',
             'params': args,
             'id': this.milliseconds (),
         };
-        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        await this.watchMultiple (url, messageHashes, this.extend (request, paramsName), messageHashes);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -209,14 +209,14 @@ export default class p2b extends p2bRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         const messageHashes: string[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                messageHashes.push ('deals::' + symbols[i]);
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                messageHashes.push ('deals::' + symbolsNormalized[i]);
             }
         }
-        const marketIds = this.marketIds (symbols);
+        const marketIds = this.marketIds (symbolsNormalized);
         const url = this.urls['api']['ws'];
         const subscribe: Dict = {
             'method': 'deals.subscribe',

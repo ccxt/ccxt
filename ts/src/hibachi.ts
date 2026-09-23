@@ -547,8 +547,8 @@ export default class hibachi extends Exchange {
         //          "timestamp": 1752543391
         //      }
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString (trade, 'id');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
@@ -588,7 +588,7 @@ export default class hibachi extends Exchange {
             'type': orderType,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -699,7 +699,7 @@ export default class hibachi extends Exchange {
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const status = this.safeString (order, 'status');
         const type = this.safeStringLower (order, 'orderType');
         const price = this.safeString2 (order, 'price', 'avgFillPrice');
@@ -748,7 +748,7 @@ export default class hibachi extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': this.parseOrderStatus (status),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'side': side,
@@ -763,7 +763,7 @@ export default class hibachi extends Exchange {
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
             'triggerPrice': this.safeNumber (order, 'triggerPrice'),
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -934,8 +934,8 @@ export default class hibachi extends Exchange {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = triggerPrice;
         }
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
-        return this.extend (request, params);
+        const paramsOmitted: Dict = this.omit (params, [ 'reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
+        return this.extend (request, paramsOmitted);
     }
 
     /**
@@ -1577,12 +1577,11 @@ export default class hibachi extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'until');
+        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetTradeOrdersHistory (this.extend (request, params));
+        const response = await this.privateGetTradeOrdersHistory (this.extend (request, paramsUntil));
         //
         //     {
         //         "hasMore": false,
@@ -1670,20 +1669,19 @@ export default class hibachi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
+        const timeframeValue: string = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'symbol': market['id'],
-            'interval': timeframe,
+            'interval': timeframeValue,
         };
         if (since !== undefined) {
             request['fromMs'] = since;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['toMs'] = until;
         }
-        const response = await this.publicGetMarketDataKlines (this.extend (request, params));
+        const response = await this.publicGetMarketDataKlines (this.extend (request, paramsUntil));
         //
         // [
         //     {
@@ -1698,7 +1696,7 @@ export default class hibachi extends Exchange {
         //   ]
         //
         const klines = this.safeList (response, 'klines', []);
-        return this.parseOHLCVs (klines, market, timeframe, since, limit);
+        return this.parseOHLCVs (klines, market, timeframeValue, since, limit);
     }
 
     /**
@@ -1714,7 +1712,7 @@ export default class hibachi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {
             'accountId': this.getAccountId (),
         };
@@ -1762,7 +1760,7 @@ export default class hibachi extends Exchange {
         //   }
         //
         const data = this.safeList (response, 'positions', []);
-        return this.parsePositions (data, symbols);
+        return this.parsePositions (data, symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -1778,8 +1776,8 @@ export default class hibachi extends Exchange {
         // }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower (position, 'direction');
         const quantity = this.safeString (position, 'quantity');
         const unrealizedFunding = this.safeString (position, 'unrealizedFundingPnl', '0');
@@ -1815,7 +1813,7 @@ export default class hibachi extends Exchange {
     override sign (path: any, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
-        headers = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
+        const headersValue: NullableDict = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
         if (method === 'GET') {
             const request = this.omit (params, this.extractParams (path));
             const query = this.urlencode (request);
@@ -1824,14 +1822,14 @@ export default class hibachi extends Exchange {
             }
         }
         if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-            headers['Content-Type'] = 'application/json';
+            headersValue['Content-Type'] = 'application/json';
             body = this.json (params);
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            headers['Authorization'] = this.apiKey;
+            headersValue['Authorization'] = this.apiKey;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headersValue };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -2247,12 +2245,11 @@ export default class hibachi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchMySettlementHistory', 'until');
+        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchMySettlementHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt (until / 1000);
         }
-        const response = await this.privateGetTradeAccountSettlementsHistory (this.extend (request, params));
+        const response = await this.privateGetTradeAccountSettlementsHistory (this.extend (request, paramsUntil));
         //
         //     {
         //         "settlements": [

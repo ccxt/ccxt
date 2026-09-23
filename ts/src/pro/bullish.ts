@@ -205,9 +205,9 @@ export default class bullish extends bullishRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const url = this.urls['api']['ws']['public'] + '/trading-api/v1/market-data/tick/' + market['id'];
-        const messageHash = 'ticker::' + symbol;
+        const messageHash = 'ticker::' + symbolValue;
         return await this.watch (url, messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
     }
 

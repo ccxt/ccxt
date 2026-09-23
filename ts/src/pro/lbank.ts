@@ -825,7 +825,7 @@ export default class lbank extends lbankRest {
         this.checkContractMarket (market, 'watchOrderBook');
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + market['symbol'];
-        params = this.omit (params, 'aggregation');
+        const paramsOmitted: Dict = this.omit (params, 'aggregation');
         if (limit === undefined) {
             limit = 100;
         }
@@ -835,7 +835,7 @@ export default class lbank extends lbankRest {
             'depth': limit,
             'pair': market['id'],
         };
-        const request = this.deepExtend (subscribe, params);
+        const request = this.deepExtend (subscribe, paramsOmitted);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }

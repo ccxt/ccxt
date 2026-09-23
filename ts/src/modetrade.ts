@@ -805,8 +805,8 @@ export default class modetrade extends Exchange {
         const isFromFetchOrder = ('id' in trade);
         const timestamp = this.safeInteger (trade, 'executed_timestamp');
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString (trade, 'executed_price');
         const amount = this.safeString (trade, 'executed_quantity');
         const order_id = this.safeString (trade, 'order_id');
@@ -837,7 +837,7 @@ export default class modetrade extends Exchange {
             'type': undefined,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -896,14 +896,14 @@ export default class modetrade extends Exchange {
         //         }
         //
         const symbol = this.safeString (fundingRate, 'symbol');
-        market = (symbol === undefined) ? market : this.market (symbol);
+        const marketValue: Market = (symbol === undefined) ? market : this.market (symbol);
         const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
         const estFundingRateTimestamp = this.safeInteger (fundingRate, 'est_funding_rate_timestamp');
         const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'last_funding_rate_timestamp');
         const fundingTimeString = this.safeString (fundingRate, 'last_funding_rate_timestamp');
         const nextFundingTimeString = this.safeString (fundingRate, 'next_funding_time');
         const millisecondsInterval = Precise.stringSub (nextFundingTimeString, fundingTimeString);
-        const fundingSymbol = (market !== undefined) ? market['symbol'] : undefined;
+        const fundingSymbol = (marketValue !== undefined) ? marketValue['symbol'] : undefined;
         return {
             'info': fundingRate,
             'symbol': fundingSymbol,
@@ -1000,7 +1000,7 @@ export default class modetrade extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.v1PublicGetPublicFundingRates (params);
         //
         // {
@@ -1021,7 +1021,7 @@ export default class modetrade extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []);
-        return this.parseFundingRates (rows, symbols);
+        return this.parseFundingRates (rows, symbolsNormalized);
     }
 
     /**
@@ -1041,12 +1041,11 @@ export default class modetrade extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
+            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'page', 25) as FundingRateHistory[];
         }
-        let request: Dict = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
@@ -1055,8 +1054,8 @@ export default class modetrade extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_t', request, params, 0.001);
-        const response = await this.v1PublicGetPublicFundingRateHistory (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_t', request, paramsPaginate, 0.001);
+        const response = await this.v1PublicGetPublicFundingRateHistory (this.extend (requestUntil, paramsUntil));
         //
         // {
         //     "success": true,
@@ -1144,10 +1143,9 @@ export default class modetrade extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
+            return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'page', 500) as FundingHistory[];
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -1158,15 +1156,15 @@ export default class modetrade extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const until = this.safeInteger (params, 'until'); // unified in milliseconds
-        params = this.omit (params, [ 'until' ]);
+        const until = this.safeInteger (paramsPaginate, 'until'); // unified in milliseconds
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (until !== undefined) {
             request['end_t'] = until;
         }
         if (limit !== undefined) {
             request['size'] = Math.min (limit, 500);
         }
-        const response = await this.v1PrivateGetFundingFeeHistory (this.extend (request, params));
+        const response = await this.v1PrivateGetFundingFeeHistory (this.extend (request, paramsOmitted));
         //
         // {
         //     "success": true,
@@ -1412,8 +1410,8 @@ export default class modetrade extends Exchange {
         const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
         const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString2 (order, 'order_price', 'price');
         const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
@@ -1475,7 +1473,7 @@ export default class modetrade extends Exchange {
                 'currency': feeCurrency,
             },
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1629,8 +1627,8 @@ export default class modetrade extends Exchange {
             }
             request['child_orders'] = [ outterOrder ];
         }
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
-        return this.extend (request, params);
+        const paramsOmitted: Dict = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
+        return this.extend (request, paramsOmitted);
     }
 
     /**
@@ -1952,15 +1950,15 @@ export default class modetrade extends Exchange {
             await this.loadMarkets ();
         }
         const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
-        params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
         let response = undefined;
         if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join (',');
-            response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, params));
+            response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, paramsOmitted));
         } else {
             request['order_ids'] = ids.join (',');
-            response = await this.v1PrivateDeleteBatchOrder (this.extend (request, params));
+            response = await this.v1PrivateDeleteBatchOrder (this.extend (request, paramsOmitted));
         }
         //
         // {
@@ -1992,7 +1990,7 @@ export default class modetrade extends Exchange {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -2000,9 +1998,9 @@ export default class modetrade extends Exchange {
         }
         let response = undefined;
         if (trigger === true) {
-            response = await this.v1PrivateDeleteAlgoOrders (this.extend (request, params));
+            response = await this.v1PrivateDeleteAlgoOrders (this.extend (request, paramsOmitted));
         } else {
-            response = await this.v1PrivateDeleteOrders (this.extend (request, params));
+            response = await this.v1PrivateDeleteOrders (this.extend (request, paramsOmitted));
         }
         // trigger
         // {
@@ -2052,23 +2050,23 @@ export default class modetrade extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response = undefined;
         if (trigger === true) {
             if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
-                response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, params));
+                response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, paramsOmitted));
             } else {
                 request['oid'] = id;
-                response = await this.v1PrivateGetAlgoOrderOid (this.extend (request, params));
+                response = await this.v1PrivateGetAlgoOrderOid (this.extend (request, paramsOmitted));
             }
         } else {
             if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
-                response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
+                response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, paramsOmitted));
             } else {
                 request['oid'] = id;
-                response = await this.v1PrivateGetOrderOid (this.extend (request, params));
+                response = await this.v1PrivateGetOrderOid (this.extend (request, paramsOmitted));
             }
         }
         //
@@ -2123,16 +2121,15 @@ export default class modetrade extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const maxLimit = (isTrigger === true) ? 100 : 500;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', maxLimit) as Order[];
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit) as Order[];
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let market: Market = undefined;
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'stop', 'trigger' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2148,12 +2145,12 @@ export default class modetrade extends Exchange {
         if (isTrigger === true) {
             request['algo_type'] = 'STOP';
         }
-        [ request, params ] = this.handleUntilOption ('end_t', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_t', request, paramsOmitted);
         let response = undefined;
         if (isTrigger === true) {
-            response = await this.v1PrivateGetAlgoOrders (this.extend (request, params));
+            response = await this.v1PrivateGetAlgoOrders (this.extend (requestUntil, paramsUntil));
         } else {
-            response = await this.v1PrivateGetOrders (this.extend (request, params));
+            response = await this.v1PrivateGetOrders (this.extend (requestUntil, paramsUntil));
         }
         //
         //     {
@@ -2311,12 +2308,11 @@ export default class modetrade extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'page', 500) as Trade[];
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2330,8 +2326,8 @@ export default class modetrade extends Exchange {
         } else {
             request['size'] = 500;
         }
-        [ request, params ] = this.handleUntilOption ('end_t', request, params);
-        const response = await this.v1PrivateGetTrades (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_t', request, paramsPaginate);
+        const response = await this.v1PrivateGetTrades (this.extend (requestUntil, paramsUntil));
         //
         // {
         //     "success": true,
@@ -2360,7 +2356,7 @@ export default class modetrade extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const trades = this.safeList (data, 'rows', []);
-        return this.parseTrades (trades, market, since, limit, params);
+        return this.parseTrades (trades, market, since, limit, paramsUntil);
     }
 
     override parseBalance (response: any): Balances {
@@ -2430,11 +2426,11 @@ export default class modetrade extends Exchange {
             request['size'] = limit;
         }
         const transactionType = this.safeString (params, 'type');
-        params = this.omit (params, 'type');
+        const paramsOmitted = this.omit (params, 'type');
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
-        const response = await this.v1PrivateGetAssetHistory (this.extend (request, params));
+        const response = await this.v1PrivateGetAssetHistory (this.extend (request, paramsOmitted));
         //
         // {
         //     "success": true,
@@ -2481,7 +2477,7 @@ export default class modetrade extends Exchange {
         //
         const currencyId = this.safeString (item, 'token');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const amount = this.safeNumber (item, 'amount');
         const side = this.safeString (item, 'side');
         let direction: Str = undefined;
@@ -2513,7 +2509,7 @@ export default class modetrade extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'type': this.parseLedgerEntryType (this.safeString2 (item, 'type', 'side')),
             'info': item,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     parseLedgerEntryType (type: Str): Str {
@@ -2678,8 +2674,8 @@ export default class modetrade extends Exchange {
         //         "success":true
         //     }
         //
-        params = this.omit (params, 'side'); // request-side filter, not a unified transaction field
-        return this.parseTransactions (rows, currency, since, limit, params);
+        const paramsOmitted: Dict = this.omit (params, 'side'); // request-side filter, not a unified transaction field
+        return this.parseTransactions (rows, currency, since, limit, paramsOmitted);
     }
 
     async getWithdrawNonce (params: Dict = {}): Promise<Num> {
@@ -2781,8 +2777,8 @@ export default class modetrade extends Exchange {
             'verifyingContract': verifyingContractAddress,
             'message': withdrawRequest,
         };
-        params = this.omit (params, 'chainId');
-        const response = await this.v1PrivatePostWithdrawRequest (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'chainId');
+        const response = await this.v1PrivatePostWithdrawRequest (this.extend (request, paramsOmitted));
         //
         //     {
         //         "success": true,
@@ -2902,7 +2898,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const contract = this.safeString (position, 'symbol');
-        market = this.safeMarket (contract, market);
+        const marketResolved: Market = this.safeMarket (contract, market);
         let size = this.safeString (position, 'position_qty');
         let side: Str = undefined;
         if (Precise.stringGt (size, '0')) {
@@ -2910,7 +2906,7 @@ export default class modetrade extends Exchange {
         } else {
             side = 'short';
         }
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeString (marketResolved, 'contractSize');
         const markPrice = this.safeString (position, 'mark_price');
         const timestamp = this.safeInteger (position, 'timestamp');
         const entryPrice = this.safeString (position, 'average_open_price');
@@ -2920,7 +2916,7 @@ export default class modetrade extends Exchange {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,

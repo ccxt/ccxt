@@ -187,9 +187,9 @@ export default class backpack extends backpackRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const topic = 'ticker' + '.' + market['id'];
-        const messageHash = 'ticker' + ':' + symbol;
+        const messageHash = 'ticker' + ':' + symbolValue;
         return await this.watchPublic ([ topic ], [ messageHash ], params);
     }
 
@@ -219,17 +219,17 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const topics: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const marketId = this.marketId (symbol);
             messageHashes.push ('ticker:' + symbol);
             topics.push ('ticker.' + marketId);
         }
         await this.watchPublic (topics, messageHashes, params);
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -245,11 +245,11 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const marketId = this.marketId (symbol);
             topics.push ('ticker.' + marketId);
             messageHashes.push ('unsubscribe:ticker:' + symbol);
@@ -303,8 +303,8 @@ export default class backpack extends backpackRest {
         const microseconds = this.safeInteger (ticker, 'E', 0);
         const timestamp = this.parseToInt (microseconds / 1000);
         const marketId = this.safeString (ticker, 's');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         const last = this.safeString (ticker, 'c');
         const open = this.safeString (ticker, 'o');
         return this.safeTicker ({
@@ -328,7 +328,7 @@ export default class backpack extends backpackRest {
             'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': this.safeString (ticker, 'V'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -344,17 +344,17 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const marketId = this.marketId (symbol);
             topics.push ('bookTicker.' + marketId);
             messageHashes.push ('bidask:' + symbol);
         }
         await this.watchPublic (topics, messageHashes, params);
-        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -369,11 +369,11 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const marketId = this.marketId (symbol);
             topics.push ('bookTicker.' + marketId);
             messageHashes.push ('unsubscribe:bidask:' + symbol);
@@ -422,8 +422,8 @@ export default class backpack extends backpackRest {
         //     }
         //
         const marketId = this.safeString (ticker, 's');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (marketResolved, 'symbol');
         const microseconds = this.safeInteger (ticker, 'E', 0);
         const timestamp = this.parseToInt (microseconds / 1000);
         const ask = this.safeString (ticker, 'a');
@@ -439,7 +439,7 @@ export default class backpack extends backpackRest {
             'bid': bid,
             'bidVolume': bidVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -654,15 +654,15 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        const symbolsLength = symbols.length;
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
+        const symbolsLength = symbolsNormalized.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const marketId = this.marketId (symbol);
             topics.push ('trade.' + marketId);
             messageHashes.push ('trades:' + symbol);
@@ -690,15 +690,15 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        const symbolsLength = symbols.length;
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
+        const symbolsLength = symbolsNormalized.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' unWatchTradesForSymbols() requires a non-empty array of symbols');
         }
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const marketId = this.marketId (symbol);
             topics.push ('trade.' + marketId);
             messageHashes.push ('unsubscribe:trades:' + symbol);
@@ -760,7 +760,7 @@ export default class backpack extends backpackRest {
         const timestamp = this.parseToInt (microseconds / 1000);
         const id = this.safeString (trade, 't');
         const marketId = this.safeString (trade, 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const isBuyerMaker = this.safeBool (trade, 'm');
         let side: Str = undefined;
         let takerOrMaker: Str = undefined;
@@ -785,7 +785,7 @@ export default class backpack extends backpackRest {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -797,7 +797,7 @@ export default class backpack extends backpackRest {
                 'currency': undefined,
                 'cost': undefined,
             },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -829,12 +829,12 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
-        const marketIds = this.marketIds (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const marketIds = this.marketIds (symbolsNormalized);
         const messageHashes: string[] = [];
         const topics: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             messageHashes.push ('orderbook:' + symbol);
             const marketId = marketIds[i];
             const topic = 'depth.' + marketId;
@@ -869,12 +869,12 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
-        const marketIds = this.marketIds (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const marketIds = this.marketIds (symbolsNormalized);
         const messageHashes: string[] = [];
         const topics: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
             const marketId = marketIds[i];
             const topic = 'depth.' + marketId;
@@ -1114,8 +1114,8 @@ export default class backpack extends backpackRest {
         const timestamp = this.parseToInt (microseconds / 1000);
         const status = this.parseWsOrderStatus (this.safeString (order, 'X'), market);
         const marketId = this.safeString (order, 's');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const type = this.safeStringLower (order, 'o');
         const timeInForce = this.safeString (order, 'f');
         const side = this.parseWsOrderSide (this.safeString (order, 'S'));
@@ -1154,7 +1154,7 @@ export default class backpack extends backpackRest {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseWsOrderStatus (status: Str, market: Market = undefined) {
@@ -1193,12 +1193,12 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const messageHashes: string[] = [];
         const topics: string[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push ('positions' + ':' + symbol);
                 topics.push ('account.positionUpdate.' + this.marketId (symbol));
             }
@@ -1210,7 +1210,7 @@ export default class backpack extends backpackRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     /**
@@ -1226,12 +1226,12 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const messageHashes: string[] = [];
         const topics: string[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push ('unsubscribe:positions' + ':' + symbol);
                 topics.push ('account.positionUpdate.' + this.marketId (symbol));
             }
@@ -1307,7 +1307,6 @@ export default class backpack extends backpackRest {
         const id = this.safeString (position, 'i');
         const marketId = this.safeString (position, 's');
         const marketResolved = this.safeMarket (marketId, market);
-        market = marketResolved;
         const symbol = marketResolved['symbol'];
         const notional = this.safeString (position, 'n');
         const liquidationPrice = this.safeString (position, 'l');

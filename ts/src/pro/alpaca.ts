@@ -167,15 +167,15 @@ export default class alpaca extends alpacaRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const request: Dict = {
             'action': 'subscribe',
             'bars': [ market['id'] ],
         };
-        const messageHash = 'ohlcv:' + symbol;
+        const messageHash = 'ohlcv:' + symbolValue;
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
@@ -226,8 +226,8 @@ export default class alpaca extends alpacaRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook' + ':' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'orderbook' + ':' + symbolValue;
         const request: Dict = {
             'action': 'subscribe',
             'orderbooks': [ market['id'] ],
@@ -312,15 +312,15 @@ export default class alpaca extends alpacaRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trade:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'trade:' + symbolValue;
         const request: Dict = {
             'action': 'subscribe',
             'trades': [ market['id'] ],
         };
         const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }

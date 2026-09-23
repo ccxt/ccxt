@@ -199,8 +199,7 @@ export default class xt extends xtRest {
      */
     async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: Strings = undefined, params: Dict = {}) {
         const privateAccess = access === 'private';
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
         const id = this.numberToString (this.milliseconds ()) + name; // call back ID
         const subscribe: Dict = {
@@ -224,7 +223,7 @@ export default class xt extends xtRest {
         if (symbols !== undefined) {
             messageHash = messageHash + '::' + symbols.join (',');
         }
-        const request = this.extend (subscribe, params);
+        const request = this.extend (subscribe, paramsMarketType);
         let tail = access;
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
@@ -255,8 +254,7 @@ export default class xt extends xtRest {
      */
     async unSubscribe (messageHash: string, name: string, access: string, methodName: string, topic: string, market: Market = undefined, symbols: Strings = undefined, params = {}, subscriptionParams = {}): Promise<any> {
         const privateAccess = access === 'private';
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
         const id = this.numberToString (this.milliseconds ()) + name; // call back ID
         const unsubscribe: Dict = {
@@ -277,7 +275,7 @@ export default class xt extends xtRest {
         }
         const tradeType = isContract ? 'contract' : 'spot';
         const subMessageHash = name + '::' + tradeType;
-        const request = this.extend (unsubscribe, params);
+        const request = this.extend (unsubscribe, paramsMarketType);
         let tail = access;
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
@@ -296,7 +294,7 @@ export default class xt extends xtRest {
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
             subscriptionParams = this.omit (subscriptionParams, 'symbolsAndTimeframes');
         }
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, this.extend (subscription, subscriptionParams));
+        return await this.watch (url, messageHash, this.extend (request, paramsMarketType), messageHash, this.extend (subscription, subscriptionParams));
     }
 
     /**
@@ -517,12 +515,12 @@ export default class xt extends xtRest {
         }
         const market = this.market (symbol);
         const levels = this.safeString (params, 'levels');
-        params = this.omit (params, 'levels');
+        const paramsOmitted: Dict = this.omit (params, 'levels');
         let name = 'depth_update@' + market['id'];
         if (levels !== undefined) {
             name = 'depth@' + market['id'] + ',' + levels;
         }
-        const orderbook = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, params);
+        const orderbook = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, paramsOmitted);
         return orderbook.limit ();
     }
 
@@ -545,13 +543,13 @@ export default class xt extends xtRest {
         }
         const market = this.market (symbol);
         const levels = this.safeString (params, 'levels');
-        params = this.omit (params, 'levels');
+        const paramsOmitted: Dict = this.omit (params, 'levels');
         let name = 'depth_update@' + market['id'];
         if (levels !== undefined) {
             name = 'depth@' + market['id'] + ',' + levels;
         }
         const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [ symbol ], params);
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [ symbol ], paramsOmitted);
     }
 
     /**
@@ -1266,14 +1264,14 @@ export default class xt extends xtRest {
         //
         const marketId = this.safeString (trade, 's');
         const tradeType = ('symbol' in trade) ? 'contract' : 'spot';
-        market = this.safeMarket (marketId, market, undefined, tradeType);
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, tradeType);
         const timestamp = this.safeString (trade, 't');
         return this.safeTrade ({
             'info': trade,
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': this.safeString (trade, 'i', 'orderId'),
             'type': this.parseOrderStatus (this.safeString (trade, 'st', 'state')),
             'side': this.safeStringLower (trade, 'sd', 'orderSide'),
@@ -1286,7 +1284,7 @@ export default class xt extends xtRest {
                 'cost': this.safeNumber (trade, 'f'),
                 'rate': undefined,
             },
-        }, market);
+        }, marketResolved);
     }
 
     override parseWsOrder (order: Dict, market: Market = undefined): Order {
@@ -1334,7 +1332,7 @@ export default class xt extends xtRest {
         //
         const marketId = this.safeString2 (order, 's', 'symbol');
         const tradeType = ('symbol' in order) ? 'contract' : 'spot';
-        market = this.safeMarket (marketId, market, undefined, tradeType);
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, tradeType);
         const timestamp = this.safeInteger2 (order, 'ct', 'createTime');
         return this.safeOrder ({
             'info': order,
@@ -1343,8 +1341,8 @@ export default class xt extends xtRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
-            'type': market['type'],
+            'symbol': marketResolved['symbol'],
+            'type': marketResolved['type'],
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': this.safeStringLower2 (order, 'sd', 'orderSide'),
@@ -1363,7 +1361,7 @@ export default class xt extends xtRest {
                 'cost': this.safeNumber (order, 'f'),
             },
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     handleOrder (client: Client, message: Dict) {

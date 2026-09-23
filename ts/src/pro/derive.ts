@@ -63,11 +63,11 @@ export default class derive extends deriveRest {
         const request = this.extend (message, {
             'id': requestId,
         });
-        subscription = this.extend (subscription, {
+        const subscriptionExtended: Dict = this.extend (subscription, {
             'id': requestId,
             'method': 'subscribe',
         });
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     /**
@@ -347,11 +347,11 @@ export default class derive extends deriveRest {
         const request = this.extend (message, {
             'id': requestId,
         });
-        subscription = this.extend (subscription, {
+        const subscriptionExtended: Dict = this.extend (subscription, {
             'id': requestId,
             'method': 'unsubscribe',
         });
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     handleOrderBookUnSubscription (client: Client, topic: string) {
@@ -511,11 +511,11 @@ export default class derive extends deriveRest {
         const request = this.extend (message, {
             'id': requestId,
         });
-        subscription = this.extend (subscription, {
+        const subscriptionExtended: Dict = this.extend (subscription, {
             'id': requestId,
             'method': 'subscribe',
         });
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     /**
@@ -534,8 +534,7 @@ export default class derive extends deriveRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let subaccountId: Str = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('watchOrders', params);
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchOrders', params);
         const topic = this.numberToString (subaccountId) + '.orders';
         let messageHash = topic;
         if (symbol !== undefined) {
@@ -553,9 +552,9 @@ export default class derive extends deriveRest {
         };
         const subscription: Dict = {
             'name': topic,
-            'params': params,
+            'params': paramsDeriveSubaccountId,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsDeriveSubaccountId);
         const orders = await this.watchPrivate (messageHash, message, subscription);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -658,8 +657,7 @@ export default class derive extends deriveRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let subaccountId: Str = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('watchMyTrades', params);
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchMyTrades', params);
         const topic = this.numberToString (subaccountId) + '.trades';
         let messageHash = topic;
         if (symbol !== undefined) {
@@ -677,9 +675,9 @@ export default class derive extends deriveRest {
         };
         const subscription: Dict = {
             'name': topic,
-            'params': params,
+            'params': paramsDeriveSubaccountId,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsDeriveSubaccountId);
         const trades = await this.watchPrivate (messageHash, message, subscription);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);

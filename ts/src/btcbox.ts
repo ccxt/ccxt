@@ -514,7 +514,7 @@ export default class btcbox extends Exchange {
         //      }
         //
         const timestamp = this.safeTimestamp (trade, 'date');
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const id = this.safeString (trade, 'tid');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
@@ -526,7 +526,7 @@ export default class btcbox extends Exchange {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
@@ -534,7 +534,7 @@ export default class btcbox extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -683,7 +683,7 @@ export default class btcbox extends Exchange {
             }
         }
         const trades = undefined; // todo: this.parseTrades (order['trades']);
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const side = this.safeString (order, 'type');
         return this.safeOrder ({
             'id': id,
@@ -699,7 +699,7 @@ export default class btcbox extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'price': price,
             'triggerPrice': undefined,
             'cost': undefined,
@@ -707,7 +707,7 @@ export default class btcbox extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**

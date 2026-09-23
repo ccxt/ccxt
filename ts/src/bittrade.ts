@@ -836,7 +836,7 @@ export default class bittrade extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.marketGetTickers (params);
         const tickers = this.safeList (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
@@ -850,7 +850,7 @@ export default class bittrade extends Exchange {
             ticker['datetime'] = this.iso8601 (timestamp);
             result[symbol] = ticker;
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1506,7 +1506,7 @@ export default class bittrade extends Exchange {
             status = this.parseOrderStatus (this.safeString (order, 'state'));
         }
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'created-at');
         const clientOrderId = this.safeString (order, 'client-order-id');
         const amount = this.safeString (order, 'amount');
@@ -1516,7 +1516,7 @@ export default class bittrade extends Exchange {
         const feeCost = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee: FeeString = undefined;
         if (feeCost !== undefined) {
-            const feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            const feeCurrency = (side === 'sell') ? marketResolved['quote'] : marketResolved['base'];
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1529,7 +1529,7 @@ export default class bittrade extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1544,7 +1544,7 @@ export default class bittrade extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1699,14 +1699,14 @@ export default class bittrade extends Exchange {
             await this.loadMarkets ();
         }
         const clientOrderIds = this.safeValue2 (params, 'clientOrderIds', 'client-order-ids');
-        params = this.omit (params, [ 'clientOrderIds', 'client-order-ids' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderIds', 'client-order-ids' ]);
         const request: Dict = {};
         if (clientOrderIds === undefined) {
             request['order-ids'] = ids;
         } else {
             request['client-order-ids'] = clientOrderIds;
         }
-        const response = await this.privatePostOrderOrdersBatchcancel (this.extend (request, params));
+        const response = await this.privatePostOrderOrdersBatchcancel (this.extend (request, paramsOmitted));
         //
         //     {
         //         "status": "ok",
@@ -1855,10 +1855,10 @@ export default class bittrade extends Exchange {
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'addressTag');
         const currencyId = this.safeString (depositAddress, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
-        const code = this.safeCurrencyCode (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
+        const code = this.safeCurrencyCode (currencyId, currencyResolved);
         const networkId = this.safeString (depositAddress, 'chain');
-        const networks = this.safeDict (currency, 'networks', {});
+        const networks = this.safeDict (currencyResolved, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
         const networkValue = this.safeValue (networksById, networkId, networkId);
         const network = this.safeString (networkValue, 'network');

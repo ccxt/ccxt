@@ -576,14 +576,14 @@ export default class coinone extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {
             'quote_currency': 'KRW',
         };
         let market: Market = undefined;
         let response = undefined;
-        if (symbols !== undefined) {
-            const first = this.safeString (symbols, 0);
+        if (symbolsNormalized !== undefined) {
+            const first = this.safeString (symbolsNormalized, 0);
             market = this.market (first);
             request['quote_currency'] = market['quote'];
             request['target_currency'] = market['base'];
@@ -625,7 +625,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'tickers', []);
-        return this.parseTickers (data, symbols);
+        return this.parseTickers (data, symbolsNormalized);
     }
 
     /**
@@ -769,7 +769,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (trade, 'timestamp');
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
         let side: Str = undefined;
         if (isSellerMaker !== undefined) {
@@ -784,7 +784,7 @@ export default class coinone extends Exchange {
             feeCostString = Precise.stringAbs (feeCostString);
             let feeRateString = this.safeString (trade, 'feeRate');
             feeRateString = Precise.stringAbs (feeRateString);
-            const feeCurrencyCode = (side === 'sell') ? market['quote'] : market['base'];
+            const feeCurrencyCode = (side === 'sell') ? marketResolved['quote'] : marketResolved['base'];
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -797,7 +797,7 @@ export default class coinone extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': orderId,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -805,7 +805,7 @@ export default class coinone extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**

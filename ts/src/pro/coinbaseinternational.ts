@@ -230,9 +230,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
-        return await this.subscribe ((channel as string), [ symbol ], params);
+        const [ channel, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
+        return await this.subscribe ((channel as string), [ symbol ], paramsChannel);
     }
 
     getActiveSymbols () {
@@ -262,9 +261,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'LEVEL1');
-        const ticker = await this.subscribe (channel, symbols, params);
+        const [ channel, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'LEVEL1');
+        const ticker = await this.subscribe (channel, symbols, paramsChannel);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -473,12 +471,12 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const options = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeString (options, timeframe, timeframe);
-        const ohlcv = await this.subscribe (interval, [ symbol ], params);
+        const ohlcv = await this.subscribe (interval, [ symbolValue ], params);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
@@ -551,8 +549,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const trades = await this.subscribeMultiple ('MATCH', symbols, params);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
+        const trades = await this.subscribeMultiple ('MATCH', symbolsNormalized, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');

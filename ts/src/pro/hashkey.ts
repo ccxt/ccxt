@@ -90,13 +90,13 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const topic = 'kline_' + interval;
-        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
         const ohlcv = await this.wathPublic (market, topic, messageHash, params);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
@@ -190,9 +190,9 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const topic = 'realtimes';
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbolValue;
         return await this.wathPublic (market, topic, messageHash, params);
     }
 
@@ -250,12 +250,12 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const topic = 'trade';
-        const messageHash = 'trades:' + symbol;
+        const messageHash = 'trades:' + symbolValue;
         const trades = await this.wathPublic (market, topic, messageHash, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -321,9 +321,9 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const topic = 'depth';
-        const messageHash = 'orderbook:' + symbol;
+        const messageHash = 'orderbook:' + symbolValue;
         const orderbook = await this.wathPublic (market, topic, messageHash, params);
         return orderbook.limit ();
     }
@@ -454,7 +454,7 @@ export default class hashkey extends hashkeyRest {
 
     override parseWsOrder (order: Dict, market: Market = undefined): Order {
         const marketId = this.safeString (order, 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'O');
         let side = this.safeStringLower (order, 'S');
         let reduceOnly: Bool = undefined;
@@ -463,7 +463,7 @@ export default class hashkey extends hashkeyRest {
         let timeInForce = this.safeString (order, 'f');
         let postOnly: Bool = undefined;
         [ type, timeInForce, postOnly ] = this.parseOrderTypeTimeInForceAndPostOnly (type, timeInForce);
-        if (market['contract'] === true) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
+        if (marketResolved['contract'] === true) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = undefined;
         }
         return this.safeOrder ({
@@ -474,7 +474,7 @@ export default class hashkey extends hashkeyRest {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'X')),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'side': side,
@@ -496,7 +496,7 @@ export default class hashkey extends hashkeyRest {
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -586,7 +586,7 @@ export default class hashkey extends hashkeyRest {
         //     }
         //
         const marketId = this.safeString (trade, 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 't');
         const isBuyerMaker = this.safeBool (trade, 'm');
         const isPublicTrade = this.safeString (trade, 'e') === undefined;
@@ -605,7 +605,7 @@ export default class hashkey extends hashkeyRest {
             'id': this.safeString2 (trade, 'v', 'T'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': (market as Dict)['symbol'],
+            'symbol': (marketResolved as Dict)['symbol'],
             'side': side,
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
@@ -615,7 +615,7 @@ export default class hashkey extends hashkeyRest {
             'order': this.safeString (trade, 'o'),
             'fee': undefined,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -634,14 +634,14 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         const listenKey = await this.authenticate ();
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const messageHash = 'positions';
         const messageHashes: string[] = [];
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             messageHashes.push (messageHash);
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push (messageHash + ':' + symbol);
             }
         }
@@ -650,7 +650,7 @@ export default class hashkey extends hashkeyRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     handlePosition (client: Client, message: Dict) {
@@ -689,10 +689,10 @@ export default class hashkey extends hashkeyRest {
 
     parseWsPosition (position: any, market: Market = undefined): Position {
         const marketId = this.safeString (position, 's');
-        market = this.safeMarket (marketId);
+        const marketResolved: Market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (position, 'E');
         return this.safePosition ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -737,18 +737,16 @@ export default class hashkey extends hashkeyRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
-        const messageHash = 'balance:' + type;
+        const type = 'spot';
+        const [ typeMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
+        const messageHash = 'balance:' + typeMarketType;
         const url = this.getPrivateUrl (listenKey);
         const client = this.client (url);
-        this.setBalanceCache (client, type, messageHash);
-        let fetchBalanceSnapshot: Bool = undefined;
-        let awaitBalanceSnapshot: Bool = undefined;
-        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
-        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
+        this.setBalanceCache (client, typeMarketType, messageHash);
+        const [ fetchBalanceSnapshot ]: [ Bool, Dict ] = this.handleOptionAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
+        const [ awaitBalanceSnapshot ]: [ Bool, Dict ] = this.handleOptionAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
-            await client.future (type + ':fetchBalanceSnapshot');
+            await client.future (typeMarketType + ':fetchBalanceSnapshot');
         }
         return await this.watch (url, messageHash, undefined, messageHash);
     }

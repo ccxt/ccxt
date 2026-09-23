@@ -694,7 +694,7 @@ export default class bitbns extends Exchange {
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 't_rate' ]);
         const targetRate = this.safeString (params, 'target_rate');
         const trailRate = this.safeString (params, 'trail_rate');
-        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ]);
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
         }
@@ -722,9 +722,9 @@ export default class bitbns extends Exchange {
         }
         let response = undefined;
         if (type === 'limit') {
-            response = await this.v2PostOrders (this.extend (request, params));
+            response = await this.v2PostOrders (this.extend (request, paramsOmitted));
         } else {
-            response = await this.v1PostPlaceMarketOrderQntySymbol (this.extend (request, params));
+            response = await this.v1PostPlaceMarketOrderQntySymbol (this.extend (request, paramsOmitted));
         }
         //
         //     {
@@ -760,7 +760,7 @@ export default class bitbns extends Exchange {
         }
         const market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
-        params = this.omit (params, [ 'trigger', 'stop' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'trigger', 'stop' ]);
         const request: Dict = {
             'entry_id': id,
             'symbol': market['uppercaseId'],
@@ -770,7 +770,7 @@ export default class bitbns extends Exchange {
         let quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         quoteSide += tail;
         request['side'] = quoteSide;
-        response = await this.v2PostCancel (this.extend (request, params));
+        response = await this.v2PostCancel (this.extend (request, paramsOmitted));
         const parsed = (response === undefined) ? {} : response;
         return this.parseOrder (parsed, market);
     }
@@ -854,14 +854,14 @@ export default class bitbns extends Exchange {
         }
         const market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
-        params = this.omit (params, [ 'trigger', 'stop' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'trigger', 'stop' ]);
         const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtListOpen' : 'listOpen';
         const request: Dict = {
             'symbol': market['uppercaseId'],
             'page': 0,
             'side': (isTrigger === true) ? (quoteSide + 'StopOrders') : (quoteSide + 'Orders'),
         };
-        const response = await this.v2PostGetordersnew (this.extend (request, params));
+        const response = await this.v2PostGetordersnew (this.extend (request, paramsOmitted));
         //
         //     {
         //         "data":[
@@ -918,7 +918,7 @@ export default class bitbns extends Exchange {
         //         "type":"buy"
         //     }
         //
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const orderId = this.safeString2 (trade, 'id', 'tradeId');
         let timestamp = this.parse8601 (this.safeString (trade, 'date'));
         timestamp = this.safeInteger (trade, 'timestamp', timestamp);
@@ -940,11 +940,11 @@ export default class bitbns extends Exchange {
             amountString = this.safeString (trade, 'base_volume');
             costString = this.safeString (trade, 'quote_volume');
         }
-        const symbol = market['symbol'];
+        const symbol = marketResolved['symbol'];
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrencyCode = market['quote'];
+            const feeCurrencyCode = marketResolved['quote'];
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -964,7 +964,7 @@ export default class bitbns extends Exchange {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**

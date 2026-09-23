@@ -69,8 +69,8 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'orderbook:' + symbolValue;
         const channel = 'diff_order_book_' + market['id'];
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -98,10 +98,10 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const channel = 'diff_order_book_' + market['id'];
-        const subHash = 'orderbook:' + symbol;
-        return await this.unWatchChannel (channel, subHash, 'orderbook', [ symbol ], params);
+        const subHash = 'orderbook:' + symbolValue;
+        return await this.unWatchChannel (channel, subHash, 'orderbook', [ symbolValue ], params);
     }
 
     /**
@@ -244,8 +244,8 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trades:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'trades:' + symbolValue;
         const url = this.urls['api']['ws'];
         const channel = 'live_trades_' + market['id'];
         const request: Dict = {
@@ -257,7 +257,7 @@ export default class bitstamp extends bitstampRest {
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -276,10 +276,10 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const channel = 'live_trades_' + market['id'];
-        const subHash = 'trades:' + symbol;
-        return await this.unWatchChannel (channel, subHash, 'trades', [ symbol ], params);
+        const subHash = 'trades:' + symbolValue;
+        return await this.unWatchChannel (channel, subHash, 'trades', [ symbolValue ], params);
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
@@ -381,8 +381,8 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'fundingRate:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'fundingRate:' + symbolValue;
         const url = this.urls['api']['ws'];
         const channel = 'funding_rate_' + market['id'];
         const request: Dict = {
@@ -442,18 +442,18 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: Str = market['symbol'];
         const channel = 'private-my_orders';
         const messageHash = channel + '_' + market['id'];
         const subscription: Dict = {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'limit': limit,
             'type': channel,
             'params': params,
         };
         const orders = await this.subscribePrivate (subscription, messageHash, params);
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limit = orders.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
@@ -475,10 +475,10 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: Str = market['symbol'];
         await this.authenticate ();
         const channel = 'private-my_orders_' + market['id'] + '-' + this.options['userId'];
-        return await this.unWatchChannel (channel, channel, 'orders', [ symbol ], params);
+        return await this.unWatchChannel (channel, channel, 'orders', [ symbolValue ], params);
     }
 
     /**
@@ -500,20 +500,20 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: Str = market['symbol'];
         const channel = 'private-my_trades';
         const messageHash = channel + '_' + market['id'];
         const subscription: Dict = {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'limit': limit,
             'type': channel,
             'params': params,
         };
         const trades = await this.subscribePrivate (subscription, messageHash, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limit, true);
     }
 
     /**
@@ -533,10 +533,10 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: Str = market['symbol'];
         await this.authenticate ();
         const channel = 'private-my_trades_' + market['id'] + '-' + this.options['userId'];
-        return await this.unWatchChannel (channel, channel, 'myTrades', [ symbol ], params);
+        return await this.unWatchChannel (channel, channel, 'myTrades', [ symbolValue ], params);
     }
 
     handleMyTrades (client: Client, message: Dict) {
@@ -597,14 +597,14 @@ export default class bitstamp extends bitstampRest {
         //
         const microtimestamp = this.safeInteger (trade, 'microtimestamp', 0);
         const timestamp = this.parseToInt (microtimestamp / 1000);
-        market = this.safeMarket (undefined, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (undefined, market);
+        const symbol = marketResolved['symbol'];
         const feeCost = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         return this.safeTrade ({
@@ -621,7 +621,7 @@ export default class bitstamp extends bitstampRest {
             'amount': this.safeString (trade, 'amount'),
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     handleOrders (client: Client, message: Dict) {
@@ -737,8 +737,8 @@ export default class bitstamp extends bitstampRest {
         }
         const triggerPrice = this.safeString (order, 'stop_price');
         const timestamp = this.safeTimestamp (order, 'datetime');
-        market = this.safeMarket (undefined, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (undefined, market);
+        const symbol = marketResolved['symbol'];
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -762,7 +762,7 @@ export default class bitstamp extends bitstampRest {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     handleOrderBookSubscription (client: Client, message: Dict) {
@@ -1041,15 +1041,15 @@ export default class bitstamp extends bitstampRest {
     async subscribePrivate (subscription: Dict, messageHash: string, params: Dict = {}) {
         const url = this.urls['api']['ws'];
         await this.authenticate ();
-        messageHash += '-' + this.options['userId'];
+        const messageHashValue: string = messageHash + ('-' + this.options['userId']);
         const request: Dict = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': messageHash,
+                'channel': messageHashValue,
                 'auth': this.options['wsSessionToken'],
             },
         };
-        subscription['messageHash'] = messageHash;
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        subscription['messageHash'] = messageHashValue;
+        return await this.watch (url, messageHashValue, this.extend (request, params), messageHashValue, subscription);
     }
 }

@@ -410,7 +410,7 @@ export default class bitso extends Exchange {
         const amount = this.safeString (firstBalance, 'amount');
         const currencyId = this.safeString (firstBalance, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const details = this.safeDict (item, 'details', {});
         let referenceId = this.safeString2 (details, 'fid', 'wid');
         if (referenceId === undefined) {
@@ -427,7 +427,7 @@ export default class bitso extends Exchange {
             const cost = Precise.stringAbs (amount);
             fee = {
                 'cost': cost,
-                'currency': currency,
+                'currency': currencyResolved,
             };
         }
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
@@ -447,7 +447,7 @@ export default class bitso extends Exchange {
             'after': undefined,
             'status': 'ok',
             'fee': fee,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     /**
@@ -1834,7 +1834,7 @@ export default class bitso extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1854,10 +1854,10 @@ export default class bitso extends Exchange {
         const request: Dict = {
             'amount': amount,
             'address': address,
-            'destination_tag': tag,
+            'destination_tag': tagWithdrawTag,
         };
         const classMethod = 'privatePost' + method + 'Withdrawal';
-        const response = await this[classMethod] (this.extend (request, params));
+        const response = await this[classMethod] (this.extend (request, paramsWithdrawTag));
         //
         //     {
         //         "success": true,
@@ -1920,7 +1920,7 @@ export default class bitso extends Exchange {
         //     }
         //
         const currencyId = this.safeString2 (transaction, 'currency', 'asset');
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const details = this.safeDict (transaction, 'details', {});
         const datetime = this.safeString (transaction, 'created_at');
         const withdrawalAddress = this.safeString (details, 'withdrawal_address');
@@ -1928,7 +1928,7 @@ export default class bitso extends Exchange {
         const networkId = this.safeString2 (transaction, 'network', 'method');
         const status = this.safeString (transaction, 'status');
         const withdrawId = this.safeString (transaction, 'wid');
-        const networkCode = this.networkIdToCode (networkId, currency['code']);
+        const networkCode = this.networkIdToCode (networkId, currencyResolved['code']);
         const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
         return {
             'id': this.safeString2 (transaction, 'wid', 'fid'),
@@ -1941,7 +1941,7 @@ export default class bitso extends Exchange {
             'addressTo': withdrawalAddress,
             'amount': this.safeNumber (transaction, 'amount'),
             'type': (withdrawId === undefined) ? 'deposit' : 'withdrawal',
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': this.safeCurrencyCode (currencyId, currencyResolved),
             'status': this.parseTransactionStatus (status),
             'updated': undefined,
             'tagFrom': undefined,

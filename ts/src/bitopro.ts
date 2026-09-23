@@ -519,8 +519,8 @@ export default class bitopro extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'pair');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (marketResolved, 'symbol');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -542,7 +542,7 @@ export default class bitopro extends Exchange {
             'baseVolume': this.safeString (ticker, 'volume24hr'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -692,8 +692,8 @@ export default class bitopro extends Exchange {
             timestamp = this.safeInteger (trade, 'timestamp');
         }
         const marketId = this.safeString (trade, 'pair');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (marketResolved, 'symbol');
         const price = this.safeString (trade, 'price');
         const type = this.safeStringLower (trade, 'type');
         let side = this.safeStringLower (trade, 'action');
@@ -742,7 +742,7 @@ export default class bitopro extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1103,8 +1103,8 @@ export default class bitopro extends Exchange {
         const amount = this.safeString2 (order, 'amount', 'originalAmount');
         const price = this.safeString (order, 'price');
         const marketId = this.safeString (order, 'pair');
-        market = this.safeMarket (marketId, market, '_');
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
+        const symbol = this.safeString (marketResolved, 'symbol');
         const orderStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (orderStatus);
         const type = this.safeStringLower (order, 'type');
@@ -1147,7 +1147,7 @@ export default class bitopro extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     /**

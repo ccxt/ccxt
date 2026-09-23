@@ -286,7 +286,7 @@ export default class kraken extends krakenRest {
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
         const messageHash = this.numberToString (requestId) as string;
-        let request: Dict = {
+        const request: Dict = {
             'method': 'add_order',
             'params': {
                 'order_type': type,
@@ -297,8 +297,8 @@ export default class kraken extends krakenRest {
             },
             'req_id': requestId,
         };
-        [ request, params ] = this.orderRequestWs ('createOrderWs', symbol, type, request, amount, price, params);
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const [ requestValue, paramsValue ] = this.orderRequestWs ('createOrderWs', symbol, type, request, amount, price, params);
+        return await this.watch (url, messageHash, this.extend (requestValue, paramsValue), messageHash);
     }
 
     handleCreateEditOrder (client: Client, message: Dict) {
@@ -354,7 +354,7 @@ export default class kraken extends krakenRest {
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
         const messageHash = this.numberToString (requestId) as string;
-        let request: Dict = {
+        const request: Dict = {
             'method': 'amend_order',
             'params': {
                 'order_id': id,
@@ -363,8 +363,8 @@ export default class kraken extends krakenRest {
             },
             'req_id': requestId,
         };
-        [ request, params ] = this.orderRequestWs ('editOrderWs', symbol, type, request, amount, price, params);
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const [ requestValue, paramsValue ] = this.orderRequestWs ('editOrderWs', symbol, type, request, amount, price, params);
+        return await this.watch (url, messageHash, this.extend (requestValue, paramsValue), messageHash);
     }
 
     /**
@@ -663,9 +663,9 @@ export default class kraken extends krakenRest {
      */
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
-        symbol = this.symbol (symbol);
-        const tickers = await this.watchTickers ([ symbol ], params);
-        return tickers[symbol];
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbolValue ], params);
+        return tickers[symbolValue];
     }
 
     /**
@@ -679,14 +679,14 @@ export default class kraken extends krakenRest {
      */
     override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
-        const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbolsNormalized, undefined, params);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -700,15 +700,15 @@ export default class kraken extends krakenRest {
      */
     override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         params['event_trigger'] = 'bbo';
-        const ticker = await this.watchMultiHelper ('bidask', 'ticker', symbols, undefined, params);
+        const ticker = await this.watchMultiHelper ('bidask', 'ticker', symbolsNormalized, undefined, params);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -800,15 +800,15 @@ export default class kraken extends krakenRest {
         await this.loadMarkets ();
         const name = 'ohlc';
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const url = (this.urls['api'] as Dict)['ws']['publicV2'];
         const requestId = this.requestId ();
-        const messageHash = this.getMessageHash ('ohlcv', undefined, symbol);
+        const messageHash = this.getMessageHash ('ohlcv', undefined, symbolValue);
         const subscribe: Dict = {
             'method': 'subscribe',
             'params': {
                 'channel': name,
-                'symbol': [ symbol ],
+                'symbol': [ symbolValue ],
                 'interval': this.safeValue (this.timeframes, timeframe, timeframe),
             },
             'req_id': requestId,
@@ -816,7 +816,7 @@ export default class kraken extends krakenRest {
         const request = this.deepExtend (subscribe, params);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 'timestamp', true);
     }
@@ -1455,24 +1455,24 @@ export default class kraken extends krakenRest {
     async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs: Dict | undefined = undefined, params: Dict = {}) {
         await this.loadMarkets ();
         // symbols are required
-        symbols = this.marketSymbols (symbols, undefined, false, true, false);
-        if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false, true, false);
+        if (symbolsNormalized === undefined) {
             return undefined;
         }
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
+        for (let i = 0; i < symbolsNormalized.length; i++) {
             const eventTrigger = this.safeString (params, 'event_trigger');
             if (eventTrigger !== undefined) {
-                messageHashes.push (this.getMessageHash (channelName, undefined, this.symbol (symbols[i])));
+                messageHashes.push (this.getMessageHash (channelName, undefined, this.symbol (symbolsNormalized[i])));
             } else {
-                messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
+                messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbolsNormalized[i])));
             }
         }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
                 'channel': channelName,
-                'symbol': symbols,
+                'symbol': symbolsNormalized,
             },
             'req_id': this.requestId (),
         };

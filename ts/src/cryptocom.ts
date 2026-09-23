@@ -562,15 +562,14 @@ export default class cryptocom extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return {};
         }
-        let skipFetchCurrencies = false;
-        [ skipFetchCurrencies, params ] = this.handleOptionAndParams (params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        const [ skipFetchCurrencies, paramsSkipFetchCurrencies ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchCurrencies', 'skipFetchCurrencies', false);
         if (skipFetchCurrencies) {
             // sub-accounts can't access this endpoint
             return {};
         }
         let response = {};
         try {
-            response = await this.v1PrivatePostPrivateGetCurrencyNetworks (params);
+            response = await this.v1PrivatePostPrivateGetCurrencyNetworks (paramsSkipFetchCurrencies);
         } catch (e) {
             const erString = this.exceptionMessage (e);
             if (erString.indexOf ('SYS_ERROR') >= 0) {
@@ -946,9 +945,9 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol) as Ticker;
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.fetchTickers ([ symbolValue ], params);
+        return this.safeValue (tickers, symbolValue) as Ticker;
     }
 
     /**
@@ -968,10 +967,9 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
         let market: Market = undefined;
         const request: Dict = {};
@@ -985,12 +983,12 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, [ 'until' ]);
+        const until = this.safeInteger (paramsPaginate, 'until');
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (until !== undefined) {
             request['end_time'] = until;
         }
-        const response = await this.v1PrivatePostPrivateGetOrderHistory (this.extend (request, params));
+        const response = await this.v1PrivatePostPrivateGetOrderHistory (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": 1686881486183,
@@ -1052,10 +1050,9 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -1067,12 +1064,12 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, [ 'until' ]);
+        const until = this.safeInteger (paramsPaginate, 'until');
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
-        const response = await this.v1PublicGetPublicGetTrades (this.extend (request, params));
+        const response = await this.v1PublicGetPublicGetTrades (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": -1,
@@ -1116,10 +1113,9 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 300) as OHLCV[];
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -1134,8 +1130,8 @@ export default class cryptocom extends Exchange {
         }
         const now = this.microseconds ();
         const duration = this.parseTimeframe (timeframe);
-        const until = this.safeInteger (params, 'until', now);
-        params = this.omit (params, [ 'until' ]);
+        const until = this.safeInteger (paramsPaginate, 'until', now);
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (since !== undefined) {
             request['start_ts'] = since - duration * 1000;
             if (limit !== undefined) {
@@ -1146,7 +1142,7 @@ export default class cryptocom extends Exchange {
         } else {
             request['end_ts'] = until;
         }
-        const response = await this.v1PublicGetPublicGetCandlestick (this.extend (request, params));
+        const response = await this.v1PublicGetPublicGetCandlestick (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": -1,
@@ -1376,16 +1372,14 @@ export default class cryptocom extends Exchange {
         }
         const broker = this.safeString (this.options, 'broker', 'CCXT');
         request['broker_id'] = broker;
-        let marketType: Str = undefined;
-        let marginMode: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        [ marginMode, params ] = this.customHandleMarginModeAndParams ('createOrder', params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const [ marginMode, paramsValue ] = this.customHandleMarginModeAndParams ('createOrder', paramsMarketType);
         if ((marketType === 'margin') || (marginMode !== undefined)) {
             request['spot_margin'] = 'MARGIN';
         } else if (marketType === 'spot') {
             request['spot_margin'] = 'SPOT';
         }
-        const timeInForce = this.safeStringUpper2 (params, 'timeInForce', 'time_in_force');
+        const timeInForce = this.safeStringUpper2 (paramsValue, 'timeInForce', 'time_in_force');
         if (timeInForce !== undefined) {
             if (timeInForce === 'GTC') {
                 request['time_in_force'] = 'GOOD_TILL_CANCEL';
@@ -1397,14 +1391,14 @@ export default class cryptocom extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        const postOnly = this.safeBool (params, 'postOnly', false);
+        const postOnly = this.safeBool (paramsValue, 'postOnly', false);
         if ((postOnly === true) || (timeInForce === 'PO')) {
             request['exec_inst'] = [ 'POST_ONLY' ];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
-        const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'ref_price' ]);
-        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const triggerPrice = this.safeStringN (paramsValue, [ 'stopPrice', 'triggerPrice', 'ref_price' ]);
+        const stopLossPrice = this.safeNumber (paramsValue, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (paramsValue, 'takeProfitPrice');
         const isTrigger = (triggerPrice !== undefined);
         const isStopLossTrigger = (stopLossPrice !== undefined);
         const isTakeProfitTrigger = (takeProfitPrice !== undefined);
@@ -1457,8 +1451,8 @@ export default class cryptocom extends Exchange {
         } else {
             request['type'] = uppercaseType;
         }
-        params = this.omit (params, [ 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        return this.extend (request, params);
+        const paramsOmitted: Dict = this.omit (paramsValue, [ 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        return this.extend (request, paramsOmitted);
     }
 
     /**
@@ -1961,10 +1955,9 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate, 100) as Trade[];
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -1978,12 +1971,12 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, [ 'until' ]);
+        const until = this.safeInteger (paramsPaginate, 'until');
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (until !== undefined) {
             request['end_time'] = until;
         }
-        const response = await this.v1PrivatePostPrivateGetTrades (this.extend (request, params));
+        const response = await this.v1PrivatePostPrivateGetTrades (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": 1686942003520,
@@ -2045,7 +2038,7 @@ export default class cryptocom extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2055,16 +2048,15 @@ export default class cryptocom extends Exchange {
             'amount': amount,
             'address': address,
         };
-        if (tag !== undefined) {
-            request['address_tag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['address_tag'] = tagWithdrawTag;
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         const networkId = this.networkCodeToId (networkCode, code);
         if (networkId !== undefined) {
             request['network_id'] = networkId;
         }
-        const response = await this.v1PrivatePostPrivateCreateWithdrawal (this.extend (request, params));
+        const response = await this.v1PrivatePostPrivateCreateWithdrawal (this.extend (request, paramsNetworkCode));
         //
         //    {
         //        "id":-1,
@@ -2162,8 +2154,8 @@ export default class cryptocom extends Exchange {
      */
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         const network = this.safeStringUpper (params, 'network');
-        params = this.omit (params, [ 'network' ]);
-        const depositAddressesRaw = await this.fetchDepositAddressesByNetwork (code, params);
+        const paramsOmitted: Dict = this.omit (params, [ 'network' ]);
+        const depositAddressesRaw = await this.fetchDepositAddressesByNetwork (code, paramsOmitted);
         const depositAddresses: Dict = depositAddressesRaw;
         if ((network as string) in depositAddresses) {
             return depositAddresses[(network as string)];
@@ -2202,11 +2194,11 @@ export default class cryptocom extends Exchange {
             request['page_size'] = limit;
         }
         const until = this.safeInteger (params, 'until');
-        params = this.omit (params, [ 'until' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
-        const response = await this.v1PrivatePostPrivateGetDepositHistory (this.extend (request, params));
+        const response = await this.v1PrivatePostPrivateGetDepositHistory (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": 1688701375714,
@@ -2264,11 +2256,11 @@ export default class cryptocom extends Exchange {
             request['page_size'] = limit;
         }
         const until = this.safeInteger (params, 'until');
-        params = this.omit (params, [ 'until' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
-        const response = await this.v1PrivatePostPrivateGetWithdrawalHistory (this.extend (request, params));
+        const response = await this.v1PrivatePostPrivateGetWithdrawalHistory (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": 1688613879534,
@@ -2333,10 +2325,10 @@ export default class cryptocom extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 't');
         const marketId = this.safeString (ticker, 'i');
-        market = this.safeMarket (marketId, market, '_');
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
         const last = this.safeString (ticker, 'a');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'h'),
@@ -2354,9 +2346,9 @@ export default class cryptocom extends Exchange {
             'percentage': this.safeString (ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'v'),
-            'quoteVolume': (market['quote'] === 'USD') ? this.safeString (ticker, 'vv') : undefined,
+            'quoteVolume': (marketResolved['quote'] === 'USD') ? this.safeString (ticker, 'vv') : undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -2396,7 +2388,7 @@ export default class cryptocom extends Exchange {
         //
         const timestamp = this.safeInteger2 (trade, 't', 'create_time');
         const marketId = this.safeString2 (trade, 'i', 'instrument_name');
-        market = this.safeMarket (marketId, market, '_');
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
         const feeCurrency = this.safeString (trade, 'fee_instrument_name');
         const feeCostString = this.safeString (trade, 'fees');
         return this.safeTrade ({
@@ -2404,7 +2396,7 @@ export default class cryptocom extends Exchange {
             'id': this.safeString2 (trade, 'd', 'trade_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': this.safeString (trade, 'order_id'),
             'side': this.safeStringLower2 (trade, 's', 'side'),
             'takerOrMaker': this.safeStringLower (trade, 'taker_side'),
@@ -2416,7 +2408,7 @@ export default class cryptocom extends Exchange {
                 'currency': this.safeCurrencyCode (feeCurrency),
                 'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
             },
-        }, market);
+        }, marketResolved);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -2794,11 +2786,11 @@ export default class cryptocom extends Exchange {
             request['limit'] = limit;
         }
         const until = this.safeInteger (params, 'until');
-        params = this.omit (params, [ 'until' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
         if (until !== undefined) {
             request['end_time'] = until;
         }
-        const response = await this.v1PrivatePostPrivateGetTransactions (this.extend (request, params));
+        const response = await this.v1PrivatePostPrivateGetTransactions (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": 1686813195698,
@@ -2857,7 +2849,7 @@ export default class cryptocom extends Exchange {
         const timestamp = this.safeInteger (item, 'event_timestamp_ms');
         const currencyId = this.safeString (item, 'instrument_name');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         let amount = this.safeString (item, 'transaction_qty');
         let direction: Str = undefined;
         if (Precise.stringLt (amount, '0')) {
@@ -2885,7 +2877,7 @@ export default class cryptocom extends Exchange {
                 'currency': undefined,
                 'cost': undefined,
             },
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     parseLedgerEntryType (type: Str): Str {
@@ -3191,10 +3183,9 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         if (market['swap'] !== true) {
@@ -3210,12 +3201,12 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, [ 'until' ]);
+        const until = this.safeInteger (paramsPaginate, 'until');
+        const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
-        const response = await this.v1PublicGetPublicGetValuations (this.extend (request, params));
+        const response = await this.v1PublicGetPublicGetValuations (this.extend (request, paramsOmitted));
         //
         //     {
         //         "id": -1,
@@ -3309,19 +3300,19 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {};
         let market: Market = undefined;
-        if (symbols !== undefined) {
+        if (symbolsNormalized !== undefined) {
             let symbol: Str = undefined;
-            if (Array.isArray (symbols)) {
-                const symbolsLength = symbols.length;
+            if (Array.isArray (symbolsNormalized)) {
+                const symbolsLength = symbolsNormalized.length;
                 if (symbolsLength > 1) {
                     throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
-                symbol = symbols[0];
+                symbol = symbolsNormalized[0];
             } else {
-                symbol = symbols;
+                symbol = symbolsNormalized;
             }
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
@@ -3376,8 +3367,8 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'instrument_name');
-        market = this.safeMarket (marketId, market, undefined, 'contract');
-        const symbol = this.safeSymbol (marketId, market, undefined, 'contract');
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'contract');
+        const symbol = this.safeSymbol (marketId, marketResolved, undefined, 'contract');
         const timestamp = this.safeInteger (position, 'update_timestamp_ms');
         const amount = this.safeString (position, 'quantity');
         return this.safePosition ({
@@ -3389,7 +3380,7 @@ export default class cryptocom extends Exchange {
             'hedged': undefined,
             'side': Precise.stringGt (amount, '0') ? 'long' : 'short',
             'contracts': this.parseNumber (Precise.stringAbs (amount)),
-            'contractSize': market['contractSize'],
+            'contractSize': marketResolved['contractSize'],
             'entryPrice': undefined,
             'markPrice': undefined,
             'notional': undefined,

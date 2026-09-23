@@ -661,7 +661,7 @@ export default class alpaca extends Exchange {
             'symbols': marketId,
             'loc': loc,
         };
-        params = this.omit (params, [ 'loc', 'method' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'loc', 'method' ]);
         let symbolTrades: NullableList = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
             if (since !== undefined) {
@@ -670,7 +670,7 @@ export default class alpaca extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await this.marketPublicGetV1beta3CryptoLocTrades (this.extend (request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocTrades (this.extend (request, paramsOmitted));
             //
             //    {
             //        "next_page_token": null,
@@ -690,7 +690,7 @@ export default class alpaca extends Exchange {
             const trades = this.safeDict (response, 'trades', {});
             symbolTrades = this.safeList (trades, marketId, []);
         } else if (method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
-            const response = await this.marketPublicGetV1beta3CryptoLocLatestTrades (this.extend (request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocLatestTrades (this.extend (request, paramsOmitted));
             //
             //    {
             //       "trades": {
@@ -950,9 +950,9 @@ export default class alpaca extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeDict (tickers, symbol) as Ticker;
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.fetchTickers ([ symbolValue ], params);
+        return this.safeDict (tickers, symbolValue) as Ticker;
     }
 
     /**
@@ -981,8 +981,8 @@ export default class alpaca extends Exchange {
             'symbols': ids.join (','),
             'loc': loc,
         };
-        params = this.omit (params, 'loc');
-        const response = await this.marketPublicGetV1beta3CryptoLocSnapshots (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'loc');
+        const response = await this.marketPublicGetV1beta3CryptoLocSnapshots (this.extend (request, paramsOmitted));
         //
         //     {
         //         "snapshots": {
@@ -1532,8 +1532,8 @@ export default class alpaca extends Exchange {
         //    }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const alpacaStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (alpacaStatus);
         const feeValue = this.safeString (order, 'commission');
@@ -1575,7 +1575,7 @@ export default class alpaca extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderStatus (status: Str) {
@@ -1794,21 +1794,21 @@ export default class alpaca extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        if ((tag !== undefined) && (tag !== '')) {
-            address = address + ':' + tag;
+        if ((tagWithdrawTag !== undefined) && (tagWithdrawTag !== '')) {
+            address = address + ':' + tagWithdrawTag;
         }
         const request: Dict = {
             'asset': currency['id'],
             'address': address,
             'amount': this.numberToString (amount),
         };
-        const response = await this.traderPrivatePostV2WalletsTransfers (this.extend (request, params));
+        const response = await this.traderPrivatePostV2WalletsTransfers (this.extend (request, paramsWithdrawTag));
         //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -2236,11 +2236,11 @@ export default class alpaca extends Exchange {
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api[0]]);
-        headers = (headers !== undefined) ? headers : {};
+        const headersValue: NullableDict = (headers !== undefined) ? headers : {};
         if (api[1] === 'private') {
             this.checkRequiredCredentials ();
-            headers['APCA-API-KEY-ID'] = this.apiKey;
-            headers['APCA-API-SECRET-KEY'] = this.secret;
+            headersValue['APCA-API-KEY-ID'] = this.apiKey;
+            headersValue['APCA-API-SECRET-KEY'] = this.secret;
         }
         const query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length > 0) {
@@ -2248,11 +2248,11 @@ export default class alpaca extends Exchange {
                 endpoint += '?' + this.urlencode (query);
             } else {
                 body = this.json (query);
-                headers['Content-Type'] = 'application/json';
+                headersValue['Content-Type'] = 'application/json';
             }
         }
         url = url + endpoint;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headersValue };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

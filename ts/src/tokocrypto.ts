@@ -1475,11 +1475,11 @@ export default class tokocrypto extends Exchange {
         const maxLimit = 1500;
         const price = this.safeString (params, 'price');
         const until = this.safeInteger (params, 'until');
-        params = this.omit (params, [ 'price', 'until' ]);
-        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
+        const paramsOmitted: Dict = this.omit (params, [ 'price', 'until' ]);
+        const limitValue: Int = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request: Dict = {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitValue,
         };
         if (price === 'index') {
             request['pair'] = market['id'];   // Index price takes this argument instead of symbol
@@ -1495,9 +1495,9 @@ export default class tokocrypto extends Exchange {
         }
         let response = undefined;
         if (this.isNativeMarket (market)) {
-            response = await this.publicGetOpenV1MarketKlines (this.extend (request, params));
+            response = await this.publicGetOpenV1MarketKlines (this.extend (request, paramsOmitted));
         } else {
-            response = await this.binanceGetKlines (this.extend (request, params));
+            response = await this.binanceGetKlines (this.extend (request, paramsOmitted));
         }
         //
         // binanceGetKlines
@@ -1544,7 +1544,7 @@ export default class tokocrypto extends Exchange {
                 data = this.safeList (dataDict, 'list', []);
             }
         }
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVs (data, market, timeframe, since, limitValue);
     }
 
     /**
@@ -2581,7 +2581,7 @@ export default class tokocrypto extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2595,10 +2595,10 @@ export default class tokocrypto extends Exchange {
             // 'addressTag': 'string', // for coins like XRP, XMR, etc
             'amount': this.numberToString (amount),
         };
-        if (tag !== undefined) {
-            request['addressTag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['addressTag'] = tagWithdrawTag;
         }
-        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         const networkId = this.networkCodeToId (networkCode, code);
         if (networkId !== undefined) {
             request['network'] = networkId.toUpperCase ();

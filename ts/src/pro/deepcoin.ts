@@ -157,13 +157,13 @@ export default class deepcoin extends deepcoinRest {
         const subId = this.safeInteger (existingSubscription, 'id');
         const request = this.createPublicRequest (market, (subId as number), topicID, suffix, true); // unsubscribe message uses the same id as the original subscribe message
         const unsubHash = 'unsubscribe::' + messageHash;
-        subscription = this.extend (subscription, {
+        const subscriptionExtended: Dict = this.extend (subscription, {
             'subHash': messageHash,
             'unsubHash': unsubHash,
             'symbols': [ market['symbol'] ],
             'id': requestId,
         });
-        return await this.watch (url, unsubHash, this.deepExtend (request, params), unsubHash, subscription);
+        return await this.watch (url, unsubHash, this.deepExtend (request, params), unsubHash, subscriptionExtended);
     }
 
     async watchPrivate (messageHash: string, params: Dict = {}): Promise<any> {
@@ -563,14 +563,14 @@ export default class deepcoin extends deepcoinRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const timeframes = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe, timeframe);
-        const messageHash = 'ohlcv' + '::' + symbol + '::' + timeframe;
+        const messageHash = 'ohlcv' + '::' + symbolValue + '::' + timeframe;
         const suffix = '_' + interval;
         const ohlcv = await this.watchPublic (market, messageHash, '11', params, suffix);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbolValue, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
@@ -590,14 +590,14 @@ export default class deepcoin extends deepcoinRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const timeframes = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe, timeframe);
-        const messageHash = 'ohlcv' + '::' + symbol + '::' + timeframe;
+        const messageHash = 'ohlcv' + '::' + symbolValue + '::' + timeframe;
         const suffix = '_' + interval;
         const subscription = {
             'topic': 'ohlcv',
-            'symbolsAndTimeframes': [ [ symbol, timeframe ] ],
+            'symbolsAndTimeframes': [ [ symbolValue, timeframe ] ],
         };
         return await this.unWatchPublic (market, messageHash, '11', params, subscription, suffix);
     }
@@ -691,9 +691,8 @@ export default class deepcoin extends deepcoinRest {
         }
         const market = this.market (symbol);
         const messageHash = 'orderbook' + '::' + market['symbol'];
-        let suffix: Str = undefined;
-        [ suffix, params ] = this.orderBookSuffix (market, 'watchOrderBook', params);
-        const orderbook = await this.watchPublic (market, messageHash, '25', params, suffix);
+        const [ suffix, paramsValue ] = this.orderBookSuffix (market, 'watchOrderBook', params);
+        const orderbook = await this.watchPublic (market, messageHash, '25', paramsValue, suffix);
         return orderbook.limit ();
     }
 
@@ -713,12 +712,11 @@ export default class deepcoin extends deepcoinRest {
         }
         const market = this.market (symbol);
         const messageHash = 'orderbook' + '::' + market['symbol'];
-        let suffix: Str = undefined;
-        [ suffix, params ] = this.orderBookSuffix (market, 'unWatchOrderBook', params);
+        const [ suffix, paramsValue ] = this.orderBookSuffix (market, 'unWatchOrderBook', params);
         const subscription = {
             'topic': 'orderbook',
         };
-        return await this.unWatchPublic (market, messageHash, '25', params, subscription, suffix);
+        return await this.unWatchPublic (market, messageHash, '25', paramsValue, subscription, suffix);
     }
 
     orderBookSuffix (market: Market, methodName: string, params: Dict = {}): [Str, Dict] {
@@ -1107,12 +1105,12 @@ export default class deepcoin extends deepcoinRest {
             await this.loadMarkets ();
         }
         const listenKey = await this.authenticate ();
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const messageHash = 'positions';
         const messageHashes: string[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const symbolMessageHash = messageHash + '::' + symbol;
                 messageHashes.push (symbolMessageHash);
             }
@@ -1124,7 +1122,7 @@ export default class deepcoin extends deepcoinRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     handlePosition (client: Client, message: Dict) {
