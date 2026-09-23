@@ -313,10 +313,16 @@ func (this *Extended) HandleBalance(client any, message any) {
 	//         "seq": 1
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
-	var result map[string]any = map[string]any{
-		"info": data,
+	// merge updates into the existing balance object instead of building a
+	// fresh one: a consumer awakened by an earlier message holds a reference
+	// to this.balance, and ccxt.Client.resolve is a no-op while nobody is
+	// awaiting, so a replaced object would make updates landing in that
+	// window invisible to the consumer forever (issue #26773)
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
 	}
+	var data any = this.SafeDict(message, "data", map[string]any{})
+	ccxt.AddElementToObject(this.Balance, "info", data)
 	var balance any = this.SafeDict(data, "balance")
 	if !ccxt.IsEqual(balance, nil) {
 		var currencyId *string = this.SafeString(balance, "collateralName")
@@ -325,7 +331,7 @@ func (this *Extended) HandleBalance(client any, message any) {
 			var account any = this.Account()
 			ccxt.AddElementToObject(account, "free", this.SafeString(balance, "availableForWithdrawal"))
 			ccxt.AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-			ccxt.AddElementToObject(result, code, account)
+			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
 	var spotBalances any = this.SafeList(data, "spotBalances", []any{})
@@ -337,13 +343,13 @@ func (this *Extended) HandleBalance(client any, message any) {
 			var account any = this.Account()
 			ccxt.AddElementToObject(account, "free", this.SafeString(spotBalance, "availableToWithdraw"))
 			ccxt.AddElementToObject(account, "total", this.SafeString(spotBalance, "balance"))
-			ccxt.AddElementToObject(result, code, account)
+			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	result["timestamp"] = timestamp
-	result["datetime"] = this.Iso8601(timestamp)
-	this.Balance = this.SafeBalance(this.DeepExtend(this.Balance, result))
+	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
+	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 
@@ -376,8 +382,8 @@ func (this *Extended) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes28912 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes28912)
+		retRes29512 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes29512)
 	}
 	var messageHash any = "myTrades"
 	if symbol != nil {
@@ -487,8 +493,8 @@ func (this *Extended) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes38012 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes38012)
+		retRes38612 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes38612)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var messageHash any = "positions"
@@ -653,8 +659,8 @@ func (this *Extended) watchFundingRateBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if this.Markets == nil {
 
-		retRes53112 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes53112)
+		retRes53712 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes53712)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -665,12 +671,12 @@ func (this *Extended) watchFundingRateBody(ch chan any, symbol any, optionalArgs
 		url = ccxt.Add(url, "?"+query)
 	}
 
-	retRes54115 := (<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
+	retRes54715 := (<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
 		"symbol":      symbol,
 		"messageHash": messageHash,
 	}))
-	ccxt.PanicOnError(retRes54115)
-	ch <- retRes54115
+	ccxt.PanicOnError(retRes54715)
+	ch <- retRes54715
 	return nil
 }
 func (this *Extended) HandleFundingRate(client any, message any) {
@@ -744,8 +750,8 @@ func (this *Extended) watchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if this.Markets == nil {
 
-		retRes60512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes60512)
+		retRes61112 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes61112)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -756,13 +762,13 @@ func (this *Extended) watchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 		url = ccxt.Add(url, "?"+query)
 	}
 
-	retRes61515 := (<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
+	retRes62115 := (<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
 		"name":        "markPrice",
 		"symbol":      symbol,
 		"messageHash": messageHash,
 	}))
-	ccxt.PanicOnError(retRes61515)
-	ch <- retRes61515
+	ccxt.PanicOnError(retRes62115)
+	ch <- retRes62115
 	return nil
 }
 func (this *Extended) HandleMarkPrice(client any, message any) {
@@ -825,8 +831,8 @@ func (this *Extended) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes66812 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes66812)
+		retRes67412 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes67412)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -929,8 +935,8 @@ func (this *Extended) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes75212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes75212)
+		retRes75812 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes75812)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
