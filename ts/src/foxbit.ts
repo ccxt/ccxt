@@ -1703,8 +1703,8 @@ export default class foxbit extends Exchange {
             'tierBased': false,
             'feeSide': 'get',
             'precision': {
-                'price': this.safeNumber (quoteAssets, 'price_increment'),
-                'amount': this.safeNumber (baseAssets, 'quantity_increment'),
+                'price': this.safeNumber (market, 'price_increment'),
+                'amount': this.safeNumber (market, 'quantity_increment'),
             },
             'limits': {
                 'amount': {
