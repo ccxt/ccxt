@@ -323,7 +323,10 @@ function retypeMentionContextsOk (code: string, name: string, token: string | un
 function retypeWrittenValueMatches (rhs: string, token: string): boolean {
     const value = rhs.trim ().replace (/;$/, '');
     if (/^"[^"]*"$/.test (value)) return true;
-    if (/^-?[\d.]+[LlDd]?$/.test (value) && (token === 'Long' || token === 'Double' || token === 'Integer')) return true;
+    // Java widens a literal into a primitive but never boxes int -> Long or int -> Double
+    if (token === 'Long' && /^-?\d+[Ll]$/.test (value)) return true;
+    if (token === 'Double' && /^-?(\d+\.\d*|\d*\.\d+|\d+[Dd])$/.test (value)) return true;
+    if (token === 'Integer' && /^-?\d+$/.test (value)) return true;
     const callee = value.match (/^([\w.$]+)\s*\(/);
     if (callee !== null && RETYPE_STRING_RETURN_CALLEES.has (callee[1]) && (token === 'String' || token === 'java.lang.String')) return true;
     if (value.indexOf ('+') !== -1 && /"/.test (value)) return true;

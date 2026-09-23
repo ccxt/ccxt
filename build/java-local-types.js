@@ -1267,8 +1267,20 @@ function baseMethodReturnsString (printer, node, name) {
 // names short (build/javaUtilImports.ts); the pipeline works in the qualified spelling.
 const JAVA_API_METHOD = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+?)>\s+(\w+) \(Object\.\.\. optionalArgs\)/;
 const JAVA_API_SHORT_NAMES = /\b(?<!\.)(Map|List)</g;
+const JAVA_UNIFIED_TYPES_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'types');
+let javaUnifiedTypeNames;
+
+// unified types print fully qualified so the splice's import pass adds `io.github.ccxt.types.X`
 function qualifyApiReturnType (t) {
-    return t.replace (JAVA_API_SHORT_NAMES, 'java.util.$1<');
+    if (javaUnifiedTypeNames === undefined) {
+        try {
+            javaUnifiedTypeNames = new Set (fs.readdirSync (JAVA_UNIFIED_TYPES_FOLDER).filter ((f) => f.endsWith ('.java')).map ((f) => f.slice (0, -5)));
+        } catch (e) {
+            javaUnifiedTypeNames = new Set ();
+        }
+    }
+    return t.replace (JAVA_API_SHORT_NAMES, 'java.util.$1<')
+        .replace (/(?<![\w.])([A-Z][A-Za-z0-9_]*)\b/g, (m, name) => (javaUnifiedTypeNames.has (name) ? 'io.github.ccxt.types.' + name : m));
 }
 const JAVA_API_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'api');
 const awaitedApiTables = new Map ();
@@ -1336,7 +1348,7 @@ function awaitedThisCallType (node) {
 const JAVA_CORE_DIRS = { rest: 'exchanges', pro: 'exchanges/pro', prediction: 'exchanges/prediction' };
 const JAVA_CORE_TIER_FILES = { rest: [ 'Exchange.java' ], pro: [ 'Exchange.java' ], prediction: [ 'PredictionExchange.java' ] };
 const JAVA_CORE_METHOD = /^\s*(?:public|protected)\s+(?:java\.util\.concurrent\.)?CompletableFuture<(.+?)>\s+(\w+)\s*\(/;
-const JAVA_CORE_TYPE_OK = /^(?:java\.util\.)?(?:List|Map)<[A-Za-z0-9_$<>,. ]+>$|^[A-Z][A-Za-z0-9_]*$|^String$|^Long$|^Double$|^Boolean$|^Void$/;
+const JAVA_CORE_TYPE_OK = /^(?:java\.util\.)?(?:List|Map)<[A-Za-z0-9_$<>,. ]+>$|^(?:io\.github\.ccxt\.types\.)?[A-Z][A-Za-z0-9_]*$|^String$|^Long$|^Double$|^Boolean$|^Void$/;
 const javaCoreTables = new Map ();
 
 function javaCoreTierOf (node) {
@@ -1913,6 +1925,33 @@ function returnCastFor (printer, node, methodName) {
     return undefined;
 }
 
+// `Integer == Long` does not compile, so an Integer local compared by identity with anything
+// but a number literal keeps Object
+function integerLocalHasBoxedEquality (declaration) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || !ts.isIdentifier (declaration.name)) {
+        return false;
+    }
+    const uses = identifierIndex (scope).get (String (declaration.name.escapedText)) ?? [];
+    return uses.some ((use) => {
+        let child = use;
+        while (child.parent !== undefined && ts.isParenthesizedExpression (child.parent)) {
+            child = child.parent;
+        }
+        const parent = child.parent;
+        if (parent === undefined || !ts.isBinaryExpression (parent)) {
+            return false;
+        }
+        const op = parent.operatorToken.kind;
+        if (op !== ts.SyntaxKind.EqualsEqualsToken && op !== ts.SyntaxKind.EqualsEqualsEqualsToken
+            && op !== ts.SyntaxKind.ExclamationEqualsToken && op !== ts.SyntaxKind.ExclamationEqualsEqualsToken) {
+            return false;
+        }
+        const other = unwrapParens (parent.left === child ? parent.right : parent.left);
+        return other === undefined || other.kind !== ts.SyntaxKind.NumericLiteral;
+    });
+}
+
 // ===== local narrowing (initializer -> Java type) =====
 
 // a local initialised from a non-`this` call the printer rewrites to a known Java shape
@@ -2238,6 +2277,9 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     // `this.`/`super.` receiver, so the `this.`-call gate below keeps its precedence
     const receiverMethod = receiverMethodLocalType (initializer);
     if (receiverMethod !== undefined) {
+        if (receiverMethod.type === 'Integer' && integerLocalHasBoxedEquality (declaration)) {
+            return undefined;
+        }
         return receiverMethod;
     }
 
@@ -5408,6 +5450,18 @@ function dataflowThisCallType (printer, node) {
     return undefined;
 }
 
+function dataflowIsStructureCall (printer, node) {
+    while (node !== undefined && ts.isParenthesizedExpression (node)) {
+        node = node.expression;
+    }
+    if (node === undefined || !ts.isCallExpression (node) || !ts.isPropertyAccessExpression (node.expression)
+        || node.expression.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = node.expression.name.escapedText;
+    return STRUCTURE_THIS_RETURN_TYPES[name] !== undefined && resolvesToMethodNamed (printer, node, name);
+}
+
 // the Java type of a value expression, or undefined when it cannot be proven. 'null' is
 // returned for a literal null/undefined (neutral: every emitted type is a reference
 // type). `context` carries { scope, index, stack, depth } and enables the recursive
@@ -5438,9 +5492,10 @@ function dataflowValueType (printer, node, context) {
         case ts.SyntaxKind.ParenthesizedExpression:
             return dataflowValueType (printer, node.expression, context);
         case ts.SyntaxKind.ConditionalExpression:
-            // SS-10: the arms now include the safeString family (dataflowThisCallType), so
-            // a source conditional with all-String/null arms unifies to String and its
-            // declaration becomes `String x = ...` — the ternary itself is the source's.
+            // an arm gets no checkcast, so a structure call (printed `Object`) cannot type it
+            if (dataflowIsStructureCall (printer, node.whenTrue) || dataflowIsStructureCall (printer, node.whenFalse)) {
+                return undefined;
+            }
             return dataflowUnifyArms (
                 dataflowValueType (printer, node.whenTrue, context),
                 dataflowValueType (printer, node.whenFalse, context));
