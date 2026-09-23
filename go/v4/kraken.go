@@ -1454,9 +1454,8 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes122119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 720))
-		PanicOnError(retRes122119)
-		ch <- retRes122119
+		var retRes122119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 720))))
+		ch <- BoxAbsent(retRes122119)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))

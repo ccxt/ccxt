@@ -2071,9 +2071,8 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes158719 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 10000))
-		PanicOnError(retRes158719)
-		ch <- retRes158719
+		var retRes158719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 10000))))
+		ch <- BoxAbsent(retRes158719)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4313,9 +4312,8 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes333919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 5000))
-		PanicOnError(retRes333919)
-		ch <- retRes333919
+		var retRes333919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 5000))))
+		ch <- BoxAbsent(retRes333919)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4670,9 +4668,8 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes363119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, "8h", params, 5000))
-		PanicOnError(retRes363119)
-		ch <- retRes363119
+		var retRes363119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, "8h", params, 5000))))
+		ch <- BoxAbsent(retRes363119)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4841,9 +4838,8 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes377019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchLiquidations", symbol, since, limit, "8h", params, 500))
-		PanicOnError(retRes377019)
-		ch <- retRes377019
+		var retRes377019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchLiquidations", symbol, since, limit, "8h", params, 500))))
+		ch <- BoxAbsent(retRes377019)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))

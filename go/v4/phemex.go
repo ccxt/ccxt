@@ -1300,7 +1300,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var v1ProductsPromise any = EndpointRaw(this.V1GetExchangePublicProducts(params))
-	v2Productsv1ProductsVariable := (<-promiseAll([]any{v2ProductsPromise, v1ProductsPromise}))
+	var v2Productsv1ProductsVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{v2ProductsPromise, v1ProductsPromise}))))
 	v2Products := GetValue(v2Productsv1ProductsVariable, 0)
 	v1Products := GetValue(v2Productsv1ProductsVariable, 1)
 	var v1ProductsData []any = SafeListTyped(v1Products, "data")
@@ -6039,9 +6039,8 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes506919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-		PanicOnError(retRes506919)
-		ch <- retRes506919
+		var retRes506919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))))
+		ch <- BoxAbsent(retRes506919)
 		return nil
 	}
 	var customSymbol any = nil

@@ -1638,9 +1638,8 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol any, optionalAr
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes127519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
-		PanicOnError(retRes127519)
-		ch <- retRes127519
+		var retRes127519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))))
+		ch <- BoxAbsent(retRes127519)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))

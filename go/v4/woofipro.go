@@ -1066,7 +1066,7 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	// }
 	//
 	var chainPromise any = EndpointRaw(this.V1PublicGetPublicChainInfo(params))
-	tokenResponsechainResponseVariable := (<-promiseAll([]any{tokenPromise, chainPromise}))
+	var tokenResponsechainResponseVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{tokenPromise, chainPromise}))))
 	tokenResponse := GetValue(tokenResponsechainResponseVariable, 0)
 	chainResponse := GetValue(tokenResponsechainResponseVariable, 1)
 	var tokenData map[string]any = SafeMapTyped(tokenResponse, "data")
@@ -1860,9 +1860,8 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes135819 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-		PanicOnError(retRes135819)
-		ch <- retRes135819
+		var retRes135819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))))
+		ch <- BoxAbsent(retRes135819)
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2001,9 +2000,8 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes146119 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes146119)
-		ch <- retRes146119
+		var retRes146119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes146119)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3192,9 +3190,8 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes242819 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-		PanicOnError(retRes242819)
-		ch <- retRes242819
+		var retRes242819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))))
+		ch <- BoxAbsent(retRes242819)
 		return nil
 	}
 	var request any = map[string]any{}
@@ -3469,9 +3466,8 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes261419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes261419)
-		ch <- retRes261419
+		var retRes261419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes261419)
 		return nil
 	}
 	var request any = map[string]any{}

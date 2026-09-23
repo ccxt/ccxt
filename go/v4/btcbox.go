@@ -278,7 +278,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promise1 any = EndpointRaw(this.PublicGetTickers())
 	var promise2 any = this.FetchWebEndpointAsync("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true)
-	response1response2Variable := (<-promiseAll([]any{promise1, promise2}))
+	var response1response2Variable []any = ListTyped(PanicOnError((<-promiseAll([]any{promise1, promise2}))))
 	response1 := GetValue(response1response2Variable, 0)
 	response2 := GetValue(response1response2Variable, 1)
 	//

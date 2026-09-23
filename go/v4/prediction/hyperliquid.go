@@ -2252,8 +2252,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	var outcomeHandle any = nil
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		outcomeHandle = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	} else {
 		// fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the

@@ -1245,7 +1245,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
 	var isUnifiedEnabled any = nil
-	isUnifiedEnabledparamsVariable := (<-this.IsUnifiedEnabledAsync("fetchBalance", userAddress, shouldRefresh, params))
+	var isUnifiedEnabledparamsVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync("fetchBalance", userAddress, shouldRefresh, params))))
 	isUnifiedEnabled = GetValue(isUnifiedEnabledparamsVariable, 0)
 	params = GetValue(isUnifiedEnabledparamsVariable, 1)
 	var dex *string = this.SafeString(params, "dex")

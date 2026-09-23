@@ -1155,8 +1155,7 @@ func (this *Myriad) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var defaultModel *string = this.SafeString(info, "tradingModel", "amm")
 	var tradingModel *string = this.SafeStringLower(params, "tradingModel", defaultModel)
@@ -2196,8 +2195,7 @@ func (this *Myriad) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var networkId *string = this.SafeString(params, "network_id", this.SafeString(this.Options, "defaultNetworkId", "56"))
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		marketId = this.SafeString(info, "marketId", marketId)
 		networkId = this.SafeString(info, "networkId", networkId)

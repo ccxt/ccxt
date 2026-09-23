@@ -1621,7 +1621,7 @@ func (this *Mexc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var spotMarketPromise any = this.FetchSpotMarketsAsync(params)
 	var swapMarketPromise any = this.FetchSwapMarketsAsync(params)
-	spotMarketswapMarketVariable := (<-promiseAll([]any{spotMarketPromise, swapMarketPromise}))
+	var spotMarketswapMarketVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{spotMarketPromise, swapMarketPromise}))))
 	spotMarket := GetValue(spotMarketswapMarketVariable, 0)
 	swapMarket := GetValue(spotMarketswapMarketVariable, 1)
 
@@ -2335,9 +2335,8 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes185819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-		PanicOnError(retRes185819)
-		ch <- retRes185819
+		var retRes185819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
+		ch <- BoxAbsent(retRes185819)
 		return nil
 	}
 	var options map[string]any = SafeMapTyped(this.Options, "timeframes")

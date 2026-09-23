@@ -1161,7 +1161,7 @@ func (this *Weex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 	var promises []any = []any{EndpointRaw(this.PublicGetApiV3ExchangeInfo(params)), EndpointRaw(this.ContractGetCapiV3MarketExchangeInfo(params))}
-	spotResponsecontractResponseVariable := (<-promiseAll(promises))
+	var spotResponsecontractResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	spotResponse := GetValue(spotResponsecontractResponseVariable, 0)
 	contractResponse := GetValue(spotResponsecontractResponseVariable, 1)
 	var spotArray []any = SafeListTypedDefault(spotResponse, "symbols", []any{})
@@ -1980,9 +1980,8 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 			"historical": true,
 		})
 
-		retRes160819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxHistoricalLimit))
-		PanicOnError(retRes160819)
-		ch <- retRes160819
+		var retRes160819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxHistoricalLimit))))
+		ch <- BoxAbsent(retRes160819)
 		return nil
 	}
 	var until *int64 = this.SafeInteger(params, "until")

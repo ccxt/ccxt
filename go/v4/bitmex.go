@@ -2309,9 +2309,8 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes178919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params))
-		PanicOnError(retRes178919)
-		ch <- retRes178919
+		var retRes178919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params))))
+		ch <- BoxAbsent(retRes178919)
 		return nil
 	}
 	// send JSON key/value pairs, such as {"key": "value"}

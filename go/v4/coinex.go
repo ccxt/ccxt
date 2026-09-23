@@ -5300,9 +5300,8 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes506519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
-		PanicOnError(retRes506519)
-		ch <- retRes506519
+		var retRes506519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))))
+		ch <- BoxAbsent(retRes506519)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))

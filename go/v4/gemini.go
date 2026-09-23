@@ -1367,7 +1367,7 @@ func (this *Gemini) fetchTickerV1AndV2Body(ch chan any, symbol any, optionalArgs
 	_ = params
 	var tickerPromiseA any = this.FetchTickerV1Async(symbol, params)
 	var tickerPromiseB any = this.FetchTickerV2Async(symbol, params)
-	tickerAtickerBVariable := (<-promiseAll([]any{tickerPromiseA, tickerPromiseB}))
+	var tickerAtickerBVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{tickerPromiseA, tickerPromiseB}))))
 	tickerA := GetValue(tickerAtickerBVariable, 0)
 	tickerB := GetValue(tickerAtickerBVariable, 1)
 

@@ -1344,9 +1344,8 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		retRes106619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes106619)
-		ch <- retRes106619
+		var retRes106619 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- ccxt.BoxAbsent(retRes106619)
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1456,9 +1455,8 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		retRes114919 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes114919)
-		ch <- retRes114919
+		var retRes114919 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- ccxt.BoxAbsent(retRes114919)
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1792,9 +1790,8 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		retRes141419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes141419)
-		ch <- retRes141419
+		var retRes141419 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- ccxt.BoxAbsent(retRes141419)
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)

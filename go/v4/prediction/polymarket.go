@@ -1441,7 +1441,7 @@ func (this *Polymarket) fetchTickerBody(ch chan any, outcome any, optionalArgs .
 	})), ccxt.EndpointRaw(this.ClobPublicGetLastTradePrice(map[string]any{
 		"token_id": tokenId,
 	}))}
-	midpointResponsebookResponselastTradeResponseVariable := (<-ccxt.PromiseAll(promises))
+	var midpointResponsebookResponselastTradeResponseVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	midpointResponse := ccxt.GetValue(midpointResponsebookResponselastTradeResponseVariable, 0)
 	bookResponse := ccxt.GetValue(midpointResponsebookResponselastTradeResponseVariable, 1)
 	lastTradeResponse := ccxt.GetValue(midpointResponsebookResponselastTradeResponseVariable, 2)
@@ -1834,8 +1834,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" fetchOHLCV() unsupported timeframe ", timeframe), ", supported timeframes are "), strings.Join(supportedKeys, ", "))))
 	}
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
 	var fidelityMin *int64 = this.SafeInteger(this.Timeframes, timeframe, 1) // fidelity in minutes
 	var nowS int64 = this.Seconds()
@@ -2175,8 +2174,7 @@ func (this *Polymarket) fetchTradesBody(ch chan any, outcome any, optionalArgs .
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var conditionId *string = this.SafeString(outcomeInfo, "conditionId")
@@ -3424,8 +3422,7 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	if outcome != nil {
 		// scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		var request map[string]any = map[string]any{
 			"asset_id": ccxt.GetValue(outcomeObj, "outcomeId"),
 		}
@@ -4380,8 +4377,7 @@ func (this *Polymarket) watchOrderBookBody(ch chan any, outcome any, optionalArg
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	var messageHash any = ccxt.Add("orderbook::", outcome)
@@ -4424,8 +4420,7 @@ func (this *Polymarket) watchTradesBody(ch chan any, outcome any, optionalArgs .
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	var messageHash any = ccxt.Add("trades::", outcome)
@@ -4462,8 +4457,7 @@ func (this *Polymarket) watchTickerBody(ch chan any, outcome any, optionalArgs .
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	var messageHash any = ccxt.Add("ticker::", outcome)
@@ -4578,8 +4572,7 @@ func (this *Polymarket) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "orders"
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 		messageHash = ccxt.Add("orders::", outcome)
 	}
@@ -4626,8 +4619,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var messageHash any = "myTrades"
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 		messageHash = ccxt.Add("myTrades::", outcome)
 	}

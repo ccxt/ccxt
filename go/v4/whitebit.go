@@ -1551,7 +1551,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	// Fetch both currencies and fees data for comprehensive funding limits
-	currenciesDatafeesDataVariable := (<-promiseAll([]any{this.FetchCurrenciesAsync(), EndpointRaw(this.V4PublicGetFee(params))}))
+	var currenciesDatafeesDataVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{this.FetchCurrenciesAsync(), EndpointRaw(this.V4PublicGetFee(params))}))))
 	currenciesData := GetValue(currenciesDatafeesDataVariable, 0)
 	feesData := GetValue(currenciesDatafeesDataVariable, 1)
 	//
@@ -3059,7 +3059,7 @@ func (this *Whitebit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	// Fetch both open and closed orders in parallel
-	openOrdersclosedOrdersVariable := (<-promiseAll([]any{this.FetchOpenOrdersAsync(symbol, since, limit, params), this.FetchClosedOrdersAsync(symbol, since, limit, params)}))
+	var openOrdersclosedOrdersVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{this.FetchOpenOrdersAsync(symbol, since, limit, params), this.FetchClosedOrdersAsync(symbol, since, limit, params)}))))
 	openOrders := GetValue(openOrdersclosedOrdersVariable, 0)
 	closedOrders := GetValue(openOrdersclosedOrdersVariable, 1)
 	var allOrders []any = this.ArrayConcat(openOrders, closedOrders)
@@ -5467,9 +5467,8 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes422319 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, maxLimit))
-		PanicOnError(retRes422319)
-		ch <- retRes422319
+		var retRes422319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, maxLimit))))
+		ch <- BoxAbsent(retRes422319)
 		return nil
 	}
 	if this.Markets == nil {
