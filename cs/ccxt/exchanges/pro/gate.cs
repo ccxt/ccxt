@@ -1269,7 +1269,7 @@ public partial class gate : ccxt.gate
             object timeframe = getValue(marketIds, symbol);
             string? interval = this.findTimeframe(timeframe);
             string hash = (((("candles" + ":") + interval) + ":") + symbol);
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), interval);
+            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), interval));
             client.resolve(stored, hash);
         }
     }
