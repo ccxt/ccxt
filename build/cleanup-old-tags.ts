@@ -3,43 +3,12 @@ import { execSync } from 'child_process';
 import log  from 'ololog';
 import ccxt from '../ts/ccxt.js';
 import { isMainEntry } from './transpile.js';
+import { fetchReleasedTags } from './utils/released-tags.js';
 const { values }   = Object
 import assert from 'assert';
 
 const { groupBy } = ccxt;
 log.noLocate();
-
-// Deleting a tag that a GitHub release points at does not delete the release: GitHub demotes
-// it to an untagged draft. Drafts sort ahead of published releases in the releases API, which
-// is what changelog-from-release reads, so an orphaned release both disappears from the public
-// releases page and corrupts CHANGELOG.md. The 2023 4.0.3 release is already in that state.
-// Fetch the tags that back a release so we never prune one.
-export async function fetchReleasedTags (): Promise<Set<string>> {
-    const repository = process.env.GITHUB_REPOSITORY || 'ccxt/ccxt';
-    const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
-    const headers: Record<string, string> = { 'Accept': 'application/vnd.github+json' };
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-    const releasedTags = new Set<string> ();
-    for (let page = 1; page <= 50; page++) {
-        const url = `https://api.github.com/repos/${repository}/releases?per_page=100&page=${page}`;
-        const response = await fetch (url, { headers });
-        if (!response.ok) {
-            throw new Error (`GitHub releases API returned HTTP ${response.status} for ${url}`);
-        }
-        const releases = await response.json () as { tag_name?: string }[];
-        if (releases.length === 0) {
-            return releasedTags;
-        }
-        for (const release of releases) {
-            if (release.tag_name) {
-                releasedTags.add (release.tag_name);
-            }
-        }
-    }
-    return releasedTags;
-}
 
 async function cleanupOldTags () {
 
@@ -98,9 +67,11 @@ async function cleanupOldTags () {
         }
     }
 
-    // Never orphan a GitHub release. If the API is unreachable we skip the whole cleanup rather
-    // than risk it: pruning tags is housekeeping, corrupting the changelog is not recoverable
-    // by a later run, because CHANGELOG.md is regenerated from the releases every time.
+    // Never orphan a GitHub release: deleting a tag a release points at does not delete the
+    // release, GitHub demotes it to an untagged draft, and CHANGELOG.md is regenerated from
+    // the releases every run. If the list is unavailable or incomplete we skip the whole
+    // cleanup rather than risk it - pruning tags is housekeeping, an orphaned release is not
+    // recoverable by a later run.
     let releasedTags: Set<string>;
     try {
         releasedTags = await fetchReleasedTags ();
