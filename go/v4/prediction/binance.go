@@ -2132,7 +2132,7 @@ func (this *Binance) CreateOrderAsync(outcome any, typeVar any, side any, amount
 func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	price := ccxt.GetArg(optionalArgs, 0, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2313,7 +2313,7 @@ func (this *Binance) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any 
 func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

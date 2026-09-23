@@ -290,7 +290,7 @@ func (this *Onetrading) ParseWSTicker(ticker any, optionalArgs ...any) any {
 	//         "volume": "6.3821593247"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instrument")
 	return this.SafeTicker(map[string]any{
@@ -727,7 +727,7 @@ func (this *Onetrading) ParseTradingOrder(order map[string]any, optionalArgs ...
 	//         "price": "13333.33"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var datetime *string = this.SafeString(order, "time")
 	var marketId *string = this.SafeString(order, "instrument_code")
@@ -1203,7 +1203,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	defer ccxt.ReturnPanicError(ch)
 	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit

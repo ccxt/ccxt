@@ -1169,7 +1169,7 @@ func (this *Kalshi) ParsePredictionOpenInterest(interest any, optionalArgs ...an
 	//
 	//     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(interest, "updated_time"))
 	var openInterest any = this.SafeOpenInterest(map[string]any{
@@ -1828,9 +1828,9 @@ func (this *Kalshi) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan an
 func (this *Kalshi) fetchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1957,11 +1957,11 @@ func (this *Kalshi) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Kalshi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2027,7 +2027,7 @@ func (this *Kalshi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @returns {object} a unified trade structure
  */
 func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(fill, "fill_id", "trade_id")
 	var orderId *string = this.SafeString(fill, "order_id")
@@ -2252,11 +2252,11 @@ func (this *Kalshi) FetchSettlementsAsync(optionalArgs ...any) <-chan any {
 func (this *Kalshi) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2312,7 +2312,7 @@ func (this *Kalshi) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
  * @returns {object} a prediction settlement structure
  */
 func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ticker *string = this.SafeString(settlement, "ticker")
 	// the leg the user actually held (kalshi reports separate yes/no counts + costs)
@@ -2408,7 +2408,7 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) any {
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *Kalshi) ParsePredictionPosition(position any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ticker *string = this.SafeString(position, "ticker")
 	var outcomeObj any = this.SafeOutcome(ticker, market)
@@ -2475,11 +2475,11 @@ func (this *Kalshi) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Kalshi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2525,11 +2525,11 @@ func (this *Kalshi) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Kalshi) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2576,11 +2576,11 @@ func (this *Kalshi) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	defer ccxt.ReturnPanicError(ch)
 	// kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
 	// both executed and canceled, so fetch every order and keep the non-open ones client-side
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2619,7 +2619,7 @@ func (this *Kalshi) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	defer ccxt.ReturnPanicError(ch)
 	// outcome is only a labelling hint here — the request needs just the id, and
 	// parsePredictionOrder resolves identity cache-only, so don't force a full market scan
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2647,7 +2647,7 @@ func (this *Kalshi) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "order_id")
 	var ticker *string = this.SafeString(order, "ticker")
@@ -2941,7 +2941,7 @@ func (this *Kalshi) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Kalshi) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2989,7 +2989,7 @@ func (this *Kalshi) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Kalshi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

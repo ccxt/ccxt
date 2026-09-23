@@ -1558,10 +1558,10 @@ func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) any {
 	//         "yesterday_price": "1.3412"
 	//       }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var funding *float64 = this.SafeNumber(info, "funding")
 	var markPx *float64 = this.SafeNumber(info, "mark")
@@ -1734,9 +1734,9 @@ func (this *Pacifica) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Pacifica) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1797,11 +1797,11 @@ func (this *Pacifica) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1903,14 +1903,14 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any {
 	//       "created_at": 1765006315306
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var eventType *string = this.SafeString(trade, "event_type")
 	var timestamp *int64 = this.SafeInteger(trade, "created_at")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "amount")
 	var marketId *string = this.SafeString(trade, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var id *string = this.SafeString(trade, "history_id")
 	var side any = DerefScalar(this.SafeString(trade, "side"))
@@ -1991,7 +1991,7 @@ func (this *Pacifica) CreateOrderAsync(symbol any, typeVar any, side any, amount
 func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2050,7 +2050,7 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar any, side
 	return nil
 }
 func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2578,7 +2578,7 @@ func (this *Pacifica) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	return nil
 }
 func (this *Pacifica) CancelOrderRequest(id any, optionalArgs ...any) any {
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2716,11 +2716,11 @@ func (this *Pacifica) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan a
 func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2872,10 +2872,10 @@ func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) any {
 	//       "yesterday_price": "1.3412"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	return this.SafeTicker(map[string]any{
@@ -2911,11 +2911,11 @@ func (this *Pacifica) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Pacifica) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2951,11 +2951,11 @@ func (this *Pacifica) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Pacifica) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2991,11 +2991,11 @@ func (this *Pacifica) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-c
 func (this *Pacifica) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3031,11 +3031,11 @@ func (this *Pacifica) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3110,11 +3110,11 @@ func (this *Pacifica) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3218,7 +3218,7 @@ func (this *Pacifica) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3428,10 +3428,10 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) any {
 	//       "li": 1559696133
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(order, "symbol", "s")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeInteger2(order, "created_at", "ct")
 	var status *string = this.SafeString2(order, "order_status", "os", "open") // open if method is fetchOpenOrders
@@ -3590,10 +3590,10 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 	//       "updated_at": 1759223365538
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var margin *string = this.SafeString(position, "margin")
 	var marginMode string = func() string {
@@ -3659,7 +3659,7 @@ func (this *Pacifica) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-
 func (this *Pacifica) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3709,7 +3709,7 @@ func (this *Pacifica) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan
 func (this *Pacifica) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3867,7 +3867,7 @@ func (this *Pacifica) ParseTradingFee(fee map[string]any, optionalArgs ...any) a
 	//   }
 	//
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
 	return map[string]any{
@@ -3964,12 +3964,12 @@ func (this *Pacifica) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//       "yesterday_price": "1.3412"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(interest, "symbol")
 	var symbol any = nil
 	if marketId != nil {
-		market = this.SafeMarket(marketId, market)
+		market = MapTyped(this.SafeMarket(marketId, market))
 		symbol = GetValue(market, "symbol")
 	}
 	var interestValue *string = nil
@@ -4011,11 +4011,11 @@ func (this *Pacifica) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4077,7 +4077,7 @@ func (this *Pacifica) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//       "created_at": 1716200000000
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(item, "created_at")
 	var typeVar *string = this.SafeString(item, "event_type")
@@ -4144,11 +4144,11 @@ func (this *Pacifica) FetchFundingHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4218,12 +4218,12 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
 	//       "created_at": 1759222804122
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(income, "history_id")
 	var timestamp *int64 = this.SafeInteger(income, "created_at")
 	var marketId *string = this.SafeString(income, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var amount *string = this.SafeString(income, "amount")
 	var code *string = this.SafeCurrencyCode("USDC")
@@ -4309,7 +4309,7 @@ func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//   "code": null
 	// }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var success *bool = this.SafeBool(transfer, "success")
 	var status any = nil

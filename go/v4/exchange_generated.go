@@ -1442,7 +1442,7 @@ func (this *BaseExchange) ParseWsOrderTrade(trade any, optionalArgs ...any) any 
 	panic(NotSupported(this.Id + " parseWsOrderTrade() is not supported yet"))
 }
 func (this *BaseExchange) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return this.DerivedExchange.ParseOHLCV(ohlcv, market)
 }
@@ -1834,7 +1834,7 @@ func (this *BaseExchange) IsEmptyString(value any) any {
 	return !this.ValueIsDefined(value) || (value == "")
 }
 func (this *BaseExchange) SafeIntegerOmitZero(obj any, key any, optionalArgs ...any) any {
-	defaultValue := GetArg(optionalArgs, 0, nil)
+	var defaultValue *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var timestamp *int64 = this.SafeInteger(obj, key, defaultValue)
 	if (timestamp == nil) || (timestamp != nil && *timestamp == 0) {
@@ -2154,9 +2154,9 @@ func (this *BaseExchange) GetDefaultOptions() any {
 	}
 }
 func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) any {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	currency = this.SafeCurrency(nil, currency)
+	currency = MapTyped(this.SafeCurrency(nil, currency))
 	var direction any = this.SafeString(entry, "direction")
 	var before *string = this.SafeString(entry, "before")
 	var after *string = this.SafeString(entry, "after")
@@ -2611,7 +2611,7 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	// parses numbers as strings
 	// * it is important pass the trades as unparsed rawTrades
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	if IsEqual(order, nil) {
 		order = map[string]any{}
@@ -2908,11 +2908,11 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) any {
 	//         ...
 	//     ]
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2949,7 +2949,7 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) any {
 func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any, amount any, price any, optionalArgs ...any) any {
 	var takerOrMaker string = GetArgString(optionalArgs, 0, "taker")
 	_ = takerOrMaker
-	feeRate := GetArg(optionalArgs, 1, nil)
+	var feeRate *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = feeRate
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -3075,13 +3075,13 @@ func (this *BaseExchange) SafeTrade(trade any, optionalArgs ...any) any {
 }
 func (this *BaseExchange) CreateCcxtTradeId(optionalArgs ...any) any {
 	// this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-	timestamp := GetArg(optionalArgs, 0, nil)
+	var timestamp *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = timestamp
 	side := GetArg(optionalArgs, 1, nil)
 	_ = side
-	amount := GetArg(optionalArgs, 2, nil)
+	var amount *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 3, nil)
+	var price *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = price
 	takerOrMaker := GetArg(optionalArgs, 4, nil)
 	_ = takerOrMaker
@@ -4097,7 +4097,7 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) any {
 	 * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
 	 * @returns {string|undefined} unified network code
 	 */
-	networkId := GetArg(optionalArgs, 0, nil)
+	var networkId *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = networkId
 	currencyCode := GetArg(optionalArgs, 1, nil)
 	_ = currencyCode
@@ -4199,7 +4199,7 @@ func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, network
 	return chosenNetworkId
 }
 func (this *BaseExchange) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) map[string]any {
-	timestamp := GetArg(optionalArgs, 0, nil)
+	var timestamp *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = timestamp
 	var bidsKey string = GetArgString(optionalArgs, 1, "bids")
 	_ = bidsKey
@@ -4234,9 +4234,9 @@ func (this *BaseExchange) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
 	_ = market
 	var timeframe string = GetArgString(optionalArgs, 1, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 2, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 3, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 3, nil)
 	_ = limit
 	var tail bool = GetArgBool(optionalArgs, 4, false)
 	_ = tail
@@ -4254,7 +4254,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 	// marketIdKey should only be undefined when response is a dictionary.
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	marketIdKey := GetArg(optionalArgs, 1, nil)
+	var marketIdKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = marketIdKey
 	symbols = this.MarketSymbols(symbols)
 	var tiers map[string]any = map[string]any{}
@@ -4421,11 +4421,11 @@ func (this *BaseExchange) ParseAccounts(accounts any, optionalArgs ...any) any {
 	return result
 }
 func (this *BaseExchange) ParseTradesHelper(isWs any, trades any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4460,7 +4460,7 @@ func (this *BaseExchange) ParseTradesHelper(isWs any, trades any, optionalArgs .
 	return this.FilterBySymbolSinceLimit(result, symbol, since, limit)
 }
 func (this *BaseExchange) ParseTrades(trades any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -4471,7 +4471,7 @@ func (this *BaseExchange) ParseTrades(trades any, optionalArgs ...any) any {
 	return this.ParseTradesHelper(false, trades, market, since, limit, params)
 }
 func (this *BaseExchange) ParseWsTrades(trades any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -4482,11 +4482,11 @@ func (this *BaseExchange) ParseWsTrades(trades any, optionalArgs ...any) any {
 	return this.ParseTradesHelper(true, trades, market, since, limit, params)
 }
 func (this *BaseExchange) ParseTransactions(transactions any, optionalArgs ...any) any {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4511,11 +4511,11 @@ func (this *BaseExchange) ParseTransactions(transactions any, optionalArgs ...an
 	return this.FilterByCurrencySinceLimit(result, code, since, limit)
 }
 func (this *BaseExchange) ParseTransfers(transfers any, optionalArgs ...any) any {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4540,11 +4540,11 @@ func (this *BaseExchange) ParseTransfers(transfers any, optionalArgs ...any) any
 	return this.FilterByCurrencySinceLimit(result, code, since, limit)
 }
 func (this *BaseExchange) ParseLedger(data any, optionalArgs ...any) any {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4641,7 +4641,7 @@ func (this *BaseExchange) Symbol(symbol any) any {
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
 func (this *BaseExchange) HandleParamString(params any, paramName any, optionalArgs ...any) []any {
-	defaultValue := GetArg(optionalArgs, 0, nil)
+	var defaultValue *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *string = this.SafeString(params, paramName, defaultValue)
 	if value != nil {
@@ -4653,7 +4653,7 @@ func (this *BaseExchange) HandleParamString(params any, paramName any, optionalA
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
 func (this *BaseExchange) HandleParamString2(params any, paramName1 any, paramName2 any, optionalArgs ...any) []any {
-	defaultValue := GetArg(optionalArgs, 0, nil)
+	var defaultValue *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *string = this.SafeString2(params, paramName1, paramName2, defaultValue)
 	if value != nil {
@@ -4662,7 +4662,7 @@ func (this *BaseExchange) HandleParamString2(params any, paramName1 any, paramNa
 	return []any{value, params}
 }
 func (this *BaseExchange) HandleParamInteger(params any, paramName any, optionalArgs ...any) []any {
-	defaultValue := GetArg(optionalArgs, 0, nil)
+	var defaultValue *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *int64 = this.SafeInteger(params, paramName, defaultValue)
 	if value != nil {
@@ -4680,7 +4680,7 @@ func (this *BaseExchange) HandleParamInteger2(params any, paramName1 any, paramN
 	return []any{value, params}
 }
 func (this *BaseExchange) HandleParamBool(params any, paramName any, optionalArgs ...any) []any {
-	defaultValue := GetArg(optionalArgs, 0, nil)
+	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *bool = this.SafeBool(params, paramName, defaultValue)
 	if value != nil {
@@ -5064,13 +5064,13 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	return ohlcvs
 }
 func (this *BaseExchange) ParseTradingViewOHLCV(ohlcvs any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timeframe string = GetArgString(optionalArgs, 1, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 2, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 3, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 3, nil)
 	_ = limit
 	var result any = this.ConvertTradingViewToOHLCV(ohlcvs)
 	return this.ParseOHLCVs(result, market, timeframe, since, limit)
@@ -5239,7 +5239,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) any {
 	return emptyMarket
 }
 func (this *BaseExchange) MarketOrNull(optionalArgs ...any) any {
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	if symbol == nil {
 		return nil
@@ -5941,9 +5941,9 @@ func (this *BaseExchange) fetchPositionADLRankBody(ch chan any, symbol any, opti
 func (this *BaseExchange) SetTakeProfitAndStopLossParams(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	takeProfit := GetArg(optionalArgs, 1, nil)
+	var takeProfit *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = takeProfit
-	stopLoss := GetArg(optionalArgs, 2, nil)
+	var stopLoss *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
 	_ = stopLoss
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -6564,7 +6564,7 @@ func (this *BaseExchange) FeeToPrecision(symbol any, fee any) any {
 	return this.DecimalToPrecision(fee, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
 }
 func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ...any) any {
-	networkCode := GetArg(optionalArgs, 0, nil)
+	var networkCode *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = networkCode
 	if IsEqual(code, nil) {
 		panic(ArgumentsRequired(this.Id + " currencyToPrecision() requires a code argument"))
@@ -6719,28 +6719,28 @@ func (this *BaseExchange) createSubAccountBody(ch chan any, name any, optionalAr
 	panic(NotSupported(this.Id + " createSubAccount() is not supported yet"))
 }
 func (this *BaseExchange) SafeCurrencyCode(currencyId any, optionalArgs ...any) *string {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	currency = this.SafeCurrency(currencyId, currency)
+	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	return SafeStringPtr(GetValue(currency, "code"))
 }
 func (this *BaseExchange) FilterBySymbolSinceLimit(array any, optionalArgs ...any) any {
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var tail bool = GetArgBool(optionalArgs, 3, false)
 	_ = tail
 	return this.FilterByValueSinceLimit(array, "symbol", symbol, since, limit, "timestamp", tail)
 }
 func (this *BaseExchange) FilterByCurrencySinceLimit(array any, optionalArgs ...any) any {
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var tail bool = GetArgBool(optionalArgs, 3, false)
 	_ = tail
@@ -6749,9 +6749,9 @@ func (this *BaseExchange) FilterByCurrencySinceLimit(array any, optionalArgs ...
 func (this *BaseExchange) FilterBySymbolsSinceLimit(array any, optionalArgs ...any) any {
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var tail bool = GetArgBool(optionalArgs, 3, false)
 	_ = tail
@@ -6876,7 +6876,7 @@ func (this *BaseExchange) ParseDepositAddresses(addresses any, optionalArgs ...a
 	return result
 }
 func (this *BaseExchange) ParseBorrowInterests(response any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var interests []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
@@ -6913,11 +6913,11 @@ func (this *BaseExchange) ParseIsolatedBorrowRates(info any) any {
 	return result
 }
 func (this *BaseExchange) ParseFundingRateHistories(response any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
@@ -6934,15 +6934,13 @@ func (this *BaseExchange) ParseFundingRateHistories(response any, optionalArgs .
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
 func (this *BaseExchange) SafeSymbol(marketId any, optionalArgs ...any) *string {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	delimiter := GetArg(optionalArgs, 1, nil)
+	var delimiter *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = delimiter
-	marketType := GetArg(optionalArgs, 2, nil)
+	var marketType *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = marketType
-
-	market = this.DerivedExchange.SafeMarket(marketId, market, delimiter, marketType)
-	PanicOnError(market)
+	market = MapTyped(this.DerivedExchange.SafeMarket(marketId, market, delimiter, marketType))
 	return SafeStringPtr(GetValue(market, "symbol"))
 }
 func (this *BaseExchange) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -6971,11 +6969,11 @@ func (this *BaseExchange) ParseLongShortRatio(info any, optionalArgs ...any) any
 	panic(NotSupported(this.Id + " parseLongShortRatio() is not supported yet"))
 }
 func (this *BaseExchange) ParseLongShortRatioHistory(response any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
@@ -7205,11 +7203,11 @@ func (this *BaseExchange) ParseOpenInterests(response any, optionalArgs ...any) 
 	return this.FilterByArray(result, "symbol", symbols)
 }
 func (this *BaseExchange) ParseOpenInterestsHistory(response any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var interests []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
@@ -7503,7 +7501,7 @@ func (this *BaseExchange) ParseDepositWithdrawFees(response any, optionalArgs ..
 	 */
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
-	currencyIdKey := GetArg(optionalArgs, 1, nil)
+	var currencyIdKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = currencyIdKey
 	var depositWithdrawFees map[string]any = map[string]any{}
 	var isArray bool = IsArray(response)
@@ -7599,11 +7597,11 @@ func (this *BaseExchange) ParseIncomes(incomes any, optionalArgs ...any) any {
 	 * @param {int} [limit] limits the number of items in the response
 	 * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
 	 */
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(incomes); i++ {
@@ -7673,11 +7671,11 @@ func (this *BaseExchange) fetchTransactionsBody(ch chan any, optionalArgs ...any
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
 	 */
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -7762,7 +7760,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -7987,7 +7985,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	timeframe := GetArg(optionalArgs, 3, nil)
 	_ = timeframe
@@ -8078,7 +8076,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -8236,7 +8234,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan any, method 
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -8424,11 +8422,11 @@ func (this *BaseExchange) ParseLiquidations(liquidations any, optionalArgs ...an
 	 * @param {int} [limit] limits the number of items in the response
 	 * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
 	 */
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(liquidations); i++ {
@@ -8489,9 +8487,9 @@ func (this *BaseExchange) ParseOption(chain any, optionalArgs ...any) any {
 	panic(NotSupported(this.Id + " parseOption () is not supported yet"))
 }
 func (this *BaseExchange) ParseOptionChain(response any, optionalArgs ...any) any {
-	currencyKey := GetArg(optionalArgs, 0, nil)
+	var currencyKey *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = currencyKey
-	symbolKey := GetArg(optionalArgs, 1, nil)
+	var symbolKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbolKey
 	var optionStructures map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {
@@ -8519,7 +8517,7 @@ func (this *BaseExchange) ParseOptionChain(response any, optionalArgs ...any) an
 func (this *BaseExchange) ParseMarginModes(response any, optionalArgs ...any) any {
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	symbolKey := GetArg(optionalArgs, 1, nil)
+	var symbolKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbolKey
 	marketType := GetArg(optionalArgs, 2, nil)
 	_ = marketType
@@ -8552,7 +8550,7 @@ func (this *BaseExchange) ParseMarginMode(marginMode any, optionalArgs ...any) a
 func (this *BaseExchange) ParseLeverages(response any, optionalArgs ...any) any {
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	symbolKey := GetArg(optionalArgs, 1, nil)
+	var symbolKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbolKey
 	marketType := GetArg(optionalArgs, 2, nil)
 	_ = marketType
@@ -8585,13 +8583,13 @@ func (this *BaseExchange) ParseLeverage(leverage any, optionalArgs ...any) any {
 func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any) any {
 	code := GetArg(optionalArgs, 0, nil)
 	_ = code
-	fromCurrencyKey := GetArg(optionalArgs, 1, nil)
+	var fromCurrencyKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = fromCurrencyKey
-	toCurrencyKey := GetArg(optionalArgs, 2, nil)
+	var toCurrencyKey *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = toCurrencyKey
-	since := GetArg(optionalArgs, 3, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 3, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 4, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 4, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 5, map[string]any{})
 	_ = params
@@ -8757,7 +8755,7 @@ func (this *BaseExchange) ParseMarginModification(data any, optionalArgs ...any)
 func (this *BaseExchange) ParseMarginModifications(response any, optionalArgs ...any) any {
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	symbolKey := GetArg(optionalArgs, 1, nil)
+	var symbolKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbolKey
 	marketType := GetArg(optionalArgs, 2, nil)
 	_ = marketType
@@ -9726,7 +9724,7 @@ func (this *Exchange) createStopLossOrderWsBody(ch chan any, symbol any, typeVar
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	stopLossPrice := GetArg(optionalArgs, 1, nil)
+	var stopLossPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = stopLossPrice
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -9777,7 +9775,7 @@ func (this *Exchange) createStopOrderWsBody(ch chan any, symbol any, typeVar any
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	triggerPrice := GetArg(optionalArgs, 1, nil)
+	var triggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = triggerPrice
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -9819,7 +9817,7 @@ func (this *Exchange) createTakeProfitOrderWsBody(ch chan any, symbol any, typeV
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	takeProfitPrice := GetArg(optionalArgs, 1, nil)
+	var takeProfitPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = takeProfitPrice
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -9862,9 +9860,9 @@ func (this *Exchange) createTrailingAmountOrderWsBody(ch chan any, symbol any, t
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	trailingAmount := GetArg(optionalArgs, 1, nil)
+	var trailingAmount *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = trailingAmount
-	trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
+	var trailingTriggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
 	_ = trailingTriggerPrice
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -9908,9 +9906,9 @@ func (this *Exchange) createTrailingPercentOrderWsBody(ch chan any, symbol any, 
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	trailingPercent := GetArg(optionalArgs, 1, nil)
+	var trailingPercent *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = trailingPercent
-	trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
+	var trailingTriggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
 	_ = trailingTriggerPrice
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -9953,7 +9951,7 @@ func (this *Exchange) createTriggerOrderWsBody(ch chan any, symbol any, typeVar 
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	triggerPrice := GetArg(optionalArgs, 1, nil)
+	var triggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = triggerPrice
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -10711,9 +10709,9 @@ func (this *Exchange) createTrailingAmountOrderBody(ch chan any, symbol any, typ
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	trailingAmount := GetArg(optionalArgs, 1, nil)
+	var trailingAmount *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = trailingAmount
-	trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
+	var trailingTriggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
 	_ = trailingTriggerPrice
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -10757,9 +10755,9 @@ func (this *Exchange) createTrailingPercentOrderBody(ch chan any, symbol any, ty
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	trailingPercent := GetArg(optionalArgs, 1, nil)
+	var trailingPercent *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = trailingPercent
-	trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
+	var trailingTriggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
 	_ = trailingTriggerPrice
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -10887,7 +10885,7 @@ func (this *Exchange) createTriggerOrderBody(ch chan any, symbol any, typeVar an
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	triggerPrice := GetArg(optionalArgs, 1, nil)
+	var triggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = triggerPrice
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -10929,7 +10927,7 @@ func (this *Exchange) createStopLossOrderBody(ch chan any, symbol any, typeVar a
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	stopLossPrice := GetArg(optionalArgs, 1, nil)
+	var stopLossPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = stopLossPrice
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -10971,7 +10969,7 @@ func (this *Exchange) createTakeProfitOrderBody(ch chan any, symbol any, typeVar
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	takeProfitPrice := GetArg(optionalArgs, 1, nil)
+	var takeProfitPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = takeProfitPrice
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -11233,11 +11231,11 @@ func (this *Exchange) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Exchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -11259,11 +11257,11 @@ func (this *Exchange) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Exchange) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -11487,7 +11485,7 @@ func (this *Exchange) createStopOrderBody(ch chan any, symbol any, typeVar any, 
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	triggerPrice := GetArg(optionalArgs, 1, nil)
+	var triggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = triggerPrice
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params

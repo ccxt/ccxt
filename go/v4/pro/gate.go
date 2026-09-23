@@ -186,7 +186,7 @@ func (this *Gate) CreateOrderWsAsync(symbol any, typeVar any, side any, amount a
 func (this *Gate) createOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	price := ccxt.GetArg(optionalArgs, 0, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -274,7 +274,7 @@ func (this *Gate) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan any {
 func (this *Gate) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -340,7 +340,7 @@ func (this *Gate) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Gate) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1263,9 +1263,9 @@ func (this *Gate) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Gate) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1298,7 +1298,7 @@ func (this *Gate) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <
 func (this *Gate) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -1461,7 +1461,7 @@ func (this *Gate) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1579,7 +1579,7 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1851,9 +1851,9 @@ func (this *Gate) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2085,7 +2085,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -2333,9 +2333,9 @@ func (this *Gate) WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs .
 func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2485,10 +2485,10 @@ func (this *Gate) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
 	//        "time_ms": 1639051907000
 	//    }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(liquidation, "contract")
-	market = this.SafeMarket(marketId, market)
+	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeInteger(liquidation, "time_ms")
 	var originalSize *string = this.SafeString(liquidation, "size")
 	var left *string = this.SafeString(liquidation, "left")
@@ -2939,7 +2939,7 @@ func (this *Gate) subscribePublicBody(ch chan any, url any, messageHash any, pay
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	subscription := ccxt.GetArg(optionalArgs, 1, nil)
+	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 1, nil)
 	_ = subscription
 	var requestId any = this.RequestId()
 	var time int64 = this.Seconds()

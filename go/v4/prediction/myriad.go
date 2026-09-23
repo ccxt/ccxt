@@ -1897,7 +1897,7 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) any {
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) ParseAmmEventToOrder(trade any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var networkId *string = this.SafeString(trade, "networkId")
 	var marketId *string = this.SafeString(trade, "marketId")
@@ -1978,7 +1978,7 @@ func (this *Myriad) FetchAmmOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	since := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -2102,7 +2102,7 @@ func (this *Myriad) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Myriad) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2185,7 +2185,7 @@ func (this *Myriad) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2347,7 +2347,7 @@ func (this *Myriad) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Myriad) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2518,11 +2518,11 @@ func (this *Myriad) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2555,11 +2555,11 @@ func (this *Myriad) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2592,11 +2592,11 @@ func (this *Myriad) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2631,11 +2631,11 @@ func (this *Myriad) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3270,7 +3270,7 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	//         "externalSources": []
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var outcomeId *string = func() *string {
 		if market != nil {
@@ -3577,9 +3577,9 @@ func (this *Myriad) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1d")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3853,9 +3853,9 @@ func (this *Myriad) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan an
 func (this *Myriad) fetchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -3939,7 +3939,7 @@ func (this *Myriad) fetchTradesBody(ch chan any, outcome any, optionalArgs ...an
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Myriad) ParsePredictionTrade(trade any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(trade, "timestamp")
 	var amountStr *string = this.SafeString(trade, "shares")
@@ -4503,9 +4503,9 @@ func (this *Myriad) WatchTradesAsync(outcome any, optionalArgs ...any) <-chan an
 func (this *Myriad) watchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -4548,9 +4548,9 @@ func (this *Myriad) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4916,9 +4916,9 @@ func (this *Myriad) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params

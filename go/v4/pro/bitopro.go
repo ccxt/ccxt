@@ -174,7 +174,7 @@ func (this *Bitopro) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Bitopro) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -255,9 +255,9 @@ func (this *Bitopro) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Bitopro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -345,7 +345,7 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//         "isMaker": false
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(trade, "matchID")
 	var orderId *string = this.SafeString(trade, "orderID")
@@ -355,7 +355,7 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
-	market = this.SafeMarket(symbol, market)
+	market = ccxt.MapTyped(this.SafeMarket(symbol, market))
 	var price *string = this.SafeString(trade, "price")
 	var typeVar *string = this.SafeStringLower(trade, "orderType")
 	var side any = ccxt.DerefScalar(this.SafeString(trade, "side"))

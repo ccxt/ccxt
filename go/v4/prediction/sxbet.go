@@ -1096,7 +1096,7 @@ func (this *Sxbet) CreateOrderAsync(outcome any, typeVar any, side any, amount a
 func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	price := ccxt.GetArg(optionalArgs, 0, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1685,9 +1685,9 @@ func (this *Sxbet) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1733,11 +1733,11 @@ func (this *Sxbet) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1766,7 +1766,7 @@ func (this *Sxbet) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Sxbet) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1812,7 +1812,7 @@ func (this *Sxbet) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan any
 func (this *Sxbet) fetchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -1872,9 +1872,9 @@ func (this *Sxbet) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -2229,9 +2229,9 @@ func (this *Sxbet) FetchSettlementsAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -3352,9 +3352,9 @@ func (this *Sxbet) WatchTradesAsync(outcome any, optionalArgs ...any) <-chan any
 func (this *Sxbet) watchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -3466,11 +3466,11 @@ func (this *Sxbet) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3535,11 +3535,11 @@ func (this *Sxbet) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params

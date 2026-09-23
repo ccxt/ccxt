@@ -1430,7 +1430,7 @@ func (this *Hitbtc) ParseTicker(ticker any, optionalArgs ...any) any {
 	//       "timestamp": "2021-10-22T07:29:14.585Z"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(GetValue(ticker, "timestamp"))
 	var symbol *string = this.SafeSymbol(nil, market)
@@ -1481,9 +1481,9 @@ func (this *Hitbtc) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1549,11 +1549,11 @@ func (this *Hitbtc) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Hitbtc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1665,11 +1665,11 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) any {
 	//      "liquidation": false
 	//  }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(GetValue(trade, "timestamp"))
 	var marketId *string = this.SafeString(trade, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var fee any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
@@ -1902,11 +1902,11 @@ func (this *Hitbtc) FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan an
 func (this *Hitbtc) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1936,11 +1936,11 @@ func (this *Hitbtc) FetchDepositsAsync(optionalArgs ...any) <-chan any {
 func (this *Hitbtc) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1970,11 +1970,11 @@ func (this *Hitbtc) FetchWithdrawalsAsync(optionalArgs ...any) <-chan any {
 func (this *Hitbtc) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2005,7 +2005,7 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2056,7 +2056,7 @@ func (this *Hitbtc) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Hitbtc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2087,7 +2087,7 @@ func (this *Hitbtc) ParseTradingFee(fee any, optionalArgs ...any) any {
 	//         "make_rate":"0.0009"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var taker *float64 = this.SafeNumber(fee, "take_rate")
 	var maker *float64 = this.SafeNumber(fee, "make_rate")
@@ -2241,9 +2241,9 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2380,11 +2380,11 @@ func (this *Hitbtc) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Hitbtc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2463,7 +2463,7 @@ func (this *Hitbtc) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Hitbtc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2558,11 +2558,11 @@ func (this *Hitbtc) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan an
 func (this *Hitbtc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2674,11 +2674,11 @@ func (this *Hitbtc) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Hitbtc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2769,7 +2769,7 @@ func (this *Hitbtc) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan any 
 func (this *Hitbtc) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2841,7 +2841,7 @@ func (this *Hitbtc) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Hitbtc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2913,7 +2913,7 @@ func (this *Hitbtc) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Hitbtc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2971,9 +2971,9 @@ func (this *Hitbtc) EditOrderAsync(id any, symbol any, typeVar any, side any, op
 func (this *Hitbtc) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	amount := GetArg(optionalArgs, 0, nil)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -3059,7 +3059,7 @@ func (this *Hitbtc) CreateOrderAsync(symbol any, typeVar any, side any, amount a
 func (this *Hitbtc) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3099,7 +3099,7 @@ func (this *Hitbtc) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	return nil
 }
 func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, side any, amount any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	marginMode := GetArg(optionalArgs, 1, nil)
 	_ = marginMode
@@ -3242,7 +3242,7 @@ func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) any {
 	//         "updated_at": "2022-03-16T08:16:53.039Z"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "client_order_id")
 	// we use clientOrderId as the order id with this exchange intentionally
@@ -3263,7 +3263,7 @@ func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) any {
 	var filled *string = this.SafeString(order, "quantity_cumulative")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var marketId *string = this.SafeString(order, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var postOnly any = this.SafeValue(order, "post_only")
 	var timeInForce *string = this.SafeString(order, "time_in_force")
@@ -3350,7 +3350,7 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Hitbtc) ParseMarginMode(marginMode any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(marginMode, "symbol")
 	return map[string]any{
@@ -3423,7 +3423,7 @@ func (this *Hitbtc) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//         "2db6ebab-fb26-4537-9ef8-1a689472d236"
 	//     ]
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	return map[string]any{
 		"id":          this.SafeString(transfer, 0),
@@ -3651,9 +3651,9 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3963,7 +3963,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) any {
 	//         },
 	//     ]
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marginMode *string = this.SafeString(position, "type")
 	var leverage *float64 = this.SafeNumber(position, "leverage")
@@ -3995,7 +3995,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) any {
 		collateral = this.SafeNumber(entry, "margin_balance")
 	}
 	var marketId *string = this.SafeString(position, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -4044,7 +4044,7 @@ func (this *Hitbtc) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//         "timestamp": "2022-03-22T08:08:26.687Z"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var datetime *string = this.SafeString(interest, "timestamp")
 	var value *float64 = this.SafeNumber(interest, "open_interest")
@@ -4244,7 +4244,7 @@ func (this *Hitbtc) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//         "timestamp": "2022-03-22T08:08:26.687Z"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var fundingDateTime *string = this.SafeString(contract, "next_funding_time")
 	var datetime *string = this.SafeString(contract, "timestamp")
@@ -4544,7 +4544,7 @@ func (this *Hitbtc) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	return nil
 }
 func (this *Hitbtc) ParseLeverage(leverage any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
 	var leverageValue *int64 = this.SafeInteger(leverage, "leverage")

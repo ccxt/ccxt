@@ -319,7 +319,7 @@ func (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) any {
 	//     "size":"0.00041087"
 	// }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeTimestamp(ticker, "at")
@@ -404,11 +404,11 @@ func (this *Paymium) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	return nil
 }
 func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(trade, "created_at_int")
 	var id *string = this.SafeString(trade, "uuid")
-	market = this.SafeMarket(nil, market)
+	market = MapTyped(this.SafeMarket(nil, market))
 	var side *string = this.SafeString(trade, "side")
 	var price *string = this.SafeString(trade, "price")
 	var amountField string = "traded_" + ToLower(GetValue(market, "base"))
@@ -449,9 +449,9 @@ func (this *Paymium) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Paymium) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -603,7 +603,7 @@ func (this *Paymium) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	//         "label": "Savings"
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
 	var currencyId *string = this.SafeString(depositAddress, "currency")
@@ -637,7 +637,7 @@ func (this *Paymium) CreateOrderAsync(symbol any, typeVar any, side any, amount 
 func (this *Paymium) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -811,7 +811,7 @@ func (this *Paymium) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "currency")
 	var updatedAt *string = this.SafeString(transfer, "updated_at")
