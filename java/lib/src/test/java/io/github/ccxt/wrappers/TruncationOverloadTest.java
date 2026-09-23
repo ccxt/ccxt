@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -21,9 +22,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * truncation actually forwards.
  *
  * Okx.fetchTrades(String symbol, Long since, Long limit, Map params) is
- * a 1-required + 3-optional shape, so the generator should emit three
- * truncations — (symbol), (symbol, since), (symbol, since, limit) — plus the
- * full one. We exercise all four.
+ * a 1-required + 3-optional shape: three sync truncations — (symbol),
+ * (symbol, since), (symbol, since, limit) — reach the typed async core
+ * through its Object... front; the full arity is the core itself.
  */
 class TruncationOverloadTest {
 
@@ -36,9 +37,9 @@ class TruncationOverloadTest {
         }
 
         @Override
-        public List<Trade> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> params) {
+        public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> params) {
             captured.set(new Object[] { symbol, since, limit, params });
-            return List.of();
+            return CompletableFuture.completedFuture(List.of());
         }
     }
 
@@ -81,7 +82,7 @@ class TruncationOverloadTest {
         CapturingOkx ex = new CapturingOkx();
         Map<String, Object> params = new HashMap<>();
         params.put("custom", "value");
-        ex.fetchTrades("BTC/USD:USDC", 1L, 50L, params);
+        ex.fetchTrades("BTC/USD:USDC", 1L, 50L, params).join();
         Object[] args = ex.captured.get();
         assertEquals("BTC/USD:USDC", args[0]);
         assertEquals(1L, args[1]);
