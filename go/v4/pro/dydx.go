@@ -124,9 +124,7 @@ func (this *Dydx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"id":      market["id"],
 	}
 
-	retRes8815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes8815)
-	ch <- retRes8815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 func (this *Dydx) HandleTrades(client any, message map[string]any) {
@@ -238,8 +236,7 @@ func (this *Dydx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"id":      market["id"],
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -277,9 +274,7 @@ func (this *Dydx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"id":      market["id"],
 	}
 
-	retRes21115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes21115)
-	ch <- retRes21115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
@@ -424,9 +419,7 @@ func (this *Dydx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		"id":      ccxt.Add(ccxt.Add(market["id"], "/"), resolution),
 	}
 
-	retRes32415 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes32415)
-	ch <- retRes32415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
@@ -484,7 +477,7 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	var id *string = this.SafeString(message, "id", "")
 	var part []string = ccxt.Split(id, "/")
 	var interval *string = this.SafeString(part, 1)
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	var marketId *string = this.SafeString(part, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")

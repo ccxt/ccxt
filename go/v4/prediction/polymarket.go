@@ -736,8 +736,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 			restPromises = append(restPromises, ccxt.EndpointRaw(this.GammaPublicGetPublicSearch(pageRequest)))
 		}
 
-		restResponses := (<-ccxt.PromiseAll(restPromises))
-		ccxt.PanicOnError(restResponses)
+		var restResponses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(restPromises))))
 		var allEvents []any = []any{}
 		for fi := 0; fi < len(firstEvents); fi++ {
 			allEvents = append(allEvents, func() any {
@@ -1315,9 +1314,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 		}
 	}
 
-	retRes90615 := (<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol))
-	ccxt.PanicOnError(retRes90615)
-	ch <- retRes90615
+	ch <- ccxt.PanicOnError((<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol)))
 	return nil
 }
 
@@ -1442,7 +1439,7 @@ func (this *Polymarket) fetchTickerBody(ch chan any, outcome any, optionalArgs .
 	})), ccxt.EndpointRaw(this.ClobPublicGetLastTradePrice(map[string]any{
 		"token_id": tokenId,
 	}))}
-	midpointResponsebookResponselastTradeResponseVariable := (<-ccxt.PromiseAll(promises))
+	var midpointResponsebookResponselastTradeResponseVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	midpointResponse := ccxt.GetValue(midpointResponsebookResponselastTradeResponseVariable, 0)
 	bookResponse := ccxt.GetValue(midpointResponsebookResponselastTradeResponseVariable, 1)
 	lastTradeResponse := ccxt.GetValue(midpointResponsebookResponselastTradeResponseVariable, 2)
@@ -1560,8 +1557,7 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 		var promises []any = []any{ccxt.EndpointRaw(this.ClobPublicPostBooks(bookParams)), ccxt.EndpointRaw(this.ClobPublicPostMidpoints(bookParams)), ccxt.EndpointRaw(this.ClobPublicPostLastTradesPrices(bookParams))}
 
-		responses := (<-ccxt.PromiseAll(promises))
-		ccxt.PanicOnError(responses)
+		var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 		var booksResponse any = ccxt.GetValue(responses, 0)
 		var midpoints any = ccxt.GetValue(responses, 1)
 		var lastTradesResponse any = ccxt.GetValue(responses, 2)
@@ -1836,8 +1832,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" fetchOHLCV() unsupported timeframe ", timeframe), ", supported timeframes are "), strings.Join(supportedKeys, ", "))))
 	}
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
 	var fidelityMin *int64 = this.SafeInteger(this.Timeframes, timeframe, 1) // fidelity in minutes
 	var nowS int64 = this.Seconds()
@@ -2177,8 +2172,7 @@ func (this *Polymarket) fetchTradesBody(ch chan any, outcome any, optionalArgs .
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var conditionId *string = this.SafeString(outcomeInfo, "conditionId")
@@ -2370,7 +2364,7 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 		return nil
 	}()
 	var feeRateBps *string = this.SafeString(trade, "fee_rate_bps")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeRateBps != nil {
 		fee = map[string]any{
 			"currency": "USDC",
@@ -3244,8 +3238,8 @@ func (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainVe
 		var eoaSig any = this.SignMessage(encoded, this.PrivateKey)
 		// lowercase: intToBase16 emits uppercase hex in some target languages, but the
 		// signature is case-insensitive bytes and the rest of the hex is lowercase
-		var eoaSignature any = "0x" + this.Remove0xPrefix(ccxt.GetValue(eoaSig, "r")) + this.Remove0xPrefix(ccxt.GetValue(eoaSig, "s")) + this.IntToBase16(ccxt.GetValue(eoaSig, "v"))
-		return ccxt.ToLower(eoaSignature)
+		var eoaSignature string = "0x" + this.Remove0xPrefix(ccxt.GetValue(eoaSig, "r")) + this.Remove0xPrefix(ccxt.GetValue(eoaSig, "s")) + this.IntToBase16(ccxt.GetValue(eoaSig, "v"))
+		return strings.ToLower(eoaSignature)
 	}
 	// POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
 	// ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
@@ -3303,7 +3297,7 @@ func (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainVe
 	var wrappedSignature string = "0x" + innerSig + this.Remove0xPrefix(appDomainSep) + this.Remove0xPrefix(contentsHash) + orderTypeStringHex + lenHex
 	// lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
 	// uppercase hex in some targets); the signature is case-insensitive bytes
-	return ccxt.ToLower(wrappedSignature)
+	return strings.ToLower(wrappedSignature)
 }
 
 /**
@@ -3426,8 +3420,7 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	if outcome != nil {
 		// scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		var request map[string]any = map[string]any{
 			"asset_id": ccxt.GetValue(outcomeObj, "outcomeId"),
 		}
@@ -4382,8 +4375,7 @@ func (this *Polymarket) watchOrderBookBody(ch chan any, outcome any, optionalArg
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	var messageHash any = ccxt.Add("orderbook::", outcome)
@@ -4426,8 +4418,7 @@ func (this *Polymarket) watchTradesBody(ch chan any, outcome any, optionalArgs .
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	var messageHash any = ccxt.Add("trades::", outcome)
@@ -4464,8 +4455,7 @@ func (this *Polymarket) watchTickerBody(ch chan any, outcome any, optionalArgs .
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	var messageHash any = ccxt.Add("ticker::", outcome)
@@ -4580,8 +4570,7 @@ func (this *Polymarket) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "orders"
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 		messageHash = ccxt.Add("orders::", outcome)
 	}
@@ -4628,8 +4617,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var messageHash any = "myTrades"
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 		messageHash = ccxt.Add("myTrades::", outcome)
 	}
@@ -4686,9 +4674,7 @@ func (this *Polymarket) subscribeUserChannelBody(ch chan any, messageHash any, o
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "wsUser")
 	var subscribeHash string = "user"
 
-	retRes329715 := (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
-	ccxt.PanicOnError(retRes329715)
-	ch <- retRes329715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash)))
 	return nil
 }
 func (this *Polymarket) HandleOrder(client any, event any) {

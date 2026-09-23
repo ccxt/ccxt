@@ -54,7 +54,7 @@ export default class lbank extends lbankRest {
         });
     }
 
-    requestId () {
+    requestId (): number {
         this.lockId ();
         const previousValue = this.safeInteger (this.options, 'requestId', 0);
         const newValue = this.sum (previousValue, 1);

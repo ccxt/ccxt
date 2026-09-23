@@ -2907,9 +2907,7 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan any, url any) any {
 			"id": requestId,
 		}
 
-		retRes214619 := (<-this.Watch(url, "centrifugoConnected", connectMsg, "connect"))
-		ccxt.PanicOnError(retRes214619)
-		ch <- retRes214619
+		ch <- ccxt.PanicOnError((<-this.Watch(url, "centrifugoConnected", connectMsg, "connect")))
 		return nil
 	}
 	if this.SafeBool(this.Options, "wsConnected", false) != nil && *this.SafeBool(this.Options, "wsConnected", false) {
@@ -2918,10 +2916,8 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan any, url any) any {
 		return nil
 	}
 
-	retRes215315 := (<-client.(ccxt.ClientInterface).Future("centrifugoConnected"))
-	ccxt.PanicOnError(retRes215315)
 	// connect is in flight, sent by a concurrent subscribe - wait on the shared reply future
-	ch <- retRes215315
+	ch <- ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future("centrifugoConnected")))
 	return nil
 }
 func (this *Sxbet) PongAsync(client any, optionalArgs ...any) <-chan any {
@@ -2960,9 +2956,7 @@ func (this *Sxbet) subscribeSxbetChannelBody(ch chan any, messageHash any, chann
 		"id": requestId,
 	}
 
-	retRes216815 := (<-this.Watch(url, messageHash, subscribeMsg, channel))
-	ccxt.PanicOnError(retRes216815)
-	ch <- retRes216815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, subscribeMsg, channel)))
 	return nil
 }
 func (this *Sxbet) HandleMessage(client any, message any) {

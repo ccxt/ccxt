@@ -90,8 +90,7 @@ func (this *Coincheck) watchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	orderbook := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -206,7 +205,7 @@ func (this *Coincheck) HandleTrades(client any, message any) {
 	}
 	for i := 0; i < ccxt.GetArrayLength(message); i++ {
 		var data any = this.SafeValue(message, i)
-		var trade any = this.ParseWsTrade(data)
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 		stored.(ccxt.Appender).Append(trade)
 	}
 	var messageHash any = ccxt.Add("trade:", symbol)

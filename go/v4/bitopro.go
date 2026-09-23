@@ -811,7 +811,7 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
 	if amount == nil {
 		amount = this.SafeString(trade, "baseAmount")
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmount *string = this.SafeString(trade, "fee")
 	var feeSymbol *string = this.SafeCurrencyCode(this.SafeString(trade, "feeSymbol"))
 	if feeAmount != nil {
@@ -1056,13 +1056,13 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	} else {
 		limit = mathMin(limit, 75000) // supports slightly more than 75k candles atm, but limit here to avoid errors
 	}
-	var timeframeInSeconds any = this.ParseTimeframe(timeframe)
+	var timeframeInSeconds int64 = this.ParseTimeframe(timeframe)
 	var alignedSince any = nil
 	if since == nil {
 		request["to"] = this.Seconds()
 		request["from"] = Subtract(request["to"], (Multiply(limit, timeframeInSeconds)))
 	} else {
-		var timeframeInMilliseconds any = Multiply(timeframeInSeconds, 1000)
+		var timeframeInMilliseconds int64 = timeframeInSeconds * 1000
 		alignedSince = Multiply(MathFloor(Divide(since, timeframeInMilliseconds)), timeframeInMilliseconds)
 		request["from"] = MathFloor(Divide(since, 1000))
 		request["to"] = this.Sum(request["from"], Multiply(limit, timeframeInSeconds))
@@ -1297,7 +1297,7 @@ func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
 	if timeInForce != nil && *timeInForce == "POST_ONLY" {
 		postOnly = true
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmount *string = this.SafeString(order, "fee")
 	var feeSymbol *string = this.SafeCurrencyCode(this.SafeString(order, "feeSymbol"))
 	if Precise.StringGt(feeAmount, "0") {
@@ -1763,7 +1763,7 @@ func (this *Bitopro) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["pair"] = GetValue(market, "id")

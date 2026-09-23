@@ -108,9 +108,7 @@ func (this *Alpaca) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		"quotes": []any{market["id"]},
 	}
 
-	retRes8815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes8815)
-	ch <- retRes8815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 func (this *Alpaca) HandleTicker(client any, message map[string]any) {
@@ -125,8 +123,8 @@ func (this *Alpaca) HandleTicker(client any, message map[string]any) {
 	//         "t": "2022-12-16T06:07:56.611063286Z"
 	//    ]
 	//
-	var ticker any = this.ParseTicker(message)
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(message))
+	var symbol any = ticker["symbol"]
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -291,8 +289,7 @@ func (this *Alpaca) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"orderbooks": []any{market["id"]},
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -422,7 +419,7 @@ func (this *Alpaca) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var parsed any = this.ParseTrade(message)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(message))
 	stored.(ccxt.Appender).Append(parsed)
 	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -597,11 +594,11 @@ func (this *Alpaca) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
-	var order any = this.ParseOrder(rawOrder)
+	var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
 	orders.(ccxt.Appender).Append(order)
 	var messageHash any = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-	messageHash = ccxt.Add("orders:", ccxt.GetValue(order, "symbol"))
+	messageHash = ccxt.Add("orders:", order["symbol"])
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 }
 func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
@@ -781,9 +778,7 @@ func (this *Alpaca) authenticateBody(ch chan any, url any, optionalArgs ...any) 
 		this.Watch(url, messageHash, request, messageHash, future)
 	}
 
-	retRes64715 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes64715)
-	ch <- retRes64715
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Alpaca) HandleErrorMessage(client any, message map[string]any) any {

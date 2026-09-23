@@ -1205,7 +1205,7 @@ func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeString(trade, "side")
 	var orderId *string = this.SafeString(trade, "orderId")
 	var feeCost *string = this.SafeString(trade, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCurrency any = DerefScalar(this.SafeString(trade, "feeCurrency"))
 	var isSpot bool = !IsEqual(feeCurrency, nil)
 	if IsEqual(feeCurrency, nil) {
@@ -1384,9 +1384,8 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes107019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 100))
-		PanicOnError(retRes107019)
-		ch <- retRes107019
+		var retRes107019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 100))))
+		ch <- BoxAbsent(retRes107019)
 		return nil
 	}
 	if limit == nil {
@@ -1452,9 +1451,8 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes111319 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-		PanicOnError(retRes111319)
-		ch <- retRes111319
+		var retRes111319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))))
+		ch <- BoxAbsent(retRes111319)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1926,7 +1924,7 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) any {
 		cost = Precise.StringMul(average, baseAmount)
 	}
 	// spot market buy: "sz" can refer either to base currency units or to quote currency units
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCostSigned *string = Precise.StringAbs(feeCostString)
 		var feeCurrencyId *string = this.SafeString(order, "feeCcy", "USDT")
@@ -2066,9 +2064,9 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var first any = this.SafeDict(data, 0)
-	var order any = this.ParseOrder(first, market)
-	AddElementToObject(order, "type", typeVar)
-	AddElementToObject(order, "side", side)
+	var order map[string]any = MapTyped(this.ParseOrder(first, market))
+	order["type"] = typeVar
+	order["side"] = side
 
 	ch <- order
 	return nil
@@ -2306,7 +2304,7 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
@@ -2388,7 +2386,7 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instId", GetValue(market, "id"))
@@ -2485,9 +2483,9 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
 	if since != nil {
@@ -2551,9 +2549,9 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
 	if since != nil {
@@ -2764,9 +2762,9 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
@@ -3709,7 +3707,7 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
@@ -3819,7 +3817,7 @@ func (this *Blofin) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3917,8 +3915,6 @@ func (this *Blofin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 		}(),
 	}
 
-	retRes305215 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
-	PanicOnError(retRes305215)
 	//
 	//     {
 	//         "code": "0",
@@ -3928,7 +3924,7 @@ func (this *Blofin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 	//         }
 	//     }
 	//
-	ch <- retRes305215
+	ch <- PanicOnError((<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params))))
 	return nil
 }
 

@@ -16,7 +16,7 @@ import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
-import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES } from './go-local-types.js';
+import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES } from './go-local-types.js';
 
 type dict = { [key: string]: string };
 
@@ -4185,6 +4185,7 @@ ${constStatements.join('\n')}
         // accessors already use (see coerceTypedStringAccessors), so the locals initialised
         // from them can be typed and the printer's pointer-aware comparisons apply.
         baseClass = this.coerceTypedStringAccessors (baseClass);
+        baseClass = this.coerceStringPtrMethods (baseClass, CCXT_GO_STRING_PTR_METHOD_NAMES, true);
     baseClass = this.coerceTypedMapAccessors (baseClass);
 
         const jsDelimiter = '// ' + delimiter;
@@ -5056,6 +5057,27 @@ ${caseStatements.join('\n')}
         return content;
     }
 
+    /**
+     * Retypes each named method (base copy when `base`, else every venue override) to `*string`,
+     * routing every function-level return through SafeStringPtr (identity on a string, nil
+     * otherwise). Fail closed: a body the return scanner cannot read keeps its `any` signature.
+     */
+    coerceStringPtrMethods (content: string, names: string[], base: boolean): string {
+        for (const name of names) {
+            const receiver = base ? 'BaseExchange' : '(?!BaseExchange\\b)\\w+';
+            const fnRegex = new RegExp ('func\\s+\\(this \\*' + receiver + '\\)\\s+' + name + '\\([^)]*\\)\\s+any\\s*\\{[\\s\\S]*?\\n\\}', 'g');
+            content = content.replace (fnRegex, ((match: string) => {
+                const open = match.indexOf ('{');
+                const scanned = this.wrapGoFunctionLevelReturns (match.substring (open + 1, match.length - 1), (expr: string) => 'SafeStringPtr(' + expr + ')');
+                if ((scanned === undefined) || (scanned.total === 0)) {
+                    return match;
+                }
+                return match.substring (0, open).replace (/\s+any\s*$/, ' *string ') + '{' + scanned.text + '}';
+            }) as any);
+        }
+        return content;
+    }
+
     // ---------------------------------------------------------------------------------------------
     /**
      * Index of the `}` that closes the brace-matched block opened at `open`, or -1 when the
@@ -5373,6 +5395,7 @@ ${caseStatements.join('\n')}
         }
 
         content = this.coerceTypedStringAccessorOverrides (content);
+        content = this.coerceStringPtrMethods (content, CCXT_GO_STRING_PTR_METHOD_NAMES, false);
         content = this.coerceTypedMapAccessorOverrides (content);
         content = coerceGoBoolMethodReturns (content, CCXT_GO_BOOL_METHOD_NAMES);
         // The destructured `[ value, params ]` helpers carry a concrete `[]any` return (see
@@ -5385,7 +5408,7 @@ ${caseStatements.join('\n')}
         // a *string against an untyped constant and are always false. Unwrap at the assignment so
         // the `any` local carries the plain value, matching every other language port.
         const derefFn = isWs ? 'ccxt.DerefScalar(' : 'DerefScalar(';
-        const safeCall = 'this\\.(?:DerivedExchange\\.)?(?:Safe(?:(?:String|Integer|Number|Float|Bool)[N2-9]*|CurrencyCode|Symbol)|NumberToString|Parse8601|Iso8601)\\((?:[^()]|\\([^()]*\\))*\\)';
+        const safeCall = 'this\\.(?:DerivedExchange\\.)?(?:Safe(?:(?:String|Integer|Number|Float|Bool)[N2-9]*|CurrencyCode|Symbol)|NumberToString|Parse8601|Iso8601|' + CCXT_GO_STRING_PTR_METHOD_NAMES.join ('|') + ')\\((?:[^()]|\\([^()]*\\))*\\)';
         content = content.replace (new RegExp ('(var \\w+ any = )(' + safeCall + ')', 'g'), ((_m: string, decl: string, call: string) => decl + derefFn + call + ')') as any);
         // A SafeBool* call compared directly to a bool literal has no local for the unwrap
         // above, and the printer emits the comparison raw -- `this.SafeBool(..) == true`.

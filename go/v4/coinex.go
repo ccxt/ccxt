@@ -1259,7 +1259,7 @@ func (this *Coinex) ParseCurrency(coin any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(chain, "chain")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkId == nil {
 			continue
 		}
@@ -1342,8 +1342,7 @@ func (this *Coinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promisesUnresolved []any = []any{this.FetchSpotMarketsAsync(params), this.FetchContractMarketsAsync(params)}
 
-	promises := (<-promiseAll(promisesUnresolved))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	var spotMarkets any = GetValue(promises, 0)
 	var swapMarkets any = GetValue(promises, 1)
 
@@ -1768,7 +1767,7 @@ func (this *Coinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbol *string = this.SafeString(symbols, 0)
 		market = this.Market(symbol)
@@ -1977,7 +1976,7 @@ func (this *Coinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "market")
 	market = MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
 	var feeCostString *string = this.SafeString(trade, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_ccy")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
@@ -3321,7 +3320,7 @@ func (this *Coinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 			return nil
 		}())
 		var item map[string]any = MapTyped(this.SafeDict(entry, "data", map[string]any{}))
-		var order any = this.ParseOrder(item, market)
+		var order map[string]any = MapTyped(this.ParseOrder(item, market))
 		results = append(results, order)
 	}
 
@@ -3519,7 +3518,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 			panic(ExchangeError(feedback))
 		}
 		var item map[string]any = MapTyped(this.SafeDict(entry, "data", map[string]any{}))
-		var order any = this.ParseOrder(item)
+		var order map[string]any = MapTyped(this.ParseOrder(item))
 		result = append(result, order)
 	}
 
@@ -3802,7 +3801,7 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -4206,7 +4205,7 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"market_type": "FUTURES",
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbol any = nil
 		if IsArray(symbols) {
@@ -4497,9 +4496,7 @@ func (this *Coinex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		"leverage":    leverage,
 	}
 
-	retRes443315 := (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes443315)
-	ch <- retRes443315
+	ch <- PanicOnError((<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -4553,9 +4550,7 @@ func (this *Coinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		"leverage":    leverage,
 	}
 
-	retRes448115 := (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes448115)
-	ch <- retRes448115
+	ch <- PanicOnError((<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -5301,9 +5296,8 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes506519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
-		PanicOnError(retRes506519)
-		ch <- retRes506519
+		var retRes506519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))))
+		ch <- BoxAbsent(retRes506519)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -5692,9 +5686,9 @@ func (this *Coinex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ccy"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -5772,9 +5766,9 @@ func (this *Coinex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ccy"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -5945,7 +5939,7 @@ func (this *Coinex) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -6378,7 +6372,7 @@ func (this *Coinex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			if (networkId != nil) && (networkId == nil || *networkId != "") {
 				var currencyId *string = this.SafeString(asset, "ccy")
 				var feeCode *string = this.SafeCurrencyCode(currencyId, currency)
-				var networkCode any = this.NetworkIdToCode(networkId, feeCode)
+				var networkCode *string = this.NetworkIdToCode(networkId, feeCode)
 				if networkCode != nil {
 					AddElementToObject(result["networks"], networkCode, map[string]any{
 						"withdraw": map[string]any{

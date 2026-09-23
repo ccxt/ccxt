@@ -1881,12 +1881,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         return this.fetchOrdersWs(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         String ts = String.valueOf(this.milliseconds());
         Object randomNumber = this.randNumber(4);
         String randomPart = String.valueOf(randomNumber);
-        return Helpers.parseInt((ts + randomPart));
+        return Helpers.toLongOrNull(Helpers.parseInt((ts + randomPart)));
     }
 
     public CompletableFuture<Object> watchRequest(Object action, Map<String, Object> request)
@@ -1894,7 +1894,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object messageHash = this.requestId();
+            Long messageHash = this.requestId();
             String messageHashStr = String.valueOf(messageHash);
             ((Map<String, Object>)request).put("action", action);
             ((Map<String, Object>)request).put("requestId", messageHash);

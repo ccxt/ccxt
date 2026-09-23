@@ -3,7 +3,7 @@ import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Positi
 import Client from '../base/ws/Client.js';
 export default class htx extends htxRest {
     describe(): any;
-    requestId(): any;
+    requestId(): string;
     /**
      * @method
      * @name htx#watchTicker

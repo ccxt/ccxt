@@ -605,7 +605,7 @@ func (this *Lbank) ParseCurrency(rawCurrency any) any {
 		if networkId == nil {
 			networkId = this.SafeString(networkEntry, "assetCode") // use type as fallback if networkId is not present
 		}
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":      networkId,
@@ -675,8 +675,7 @@ func (this *Lbank) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var marketsPromises []any = []any{this.FetchSpotMarketsAsync(params), this.FetchSwapMarketsAsync(params)}
 
-	resolvedMarkets := (<-promiseAll(marketsPromises))
-	PanicOnError(resolvedMarkets)
+	var resolvedMarkets []any = ListTyped(PanicOnError((<-promiseAll(marketsPromises))))
 
 	ch <- this.ArrayConcat(GetValue(resolvedMarkets, 0), GetValue(resolvedMarkets, 1))
 	return nil
@@ -1057,7 +1056,7 @@ func (this *Lbank) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		var symbolsLength int = GetArrayLength(symbols)
@@ -1321,7 +1320,7 @@ func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var order *string = this.SafeString(trade, "orderUuid")
 	var symbol *string = this.SafeSymbol(nil, market)
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "tradeFee")
 	if feeCost != nil {
 		var feeCurr *string = func() *string {
@@ -1486,8 +1485,8 @@ func (this *Lbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		limit = mathMin(limit, 2000)
 	}
 	if since == nil {
-		var duration any = this.ParseTimeframe(timeframe)
-		since = Subtract(this.Milliseconds(), (Multiply(Multiply(duration, 1000), limit)))
+		var duration int64 = this.ParseTimeframe(timeframe)
+		since = Subtract(this.Milliseconds(), (Multiply(duration*1000, limit)))
 	}
 	var parsedSince int64 = this.ParseToInt(Divide(since, 1000))
 	var parsedLimit any = mathMin(Add(limit, 1), 2000) // max 2000;
@@ -3119,7 +3118,7 @@ func (this *Lbank) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString2(transaction, "coin", "coid")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"), typeVar)
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -3183,9 +3182,9 @@ func (this *Lbank) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3256,9 +3255,9 @@ func (this *Lbank) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3424,7 +3423,7 @@ func (this *Lbank) fetchPrivateTransactionFeesBody(ch chan any, optionalArgs ...
 			}())
 			var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
 			if fee != nil {
-				var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
+				var networkCode *string = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
 				if networkCode != nil {
 					if (code != nil) && (networkCode != nil) {
 						AddElementToObject(GetValue(withdrawFees, code), networkCode, fee)
@@ -3501,8 +3500,8 @@ func (this *Lbank) fetchPublicTransactionFeesBody(ch chan any, optionalArgs ...a
 		if canWithdraw != nil && *canWithdraw == "true" {
 			var currencyId *string = this.SafeString(item, "assetCode")
 			var codeInner *string = this.SafeCurrencyCode(currencyId)
-			var network any = this.NetworkIdToCode(this.SafeString(item, "chain"), codeInner)
-			if IsEqual(network, nil) {
+			var network *string = this.NetworkIdToCode(this.SafeString(item, "chain"), codeInner)
+			if network == nil {
 				network = codeInner
 			}
 			var fee *string = this.SafeString(item, "fee")
@@ -3511,7 +3510,7 @@ func (this *Lbank) fetchPublicTransactionFeesBody(ch chan any, optionalArgs ...a
 					AddElementToObject(withdrawFees, codeInner, map[string]any{})
 				}
 			}
-			if (codeInner != nil) && (!IsEqual(network, nil)) {
+			if (codeInner != nil) && (network != nil) {
 				AddElementToObject(GetValue(withdrawFees, codeInner), network, this.ParseNumber(fee))
 			}
 		}
@@ -3726,7 +3725,7 @@ func (this *Lbank) ParsePublicDepositWithdrawFees(response []any, optionalArgs .
 						}(), "info")
 						AppendToArray(&resultCodeInfo, fee)
 					}
-					var networkCode any = this.NetworkIdToCode(this.SafeString(fee, "chain"), code)
+					var networkCode *string = this.NetworkIdToCode(this.SafeString(fee, "chain"), code)
 					if networkCode != nil {
 						AddElementToObject(GetValue(GetValue(result, code), "networks"), networkCode, map[string]any{
 							"withdraw": map[string]any{
@@ -3789,7 +3788,7 @@ func (this *Lbank) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			}
 			return nil
 		}())
-		var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
+		var networkCode *string = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
 		var isDefault *bool = this.SafeBool(networkEntry, "isDefault")
 		if withdrawFee != nil {

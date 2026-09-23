@@ -1277,7 +1277,7 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promisesRaw []any = []any{EndpointRaw(this.PublicSpotGetWalletSupportCurrency(params)), EndpointRaw(this.PublicSpotGetCurrencies(params))}
-	chainsResponsecurrenciesResponseVariable := (<-promiseAll(promisesRaw))
+	var chainsResponsecurrenciesResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promisesRaw))))
 	chainsResponse := GetValue(chainsResponsecurrenciesResponseVariable, 0)
 	currenciesResponse := GetValue(chainsResponsecurrenciesResponseVariable, 1)
 	//
@@ -1356,7 +1356,7 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 				return nil
 			}()
 			var networkId *string = this.SafeString(rawNetwork, "chain")
-			var networkCode any = this.NetworkIdToCode(networkId, code)
+			var networkCode *string = this.NetworkIdToCode(networkId, code)
 			if networkCode != nil {
 				AddElementToObject(networks, networkCode, map[string]any{
 					"info":      rawNetwork,
@@ -1452,8 +1452,7 @@ func (this *Xt) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var promisesUnresolved []any = []any{this.FetchSpotMarketsAsync(params), this.FetchSwapAndFutureMarketsAsync(params)}
 
-	promises := (<-promiseAll(promisesUnresolved))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	var spotMarkets any = GetValue(promises, 0)
 	var swapAndFutureMarkets any = GetValue(promises, 1)
 
@@ -1541,8 +1540,7 @@ func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan any, optionalArgs ...any) 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	markets := (<-promiseAll([]any{EndpointRaw(this.PublicLinearGetFutureMarketV1PublicSymbolList(params)), EndpointRaw(this.PublicInverseGetFutureMarketV1PublicSymbolList(params))}))
-	PanicOnError(markets)
+	var markets []any = ListTyped(PanicOnError((<-promiseAll([]any{EndpointRaw(this.PublicLinearGetFutureMarketV1PublicSymbolList(params)), EndpointRaw(this.PublicInverseGetFutureMarketV1PublicSymbolList(params))}))))
 	//
 	//     {
 	//         "returnCode": 0,
@@ -1919,9 +1917,8 @@ func (this *Xt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes149019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-		PanicOnError(retRes149019)
-		ch <- retRes149019
+		var retRes149019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
+		ch <- BoxAbsent(retRes149019)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1933,7 +1930,7 @@ func (this *Xt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any
 		// xt rounds startTime down to the candle boundary, which makes a mid-candle
 		// window start return one pre-since candle, shifting paginated windows and
 		// dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
-		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		request["startTime"] = Multiply(MathCeil(Divide(since, duration)), duration)
 	}
 	if limit != nil {
@@ -2293,7 +2290,7 @@ func (this *Xt) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		market = this.Market(GetValue(symbols, 0))
@@ -2372,13 +2369,13 @@ func (this *Xt) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var tickers []any = SafeListTyped(response, "result")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
-		var ticker any = this.ParseTicker(func() any {
+		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
 			if i >= 0 && i < len(tickers) {
 				return DerefScalar(tickers[i])
 			}
 			return nil
-		}(), market)
-		var symbol any = GetValue(ticker, "symbol")
+		}(), market))
+		var symbol any = ticker["symbol"]
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
 		}
@@ -2501,8 +2498,8 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 			return "spot"
 		}()
 		var marketInner any = this.SafeMarket(marketId, market, "_", marketType)
-		var ticker any = this.ParseTicker(rawTicker, marketInner)
-		var symbol any = GetValue(ticker, "symbol")
+		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker, marketInner))
+		var symbol any = ticker["symbol"]
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
 		}
@@ -2737,7 +2734,7 @@ func (this *Xt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -3606,7 +3603,7 @@ func (this *Xt) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3844,7 +3841,7 @@ func (this *Xt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -4055,7 +4052,7 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -4553,7 +4550,7 @@ func (this *Xt) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4697,7 +4694,7 @@ func (this *Xt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -4830,7 +4827,7 @@ func (this *Xt) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"orderIds": ids,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -5118,9 +5115,9 @@ func (this *Xt) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -5342,9 +5339,9 @@ func (this *Xt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -5420,9 +5417,9 @@ func (this *Xt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -6731,7 +6728,7 @@ func (this *Xt) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) 
 		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionList(this.Extend(request, params))))
 		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionBreakList(this.Extend(request, params))))
 	}
-	responsebreakResponseVariable := (<-promiseAll(promisesUnresolved))
+	var responsebreakResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	response := GetValue(responsebreakResponseVariable, 0)
 	breakResponse := GetValue(responsebreakResponseVariable, 1)
 	//
@@ -6836,7 +6833,7 @@ func (this *Xt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionList(params)))
 		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionBreakList(params)))
 	}
-	responsebreakResponseVariable := (<-promiseAll(promisesUnresolved))
+	var responsebreakResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	response := GetValue(responsebreakResponseVariable, 0)
 	breakResponse := GetValue(responsebreakResponseVariable, 1)
 	//
@@ -6933,7 +6930,7 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols)
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {

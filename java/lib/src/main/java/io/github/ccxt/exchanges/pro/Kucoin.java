@@ -198,14 +198,14 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return this.negotiateHelper(privateChannel, connectId, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object requestId;
         synchronized (this) {
         requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
         }
-        return requestId;
+        return Helpers.toLongOrNull(requestId);
     }
 
     public CompletableFuture<Object> subscribe(Object url, Object messageHash, Object subscriptionHash2, Map<String, Object> parameters, Object subscription)
@@ -225,7 +225,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Client client = this.client(url);
             if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
             {
-                Helpers.addElementToObject(client.subscriptions, requestId, subscriptionHash);
+                ((Map)client.subscriptions).put((String)requestId, subscriptionHash);
             }
             return (this.watch(url, messageHash, message, subscriptionHash, subscription)).join();
         });
@@ -266,7 +266,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Client client = this.client(url);
             if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
             {
-                Helpers.addElementToObject(client.subscriptions, requestId, messageHash);
+                ((Map)client.subscriptions).put((String)requestId, messageHash);
             }
             return (this.watch(((String)url), messageHash, message, messageHash, subscription)).join();
         });
@@ -310,7 +310,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Client client = this.client(url);
             if (!(((Map<?, ?>)client.subscriptions).containsKey(subscribeHash)))
             {
-                Helpers.addElementToObject(client.subscriptions, requestId, subscribeHash);
+                ((Map)client.subscriptions).put((String)requestId, subscribeHash);
             }
             return (this.watchMultiple((String) (url), messageHashes, message, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription)).join();
         });
@@ -412,7 +412,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= ((List<?>)subscriptionHashes).size() ? null : ((List<?>)subscriptionHashes).get(i));
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
                 {
-                    Helpers.addElementToObject(client.subscriptions, requestId, subscriptionHash);
+                    ((Map)client.subscriptions).put((String)requestId, subscriptionHash);
                 }
             }
             return (this.watchMultiple((String) (url), messageHashes, message, subscriptionHashes, subscription)).join();
@@ -439,7 +439,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> message = this.extend(request, parameters);
             if (!java.util.Objects.equals(subscription, null))
             {
-                Helpers.addElementToObject(subscription, requestId, requestId);
+                ((Map<String, Object>)subscription).put((String)requestId, requestId);
             }
             Client client = this.client(url);
             for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
@@ -447,7 +447,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= ((List<?>)subscriptionHashes).size() ? null : ((List<?>)subscriptionHashes).get(i));
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
                 {
-                    Helpers.addElementToObject(client.subscriptions, requestId, subscriptionHash);
+                    ((Map)client.subscriptions).put((String)requestId, subscriptionHash);
                 }
             }
             return (this.watchMultiple((String) (url), messageHashes, message, subscriptionHashes, subscription)).join();
@@ -756,7 +756,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String messageHashWithSymbols = ((channel + ":") + String.join(",", (List<String>)symbols));
             if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHashWithSymbols)))
             {
-                Helpers.addElementToObject(client.subscriptions, requestId, messageHashWithSymbols);
+                ((Map)client.subscriptions).put((String)requestId, messageHashWithSymbols);
             }
             return (this.watchMultiple((String) (((String)url)), messageHashes, message, messageHashes, subscription)).join();
         });
@@ -3297,7 +3297,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
-        Object parsed = this.parseWsTrade((Map<String, Object>) (data));
+        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data));
         Object myTrades = this.myTrades;
         Helpers.callDynamically(myTrades, "append", new Object[]{parsed});
         Object messageHash = "myTrades";
@@ -3346,7 +3346,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         client.resolve(cache, symbolMessageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // /spotMarket/tradeOrders
@@ -3409,7 +3409,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String feeCost = this.safeString(trade, "fee");
         final String finalPrice = price;
         final String finalAmount = amount;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Kucoin.this.iso8601(timestamp) );
@@ -3427,9 +3427,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 put( "rate", feeRate );
                 put( "currency", feeCurrency );
             }} );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -3512,7 +3512,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> message = this.extend(request, parameters);
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
                 {
-                    Helpers.addElementToObject(client.subscriptions, requestId, subscriptionHash);
+                    ((Map)client.subscriptions).put((String)requestId, subscriptionHash);
                 }
                 return (this.watch(((String)url), messageHash, message, uniformType, null)).join();
             }
@@ -4641,19 +4641,19 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
     }
 
-    public Object getMessageHash(Object elementName, String symbol)
+    public String getMessageHash(Object elementName, String symbol)
     {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...
         if (!java.util.Objects.equals(symbol, null))
         {
-            return ((elementName + ":") + symbol);
+            return (String) (((elementName + ":") + symbol));
         } else
         {
-            return (elementName + "s@all");
+            return (String) ((elementName + "s@all"));
         }
     }
-    public Object getMessageHash(Object elementName, Object... optionalArgs)
+    public String getMessageHash(Object elementName, Object... optionalArgs)
     {
         return this.getMessageHash(elementName, Helpers.getArgString(optionalArgs, 0, null));
     }

@@ -870,8 +870,7 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	results := (<-promiseAll([]any{EndpointRaw(this.PrivateTradingPostFullV1GetAuthorizedBuilders()), this.LoadAccountInfosAsync()}))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll([]any{EndpointRaw(this.PrivateTradingPostFullV1GetAuthorizedBuilders()), this.LoadAccountInfosAsync()}))))
 	//
 	// {
 	//     "results": [{
@@ -998,8 +997,7 @@ func (this *Grvt) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		promises = append(promises, this.SignInAsync())
 	}
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var response map[string]any = MapTyped(GetValue(results, 0))
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
@@ -1526,7 +1524,7 @@ func (this *Grvt) ParseTrade(trade any, optionalArgs ...any) any {
 			return "sell"
 		}()
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeString *string = this.SafeString(trade, "fee")
 	if feeString != nil {
 		fee = map[string]any{
@@ -1592,9 +1590,8 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		retRes117219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-		PanicOnError(retRes117219)
-		ch <- retRes117219
+		var retRes117219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
+		ch <- BoxAbsent(retRes117219)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1706,9 +1703,8 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		retRes126619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-		PanicOnError(retRes126619)
-		ch <- retRes126619
+		var retRes126619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
+		ch <- BoxAbsent(retRes126619)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1927,9 +1923,9 @@ func (this *Grvt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
 	}
 	if limit != nil {
@@ -2007,11 +2003,11 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code == nil {
 		AddElementToObject(request, "currency", nil)
 	} else {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
 	}
 	if limit != nil {
@@ -2190,7 +2186,7 @@ func (this *Grvt) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var direction any = nil
 	var txId *string = nil
-	var networkCode any = nil
+	var networkCode *string = nil
 	var addressFrom *string = this.SafeString(transaction, "from_account_id")
 	var addressTo *string = this.SafeString(transaction, "to_account_id")
 	var currencyId *string = this.SafeString(transaction, "currency")
@@ -2551,8 +2547,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 	//     }
 	//
 
-	responses := (<-promiseAll(promises))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var result1 map[string]any = SafeMapTyped(GetValue(responses, 0), "result")
 	var mainAccountId *string = this.SafeString(result1, "main_account_id")
 	this.Options.Store("userMainAccountId", mainAccountId)
@@ -2685,9 +2680,9 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	} else {
 		panic(InvalidOrder(this.Id + " createOrder(): order side must be either \"buy\" or \"sell\""))
 	}
-	var clientOrderId any = DerefScalar(this.SafeString(params, "clientOrderId"))
-	if IsEqual(clientOrderId, nil) {
-		clientOrderId = ToString(this.Nonce()) + "000" + ToString(this.RequestId())
+	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	if clientOrderId == nil {
+		clientOrderId = SafeStringPtr(ToString(this.Nonce())+"000"+ToString(this.RequestId()))
 	}
 	params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
@@ -2901,7 +2896,7 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 		var size any = leg["size"]
 		var sizeParts []string = Split(size, ".")
 		var sizeDec *string = this.SafeString(sizeParts, 1, "")
-		var sizeDecLength any = GetLength(sizeDec) + 0 // php tr
+		var sizeDecLength int = GetLength(sizeDec) + 0 // php tr
 		var sizeDecLengthStr string = ToString(sizeDecLength)
 		var sizeInteger any = Divide(Multiply(this.ConvertToBigIntCustom(Replace(size, ".", "")), sizeMultiplier), (MathPow(bigInt10, this.ConvertToBigIntCustom(sizeDecLengthStr))))
 		var legOrder map[string]any = map[string]any{
@@ -2914,7 +2909,7 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 			var price any = leg["limit_price"]
 			var limitParts []string = Split(price, ".")
 			var limitDec *string = this.SafeString(limitParts, 1, "")
-			var limitDecLength any = GetLength(limitDec) + 0 // php tr
+			var limitDecLength int = GetLength(limitDec) + 0 // php tr
 			var limitDecLengthStr string = ToString(limitDecLength)
 			var powerNum any = func() any {
 				if limitDecLengthStr == "0" {
@@ -3419,7 +3414,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var request any = map[string]any{
 		"sub_account_id": this.GetSubAccountId(params),
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "base", []any{})
@@ -3522,7 +3517,7 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request any = map[string]any{
 		"sub_account_id": subAccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "base", []any{})

@@ -2185,7 +2185,7 @@ public class Paradex extends ParadexApi
         return BaseExchange.supplyAsync(() -> {
 
             String cachedToken = this.safeString(this.options, "authToken");
-            Object now = this.nonce();
+            Long now = this.nonce();
             if (!java.util.Objects.equals(cachedToken, null))
             {
                 Long cachedExpires = this.safeInteger(this.options, "expires");
@@ -2200,8 +2200,8 @@ public class Paradex extends ParadexApi
             }
             Object account = (this.retrieveAccount()).join();
             // https://docs.paradex.trade/api-reference/general-information/authentication
-            Object expires = Helpers.add(now, 180);
-            final Object finalNow = now;
+            Object expires = (now + 180L);
+            final Long finalNow = now;
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "method", "POST" );
                 put( "path", "/v1/auth" );
@@ -2393,7 +2393,7 @@ public class Paradex extends ParadexApi
         return Precise.stringMul(num, "100000000");
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -2498,9 +2498,9 @@ public class Paradex extends ParadexApi
             ((Map<String, Object>)request).put("flags", new ArrayList<Object>(Arrays.asList("REDUCE_ONLY")));
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"))));
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2511,14 +2511,14 @@ public class Paradex extends ParadexApi
         return BaseExchange.supplyAsync(() -> {
 
             Object account = (this.retrieveAccount()).join();
-            Object now = this.nonce();
+            Long now = this.nonce();
             String orderType = this.safeString(request, "type");
             if (java.util.Objects.equals(orderType, null))
             {
                 throw new ExchangeError((this.id + " signOrderRequest() missing orderType")) ;
             }
             Boolean isMarket = (((String)orderType).indexOf("MARKET") >= 0);
-            final Object finalNow = now;
+            final Long finalNow = now;
             Map<String, Object> orderReq = new HashMap<String, Object>() {{
                 put( "timestamp", Helpers.multiply(finalNow, 1000) );
                 put( "market", Paradex.this.stringToBase16(((Map<String, Object>)request).get("market")) );

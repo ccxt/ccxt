@@ -91,7 +91,7 @@ func testFetchHistoryBaseBody(ch chan any) any {
 
 	}
 	assert((ccxt.GetArrayLength((exchange.GetFetchCache())) == 2), "fetchHistoryCache should be an array with 2 elements")
-	assert(ccxt.IsLessThan(1+1, 3), "sample assertion")
+	assert((1+1 < 3), "sample assertion")
 	return nil
 }
 

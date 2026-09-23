@@ -235,13 +235,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }};
     }
 
-    public Object requestId(Object url)
+    public Long requestId(Object url)
     {
         Object options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
-        return newValue;
+        return Helpers.toLongOrNull(newValue);
     }
 
     public Object isSpotUrl(Client client)
@@ -395,7 +395,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> {
 
             Object url = this.getStockWsUrl("market");
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
@@ -508,7 +508,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             }
-            Object resolvedAuth = this.resolveAuthType("watchLiquidationsForSymbols", firstMarket, parameters);
+            List<Object> resolvedAuth = this.resolveAuthType("watchLiquidationsForSymbols", firstMarket, parameters);
             Object type = ((List<Object>)resolvedAuth).get(0);
             parameters = ((List<Object>)resolvedAuth).get(2);
             // the spot check runs on the RESOLVED type: a spot default combined
@@ -525,7 +525,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Integer numSubscriptions = ((List<?>)subscriptionHashes).size();
             Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory("forceOrder")), "/"), this.stream((String) (type), streamHash, numSubscriptions));
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionHashes );
@@ -1029,7 +1029,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Integer messageHashesLength = ((List<?>)messageHashes).size();
             Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, messageHashesLength));
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subParams );
@@ -1131,7 +1131,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Integer messageHashesLength = ((List<?>)subMessageHashes).size();
             Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory("depth")), "/"), this.stream(type, streamHash, messageHashesLength));
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subParams );
@@ -1255,7 +1255,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((this.id + " fetchOrderBookWs only supports swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
@@ -1721,7 +1721,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object query = this.omit(parameters, "type");
             Integer subParamsLength = ((List<?>)subParams).size();
             Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory((String) (name))), "/"), this.stream(type, streamHash, subParamsLength));
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subParams );
@@ -1849,7 +1849,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object query = this.omit(parameters, "type");
             Integer subParamsLength = ((List<?>)subParams).size();
             Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory((String) (name))), "/"), this.stream(type, streamHash, subParamsLength));
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subParams );
@@ -1979,7 +1979,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // public watchTrades
@@ -2089,7 +2089,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Boolean isTradeExecution = (java.util.Objects.equals(executionType, "TRADE"));
         if (!Boolean.TRUE.equals(isTradeExecution))
         {
-            return this.parseTrade(trade, market);
+            return (Map<String, Object>) (this.parseTrade(trade, market));
         }
         String id = this.safeString2(trade, "t", "a");
         Long timestamp = this.safeInteger(trade, "T");
@@ -2141,7 +2141,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final String finalAmount = amount;
         final String finalCost = cost;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Binance.this.iso8601(timestamp) );
@@ -2155,9 +2155,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             put( "amount", finalAmount );
             put( "cost", finalCost );
             put( "fee", finalFee );
-        }}));
+        }})));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -2174,7 +2174,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trade::" + symbol);
-        Object trade = this.parseWsTrade((Map<String, Object>) (message), market);
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), market);
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
         {
@@ -2371,7 +2371,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((List<Object>)messageHashes).add(((("ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + timeframeString));
             }
             Object url = Helpers.add(Helpers.add(this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)), "/"), this.stream(wsUrlType, "multipleOHLCV"));
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", rawHashes );
@@ -2489,7 +2489,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((List<Object>)messageHashes).add(((("unsubscribe::ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + timeframeString));
             }
             Object url = Helpers.add(Helpers.add(this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)), "/"), this.stream(wsUrlType, "multipleOHLCV"));
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", rawHashes );
@@ -2673,7 +2673,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((this.id + " fetchTickerWs only supports swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleTickerWs");
@@ -2751,7 +2751,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((this.id + " fetchOHLCVWs only supports spot or swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
@@ -3169,7 +3169,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchMarkPrices(Helpers.getArgStringList(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<Object> unWatchMarkPrices(List<String> symbols, Map<String, Object> parameters) //                "buyer": "0.00000000",
+    public CompletableFuture<Object> unWatchMarkPrices(List<String> symbols, Map<String, Object> parameters)
     {
         return this.unWatchMarkPrices(symbols, (Object) (parameters));
     }
@@ -3549,7 +3549,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 streamHash = Helpers.add((channelName + "::"), String.join(",", (List<String>)symbols));
             }
             Object url = Helpers.add(Helpers.add(this.getWsUrl(rawMarketType, this.getFutureWsCategory((String) (channelName))), "/"), this.stream((String) (rawMarketType), (String) (streamHash)));
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", ((Helpers.isTrue(isUnsubscribe))) ? "UNSUBSCRIBE" : "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
@@ -3996,7 +3996,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
             ((Map)client.subscriptions).put((String)marketType, true);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String requestHash = String.valueOf(requestId);
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", requestHash );
@@ -4126,7 +4126,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     }
                     Long expirationTime = this.safeInteger(response, "expirationTime");
                     // Step 2: Subscribe to user data stream via WebSocket API
-                    Object requestId = this.requestId(url);
+                    Long requestId = this.requestId(url);
                     String requestHash = String.valueOf(requestId);
                     final String finalListenToken = listenToken;
                     Map<String, Object> message = new HashMap<String, Object>() {{
@@ -4236,7 +4236,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> {
             Object parameters = parameters3;
             Long time = this.milliseconds();
-            Object resolvedAuth = this.resolveAuthType("authenticate", null, parameters);
+            List<Object> resolvedAuth = this.resolveAuthType("authenticate", null, parameters);
             Object type = ((List<Object>)resolvedAuth).get(0);
             parameters = ((List<Object>)resolvedAuth).get(2);
             Object isPortfolioMargin = null;
@@ -4608,7 +4608,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((this.id + " fetchBalanceWs only supports spot or swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
@@ -4808,7 +4808,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((this.id + " fetchPositionsWs only supports swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
@@ -5132,7 +5132,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return accountType;
     }
 
-    public Object resolveAuthType(Object methodName, Map<String, Object> market, Map<String, Object> parameters)
+    public List<Object> resolveAuthType(Object methodName, Map<String, Object> market, Map<String, Object> parameters)
     {
         // the single home for user-data type derivation: market type, subType,
         // and the guarded linear/inverse rewrite. option and stock must keep
@@ -5163,7 +5163,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // index it positionally instead, so no receiver is declared-but-unread
         return new ArrayList<Object>(Arrays.asList(type, subType, parameters));
     }
-    public Object resolveAuthType(Object methodName, Object... optionalArgs)
+    public List<Object> resolveAuthType(Object methodName, Object... optionalArgs)
     {
         return this.resolveAuthType(methodName, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -5226,7 +5226,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((this.id + " createOrderWs only supports spot or swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Boolean sor = (Boolean) this.safeBool2(parameters, "sor", "SOR", false);
             parameters = (Map<String, Object>) this.omit(parameters, "sor", "SOR");
@@ -5240,7 +5240,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean isTakeProfit = !java.util.Objects.equals(takeProfitPrice, null);
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
             Boolean isConditional = Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit);
-            Object payload = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> payload = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrderWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -5434,7 +5434,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((this.id + " editOrderWs only supports spot or swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Boolean isSwap = (java.util.Objects.equals(marketType, "future") || java.util.Objects.equals(marketType, "delivery"));
             Object payload = new HashMap<String, Object>() {{}};
@@ -5632,7 +5632,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object type = this.getMarketType("cancelOrderWs", market, parameters);
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
@@ -5735,7 +5735,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((this.id + " cancelAllOrdersWs only supports spot markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
@@ -5808,7 +5808,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((this.id + " fetchOrderWs only supports spot or swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
@@ -5895,7 +5895,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((this.id + " fetchOrdersWs only supports spot markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
@@ -6016,7 +6016,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((this.id + " fetchOpenOrdersWs only supports spot markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
@@ -6110,7 +6110,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 Object stockUrl = this.getStockWsUrl("user");
                 String stockStreamName = (stockListenKey + "@orderReport");
-                Object stockRequestId = this.requestId(stockUrl);
+                Long stockRequestId = this.requestId(stockUrl);
                 String stockMessageHash = "orders";
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -7229,7 +7229,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((((this.id + " fetchMyTradesWs does not support ") + type) + " markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
@@ -7318,7 +7318,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest((((this.id + " fetchTradesWs does not support ") + type) + " markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);
@@ -7538,7 +7538,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String executionType = this.safeString(message, "x");
         if (java.util.Objects.equals(executionType, "TRADE"))
         {
-            Object trade = this.parseWsTrade((Map<String, Object>) (message));
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message));
             String orderId = this.safeString(trade, "order");
             Object tradeFee = this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
             tradeFee = this.extend(new HashMap<String, Object>() {{}}, tradeFee);

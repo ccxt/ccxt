@@ -1002,7 +1002,7 @@ func (this *Bitflyer) ParseOrder(order any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(order, "side")
 	var marketId *string = this.SafeString(order, "product_code")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(order, "total_commission")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -1398,10 +1398,10 @@ func (this *Bitflyer) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	if limit != nil {
 		request["count"] = limit // default 100
@@ -1459,10 +1459,10 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	if limit != nil {
 		request["count"] = limit // default 100
@@ -1552,7 +1552,7 @@ func (this *Bitflyer) ParseTransaction(transaction any, optionalArgs ...any) any
 	var rawStatus *string = this.SafeString(transaction, "status")
 	var typeVar string
 	var status *string = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	if InOp(transaction, "fee") {
 		typeVar = "withdrawal"
 		status = this.ParseWithdrawalStatus(rawStatus)

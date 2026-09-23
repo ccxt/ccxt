@@ -1121,13 +1121,13 @@ func (this *Onetrading) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var rawTickers []any = this.ToArray(response)
 	for i := 0; i < len(rawTickers); i++ {
-		var ticker any = this.ParseTicker(func() any {
+		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
 			if i >= 0 && i < len(rawTickers) {
 				return DerefScalar(rawTickers[i])
 			}
 			return nil
-		}())
-		var symbol any = GetValue(ticker, "symbol")
+		}()))
+		var symbol any = ticker["symbol"]
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
 		}
@@ -1265,13 +1265,13 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " parseOHLCV() missing period/unit"))
 	}
 	var timeframe string = *period + *lowercaseUnit
-	var durationInSeconds any = this.ParseTimeframe(timeframe)
-	var duration any = Multiply(durationInSeconds, 1000)
+	var durationInSeconds int64 = this.ParseTimeframe(timeframe)
+	var duration int64 = durationInSeconds * 1000
 	var timestamp *int64 = this.Parse8601(this.SafeString(ohlcv, "time"))
 	if timestamp == nil {
 		panic(ExchangeError(this.Id + " parseOHLCV() missing timestamp"))
 	}
-	var alignedTimestamp any = Multiply(duration, this.ParseToInt(Divide(timestamp, duration)))
+	var alignedTimestamp int64 = duration * this.ParseToInt(Divide(timestamp, duration))
 	var options map[string]any = SafeMapTyped(this.Options, "fetchOHLCV")
 	var volumeField *string = this.SafeString(options, "volume", "total_amount")
 	return []any{alignedTimestamp, this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, volumeField)}
@@ -1317,8 +1317,8 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	periodunitVariable := Split(periodUnit, "/")
 	period := GetValue(periodunitVariable, 0)
 	unit := GetValue(periodunitVariable, 1)
-	var durationInSeconds any = this.ParseTimeframe(timeframe)
-	var duration any = Multiply(durationInSeconds, 1000)
+	var durationInSeconds int64 = this.ParseTimeframe(timeframe)
+	var duration int64 = durationInSeconds * 1000
 	if limit == nil {
 		limit = Int64PtrTyped(1500)
 	}
@@ -1404,7 +1404,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var feeCostString *string = this.SafeString(feeInfo, "fee_amount")
 	var takerOrMaker *string = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(feeInfo, "fee_currency")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
@@ -1981,7 +1981,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_code"] = GetValue(market, "id")
@@ -2192,7 +2192,7 @@ func (this *Onetrading) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	//     }
 	//
 	var tradeHistory []any = SafeListTypedDefault(response, "trade_history", []any{})
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2234,7 +2234,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_code"] = GetValue(market, "id")

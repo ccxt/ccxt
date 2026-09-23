@@ -2257,8 +2257,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		promises = append(promises, this.LoadMigrationStatusAsync())
 	}
 
-	responses := (<-promiseAll(promises))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var symbolsData any = func() any {
 		if fetchSpotMarkets {
 			return this.SafeList(GetValue(responses, 0), "data", []any{})
@@ -2671,8 +2670,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 
-	responses := (<-promiseAll(promises))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var data map[string]any = SafeMapTyped(GetValue(responses, 0), "data")
 	var contractData map[string]any = SafeMapTyped(GetValue(responses, 1), "data")
 	var spotData []any = SafeListTypedDefault(data, "list", []any{})
@@ -2935,7 +2933,7 @@ func (this *Kucoin) ParseCurrency(currency any) any {
 			return nil
 		}()
 		var chainId *string = this.SafeString(chain, "chainId")
-		var networkCode any = this.NetworkIdToCode(chainId, code)
+		var networkCode *string = this.NetworkIdToCode(chainId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      chain,
@@ -3240,7 +3238,7 @@ func (this *Kucoin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 				return nil
 			}())
 			var chainId *string = this.SafeString(chain, "chainId")
-			var networkCodeNew any = this.NetworkIdToCode(chainId, this.SafeString(currency, "code"))
+			var networkCodeNew *string = this.NetworkIdToCode(chainId, this.SafeString(currency, "code"))
 			if networkCodeNew != nil {
 				AddElementToObject(resultNew["networks"], networkCodeNew, map[string]any{
 					"withdraw": map[string]any{
@@ -3272,7 +3270,7 @@ func (this *Kucoin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	var networkId *string = this.SafeString(fee, "chain")
 	var currencyId *string = this.SafeString(fee, "currency")
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
-	var networkCode any = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
+	var networkCode *string = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
 	if networkCode != nil {
 		AddElementToObject(result["networks"], networkCode, map[string]any{
 			"withdraw": minWithdrawFee,
@@ -3625,7 +3623,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	uta = GetValue(utaparamsVariable, 0)
 	params = MapTyped(GetValue(utaparamsVariable, 1))
 	var tradeType *string = this.SafeString(params, "tradeType")
-	var firstMarket any = nil
+	var firstMarket map[string]any = nil
 	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		if firstSymbol != nil {
@@ -4115,9 +4113,8 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes338019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchUTAOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-		PanicOnError(retRes338019)
-		ch <- retRes338019
+		var retRes338019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchUTAOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
+		ch <- BoxAbsent(retRes338019)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -4125,7 +4122,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var endAt any = this.Milliseconds() // required param
 	var denominator int = 1000
 	if since != nil {
@@ -4229,9 +4226,8 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes346519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchSpotOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-		PanicOnError(retRes346519)
-		ch <- retRes346519
+		var retRes346519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchSpotOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
+		ch <- BoxAbsent(retRes346519)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4239,7 +4235,7 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": market["id"],
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var endAt any = this.Milliseconds() // required param
 	var denominator int = 1000
 	if since != nil {
@@ -4313,9 +4309,8 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes352419 := (<-this.FetchPaginatedCallDeterministicAsync("fetchContractOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-		PanicOnError(retRes352419)
-		ch <- retRes352419
+		var retRes352419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchContractOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
+		ch <- BoxAbsent(retRes352419)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4330,7 +4325,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs
 	} else {
 		request["granularity"] = timeframe
 	}
-	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var endAt any = this.Milliseconds() // required param
 	if since != nil {
 		request["from"] = since
@@ -6155,7 +6150,7 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		return nil
 	}
 	var marketType any = nil
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -6547,7 +6542,7 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var marketType any = nil
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -6957,7 +6952,7 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
 		lowercaseStatus = "done"
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -7087,7 +7082,7 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan any, status any, opt
 	} else if !IsEqual(status, "active") {
 		panic(BadRequest(this.Id + " fetchOrdersByStatus() can only fetch untriggered stop orders"))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -7223,7 +7218,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
 		"accountMode": accountMode,
 	}
 	var marketType any = nil
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		marketType = GetValue(market, "type")
@@ -7572,7 +7567,7 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan any, id any, optionalArgs ...any)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var isMarginOrder bool = (marginMode != nil)
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -8015,7 +8010,7 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) any {
 		}
 		return status
 	}()
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"currency": feeCurrency,
@@ -8443,7 +8438,7 @@ func (this *Kucoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var marketType any = nil
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -8546,7 +8541,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
 	if (hf == true) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol parameter for hf or margin orders"))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -8697,7 +8692,7 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan any, optionalArgs ...any) 
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -8809,7 +8804,7 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request any = map[string]any{}
 	var isContract any = false
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -9134,7 +9129,7 @@ func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString2(trade, "price", "dealPrice")
 	var amountString *string = this.SafeString2(trade, "size", "amount")
 	var side *string = this.SafeString(trade, "side")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "feeCurrency")
@@ -9270,7 +9265,7 @@ func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString2(trade, "price", "dealPrice")
 	var amountString *string = this.SafeString2(trade, "size", "amount")
 	var side *string = this.SafeString(trade, "side")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "feeCurrency")
@@ -9395,7 +9390,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 	params = MapTyped(GetValue(utaparamsVariable, 1))
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	var entry any = nil
+	var entry map[string]any = nil
 	if uta == true {
 		if GetValue(market, "spot") == true {
 			request["tradeType"] = "SPOT"
@@ -9423,7 +9418,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		//
 		var data map[string]any = SafeMapTyped(response, "data")
 		var dataList []any = SafeListTypedDefault(data, "list", []any{})
-		entry = this.SafeDict(dataList, 0)
+		entry = MapTyped(this.SafeDict(dataList, 0))
 	} else if GetValue(market, "spot") == true {
 		request["symbols"] = market["id"]
 
@@ -9442,7 +9437,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		//     }
 		//
 		var data []any = SafeListTypedDefault(response, "data", []any{})
-		entry = this.SafeDict(data, 0)
+		entry = MapTyped(this.SafeDict(data, 0))
 	} else {
 		request["symbol"] = market["id"]
 
@@ -9459,7 +9454,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		//         }
 		//     }
 		//
-		entry = this.SafeDict(response, "data")
+		entry = MapTyped(this.SafeDict(response, "data"))
 	}
 	var marketId *string = this.SafeString(entry, "symbol")
 
@@ -9634,7 +9629,7 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any {
 		return "deposit"
 	}()
 	var rawStatus *string = this.SafeString(transaction, "status")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(transaction, "fee")
 	if feeCost != nil {
 		var rate *string = nil
@@ -9750,9 +9745,9 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
 	if limit != nil {
@@ -9854,9 +9849,9 @@ func (this *Kucoin) fetchContractDepositsBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -9962,9 +9957,9 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
 	if limit != nil {
@@ -10067,9 +10062,9 @@ func (this *Kucoin) fetchContractWithdrawalsBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -10172,9 +10167,9 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	var request map[string]any = map[string]any{}
 	var code *string = this.SafeString(params, "code")
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var requestedType any = "spot"
 	var requestedTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
@@ -11163,7 +11158,7 @@ func (this *Kucoin) ParseLedgerEntry(item any, optionalArgs ...any) any {
 
 		}
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(item, "fee")
 	var feeCost any = func() any {
 		if feeCostString == nil {
@@ -11304,9 +11299,9 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "startAt", since)
 	}
 	// atm only single currency retrieval is supported
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endAt", request, params)
@@ -11526,16 +11521,16 @@ func (this *Kucoin) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		if IsEqual(marginMode, "isolated") {
 			request["balanceCurrency"] = GetValue(currency, "id")
 		} else {
 			request["quoteCurrency"] = GetValue(currency, "id")
 		}
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -12329,7 +12324,7 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("setLeverage", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
@@ -13544,7 +13539,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "uta", uta)
 	uta = GetValue(utaparamsVariable, 0)
 	params = MapTyped(GetValue(utaparamsVariable, 1))
-	var market any = nil
+	var market map[string]any = nil
 	var isContractMarket any = true // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -14481,9 +14476,8 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan any, symbol any, option
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate == true {
 
-		retRes1165819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, maxLimit))
-		PanicOnError(retRes1165819)
-		ch <- retRes1165819
+		var retRes1165819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, maxLimit))))
+		ch <- BoxAbsent(retRes1165819)
 		return nil
 	}
 	var request any = map[string]any{
@@ -14734,9 +14728,9 @@ func (this *Kucoin) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		params = MapTyped(this.Omit(params, "until"))
 		AddElementToObject(request, "endAt", until)
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
 	if since != nil {

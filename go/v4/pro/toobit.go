@@ -201,9 +201,7 @@ func (this *Toobit) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes17415 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes17415)
-	ch <- retRes17415
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -449,7 +447,7 @@ func (this *Toobit) HandleOHLCV(client any, message map[string]any) {
 	var symbol any = market["symbol"]
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var timeframeId *string = this.SafeString(params, "klineType")
-	var timeframe any = this.FindTimeframe(timeframeId)
+	var timeframe *string = this.FindTimeframe(timeframeId)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
@@ -627,8 +625,8 @@ func (this *Toobit) HandleTickers(client any, message map[string]any) {
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var ticker any = ccxt.GetValue(data, i)
-		var parsed any = this.ParseWsTicker(ticker)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker))
+		var symbol any = parsed["symbol"]
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, parsed)
 		}
@@ -672,9 +670,7 @@ func (this *Toobit) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes53915 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes53915)
-	ch <- retRes53915
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -729,8 +725,7 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		"event":  "sub",
 	}
 
-	orderbook := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -906,9 +901,7 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	this.SetBalanceCache(client, marketType, subscriptionHash, params)
 	client.(ccxt.ClientInterface).Future(typeVar + ":fetchBalanceSnapshot")
 
-	retRes71715 := (<-this.Watch(url, messageHash, params, subscriptionHash))
-	ccxt.PanicOnError(retRes71715)
-	ch <- retRes71715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, params, subscriptionHash)))
 	return nil
 }
 func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...any) {
@@ -1113,7 +1106,7 @@ func (this *Toobit) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
-	var order any = this.ParseWsOrder(message)
+	var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
 	orders.(ccxt.Appender).Append(order)
 	var messageHash any = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
@@ -1135,7 +1128,7 @@ func (this *Toobit) ParseWsOrder(order any, optionalArgs ...any) any {
 		orderType = rawOrderType
 	}
 	var feeCost *float64 = this.SafeNumber(order, "n")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -1312,7 +1305,7 @@ func (this *Toobit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var typeVar string = "swap" // the only account type that carries positions here
-	var messageHash any = ""
+	var messageHash string = ""
 	if !this.IsEmpty(symbols) {
 		symbols = this.MarketSymbols(symbols)
 		if symbols == nil {
@@ -1320,7 +1313,7 @@ func (this *Toobit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}
-	messageHash = ccxt.Add(typeVar+":positions", messageHash)
+	messageHash = typeVar + ":positions" + messageHash
 	var url any = this.GetUserStreamUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, typeVar, symbols)

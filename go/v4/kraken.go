@@ -700,8 +700,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		promises = append(promises, this.LoadTimeDifferenceAsync())
 	}
 
-	responses := (<-promiseAll(promises))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var assetsResponse map[string]any = MapTyped(GetValue(responses, 0))
 	//
 	//     {
@@ -1455,9 +1454,8 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes122119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 720))
-		PanicOnError(retRes122119)
-		ch <- retRes122119
+		var retRes122119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 720))))
+		ch <- BoxAbsent(retRes122119)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1602,9 +1600,9 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["asset"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -1777,7 +1775,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount *string = nil
 	var id any = nil
 	var orderId *string = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var symbol any = nil
 	if IsArray(trade) {
 		timestamp = this.SafeTimestamp(trade, 2)
@@ -2178,7 +2176,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	var symbol any = nil
-	var market any = nil
+	var market map[string]any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
@@ -2464,7 +2462,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeTimestamp(order, "opentm")
 	amount = DerefScalar(this.SafeString(order, "vol", amount))
 	var filled *string = this.SafeString(order, "vol_exec")
-	var fee any = nil
+	var fee map[string]any = nil
 	// kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
 	// const cost = this.safeString (order, 'cost');
 	price = DerefScalar(this.SafeString(description, "price", price))
@@ -3089,9 +3087,9 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
 	for i := 0; i < len(orderIds); i++ {
 		var id string = GetValue(orderIds, i).(string)
 		var item any = result[id]
-		var order any = this.ParseOrder(this.Extend(map[string]any{
+		var order map[string]any = MapTyped(this.ParseOrder(this.Extend(map[string]any{
 			"id": id,
-		}, item))
+		}, item)))
 		orders = append(orders, order)
 	}
 
@@ -3178,7 +3176,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(ids); i++ {
 		AddElementToObject(GetValue(trades, GetValue(ids, i)), "id", GetValue(ids, i))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3492,7 +3490,7 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3604,7 +3602,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	//         }
 	//     }
 	//
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3759,9 +3757,9 @@ func (this *Kraken) ParseTransactionsByType(typeVar any, transactions any, optio
 	_ = limit
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(transactions); i++ {
-		var transaction any = this.ParseTransaction(this.Extend(map[string]any{
+		var transaction map[string]any = MapTyped(this.ParseTransaction(this.Extend(map[string]any{
 			"type": typeVar,
-		}, GetValue(transactions, i)))
+		}, GetValue(transactions, i))))
 		result = append(result, transaction)
 	}
 	return this.FilterByCurrencySinceLimit(result, code, since, limit)

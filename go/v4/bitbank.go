@@ -560,7 +560,7 @@ func (this *Bitbank) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "amount")
 	var id *string = this.SafeString2(trade, "transaction_id", "trade_id")
 	var takerOrMaker *string = this.SafeString(trade, "maker_taker")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee_amount_quote")
 	if feeCostString != nil {
 		fee = map[string]any{
@@ -756,8 +756,8 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		if limit == nil {
 			limit = Int64PtrTyped(1000) // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
 		}
-		var duration any = this.ParseTimeframe(timeframe)
-		since = Subtract(this.Milliseconds(), Multiply(Multiply(duration, 1000), limit))
+		var duration int64 = this.ParseTimeframe(timeframe)
+		since = Subtract(this.Milliseconds(), Multiply(duration*1000, limit))
 	}
 	if this.Markets == nil {
 
@@ -1191,7 +1191,7 @@ func (this *Bitbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["pair"] = GetValue(market, "id")

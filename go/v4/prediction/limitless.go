@@ -399,8 +399,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			promises = append(promises, ccxt.EndpointRaw(this.LimitlessPublicGetMarketsActive(this.Extend(request, rest))))
 		}
 
-		responses := (<-ccxt.PromiseAll(promises))
-		ccxt.PanicOnError(responses)
+		var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 		var length int = ccxt.GetArrayLength(responses)
 		for j := 0; j < length; j++ {
 			var response map[string]any = ccxt.SafeMapTyped(responses, j)
@@ -1132,8 +1131,7 @@ func (this *Limitless) fetchTickerBody(ch chan any, outcome any, optionalArgs ..
 		"slug": slug,
 	}))}
 
-	responses := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(responses)
+	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	var response any = ccxt.GetValue(responses, 0)
 	//
 	//     {
@@ -1284,10 +1282,10 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) an
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var raw any = ticker
-	var book any = nil
+	var book map[string]any = nil
 	if ccxt.InOp(ticker, "market") {
 		raw = this.SafeDict(ticker, "market", map[string]any{})
-		book = this.SafeDict(ticker, "book")
+		book = ccxt.MapTyped(this.SafeDict(ticker, "book"))
 	}
 	var rawLabel any = func() any {
 		if market != nil {
@@ -1483,8 +1481,7 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		})))
 	}
 
-	responses := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(responses)
+	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	for i := 0; i < len(slugs); i++ {
 		var slug any = func() any {
 			if i >= 0 && i < len(slugs) {
@@ -1837,7 +1834,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 	// — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
 	// timestamps keep their relative order consistently across languages
 	var sorted []any = this.SortBy(pseudoTrades, "timestamp")
-	var ms any = ccxt.Multiply(this.ParseTimeframe(timeframe), 1000)
+	var ms int64 = this.ParseTimeframe(timeframe) * 1000
 	var candles map[string]any = map[string]any{}
 	var bucketOrder []any = []any{}
 	for i := 0; i < len(sorted); i++ {
@@ -1852,7 +1849,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 		if pTs == nil {
 			panic(ccxt.ExchangeError(this.Id + " method() missing pTs"))
 		}
-		var bucket any = ccxt.Multiply(this.ParseToInt(ccxt.Divide(pTs, ms)), ms)
+		var bucket int64 = this.ParseToInt(ccxt.Divide(pTs, ms)) * ms
 		var key string = ccxt.ToString(bucket)
 		if !(func() bool { _, ok := candles[key]; return ok }()) {
 			candles[key] = []any{bucket, pPrice, pPrice, pPrice, pPrice, 0}
@@ -2393,7 +2390,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
 	}
 	var rawStatus *string = this.SafeString(rawOrder, "status")
 	var execution any = this.SafeDict(data, "execution")
-	var fee any = nil
+	var fee map[string]any = nil
 	var filled any = nil
 	var cost any = nil
 	if !ccxt.IsEqual(execution, nil) {
@@ -2869,8 +2866,8 @@ func (this *Limitless) SignHash(hash any, privateKey any) any {
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	var rPadded string = ccxt.PadStart(r, 64, "0")
 	var sPadded string = ccxt.PadStart(s, 64, "0")
-	var result any = "0x" + rPadded + sPadded + v
-	return ccxt.ToLower(result)
+	var result string = "0x" + rPadded + sPadded + v
+	return strings.ToLower(result)
 }
 func (this *Limitless) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil))
@@ -2955,9 +2952,7 @@ func (this *Limitless) approveBody(ch chan any, optionalArgs ...any) any {
 	txHash := (<-this.SendEvmTransactionAsync(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit))
 	ccxt.PanicOnError(txHash)
 
-	retRes230915 := (<-this.WaitForTransactionReceiptAsync(rpcUrl, txHash))
-	ccxt.PanicOnError(retRes230915)
-	ch <- retRes230915
+	ch <- ccxt.PanicOnError((<-this.WaitForTransactionReceiptAsync(rpcUrl, txHash)))
 	return nil
 }
 
@@ -3137,8 +3132,7 @@ func (this *Limitless) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 	var slug *string = this.SafeString(params, "slug")
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		request["slug"] = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
 	} else if slug == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelAllOrders requires either an outcome argument or a slug parameter"))
@@ -3189,8 +3183,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var outcomeSymbol any = outcome
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		outcomeSymbol = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	}
 	var paginate any = false
@@ -3849,7 +3842,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var searchParams map[string]any = this.Extend(map[string]any{
 		"searchIn": "both",
 	}, params)
-	var postParams any = this.Omit(searchParams, []any{"tags"})
+	var postParams map[string]any = ccxt.MapTyped(this.Omit(searchParams, []any{"tags"}))
 
 	ch <- this.ApplyEventFetchParams(result, postParams, queries)
 	return nil
@@ -4090,7 +4083,7 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 		})
 		var headerKey string = "lmts-api" + "-key" // concatenating because of the php version
 		var headersKey map[string]any = map[string]any{}
-		ccxt.AddElementToObject(headersKey, headerKey, this.ApiKey)
+		headersKey[headerKey] = this.ApiKey
 		headers = this.Extend(headers, headersKey)
 	}
 	url = ccxt.Add(baseUrl, url)

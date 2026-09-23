@@ -1469,9 +1469,8 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes104619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-		PanicOnError(retRes104619)
-		ch <- retRes104619
+		var retRes104619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))))
+		ch <- BoxAbsent(retRes104619)
 		return nil
 	}
 	var request any = map[string]any{}
@@ -1610,13 +1609,12 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes114919 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes114919)
-		ch <- retRes114919
+		var retRes114919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes114919)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -2229,8 +2227,8 @@ func (this *Modetrade) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
-	var order any = this.ParseOrder(data, market)
-	AddElementToObject(order, "type", typeVar)
+	var order map[string]any = MapTyped(this.ParseOrder(data, market))
+	order["type"] = typeVar
 
 	ch <- order
 	return nil
@@ -2460,7 +2458,7 @@ func (this *Modetrade) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2688,7 +2686,7 @@ func (this *Modetrade) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2805,13 +2803,12 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes213019 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-		PanicOnError(retRes213019)
-		ch <- retRes213019
+		var retRes213019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))))
+		ch <- BoxAbsent(retRes213019)
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3006,7 +3003,7 @@ func (this *Modetrade) fetchOrderTradesBody(ch chan any, id any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3082,13 +3079,12 @@ func (this *Modetrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes231619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes231619)
-		ch <- retRes231619
+		var retRes231619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes231619)
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -3307,7 +3303,7 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
 	var feeCost any = this.ParseNumber(this.SafeString(item, "fee"))
-	var fee any = nil
+	var fee map[string]any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"currency": code,
@@ -3401,7 +3397,7 @@ func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) an
 		movementDirection = SafeStringPtr("withdrawal")
 	}
 	var feeCost any = this.ParseNumber(this.SafeString(transaction, "fee"))
-	var fee any = nil
+	var fee map[string]any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"currency": code,
@@ -3833,9 +3829,7 @@ func (this *Modetrade) setLeverageBody(ch chan any, leverage any, optionalArgs .
 		"leverage": leverage,
 	}
 
-	retRes287715 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes287715)
-	ch <- retRes287715
+	ch <- PanicOnError((<-this.V1PrivatePostClientLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Modetrade) ParsePosition(position any, optionalArgs ...any) any {

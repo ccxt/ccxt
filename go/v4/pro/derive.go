@@ -85,9 +85,7 @@ func (this *Derive) watchPublicBody(ch chan any, messageHash any, message any, s
 		"method": "subscribe",
 	})
 
-	retRes6915 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-	ccxt.PanicOnError(retRes6915)
-	ch <- retRes6915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
 	return nil
 }
 
@@ -135,8 +133,7 @@ func (this *Derive) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"params": params,
 	}
 
-	orderbook := (<-this.WatchPublicAsync(topic, request, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(topic, request, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -218,9 +215,7 @@ func (this *Derive) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		"params": params,
 	}
 
-	retRes17215 := (<-this.WatchPublicAsync(topic, request, subscription))
-	ccxt.PanicOnError(retRes17215)
-	ch <- retRes17215
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topic, request, subscription)))
 	return nil
 }
 func (this *Derive) HandleTicker(client any, message map[string]any) any {
@@ -368,9 +363,7 @@ func (this *Derive) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"name": topic,
 	}
 
-	retRes31115 := (<-this.UnWatchPublicAsync(messageHash, request, subscription))
-	ccxt.PanicOnError(retRes31115)
-	ch <- retRes31115
+	ch <- ccxt.PanicOnError((<-this.UnWatchPublicAsync(messageHash, request, subscription)))
 	return nil
 }
 
@@ -409,9 +402,7 @@ func (this *Derive) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"name": topic,
 	}
 
-	retRes34015 := (<-this.UnWatchPublicAsync(messageHah, request, subscription))
-	ccxt.PanicOnError(retRes34015)
-	ch <- retRes34015
+	ch <- ccxt.PanicOnError((<-this.UnWatchPublicAsync(messageHah, request, subscription)))
 	return nil
 }
 func (this *Derive) UnWatchPublicAsync(messageHash any, message any, subscription any) <-chan any {
@@ -432,9 +423,7 @@ func (this *Derive) unWatchPublicBody(ch chan any, messageHash any, message any,
 		"method": "unsubscribe",
 	})
 
-	retRes35315 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-	ccxt.PanicOnError(retRes35315)
-	ch <- retRes35315
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
 	return nil
 }
 func (this *Derive) HandleOrderBookUnSubscription(client any, topic any) {
@@ -561,7 +550,7 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 		tradesArray = ccxt.NewArrayCache(limit)
 	}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var trade any = this.ParseTrade(ccxt.GetValue(data, i))
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(ccxt.GetValue(data, i)))
 		tradesArray.(ccxt.Appender).Append(trade)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
@@ -606,9 +595,7 @@ func (this *Derive) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, message, messageHash, message)
 	}
 
-	retRes50315 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes50315)
-	ch <- retRes50315
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Derive) WatchPrivateAsync(messageHash any, message any, subscription any) <-chan any {
@@ -631,9 +618,7 @@ func (this *Derive) watchPrivateBody(ch chan any, messageHash any, message any, 
 		"method": "subscribe",
 	})
 
-	retRes51715 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-	ccxt.PanicOnError(retRes51715)
-	ch <- retRes51715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
 	return nil
 }
 
@@ -753,7 +738,7 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed any = this.ParseOrder(data)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(data))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		var orderId *string = this.SafeString(parsed, "id")
 		if symbol != nil {
@@ -772,15 +757,15 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 			if !ccxt.IsEqual(order, nil) {
 				var fee any = this.SafeValue(order, "fee")
 				if !ccxt.IsEqual(fee, nil) {
-					ccxt.AddElementToObject(parsed, "fee", fee)
+					parsed["fee"] = fee
 				}
 				var fees any = this.SafeValue(order, "fees")
 				if !ccxt.IsEqual(fees, nil) {
 					ccxt.AddElementToObject(parsed, "fees", fees)
 				}
-				ccxt.AddElementToObject(parsed, "trades", this.SafeValue(order, "trades"))
-				ccxt.AddElementToObject(parsed, "timestamp", this.SafeInteger(order, "timestamp"))
-				ccxt.AddElementToObject(parsed, "datetime", this.SafeString(order, "datetime"))
+				parsed["trades"] = this.SafeValue(order, "trades")
+				parsed["timestamp"] = this.SafeInteger(order, "timestamp")
+				parsed["datetime"] = this.SafeString(order, "datetime")
 			}
 			cachedOrders.(ccxt.Appender).Append(parsed)
 			var messageHashSymbol any = ccxt.Add(ccxt.Add(topic, ":"), symbol)
@@ -866,7 +851,7 @@ func (this *Derive) HandleMyTrade(client any, message map[string]any) {
 	var topic *string = this.SafeString(params, "channel")
 	var rawTrades []any = ccxt.SafeListTyped(params, "data")
 	for i := 0; i < len(rawTrades); i++ {
-		var trade any = this.ParseTrade(message)
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(message))
 		myTrades.(ccxt.Appender).Append(trade)
 		client.(ccxt.ClientInterface).Resolve(myTrades, topic)
 		var messageHash any = ccxt.Add(topic, this.SafeString(trade, "symbol", ""))

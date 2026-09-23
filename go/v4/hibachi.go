@@ -628,7 +628,7 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerProduct(trade, "timestamp", 1000)
 	var cost *string = Precise.StringMul(price, amount)
 	var side any = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var orderType *string = nil
 	var orderId *string = nil
 	var takerOrMaker any = nil
@@ -754,8 +754,7 @@ func (this *Hibachi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var rawPromises []any = []any{EndpointRaw(this.PublicGetMarketDataPrices(this.Extend(request, params))), EndpointRaw(this.PublicGetMarketDataStats(this.Extend(request, params)))}
 
-	promises := (<-promiseAll(rawPromises))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	var pricesResponse any = GetValue(promises, 0)
 	// {
 	//     "askPrice": "3514.650296",
@@ -901,7 +900,7 @@ func (this *Hibachi) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1761,7 +1760,7 @@ func (this *Hibachi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1850,7 +1849,7 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1928,7 +1927,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
@@ -2338,7 +2337,7 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var direction string
 	var amount any = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var referenceId *string = nil
 	var referenceAccount *string = nil
 	var status any = nil
@@ -2434,8 +2433,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var rawPromises []any = []any{EndpointRaw(this.PrivateGetCapitalHistory(this.Extend(request, params))), EndpointRaw(this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params)))}
 
-	promises := (<-promiseAll(rawPromises))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	var responseCapitalHistory map[string]any = MapTyped(GetValue(promises, 0))
 	//
 	// {
@@ -2806,7 +2804,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}

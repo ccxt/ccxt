@@ -740,7 +740,7 @@ func (this *Gemini) ParseCurrency(rawCurrency any) any {
 	var networkId *string = this.SafeString(rawCurrency, 9)
 	var networkCode any = nil
 	if networkId != nil {
-		networkCode = this.NetworkIdToCode(networkId, code)
+		networkCode = DerefScalar(this.NetworkIdToCode(networkId, code))
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      rawCurrency,
@@ -813,8 +813,7 @@ func (this *Gemini) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		promises = append(promises, this.FetchMarketsFromWebAsync(params)) // get usd markets
 		promises = append(promises, this.FetchUSDTMarketsAsync(params))    // get usdt markets
 
-		promisesResult := (<-promiseAll(promises))
-		PanicOnError(promisesResult)
+		var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 
 		ch <- this.ArrayConcat(GetValue(promisesResult, 0), GetValue(promisesResult, 1))
 		return nil
@@ -873,7 +872,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 		var amountPrecisionString string = Replace(GetValue(cells, 2), "<td>", "")
 		var amountPrecisionParts []string = strings.Split(amountPrecisionString, " ")
 		var idLength int64 = Subtract(GetArrayLength(marketId), 0).(int64)
-		var startingIndex any = idLength - 3
+		var startingIndex int64 = idLength - 3
 		var pricePrecisionString string = Replace(GetValue(cells, 3), "<td>", "")
 		var pricePrecisionParts []string = strings.Split(pricePrecisionString, " ")
 		var quoteId *string = this.SafeStringLower(pricePrecisionParts, 1, Slice(marketId, startingIndex, idLength))
@@ -1034,8 +1033,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 			promises = append(promises, EndpointRaw(this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params))))
 		}
 
-		responses := (<-promiseAll(promises))
-		PanicOnError(responses)
+		var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 		for i := 0; i < GetArrayLength(responses); i++ {
 			result = append(result, this.ParseMarket(GetValue(responses, i)))
 		}
@@ -1369,7 +1367,7 @@ func (this *Gemini) fetchTickerV1AndV2Body(ch chan any, symbol any, optionalArgs
 	_ = params
 	var tickerPromiseA any = this.FetchTickerV1Async(symbol, params)
 	var tickerPromiseB any = this.FetchTickerV2Async(symbol, params)
-	tickerAtickerBVariable := (<-promiseAll([]any{tickerPromiseA, tickerPromiseB}))
+	var tickerAtickerBVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{tickerPromiseA, tickerPromiseB}))))
 	tickerA := GetValue(tickerAtickerBVariable, 0)
 	tickerB := GetValue(tickerAtickerBVariable, 1)
 
@@ -2127,7 +2125,7 @@ func (this *Gemini) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//          }
 	//      ]
 	//
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol) // throws on non-existent symbol
 	}
@@ -2515,7 +2513,7 @@ func (this *Gemini) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeStringLower(transaction, "type")
 	// if status field is available, then it's complete
 	var statusRaw *string = this.SafeString(transaction, "status")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmount *float64 = this.SafeNumber(transaction, "feeAmount")
 	if feeAmount != nil {
 		fee = map[string]any{

@@ -141,9 +141,7 @@ func (this *Grvt) subscribeMultipleBody(ch chan any, messageHashes any, request 
 		return "privateTrading"
 	}()
 
-	retRes12115 := (<-this.WatchMultiple(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes))
-	ccxt.PanicOnError(retRes12115)
-	ch <- retRes12115
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes)))
 	return nil
 }
 func (this *Grvt) RequestId() any {
@@ -334,7 +332,7 @@ func (this *Grvt) HandleTicker(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var ticker any = this.ParseWsTicker(data, market)
+	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add("ticker::", symbol))
 }
@@ -371,9 +369,7 @@ func (this *Grvt) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes29815 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes29815)
-	ch <- retRes29815
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -467,7 +463,7 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
 	}
-	var parsed any = this.ParseWsTrade(data)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	var stored any = ccxt.GetValue(this.Trades, symbol)
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trade::", symbol))
@@ -606,7 +602,7 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var secondPart *string = this.SafeString(parts, 1, "")
 	var timeframeId string = ccxt.Replace(secondPart, "-TRADE", "")
-	var timeframe any = this.FindTimeframe(timeframeId)
+	var timeframe *string = this.FindTimeframe(timeframeId)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), timeframe)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
@@ -655,9 +651,7 @@ func (this *Grvt) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	symbol = this.Symbol(symbol)
 
-	retRes51015 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes51015)
-	ch <- retRes51015
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -727,8 +721,7 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		"selectors": rawHashes,
 	}
 
-	orderbook := (<-this.SubscribeMultipleAsync(messageHashes, this.Extend(request, params), rawHashes))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeMultipleAsync(messageHashes, this.Extend(request, params), rawHashes))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1187,10 +1180,10 @@ func (this *Grvt) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var order any = this.ParseWsOrder(data)
+	var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(data))
 	this.Orders.(ccxt.Appender).Append(order)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
-	client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add("order::", ccxt.GetValue(order, "symbol")))
+	client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add("order::", order["symbol"]))
 }
 func (this *Grvt) ParseWsOrder(order any, optionalArgs ...any) any {
 	// same as REST api

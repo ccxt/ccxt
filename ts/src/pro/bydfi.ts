@@ -87,7 +87,7 @@ export default class bydfi extends bydfiRest {
         };
     }
 
-    requestId () {
+    requestId (): number {
         this.lockId ();
         const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
         this.options['reqid'] = reqid;

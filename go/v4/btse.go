@@ -996,8 +996,8 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		if since != nil {
 			// check if the requested time range is too large for one request
 			// if so, just omit until for correct paginated calls for not to get an error from the exchange
-			var duration any = this.ParseTimeframe(timeframe)
-			var maxDelta any = Multiply(Multiply(duration, maxLimit), 1000) // parseTimeframe returns seconds, the difference below is in milliseconds
+			var duration int64 = this.ParseTimeframe(timeframe)
+			var maxDelta int64 = Multiply(Multiply(duration, maxLimit), 1000).(int64) // parseTimeframe returns seconds, the difference below is in milliseconds
 			var difference any = Subtract(until, since)
 			if IsLessThan(difference, maxDelta) {
 				request["end"] = this.ParseToInt(Divide(until, 1000))
@@ -2250,7 +2250,7 @@ func (this *Btse) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString2(trade, "positionId", "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(trade, "feeAmount")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -2838,7 +2838,7 @@ func (this *Btse) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) a
 	} else {
 		request["orderId"] = id
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3584,7 +3584,7 @@ func (this *Btse) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	rowscurrencyVariable := (<-this.RequestWalletHistoryRowsAsync("fetchDepositsWithdrawals", []any{"DEPOSIT", "WITHDRAW"}, code, since, limit, params))
+	var rowscurrencyVariable []any = ListTyped(PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchDepositsWithdrawals", []any{"DEPOSIT", "WITHDRAW"}, code, since, limit, params))))
 	rows := GetValue(rowscurrencyVariable, 0)
 	currency := GetValue(rowscurrencyVariable, 1)
 
@@ -3621,7 +3621,7 @@ func (this *Btse) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	rowscurrencyVariable := (<-this.RequestWalletHistoryRowsAsync("fetchDeposits", []any{"DEPOSIT"}, code, since, limit, params))
+	var rowscurrencyVariable []any = ListTyped(PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchDeposits", []any{"DEPOSIT"}, code, since, limit, params))))
 	rows := GetValue(rowscurrencyVariable, 0)
 	currency := GetValue(rowscurrencyVariable, 1)
 
@@ -3658,7 +3658,7 @@ func (this *Btse) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	rowscurrencyVariable := (<-this.RequestWalletHistoryRowsAsync("fetchWithdrawals", []any{"WITHDRAW"}, code, since, limit, params))
+	var rowscurrencyVariable []any = ListTyped(PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchWithdrawals", []any{"WITHDRAW"}, code, since, limit, params))))
 	rows := GetValue(rowscurrencyVariable, 0)
 	currency := GetValue(rowscurrencyVariable, 1)
 
@@ -3777,9 +3777,9 @@ func (this *Btse) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var walletType *string = this.SafeString(params, "walletType", "SPOT")
 	request["walletType"] = walletType
 	params = MapTyped(this.Omit(params, "walletType"))
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["asset"] = GetValue(currency, "id")
 	} else if walletType != nil && *walletType == "SPOT" {
 		panic(ArgumentsRequired(this.Id + " fetchLedger() requires a code argument for the spot wallet history"))
@@ -4244,9 +4244,7 @@ func (this *Btse) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 		"positionMode": positionMode,
 	}
 
-	retRes346215 := (<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params))).Raw
-	PanicOnError(retRes346215)
-	ch <- retRes346215
+	ch <- PanicOnError((<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -4365,9 +4363,7 @@ func (this *Btse) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 		"positionMode": positionMode,
 	}
 
-	retRes355315 := (<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params))).Raw
-	PanicOnError(retRes355315)
-	ch <- retRes355315
+	ch <- PanicOnError((<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params))).Raw)
 	return nil
 }
 

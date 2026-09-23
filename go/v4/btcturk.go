@@ -722,7 +722,7 @@ func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "pair")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var side *string = this.SafeString2(trade, "side", "orderType")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmountString *string = this.SafeString(trade, "fee")
 	if feeAmountString != nil {
 		var feeCurrency *string = this.SafeString(trade, "denominatorSymbol")
@@ -879,7 +879,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		if timeframe == "1y" {
 			panic(BadRequest(this.Id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\""))
 		}
-		var seconds any = this.ParseTimeframe(timeframe)
+		var seconds int64 = this.ParseTimeframe(timeframe)
 		var limitSeconds any = Multiply(seconds, (Subtract(limit, 1)))
 		if since != nil {
 			var to any = Add(this.ParseToInt(Divide(since, 1000)), limitSeconds)
@@ -1089,7 +1089,7 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["pairSymbol"] = GetValue(market, "id")
@@ -1282,7 +1282,7 @@ func (this *Btcturk) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

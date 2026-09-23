@@ -295,12 +295,12 @@ func (this *testMainClass) ExpandSettings(exchange ccxt.ICoreExchange) {
 }
 func (this *testMainClass) AddPadding(message any, size any) any {
 	// has to be transpilable
-	var res any = ""
+	var res string = ""
 	var messageLength int = GetLength(message)                        // avoid php transpilation issue
 	var missingSpace any = Subtract(Subtract(size, messageLength), 0) // - 0 is added just to trick transpile to treat the .length as a string for php
 	if IsGreaterThan(missingSpace, 0) {
 		for i := 0; IsLessThan(i, missingSpace); i++ {
-			res = Add(res, " ")
+			res += " "
 		}
 	}
 	return Add(message, res)
@@ -680,8 +680,7 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 	// todo - not yet ready in other langs too
 	// promises.push (testThrottle ());
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	// now count which test-methods retuned `false` from "testSafe" and dump that info below
 	var failedMethods []any = []any{}
 	for i := 0; i < len(testNames); i++ {
@@ -2711,8 +2710,7 @@ func (this *testMainClass) testWsStaticallyBody(ch chan any, exchange ccxt.ICore
 				// after the first resolution, so serialize only at the end
 				var promises []any = []any{CallExchangeMethodDynamically(exchange, method, input), this.InjectWsMessagesAsync(exchange, url, messages)}
 
-				results := (<-promiseAll(promises))
-				PanicOnError(results)
+				var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 				var unifiedResult any = JsonParse(JsonStringify(GetValue(results, 0)))
 				this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, GetValue(data, "parsedResponse"))
 				this.AssertWsSentMessages(exchange, url, data)

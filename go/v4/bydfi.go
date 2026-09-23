@@ -906,7 +906,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"contractType": contractType,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -984,7 +984,7 @@ func (this *Bydfi) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeInteger(trade, "time")
-	var fee any = nil
+	var fee map[string]any = nil
 	var rawType *string = this.SafeString(trade, "type")
 	var feeCost *string = this.SafeString(trade, "fee")
 	if feeCost != nil {
@@ -1085,7 +1085,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	var now int64 = this.Milliseconds()
-	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var timeDelta any = Multiply(duration, numberOfCandles)
 	if IsEqual(startTime, nil) && IsEqual(until, nil) {
 		startTime = Subtract(now, timeDelta)
@@ -2167,7 +2167,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"contractType": contractType,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -3032,9 +3032,7 @@ func (this *Bydfi) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 		"wallet":       wallet,
 	}
 
-	retRes242415 := (<-this.PrivatePostV1FapiUserDataMarginType(this.Extend(request, params))).Raw
-	PanicOnError(retRes242415)
-	ch <- retRes242415
+	ch <- PanicOnError((<-this.PrivatePostV1FapiUserDataMarginType(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -3095,8 +3093,6 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 		"settleCoin":   settleCoin,
 	}
 
-	retRes246715 := (<-this.PrivatePostV1FapiUserDataPositionSideDual(this.Extend(request, params))).Raw
-	PanicOnError(retRes246715)
 	//
 	//     {
 	//         "code": 200,
@@ -3104,7 +3100,7 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	//         "success": true
 	//     }
 	//
-	ch <- retRes246715
+	ch <- PanicOnError((<-this.PrivatePostV1FapiUserDataPositionSideDual(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -3539,9 +3535,7 @@ func (this *Bydfi) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes280415 := (<-this.FetchTransactionsHelperAsync("deposit", code, since, limit, params))
-	PanicOnError(retRes280415)
-	ch <- retRes280415
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("deposit", code, since, limit, params)))
 	return nil
 }
 
@@ -3573,9 +3567,7 @@ func (this *Bydfi) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes281915 := (<-this.FetchTransactionsHelperAsync("withdrawal", code, since, limit, params))
-	PanicOnError(retRes281915)
-	ch <- retRes281915
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("withdrawal", code, since, limit, params)))
 	return nil
 }
 func (this *Bydfi) FetchTransactionsHelperAsync(typeVar any, code any, since any, limit any, params any) <-chan any {
@@ -3711,7 +3703,7 @@ func (this *Bydfi) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var rawStatus *string = this.SafeStringLower(transaction, "status")
 	var timestamp *int64 = this.SafeInteger(transaction, "createTime")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	if feeCost != nil {
 		fee = map[string]any{

@@ -86,9 +86,7 @@ func (this *Ndax) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes7415 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes7415)
-	ch <- retRes7415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Ndax) HandleTicker(client any, message map[string]any) {
@@ -118,8 +116,8 @@ func (this *Ndax) HandleTicker(client any, message map[string]any) {
 	//         "TimeStamp": "1534862990358"
 	//     }
 	//
-	var ticker any = this.ParseTicker(payload)
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(payload))
+	var symbol any = ticker["symbol"]
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -211,13 +209,13 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 	var name string = "SubscribeTrades"
 	var updates map[string]any = map[string]any{}
 	for i := 0; i < len(payload); i++ {
-		var trade any = this.ParseTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
 			if i >= 0 && i < len(payload) {
 				return ccxt.DerefScalar(payload[i])
 			}
 			return nil
-		}())
-		var symbol any = ccxt.GetValue(trade, "symbol")
+		}()))
+		var symbol any = trade["symbol"]
 		var tradesArray any = func() any {
 			if symbol == nil {
 				return nil
@@ -353,7 +351,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		for j := 0; j < len(keys); j++ {
 			var timeframe string = ccxt.GetValue(keys, j).(string)
 			var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-			var duration any = ccxt.ParseInt(interval) * 1000
+			var duration int64 = ccxt.ParseInt(interval) * 1000
 			var timestamp *int64 = this.SafeInteger(ohlcv, 0)
 			if timestamp == nil {
 				continue
@@ -529,8 +527,7 @@ func (this *Ndax) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	orderbook := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

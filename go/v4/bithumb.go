@@ -680,8 +680,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			promises = append(promises, EndpointRaw(this.PublicGetPublicTickerALLQuoteId(this.Extend(request, params))))
 		}
 
-		results := (<-promiseAll(promises))
-		PanicOnError(results)
+		var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 		for i := 0; i < len(quotes); i++ {
 			var quote string = quotes[i]
 			var quoteId any = quote
@@ -1719,7 +1718,7 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
 		amountString = this.FixCommaNumber(this.SafeString2(trade, "units_traded", "units"))
 	}
 	var costString *string = this.SafeString(trade, "total")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
@@ -2581,7 +2580,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeStringN(order, []any{"order_id", "uuid", "algo_order_id"})
 	var rawTrades []any = SafeList2Typed(order, "contract", "trades", []any{})
 	var feeCost *float64 = this.SafeNumber(order, "reserved_fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		var currency any = nil
 		if market != nil {
@@ -2665,7 +2664,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	var response any = nil
 	if IsEqual(generation, 2) {
 		var twap *bool = this.SafeBool(params, "twap", false)
@@ -2756,7 +2755,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			params = MapTyped(this.Omit(params, []any{"clientOrderIds"}))
 		}
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = this.GetGen2MarketId(market)
@@ -3042,7 +3041,7 @@ func (this *Bithumb) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " cancelOrders is only supported for the generation 2 API"))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3484,15 +3483,15 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 	var response any = nil
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil && *code == "KRW" {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 
 		response = (<-this.PrivateGetV1WithdrawsKrw(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if code != nil {
-			currency = this.Currency(code)
+			currency = MapTyped(this.Currency(code))
 			request["currency"] = GetValue(currency, "id")
 		}
 
@@ -3639,15 +3638,15 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	var response any = nil
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil && *code == "KRW" {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 
 		response = (<-this.PrivateGetV1DepositsKrw(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
 		if code != nil {
-			currency = this.Currency(code)
+			currency = MapTyped(this.Currency(code))
 			request["currency"] = GetValue(currency, "id")
 		}
 
@@ -3901,7 +3900,7 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 				if GetLength(result) > 0 {
 					result = Add(result, "&")
 				}
-				result = Add(result, Add(Add(encodedKey, "="), this.EncodeURIComponent(valueString)))
+				result = Add(result, encodedKey+"="+this.EncodeURIComponent(valueString))
 			}
 		} else {
 			if GetLength(result) > 0 {

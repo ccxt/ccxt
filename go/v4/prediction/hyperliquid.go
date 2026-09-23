@@ -1028,7 +1028,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome any, optionalArgs .
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var startTime any = since
 	if since == nil {
-		var tf any = this.ParseTimeframe(timeframe)
+		var tf int64 = this.ParseTimeframe(timeframe)
 		var candleCount any = func() any {
 			if limit != nil {
 				return limit
@@ -1230,8 +1230,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 		"type": "allMids",
 	})}
 
-	results := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(results)
+	var results []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	var response any = ccxt.GetValue(results, 0)
 	var midsResponse any = ccxt.GetValue(results, 1)
 	var balances any = this.SafeList(response, "balances", []any{})
@@ -2253,8 +2252,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	var outcomeHandle any = nil
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		outcomeHandle = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	} else {
 		// fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
@@ -2350,7 +2348,7 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 	var fee *float64 = this.SafeNumber(trade, "fee")
 	var feeCurrency *string = this.SafeString(trade, "feeToken", "USDC")
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome")
-	var feeObject any = nil
+	var feeObject map[string]any = nil
 	if fee != nil {
 		feeObject = map[string]any{
 			"cost":     fee,
@@ -2451,7 +2449,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			var symLower string = ccxt.ToLower(parentSymbolOrEmpty)
 			// the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
 			// and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
-			var haystack any = description + " " + symLower
+			var haystack string = description + " " + symLower
 			var matches bool = false
 			for qi := 0; qi < len(lowerQueries); qi++ {
 				var words []string = ccxt.Split(func() any {
@@ -2779,9 +2777,7 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan any, builder any, maxFeeR
 		"vaultAddress": nil,
 	}
 
-	retRes218215 := (<-this.PrivatePostExchange(request)).Raw
-	ccxt.PanicOnError(retRes218215)
-	ch <- retRes218215
+	ch <- ccxt.PanicOnError((<-this.PrivatePostExchange(request)).Raw)
 	return nil
 }
 func (this *Hyperliquid) InitializeClientAsync() <-chan any {

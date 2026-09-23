@@ -1783,7 +1783,7 @@ public class Dydx extends DydxApi
         return r;
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Object parameters)
+    public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Object parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -1956,7 +1956,7 @@ public class Dydx extends DydxApi
         String orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return new ArrayList<Object>(Arrays.asList(orderId, this.extend(signingPayload, parameters)));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
@@ -2044,7 +2044,7 @@ public class Dydx extends DydxApi
             Map<String, Object> newParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "latestBlockHeight", lastBlockHeight );
             }});
-            Object orderRequestRes = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, newParams);
+            List<Object> orderRequestRes = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, newParams);
             Object orderId = (orderRequestRes == null || 0 >= ((List<?>)orderRequestRes).size() ? null : ((List<?>)orderRequestRes).get(0));
             Object orderRequest = (orderRequestRes == null || 1 >= ((List<?>)orderRequestRes).size() ? null : ((List<?>)orderRequestRes).get(1));
             Object chainName = ((Map<String, Object>)this.options).get("chainName");
@@ -3438,9 +3438,9 @@ public class Dydx extends DydxApi
         return this.safeBalance(result);
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     public String getWalletAddress()

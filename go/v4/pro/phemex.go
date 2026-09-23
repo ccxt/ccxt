@@ -367,9 +367,7 @@ func (this *Phemex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		return ccxt.Add(typeVar, messageHash)
 	}()
 
-	retRes33115 := (<-this.SubscribePrivateAsync(typeVar, messageHash, params))
-	ccxt.PanicOnError(retRes33115)
-	ch <- retRes33115
+	ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(typeVar, messageHash, params)))
 	return nil
 }
 func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
@@ -531,9 +529,9 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 	var candles any = this.SafeList2(message, "kline", "kline_p", []any{})
 	var first any = this.SafeList(candles, 0, []any{})
 	var interval *string = this.SafeString(first, 1)
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe != nil {
-		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("kline:", timeframe), ":"), symbol)
+		var messageHash any = ccxt.Add("kline:"+*timeframe+":", symbol)
 		var ohlcvs any = this.ParseOHLCVs(candles, market)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
@@ -599,9 +597,7 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	retRes54715 := (<-this.Watch(url, messageHash, request, subscriptionHash))
-	ccxt.PanicOnError(retRes54715)
-	ch <- retRes54715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash)))
 	return nil
 }
 
@@ -789,8 +785,7 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	orderbook := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -981,7 +976,7 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var typeVar any = nil
 	var messageHash any = "trades:"
 	if symbol != nil {
@@ -1125,9 +1120,9 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 		var rawTrade any = ccxt.GetValue(message, i)
 		var marketId *string = this.SafeString(rawTrade, "symbol")
 		var market any = this.SafeMarket(marketId)
-		var parsed any = this.ParseTrade(rawTrade)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(rawTrade))
 		cachedTrades.(ccxt.Appender).Append(parsed)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var symbol any = parsed["symbol"]
 		if typeVar == nil {
 			typeVar = func() any {
 				if ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT") {
@@ -1182,7 +1177,7 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "orders:"
-	var market any = nil
+	var market map[string]any = nil
 	var typeVar any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1823,9 +1818,7 @@ func (this *Phemex) subscribePrivateBody(ch chan any, typeVar any, messageHash a
 	}
 	request = this.Extend(request, params)
 
-	retRes159015 := (<-this.Watch(url, messageHash, request, channel))
-	ccxt.PanicOnError(retRes159015)
-	ch <- retRes159015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, channel)))
 	return nil
 }
 func (this *Phemex) AuthenticateAsync(optionalArgs ...any) <-chan any {

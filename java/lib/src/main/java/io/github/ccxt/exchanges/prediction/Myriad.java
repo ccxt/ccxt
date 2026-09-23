@@ -4433,7 +4433,7 @@ final Object finalNetworkId = networkId;
         }});
     }
 
-    public Object requestId(String url)
+    public Long requestId(String url)
     {
         Object existing = this.safeValue(this.options, "requestId");
         if (java.util.Objects.equals(existing, null))
@@ -4447,7 +4447,7 @@ final Object finalNetworkId = networkId;
         {
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
         }
-        return newValue;
+        return Helpers.toLongOrNull(newValue);
     }
 
     public Object fromWei(String wei)
@@ -4484,7 +4484,7 @@ final Object finalNetworkId = networkId;
             if (java.util.Objects.equals(connectSent, null))
             {
                 Helpers.addElementToObject(this.options, "wsConnected", false);
-                Object requestId = this.requestId((String) (url));
+                Long requestId = this.requestId((String) (url));
                 // give the anonymous connect a name so the params object is non-empty (PHP serialises an
                 // empty array as a JSON array, which Centrifugo rejects)
                 Map<String, Object> connectMsg = new HashMap<String, Object>() {{
@@ -4530,7 +4530,7 @@ final Object finalNetworkId = networkId;
             String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
             // finish the connect handshake first so the subscribe frame is sent after the connect reply
             (this.connectCentrifugo((String) (url))).join();
-            Object requestId = this.requestId((String) (url));
+            Long requestId = this.requestId((String) (url));
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "subscribe", new HashMap<String, Object>() {{
                     put( "channel", channel );
@@ -4650,7 +4650,7 @@ final Object finalNetworkId = networkId;
                 // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
                 (this.seedOrderBook((String) (outcome), (String) (sym), limit)).join();
             }
-            Object requestId = this.requestId((String) (url));
+            Long requestId = this.requestId((String) (url));
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "subscribe", new HashMap<String, Object>() {{
                     put( "channel", channel );
@@ -5041,7 +5041,7 @@ final Object finalNetworkId = networkId;
                 if (java.util.Objects.equals(this.safeValue(seenChannels, channel), null))
                 {
                     ((Map<String, Object>)seenChannels).put((String)channel, true);
-                    Object requestId = this.requestId((String) (url));
+                    Long requestId = this.requestId((String) (url));
                     Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                         put( "subscribe", new HashMap<String, Object>() {{
                             put( "channel", channel );
@@ -5308,7 +5308,7 @@ final Object finalNetworkId = networkId;
                 // handlePosition can maintain a running contracts figure
                 (this.seedPositionBalances(trader)).join();
             }
-            Object requestId = this.requestId((String) (url));
+            Long requestId = this.requestId((String) (url));
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "subscribe", new HashMap<String, Object>() {{
                     put( "channel", channel );

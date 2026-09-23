@@ -113,9 +113,7 @@ func (this *Mudrex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 
-	retRes8615 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes8615)
-	ch <- retRes8615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Mudrex) WatchTickersAsync(optionalArgs ...any) <-chan any {
@@ -293,7 +291,7 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	}
 	var parts []string = ccxt.Split(stream, "@")
 	var interval any = ccxt.GetValue(parts, 1)
-	var tf any = this.FindTimeframe(interval)
+	var tf *string = this.FindTimeframe(interval)
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var s *string = this.SafeString(data, "s")
 	if s == nil {

@@ -479,8 +479,7 @@ func (this *Zebpay) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	promises := (<-promiseAll(promisesUnresolved))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	var spotMarkets []any = SafeListTypedDefault(promises, 0, []any{})
 	var futureMarkets []any = SafeListTypedDefault(promises, 1, []any{})
 
@@ -564,7 +563,7 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(chain, "chainId")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var depositAllowed bool = IsEqual(this.SafeBool(chain, "isDepositEnabled"), true)
 		deposit = func() any {
 			if depositAllowed {
@@ -1171,7 +1170,7 @@ func (this *Zebpay) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1614,7 +1613,7 @@ func (this *Zebpay) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
-	var parsedOrder any = this.ParseOrder(data)
+	var parsedOrder map[string]any = MapTyped(this.ParseOrder(data))
 
 	ch <- []any{parsedOrder}
 	return nil

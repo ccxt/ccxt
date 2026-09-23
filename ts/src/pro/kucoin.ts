@@ -165,7 +165,7 @@ export default class kucoin extends kucoinRest {
         return undefined;
     }
 
-    requestId () {
+    requestId (): number {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -2492,7 +2492,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (cache, symbolMessageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // /spotMarket/tradeOrders
         //
@@ -3516,7 +3516,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    getMessageHash (elementName: string, symbol: Str = undefined) {
+    getMessageHash (elementName: string, symbol: Str = undefined): string {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...
         if (symbol !== undefined) {

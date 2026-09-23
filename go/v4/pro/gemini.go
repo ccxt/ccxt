@@ -210,8 +210,8 @@ func (this *Gemini) HandleTrade(client any, message map[string]any) {
 	//         "side": "buy"
 	//     }
 	//
-	var trade any = this.ParseWsTrade(message)
-	var symbol any = ccxt.GetValue(trade, "symbol")
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
+	var symbol any = trade["symbol"]
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -274,7 +274,7 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 			ccxt.AddElementToObject(this.Trades, symbol, stored)
 		}
 		for i := 0; i < ccxt.GetArrayLength(trades); i++ {
-			var trade any = this.ParseWsTrade(ccxt.GetValue(trades, i), market)
+			var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(ccxt.GetValue(trades, i), market))
 			stored.(ccxt.Appender).Append(trade)
 		}
 		var messageHash any = ccxt.Add("trades:", symbol)
@@ -289,9 +289,9 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp a
 			var marketId any = ccxt.GetValue(ccxt.GetValue(trades, i), "symbol")
 			var market any = this.SafeMarket(ccxt.ToLower(marketId))
 			var symbol any = ccxt.GetValue(market, "symbol")
-			var trade any = this.ParseWsTrade(ccxt.GetValue(trades, i), market)
-			ccxt.AddElementToObject(trade, "timestamp", timestamp)
-			ccxt.AddElementToObject(trade, "datetime", this.Iso8601(timestamp))
+			var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(ccxt.GetValue(trades, i), market))
+			trade["timestamp"] = timestamp
+			trade["datetime"] = this.Iso8601(timestamp)
 			var stored any = this.SafeValue(this.Trades, symbol)
 			if ccxt.IsEqual(stored, nil) {
 				stored = ccxt.NewArrayCache(tradesLimit)
@@ -403,7 +403,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var market any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var changes []any = ccxt.SafeListTyped(message, "changes")
-	var timeframe any = this.FindTimeframe(timeframeId)
+	var timeframe *string = this.FindTimeframe(timeframeId)
 	var ohlcvsBySymbol any = this.SafeDict(this.Ohlcvs, symbol)
 	if ccxt.IsEqual(ohlcvsBySymbol, nil) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
@@ -470,8 +470,7 @@ func (this *Gemini) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var subscribeHash any = ccxt.Add("l2:", market["symbol"])
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v2/marketdata")
 
-	orderbook := (<-this.Watch(url, messageHash, request, subscribeHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscribeHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -541,8 +540,7 @@ func (this *Gemini) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	orderbook := (<-this.HelperForWatchMultipleConstructAsync("orderbook", symbols, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.HelperForWatchMultipleConstructAsync("orderbook", symbols, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -570,9 +568,7 @@ func (this *Gemini) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes46315 := (<-this.HelperForWatchMultipleConstructAsync("bidsasks", symbols, params))
-	ccxt.PanicOnError(retRes46315)
-	ch <- retRes46315
+	ch <- ccxt.PanicOnError((<-this.HelperForWatchMultipleConstructAsync("bidsasks", symbols, params)))
 	return nil
 }
 func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []any, timestamp any, nonce any) {
@@ -691,9 +687,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 		url = ccxt.Add(url, "trades=true&bids=false&offers=false")
 	}
 
-	retRes56015 := (<-this.WatchMultiple(url, messageHashes, nil))
-	ccxt.PanicOnError(retRes56015)
-	ch <- retRes56015
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, nil)))
 	return nil
 }
 func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges []any, timestamp any, nonce any) {
@@ -904,7 +898,7 @@ func (this *Gemini) HandleOrder(client any, message any) {
 	}
 	var orders any = this.Orders
 	for i := 0; i < ccxt.GetArrayLength(message); i++ {
-		var order any = this.ParseWsOrder(ccxt.GetValue(message, i))
+		var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(ccxt.GetValue(message, i)))
 		orders.(ccxt.Appender).Append(order)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)

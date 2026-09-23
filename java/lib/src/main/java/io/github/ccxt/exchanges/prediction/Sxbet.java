@@ -2901,7 +2901,7 @@ final Object finalI = i;
         }};
     }
 
-    public Object requestId(String url)
+    public Long requestId(String url)
     {
         Object existing = this.safeValue(this.options, "requestId");
         if (java.util.Objects.equals(existing, null))
@@ -2915,7 +2915,7 @@ final Object finalI = i;
         {
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
         }
-        return newValue;
+        return Helpers.toLongOrNull(newValue);
     }
 
     /**
@@ -2979,7 +2979,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(this.options, "wsConnected", false);
                 String token = (this.fetchSxbetRealtimeToken()).join();
-                Object requestId = this.requestId((String) (url));
+                Long requestId = this.requestId((String) (url));
                 this.registerSxbetWsRequest(requestId, "centrifugoConnected", "connect");
                 Map<String, Object> connectMsg = new HashMap<String, Object>() {{
                     put( "connect", new HashMap<String, Object>() {{
@@ -3025,7 +3025,7 @@ final Object finalI = i;
             String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
             // finish the connect handshake first so the subscribe frame follows the connect reply
             (this.connectSxbetCentrifugo((String) (url))).join();
-            Object requestId = this.requestId((String) (url));
+            Long requestId = this.requestId((String) (url));
             this.registerSxbetWsRequest(requestId, messageHash, channel);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "subscribe", new HashMap<String, Object>() {{
@@ -3205,7 +3205,7 @@ final Object finalI = i;
                     Helpers.addElementToObject(this.orderbooks, sym, emptyBook);
                 }
             }
-            Object requestId = this.requestId((String) (url));
+            Long requestId = this.requestId((String) (url));
             this.registerSxbetWsRequest(requestId, messageHash, channel);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "subscribe", new HashMap<String, Object>() {{
@@ -3366,7 +3366,7 @@ final Object finalI = i;
                 Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
                 hydrated = true;
             }
-            Object requestId = this.requestId((String) (url));
+            Long requestId = this.requestId((String) (url));
             this.registerSxbetWsRequest(requestId, messageHash, channel);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "subscribe", new HashMap<String, Object>() {{

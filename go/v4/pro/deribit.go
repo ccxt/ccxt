@@ -124,9 +124,7 @@ func (this *Deribit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	retRes10615 := (<-this.Watch(url, messageHash, request, messageHash, request))
-	ccxt.PanicOnError(retRes10615)
-	ch <- retRes10615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request)))
 	return nil
 }
 func (this *Deribit) HandleBalance(client any, message map[string]any) {
@@ -233,9 +231,7 @@ func (this *Deribit) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	retRes20015 := (<-this.Watch(url, channel, request, channel, request))
-	ccxt.PanicOnError(retRes20015)
-	ch <- retRes20015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, channel, request, channel, request)))
 	return nil
 }
 
@@ -339,7 +335,7 @@ func (this *Deribit) HandleTicker(client any, message map[string]any) {
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
-	var ticker any = this.ParseTicker(data)
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data))
 	var messageHash *string = this.SafeString(params, "channel")
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -473,9 +469,7 @@ func (this *Deribit) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
 
-	retRes38615 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes38615)
-	ch <- retRes38615
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -566,7 +560,7 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed any = this.ParseTrade(trade, market)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(trade, market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
@@ -706,9 +700,7 @@ func (this *Deribit) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchOrderBook")
 
-	retRes56015 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes56015)
-	ch <- retRes56015
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -761,8 +753,7 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		descriptor = interval
 	}
 
-	orderbook := (<-this.WatchMultipleWrapperAsync("book", descriptor, symbols, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultipleWrapperAsync("book", descriptor, symbols, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1005,7 +996,7 @@ func (this *Deribit) HandleOrders(client any, message map[string]any) {
 	if ccxt.IsArray(data) {
 		orders = this.ParseOrders(data)
 	} else {
-		var order any = this.ParseOrder(data)
+		var order map[string]any = ccxt.MapTyped(this.ParseOrder(data))
 		orders = []any{order}
 	}
 	var cachedOrders any = this.Orders
@@ -1124,7 +1115,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var timeframes any = this.SafeDict(wsOptions, "timeframes", map[string]any{})
-	var unifiedTimeframe any = this.FindTimeframe(rawTimeframe, timeframes)
+	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	if ccxt.IsEqual(this.SafeDict(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1219,9 +1210,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, chan
 		panic(ccxt.ExchangeError(this.Id + " requested subscription length over limit, try to reduce symbols amount"))
 	}
 
-	retRes96315 := (<-this.WatchMultiple(url, messageHashes, extendedRequest, rawSubscriptions))
-	ccxt.PanicOnError(retRes96315)
-	ch <- retRes96315
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, extendedRequest, rawSubscriptions)))
 	return nil
 }
 func (this *Deribit) HandleMessage(client any, message any) {

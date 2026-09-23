@@ -1202,7 +1202,7 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
 		costString = this.SafeString(trade, "quote_volume")
 	}
 	var symbol any = GetValue(market, "symbol")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		var feeCurrencyCode any = GetValue(market, "quote")
@@ -1564,7 +1564,7 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) any {
 	// const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,

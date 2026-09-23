@@ -125,9 +125,7 @@ func (this *Kucoin) negotiateBody(ch chan any, privateChannel any, optionalArgs 
 	var future any = this.SafeValue(urls, connectId)
 	if !ccxt.IsEqual(future, nil) {
 
-		retRes10519 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes10519)
-		ch <- retRes10519
+		ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 		return nil
 	}
 	// we store an awaitable to the url
@@ -137,9 +135,7 @@ func (this *Kucoin) negotiateBody(ch chan any, privateChannel any, optionalArgs 
 	this.Options.Store("urls", urls)
 	future = ccxt.GetValue(urls, connectId)
 
-	retRes11315 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes11315)
-	ch <- retRes11315
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Kucoin) NegotiateHelperAsync(privateChannel any, connectId any, optionalArgs ...any) <-chan any {
@@ -249,9 +245,7 @@ func (this *Kucoin) subscribeBody(ch chan any, url any, messageHash any, subscri
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscriptionHash)
 	}
 
-	retRes18815 := (<-this.Watch(url, messageHash, message, subscriptionHash, subscription))
-	ccxt.PanicOnError(retRes18815)
-	ch <- retRes18815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, subscriptionHash, subscription)))
 	return nil
 }
 func (this *Kucoin) SubscribePublicUtaAsync(messageHash any, channel any, symbol any, optionalArgs ...any) <-chan any {
@@ -299,9 +293,7 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan any, messageHash any, channel
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, messageHash)
 	}
 
-	retRes21415 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(retRes21415)
-	ch <- retRes21415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, subscription)))
 	return nil
 }
 func (this *Kucoin) SubscribePrivateUtaAsync(messageHashes any, subscribeHash any, channel any, optionalArgs ...any) <-chan any {
@@ -348,9 +340,7 @@ func (this *Kucoin) subscribePrivateUtaBody(ch chan any, messageHashes any, subs
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscribeHash)
 	}
 
-	retRes24015 := (<-this.WatchMultiple(url, messageHashes, message, []any{subscribeHash}, subscription))
-	ccxt.PanicOnError(retRes24015)
-	ch <- retRes24015
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, []any{subscribeHash}, subscription)))
 	return nil
 }
 func (this *Kucoin) GetUtaUrlAsync() <-chan any {
@@ -443,9 +433,7 @@ func (this *Kucoin) unSubscribeBody(ch chan any, url any, messageHash any, topic
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 1, nil)
 	_ = subscription
 
-	retRes28315 := (<-this.UnSubscribeMultipleAsync(url, []any{messageHash}, topic, []any{subscriptionHash}, params, subscription))
-	ccxt.PanicOnError(retRes28315)
-	ch <- retRes28315
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeMultipleAsync(url, []any{messageHash}, topic, []any{subscriptionHash}, params, subscription)))
 	return nil
 }
 func (this *Kucoin) SubscribeMultipleAsync(url any, messageHashes any, topic any, subscriptionHashes any, optionalArgs ...any) <-chan any {
@@ -476,9 +464,7 @@ func (this *Kucoin) subscribeMultipleBody(ch chan any, url any, messageHashes an
 		}
 	}
 
-	retRes30215 := (<-this.WatchMultiple(url, messageHashes, message, subscriptionHashes, subscription))
-	ccxt.PanicOnError(retRes30215)
-	ch <- retRes30215
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, subscriptionHashes, subscription)))
 	return nil
 }
 func (this *Kucoin) UnSubscribeMultipleAsync(url any, messageHashes any, topic any, subscriptionHashes any, optionalArgs ...any) <-chan any {
@@ -512,9 +498,7 @@ func (this *Kucoin) unSubscribeMultipleBody(ch chan any, url any, messageHashes 
 		}
 	}
 
-	retRes32415 := (<-this.WatchMultiple(url, messageHashes, message, subscriptionHashes, subscription))
-	ccxt.PanicOnError(retRes32415)
-	ch <- retRes32415
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, subscriptionHashes, subscription)))
 	return nil
 }
 
@@ -555,9 +539,7 @@ func (this *Kucoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		messageHash = ccxt.Add("uta:", messageHash)
 		var channel string = "ticker"
 
-		retRes35119 := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params))
-		ccxt.PanicOnError(retRes35119)
-		ch <- retRes35119
+		ch <- ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params)))
 		return nil
 	}
 	var isFuturesMethod any = market["contract"]
@@ -574,9 +556,7 @@ func (this *Kucoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var topic any = ccxt.Add(ccxt.Add(method, ":"), market["id"])
 
-	retRes36215 := (<-this.SubscribeAsync(url, messageHash, topic, params))
-	ccxt.PanicOnError(retRes36215)
-	ch <- retRes36215
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync(url, messageHash, topic, params)))
 	return nil
 }
 
@@ -625,9 +605,7 @@ func (this *Kucoin) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		var utaMessageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 		subscription["messageHashes"] = []any{utaMessageHash}
 
-		retRes39719 := (<-this.SubscribePublicUtaAsync(utaMessageHash, "ticker", symbol, params, subscription))
-		ccxt.PanicOnError(retRes39719)
-		ch <- retRes39719
+		ch <- ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(utaMessageHash, "ticker", symbol, params, subscription)))
 		return nil
 	} else {
 
@@ -649,9 +627,7 @@ func (this *Kucoin) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		subscription["messageHashes"] = []any{messageHash, topic}
 		subscription["subMessageHashes"] = []any{subMessageHash, topic}
 
-		retRes41319 := (<-this.UnSubscribeAsync(url, messageHash, topic, subMessageHash, params, subscription))
-		ccxt.PanicOnError(retRes41319)
-		ch <- retRes41319
+		ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync(url, messageHash, topic, subMessageHash, params, subscription)))
 		return nil
 	}
 }
@@ -798,9 +774,7 @@ func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan any, messageHashes an
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, messageHashWithSymbols)
 	}
 
-	retRes50815 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription))
-	ccxt.PanicOnError(retRes50815)
-	ch <- retRes50815
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription)))
 	return nil
 }
 func (this *Kucoin) WatchUtaTickersAsync(optionalArgs ...any) <-chan any {
@@ -968,7 +942,7 @@ func (this *Kucoin) HandleContractTicker(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId, nil, "-")
-	var ticker any = this.ParseTicker(data, market)
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data, market))
 	ccxt.AddElementToObject(this.Tickers, ccxt.GetValue(market, "symbol"), ticker)
 	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -1137,9 +1111,7 @@ func (this *Kucoin) watchMultiHelperBody(ch chan any, methodName any, channelNam
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes79715 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-	ccxt.PanicOnError(retRes79715)
-	ch <- retRes79715
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes)))
 	return nil
 }
 func (this *Kucoin) HandleBidAsk(client any, message map[string]any) {
@@ -1349,9 +1321,7 @@ func (this *Kucoin) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 			"interval": period,
 		}
 
-		retRes96519 := (<-this.SubscribePublicUtaAsync(utaMessageHash, "kline", symbol, this.Extend(extendedParams, params), subscription))
-		ccxt.PanicOnError(retRes96519)
-		ch <- retRes96519
+		ch <- ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(utaMessageHash, "kline", symbol, this.Extend(extendedParams, params), subscription)))
 		return nil
 	} else {
 		var isFuturesMethod any = market["contract"]
@@ -1370,9 +1340,7 @@ func (this *Kucoin) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		subscription["messageHashes"] = []any{messageHash, topic}
 		subscription["subMessageHashes"] = []any{subMessageHash, topic}
 
-		retRes98019 := (<-this.UnSubscribeAsync(url, messageHash, topic, messageHash, params, subscription))
-		ccxt.PanicOnError(retRes98019)
-		ch <- retRes98019
+		ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync(url, messageHash, topic, messageHash, params, subscription)))
 		return nil
 	}
 }
@@ -1424,7 +1392,7 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	var parts []string = ccxt.Split(topic, "_")
 	var interval *string = this.SafeString(parts, 1)
 	// use a reverse lookup in a static map instead
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol any = market["symbol"]
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", symbol), ":"), timeframe)
@@ -1471,7 +1439,7 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol any = market["symbol"]
 	var interval *string = this.SafeString(data, "i")
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("uta:candles:", symbol), ":"), timeframe)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -1537,9 +1505,7 @@ func (this *Kucoin) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		return nil
 	}
 
-	retRes113415 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes113415)
-	ch <- retRes113415
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -1666,9 +1632,7 @@ func (this *Kucoin) unWatchTradesForSymbolsBody(ch chan any, symbols any, option
 		"symbols":          symbols,
 	}
 
-	retRes122715 := (<-this.UnSubscribeMultipleAsync(url, messageHashes, topic, messageHashes, params, subscription))
-	ccxt.PanicOnError(retRes122715)
-	ch <- retRes122715
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeMultipleAsync(url, messageHashes, topic, messageHashes, params, subscription)))
 	return nil
 }
 
@@ -1714,15 +1678,11 @@ func (this *Kucoin) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...a
 			"symbols":          []any{symbol},
 		}
 
-		retRes125919 := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params, subscription))
-		ccxt.PanicOnError(retRes125919)
-		ch <- retRes125919
+		ch <- ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params, subscription)))
 		return nil
 	}
 
-	retRes126115 := (<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes126115)
-	ch <- retRes126115
+	ch <- ccxt.PanicOnError((<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 func (this *Kucoin) HandleTrade(client any, message map[string]any) {
@@ -1748,8 +1708,8 @@ func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId)
-	var trade any = this.ParseTrade(data, market)
-	var symbol any = ccxt.GetValue(trade, "symbol")
+	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(data, market))
+	var symbol any = trade["symbol"]
 	var messageHash any = ccxt.Add("trades:", symbol)
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1821,7 +1781,7 @@ func (this *Kucoin) ParseWsUtaTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "s")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeIntegerProduct2(trade, "M", "E", 0.000001)
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "f")
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fC")
@@ -1910,16 +1870,13 @@ func (this *Kucoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			"depth": depth,
 		})
 
-		orderbook := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params, subscription))
-		ccxt.PanicOnError(orderbook)
+		var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params, subscription))).(ccxt.OrderBookInterface)
 
 		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 		return nil
 	}
 
-	retRes143515 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes143515)
-	ch <- retRes143515
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -1977,15 +1934,11 @@ func (this *Kucoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
 			"symbols":          []any{symbol},
 		}
 
-		retRes147719 := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params, subscription))
-		ccxt.PanicOnError(retRes147719)
-		ch <- retRes147719
+		ch <- ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params, subscription)))
 		return nil
 	}
 
-	retRes147915 := (<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes147915)
-	ch <- retRes147915
+	ch <- ccxt.PanicOnError((<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -2078,8 +2031,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		}
 	}
 
-	orderbook := (<-this.SubscribeMultipleAsync(url, messageHashes, topic, subscriptionHashes, params, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeMultipleAsync(url, messageHashes, topic, subscriptionHashes, params, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -2167,9 +2119,7 @@ func (this *Kucoin) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 		"subMessageHashes": subscriptionHashes,
 	}
 
-	retRes160515 := (<-this.UnSubscribeMultipleAsync(url, messageHashes, topic, messageHashes, params, subscription))
-	ccxt.PanicOnError(retRes160515)
-	ch <- retRes160515
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeMultipleAsync(url, messageHashes, topic, messageHashes, params, subscription)))
 	return nil
 }
 func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
@@ -2537,7 +2487,7 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = "orders"
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2550,9 +2500,9 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			"tradeType": "UNIFIED",
 		})
 		messageHash = ccxt.Add("uta:", messageHash)
-		var channel any = "order"
+		var channel string = "order"
 		if symbol == nil {
-			channel = ccxt.Add(channel, "All")
+			channel += "All"
 		}
 
 		orders = (<-this.SubscribePrivateUtaAsync([]any{messageHash}, messageHash, channel, symbol, params))
@@ -2601,9 +2551,9 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Kucoin) GetOrdersMessageHashSuffix(topic any) any {
-	var suffix any = "-spot"
+	var suffix string = "-spot"
 	if ccxt.IsEqual(topic, "/spotMarket/advancedOrders") {
-		suffix = ccxt.Add(suffix, "-trigger")
+		suffix += "-trigger"
 	} else if ccxt.IsEqual(topic, "/contractMarket/tradeOrders") {
 		suffix = "-contract"
 	} else if ccxt.IsEqual(topic, "/contractMarket/advancedOrders") {
@@ -2840,7 +2790,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	if tradeId != nil {
 		this.HandleMyTrade(client, message)
 	}
-	var parsed any = this.ParseWsOrder(data)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(data))
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
 	var triggerPrice *string = this.SafeString(parsed, "triggerPrice")
@@ -2860,7 +2810,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	var order any = this.SafeDict(orders, orderId)
 	if !ccxt.IsEqual(order, nil) {
 		if ccxt.IsEqual(ccxt.GetValue(order, "status"), "closed") {
-			ccxt.AddElementToObject(parsed, "status", "closed")
+			parsed["status"] = "closed"
 		}
 		// carry the accumulated fill state forward, the raw feed only
 		// carries the match prices on the match messages, and safeOrder
@@ -2868,11 +2818,11 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 		// orders filled at better prices, so the accumulated values win on
 		// the non match messages, see https://github.com/ccxt/ccxt/issues/19083
 		if !ccxt.IsEqual(ccxt.GetValue(order, "average"), nil) {
-			ccxt.AddElementToObject(parsed, "average", ccxt.GetValue(order, "average"))
-			ccxt.AddElementToObject(parsed, "cost", ccxt.GetValue(order, "cost"))
+			parsed["average"] = ccxt.GetValue(order, "average")
+			parsed["cost"] = ccxt.GetValue(order, "cost")
 		}
-		if ccxt.IsEqual(ccxt.GetValue(parsed, "filled"), nil) {
-			ccxt.AddElementToObject(parsed, "filled", ccxt.GetValue(order, "filled"))
+		if ccxt.IsEqual(parsed["filled"], nil) {
+			parsed["filled"] = ccxt.GetValue(order, "filled")
 		}
 	}
 	// accumulate the average fill price and cost from the match messages,
@@ -2890,10 +2840,10 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 			return this.NumberToString(this.SafeNumber(order, "cost", 0))
 		}()
 		var costString *string = ccxt.Precise.StringAdd(previousCost, matchCost)
-		ccxt.AddElementToObject(parsed, "cost", this.ParseNumber(costString))
-		var filledString *string = this.NumberToString(ccxt.GetValue(parsed, "filled"))
+		parsed["cost"] = this.ParseNumber(costString)
+		var filledString *string = this.NumberToString(parsed["filled"])
 		if (filledString != nil) && (ccxt.Precise.StringGt(filledString, "0")) {
-			ccxt.AddElementToObject(parsed, "average", this.ParseNumber(ccxt.Precise.StringDiv(costString, filledString)))
+			parsed["average"] = this.ParseNumber(ccxt.Precise.StringDiv(costString, filledString))
 		}
 	}
 	cachedOrders.(ccxt.Appender).Append(parsed)
@@ -3003,7 +2953,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "myTrades"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -3108,7 +3058,7 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var data any = this.SafeDict(message, "data")
-	var parsed any = this.ParseWsTrade(data)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	var myTrades any = this.MyTrades
 	myTrades.(ccxt.Appender).Append(parsed)
 	var messageHash string = "myTrades"
@@ -3116,7 +3066,7 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 	var suffix any = this.GetMyTradesMessageHashSuffix(topic)
 	var typeSpecificMessageHash any = ccxt.Add(messageHash, suffix)
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, typeSpecificMessageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", ccxt.GetValue(parsed, "symbol"))
+	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", parsed["symbol"])
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolSpecificMessageHash)
 }
 func (this *Kucoin) HandleUtaMyTrade(client any, message map[string]any) {
@@ -3315,9 +3265,7 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		}
 		var channel string = "balance"
 
-		retRes262419 := (<-this.SubscribePrivateUtaAsync([]any{messageHash}, subscriptionHash, channel, nil, this.Extend(extendedParams, params)))
-		ccxt.PanicOnError(retRes262419)
-		ch <- retRes262419
+		ch <- ccxt.PanicOnError((<-this.SubscribePrivateUtaAsync([]any{messageHash}, subscriptionHash, channel, nil, this.Extend(extendedParams, params))))
 		return nil
 	} else {
 		var requestId string = ccxt.ToString(this.RequestId())
@@ -3333,9 +3281,7 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscriptionHash)
 		}
 
-		retRes263819 := (<-this.Watch(url, messageHash, message, uniformType))
-		ccxt.PanicOnError(retRes263819)
-		ch <- retRes263819
+		ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, uniformType)))
 		return nil
 	}
 }
@@ -3576,9 +3522,7 @@ func (this *Kucoin) watchPositionBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	retRes285315 := (<-this.SubscribeAsync(url, messageHash, topic, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes285315)
-	ch <- retRes285315
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync(url, messageHash, topic, this.Extend(request, params))))
 	return nil
 }
 
@@ -3856,11 +3800,11 @@ func (this *Kucoin) HandlePosition(client any, message map[string]any) {
 	var currentPosition any = this.GetCurrentPosition(symbol)
 	var messageHash string = "position:" + *symbol
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var newPosition any = this.ParsePosition(data)
+	var newPosition map[string]any = ccxt.MapTyped(this.ParsePosition(data))
 	var keys []string = ccxt.ObjectKeys(newPosition)
 	for i := 0; i < len(keys); i++ {
 		var key string = ccxt.GetValue(keys, i).(string)
-		if ccxt.IsEqual(ccxt.GetValue(newPosition, key), nil) {
+		if ccxt.IsEqual(newPosition[key], nil) {
 			ccxt.Remove(newPosition, key)
 		}
 	}
@@ -4011,9 +3955,7 @@ func (this *Kucoin) watchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	var channel string = "funding-fee"
 	var messageHash any = ccxt.Add("fundingRate:", symbol)
 
-	retRes321615 := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params))
-	ccxt.PanicOnError(retRes321615)
-	ch <- retRes321615
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params)))
 	return nil
 }
 
@@ -4052,9 +3994,7 @@ func (this *Kucoin) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs
 		"messageHashes":    []any{unSubMessageHash},
 	}
 
-	retRes324315 := (<-this.SubscribePublicUtaAsync(unSubMessageHash, channel, symbol, params, subscription))
-	ccxt.PanicOnError(retRes324315)
-	ch <- retRes324315
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(unSubMessageHash, channel, symbol, params, subscription)))
 	return nil
 }
 func (this *Kucoin) HandleUtaFundingRate(client any, message map[string]any) {
@@ -4149,9 +4089,7 @@ func (this *Kucoin) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 	var channel string = "mark-price"
 	var messageHash any = ccxt.Add("uta:ticker:", symbol)
 
-	retRes332615 := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params))
-	ccxt.PanicOnError(retRes332615)
-	ch <- retRes332615
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params)))
 	return nil
 }
 
@@ -4190,9 +4128,7 @@ func (this *Kucoin) unWatchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 		"messageHashes":    []any{unSubMessageHash},
 	}
 
-	retRes335315 := (<-this.SubscribePublicUtaAsync(unSubMessageHash, channel, symbol, params, subscription))
-	ccxt.PanicOnError(retRes335315)
-	ch <- retRes335315
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(unSubMessageHash, channel, symbol, params, subscription)))
 	return nil
 }
 func (this *Kucoin) HandleSubject(client any, message any) {
@@ -4313,13 +4249,13 @@ func (this *Kucoin) HandleErrorMessage(client any, message any) any {
 	//
 	var data *string = this.SafeString2(message, "data", "reason", "")
 	if data != nil && *data == "token is expired" {
-		var typeVar any = "public"
+		var typeVar string = "public"
 		if ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "connectId=private") >= 0 {
 			typeVar = "private"
 		}
 		// Match the negotiation cache key; spot tokens can also contain "Futures".
-		if ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), ccxt.Add(ccxt.Add("connectId=", typeVar), "Futures")) >= 0 {
-			typeVar = ccxt.Add(typeVar, "Futures")
+		if ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "connectId="+typeVar+"Futures") >= 0 {
+			typeVar += "Futures"
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "urls"), typeVar, nil)
 	}

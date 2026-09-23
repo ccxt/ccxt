@@ -90,8 +90,7 @@ func (this *Hollaex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("orderbook"+":", market["id"])
 
-	orderbook := (<-this.WatchPublicAsync(messageHash, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -311,7 +310,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
 		var trade any = ccxt.GetValue(rawTrades, i)
-		var parsed any = this.ParseTrade(trade)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(trade))
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(trade, "symbol")
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
@@ -459,7 +458,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
 		var order any = ccxt.GetValue(rawOrders, i)
-		var parsed any = this.ParseOrder(order)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(order))
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(order, "symbol")
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
@@ -498,9 +497,7 @@ func (this *Hollaex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var messageHash string = "wallet"
 
-	retRes41115 := (<-this.WatchPrivateAsync(messageHash, params))
-	ccxt.PanicOnError(retRes41115)
-	ch <- retRes41115
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, params)))
 	return nil
 }
 func (this *Hollaex) HandleBalance(client any, message map[string]any) {
@@ -568,9 +565,7 @@ func (this *Hollaex) watchPublicBody(ch chan any, messageHash any, optionalArgs 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes46515 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes46515)
-	ch <- retRes46515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Hollaex) WatchPrivateAsync(messageHash any, optionalArgs ...any) <-chan any {
@@ -611,9 +606,7 @@ func (this *Hollaex) watchPrivateBody(ch chan any, messageHash any, optionalArgs
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes49615 := (<-this.Watch(signedUrl, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes49615)
-	ch <- retRes49615
+	ch <- ccxt.PanicOnError((<-this.Watch(signedUrl, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Hollaex) HandleErrorMessage(client any, message any) any {

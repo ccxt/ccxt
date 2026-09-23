@@ -117,9 +117,7 @@ func (this *Onetrading) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	retRes10415 := (<-this.Watch(url, messageHash, request, subscribeHash, request))
-	ccxt.PanicOnError(retRes10415)
-	ch <- retRes10415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscribeHash, request)))
 	return nil
 }
 func (this *Onetrading) HandleBalanceSnapshot(client any, message map[string]any) {
@@ -191,9 +189,7 @@ func (this *Onetrading) watchTickerBody(ch chan any, symbol any, optionalArgs ..
 		}},
 	}
 
-	retRes16715 := (<-this.WatchManyAsync(messageHash, request, subscriptionHash, []any{symbol}, params))
-	ccxt.PanicOnError(retRes16715)
-	ch <- retRes16715
+	ch <- ccxt.PanicOnError((<-this.WatchManyAsync(messageHash, request, subscriptionHash, []any{symbol}, params)))
 	return nil
 }
 
@@ -377,9 +373,7 @@ func (this *Onetrading) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var numTrades int = ccxt.GetArrayLength(trades)
 	if ccxt.IsEqual(numTrades, 0) {
 
-		retRes31319 := (<-this.WatchMyTradesAsync(symbol, since, limit, params))
-		ccxt.PanicOnError(retRes31319)
-		ch <- retRes31319
+		ch <- ccxt.PanicOnError((<-this.WatchMyTradesAsync(symbol, since, limit, params)))
 		return nil
 	}
 
@@ -429,8 +423,7 @@ func (this *Onetrading) watchOrderBookBody(ch chan any, symbol any, optionalArgs
 		}},
 	}
 
-	orderbook := (<-this.WatchManyAsync(messageHash, request, subscriptionHash, []any{symbol}, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchManyAsync(messageHash, request, subscriptionHash, []any{symbol}, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -578,9 +571,7 @@ func (this *Onetrading) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var numOrders int = ccxt.GetArrayLength(orders)
 	if ccxt.IsEqual(numOrders, 0) {
 
-		retRes48019 := (<-this.WatchOrdersAsync(symbol, since, limit, params))
-		ccxt.PanicOnError(retRes48019)
-		ch <- retRes48019
+		ch <- ccxt.PanicOnError((<-this.WatchOrdersAsync(symbol, since, limit, params)))
 		return nil
 	}
 
@@ -839,12 +830,12 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 	}
 	var orders any = this.Orders
 	for i := 0; i < len(rawOrders); i++ {
-		var order any = this.ParseOrder(func() any {
+		var order map[string]any = ccxt.MapTyped(this.ParseOrder(func() any {
 			if i >= 0 && i < len(rawOrders) {
 				return ccxt.DerefScalar(rawOrders[i])
 			}
 			return nil
-		}())
+		}()))
 		var symbol *string = this.SafeString(order, "symbol", "")
 		orders.(ccxt.Appender).Append(order)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+*symbol)
@@ -855,12 +846,12 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 			return nil
 		}(), "trades")
 		for ii := 0; ii < len(rawTrades); ii++ {
-			var trade any = this.ParseTrade(func() any {
+			var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
 				if ii >= 0 && ii < len(rawTrades) {
 					return ccxt.DerefScalar(rawTrades[ii])
 				}
 				return nil
-			}())
+			}()))
 			symbol = this.SafeString(trade, "symbol", symbol)
 			this.MyTrades.(ccxt.Appender).Append(trade)
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades:"+*symbol)
@@ -1319,7 +1310,7 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	var dateTime *string = this.SafeString(message, "time")
 	var timeframeId any = this.SafeDict(message, "granularity")
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
-	var timeframe any = this.FindTimeframe(timeframeId, timeframes)
+	var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 	var channel any = ccxt.Add("ohlcv."+*symbol+".", timeframe)
 	var parsed []any = []any{this.Parse8601(dateTime), this.SafeNumber(message, "open"), this.SafeNumber(message, "high"), this.SafeNumber(message, "low"), this.SafeNumber(message, "close"), this.SafeNumber(message, "volume")}
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -1334,7 +1325,7 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }
-func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) any {
+func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) *string {
 	timeframes := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = timeframes
 	if ccxt.IsEqual(timeframes, nil) {
@@ -1347,10 +1338,10 @@ func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) any {
 	for i := 0; i < len(keys); i++ {
 		var key string = ccxt.GetValue(keys, i).(string)
 		if ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(timeframes, key), "unit"), ccxt.GetValue(timeframe, "unit")) && ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(timeframes, key), "period"), ccxt.GetValue(timeframe, "period")) {
-			return key
+			return ccxt.SafeStringPtr(key)
 		}
 	}
-	return nil
+	return ccxt.SafeStringPtr(nil)
 }
 func (this *Onetrading) HandleSubscriptions(client any, message map[string]any) any {
 	//
@@ -1504,9 +1495,7 @@ func (this *Onetrading) watchManyBody(ch chan any, messageHash any, request any,
 	ccxt.AddElementToObject(request, "type", typeVar)
 	ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(request, "channels"), 0), "instrument_codes", ccxt.ObjectKeys(subscription))
 
-	retRes137615 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscription))
-	ccxt.PanicOnError(retRes137615)
-	ch <- retRes137615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscription)))
 	return nil
 }
 func (this *Onetrading) AuthenticateAsync(optionalArgs ...any) <-chan any {
@@ -1533,9 +1522,7 @@ func (this *Onetrading) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, this.Extend(request, params), messageHash)
 	}
 
-	retRes139315 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes139315)
-	ch <- retRes139315
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 

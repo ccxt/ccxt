@@ -1207,7 +1207,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol":     market["id"],
 	}
 	var now int64 = this.Milliseconds()
-	var duration any = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe)
 	var until *int64 = this.SafeInteger2(params, "until", "till", now)
 	var price *string = this.SafeString(params, "price")
 	if price != nil {
@@ -1226,7 +1226,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		if limit != nil {
 			request["start_at"] = Add(Subtract(until, Multiply(Multiply(duration, (Add(limit, 1))), 1000)), 1)
 		} else {
-			request["start_at"] = Add(Subtract(until, Multiply(Multiply(duration, 101), 1000)), 1)
+			request["start_at"] = Add(Subtract(until, (duration*101)*1000), 1)
 		}
 	}
 
@@ -2508,7 +2508,7 @@ func (this *Paradex) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	//     "type": "MARKET"
 	// }
 	//
-	var order any = this.ParseOrder(response, market)
+	var order map[string]any = MapTyped(this.ParseOrder(response, market))
 
 	ch <- order
 	return nil
@@ -3014,7 +3014,7 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "market", GetValue(market, "id"))
@@ -3111,7 +3111,7 @@ func (this *Paradex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -3261,7 +3261,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "market", GetValue(market, "id"))
@@ -3503,7 +3503,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	} else {
 		AddElementToObject(request, "from", 1)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3789,9 +3789,9 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.SafeCurrency(code)
+		currency = MapTyped(this.SafeCurrency(code))
 	}
 	if limit != nil {
 		AddElementToObject(request, "page_size", limit)
@@ -4044,9 +4044,7 @@ func (this *Paradex) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 		"margin_type": this.EncodeMarginMode(marginMode),
 	}
 
-	retRes303815 := (<-this.PrivatePostAccountMarginMarket(this.Extend(request, params))).Raw
-	PanicOnError(retRes303815)
-	ch <- retRes303815
+	ch <- PanicOnError((<-this.PrivatePostAccountMarginMarket(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -4161,9 +4159,7 @@ func (this *Paradex) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 		"margin_type": this.EncodeMarginMode(marginMode),
 	}
 
-	retRes312215 := (<-this.PrivatePostAccountMarginMarket(this.Extend(request, params))).Raw
-	PanicOnError(retRes312215)
-	ch <- retRes312215
+	ch <- PanicOnError((<-this.PrivatePostAccountMarginMarket(this.Extend(request, params))).Raw)
 	return nil
 }
 

@@ -5463,11 +5463,11 @@ public Object describe()
         return this.parseIsolatedBorrowRate(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseWsTrade() is not supported yet")) ;
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -8850,9 +8850,9 @@ public Object describe()
         return this.parseLedger(data, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.seconds();
+        return Helpers.toLongOrNull(this.seconds());
     }
 
     /**
@@ -8864,7 +8864,7 @@ public Object describe()
      */
     public Object incrementingNonce()
     {
-        Object currentNonce = this.nonce();
+        Long currentNonce = this.nonce();
         this.lockLastNonce();
         Long lastNonce = this.safeInteger(this.options, "lastNonce", 0);
         Object result = (((Helpers.isGreaterThan(currentNonce, lastNonce)))) ? currentNonce : (lastNonce + 1L);

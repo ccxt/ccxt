@@ -1932,13 +1932,13 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result []any = SafeListTyped(response, "result")
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
-		var ticker any = this.ParseTicker(func() any {
+		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
 			if i >= 0 && i < len(result) {
 				return DerefScalar(result[i])
 			}
 			return nil
-		}())
-		var symbol any = GetValue(ticker, "symbol")
+		}()))
+		var symbol any = ticker["symbol"]
 		if symbol != nil {
 			AddElementToObject(tickers, symbol, ticker)
 		}
@@ -1988,9 +1988,8 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes150219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))
-		PanicOnError(retRes150219)
-		ch <- retRes150219
+		var retRes150219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))))
+		ch <- BoxAbsent(retRes150219)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1998,7 +1997,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"instrument_name": market["id"],
 		"resolution":      this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var duration any = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe)
 	var now int64 = this.Milliseconds()
 	if since == nil {
 		if limit == nil {
@@ -2118,7 +2117,7 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
@@ -2542,7 +2541,7 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "order_state"))
 	var side *string = this.SafeStringLower(order, "direction")
 	var feeCostString *string = this.SafeString(order, "commission")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		feeCostString = Precise.StringAbs(feeCostString)
 		fee = map[string]any{
@@ -2610,7 +2609,7 @@ func (this *Deribit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3024,7 +3023,7 @@ func (this *Deribit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	var response any = nil
 	if symbol == nil {
 		var code any = this.CodeFromOptions("fetchOpenOrders", params)
@@ -3079,7 +3078,7 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	var response any = nil
 	if limit != nil {
 		request["count"] = limit
@@ -3219,7 +3218,7 @@ func (this *Deribit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"include_old": true,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if limit != nil {
 		request["count"] = limit // default 10
 	}
@@ -3482,7 +3481,7 @@ func (this *Deribit) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var address *string = this.SafeString(transaction, "address")
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	var typeVar string = "deposit"
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		typeVar = "withdrawal"
 		fee = map[string]any{
@@ -4244,12 +4243,11 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 			"isDeribitPaginationCall": true,
 		})
 
-		retRes332819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest))
-		PanicOnError(retRes332819)
-		ch <- retRes332819
+		var retRes332819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest))))
+		ch <- BoxAbsent(retRes332819)
 		return nil
 	}
-	var duration any = Multiply(this.ParseTimeframe(eachItemDuration), 1000)
+	var duration int64 = this.ParseTimeframe(eachItemDuration) * 1000
 	var time any = this.Milliseconds()
 	var month int64 = Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000).(int64)
 	if since == nil {

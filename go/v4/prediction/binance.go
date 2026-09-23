@@ -369,9 +369,7 @@ func (this *Binance) fetchRawTopicDetailBody(ch chan any, topicId any, optionalA
 		"marketTopicId": topicId,
 	}
 
-	retRes28515 := (<-this.SapiPrivateGetMarketDetail(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(retRes28515)
-	ch <- retRes28515
+	ch <- ccxt.PanicOnError((<-this.SapiPrivateGetMarketDetail(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -1344,9 +1342,8 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		retRes106619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes106619)
-		ch <- retRes106619
+		var retRes106619 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- ccxt.BoxAbsent(retRes106619)
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1456,9 +1453,8 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		retRes114919 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes114919)
-		ch <- retRes114919
+		var retRes114919 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- ccxt.BoxAbsent(retRes114919)
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1792,9 +1788,8 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		retRes141419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes141419)
-		ch <- retRes141419
+		var retRes141419 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- ccxt.BoxAbsent(retRes141419)
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1925,7 +1920,7 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	var cost *string = this.SafeString(trade, "filledUsdtAmount")
 	var price *string = this.SafeString(trade, "price")
 	var orderType *string = this.SafeStringLower(trade, "orderType")
-	var fee any = nil
+	var fee map[string]any = nil
 	if (orderType != nil && *orderType == "market") && (cost != nil) && (price != nil) && (filled != nil) {
 		// buys pay cost above price*filled, sells receive proceeds net of the fee —
 		// either way the fee is the absolute difference

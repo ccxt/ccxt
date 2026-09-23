@@ -3,7 +3,7 @@ import type { Balances, Dict, Int, List, Order, OrderBook, Position, Str, String
 import Client from '../base/ws/Client.js';
 export default class bullish extends bullishRest {
     describe(): any;
-    requestId(): any;
+    requestId(): number;
     ping(client: Client): Dict;
     handlePong(client: Client, message: Dict): Dict;
     watchPublic(url: string, messageHash: string, request?: {}, params?: {}): Promise<any>;

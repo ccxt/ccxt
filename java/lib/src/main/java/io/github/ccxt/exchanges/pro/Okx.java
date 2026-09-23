@@ -123,7 +123,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }});
     }
 
-    public Object getUrl(String channel, Object access)
+    public String getUrl(String channel, Object access)
     {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
         if (java.util.Objects.equals(channel, null))
@@ -137,14 +137,14 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
         if (Boolean.TRUE.equals(isBusiness) || (Helpers.isGreaterThan(((String)channel).indexOf("candle"), -1)) || (java.util.Objects.equals(channel, "orders-algo")))
         {
-            return (Helpers.add(url, "/business") + sandboxSuffix);
+            return (String) ((Helpers.add(url, "/business") + sandboxSuffix));
         } else if (Boolean.TRUE.equals(isPublic))
         {
-            return (Helpers.add(url, "/public") + sandboxSuffix);
+            return (String) ((Helpers.add(url, "/public") + sandboxSuffix));
         }
-        return (Helpers.add(url, "/private") + sandboxSuffix);
+        return (String) ((Helpers.add(url, "/private") + sandboxSuffix));
     }
-    public Object getUrl(String channel, Object... optionalArgs)
+    public String getUrl(String channel, Object... optionalArgs)
     {
         return this.getUrl(channel, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public");
     }
@@ -165,7 +165,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 symbols = Helpers.toStringListArg(this.symbols);
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            Object url = this.getUrl((String) (channel), access);
+            String url = this.getUrl((String) (channel), access);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(symbols, null))
@@ -215,7 +215,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 (this.loadMarkets()).join();
             }
-            Object url = this.getUrl((String) (channel), access);
+            String url = this.getUrl((String) (channel), access);
             Map<String, Object> firstArgument = new HashMap<String, Object>() {{
                 put( "channel", channel );
             }};
@@ -339,7 +339,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     put( "finalAccess", finalAccess );
                 }})).join();
             }
-            Object url = this.getUrl((String) (channel), access);
+            String url = this.getUrl((String) (channel), access);
             Object trades = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
@@ -421,7 +421,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     put( "finalAccess", finalAccess );
                 }})).join();
             }
-            Object url = this.getUrl((String) (channel), access);
+            String url = this.getUrl((String) (channel), access);
             return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
@@ -609,7 +609,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "subscribe" );
                 put( "args", topics );
             }};
-            Object url = this.getUrl(channel, "public");
+            String url = this.getUrl(channel, "public");
             Object fundingRate = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
@@ -944,7 +944,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "unsubscribe" );
                 put( "args", topics );
             }};
-            Object url = this.getUrl((String) (channel), "public");
+            String url = this.getUrl((String) (channel), "public");
             return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
@@ -1045,7 +1045,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "channel", "bbo-tbt");
             channel = ((List<Object>) channelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
-            Object url = this.getUrl((String) (channel), "public");
+            String url = this.getUrl((String) (channel), "public");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -1252,7 +1252,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         put( "instType", uppercaseType );
     }})) );
             }};
-            Object url = this.getUrl(channel, "public");
+            String url = this.getUrl(channel, "public");
             Object newLiquidations = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
@@ -1374,7 +1374,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         put( "channel", channel );
     }})) );
             }};
-            Object url = this.getUrl(channel, "private");
+            String url = this.getUrl(channel, "private");
             Object newLiquidations = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
@@ -1694,7 +1694,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "subscribe" );
                 put( "args", topics );
             }};
-            Object url = this.getUrl("candle", "public");
+            String url = this.getUrl("candle", "public");
             var symboltimeframecandlesVariable = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
@@ -1768,7 +1768,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "unsubscribe" );
                 put( "args", topics );
             }};
-            Object url = this.getUrl("candle", "public");
+            String url = this.getUrl("candle", "public");
             return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
@@ -1960,7 +1960,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "subscribe" );
                 put( "args", topics );
             }};
-            Object url = this.getUrl((String) (depth), "public");
+            String url = this.getUrl((String) (depth), "public");
             Object orderbook = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
@@ -2046,7 +2046,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "unsubscribe" );
                 put( "args", topics );
             }};
-            Object url = this.getUrl((String) (depth), "public");
+            String url = this.getUrl((String) (depth), "public");
             return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
@@ -2366,7 +2366,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             this.checkRequiredCredentials();
             String access = this.safeString(parameters, "access", "private");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("access")));
-            Object url = this.getUrl("users", access);
+            String url = this.getUrl("users", access);
             String messageHash = "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
@@ -2712,7 +2712,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     put( "op", "subscribe" );
                     put( "args", args );
                 }};
-                Object url = this.getUrl((String) (channel), "private");
+                String url = this.getUrl((String) (channel), "private");
                 newPositions = (this.watch(url, channel, nonSymbolRequest, channel, null)).join();
             } else
             {
@@ -3136,12 +3136,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
     }
 
-    public Object requestId()
+    public String requestId()
     {
         String ts = String.valueOf(this.milliseconds());
         Object randomNumber = this.randNumber(4);
         String randomPart = String.valueOf(randomNumber);
-        return (ts + randomPart);
+        return (String) ((ts + randomPart));
     }
 
     /**
@@ -3170,8 +3170,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object url = this.getUrl("private", "private");
-            Object messageHash = this.requestId();
+            String url = this.getUrl("private", "private");
+            String messageHash = this.requestId();
             Object op = null;
             List<Object> opparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrderWs", "op", "batch-orders");
             op = ((List<Object>) opparametersVariable).get(0);
@@ -3283,8 +3283,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object url = this.getUrl("private", "private");
-            Object messageHash = this.requestId();
+            String url = this.getUrl("private", "private");
+            String messageHash = this.requestId();
             Object op = null;
             List<Object> opparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrderWs", "op", "amend-order");
             op = ((List<Object>) opparametersVariable).get(0);
@@ -3354,8 +3354,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object url = this.getUrl("private", "private");
-            Object messageHash = this.requestId();
+            String url = this.getUrl("private", "private");
+            String messageHash = this.requestId();
             String clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdId")));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -3425,8 +3425,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object url = this.getUrl("private", "private");
-            Object messageHash = this.requestId();
+            String url = this.getUrl("private", "private");
+            String messageHash = this.requestId();
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long instIdCode = this.safeInteger(market, "instIdCode");
@@ -3493,8 +3493,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 throw new BadRequest((this.id + " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
             }
-            Object url = this.getUrl("private", "private");
-            Object messageHash = this.requestId();
+            String url = this.getUrl("private", "private");
+            String messageHash = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "op", "mass-cancel" );
