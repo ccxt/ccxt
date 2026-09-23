@@ -5046,7 +5046,7 @@ public class Btse extends BtseApi
             }};
             Long longLeverage = null;
             Long shortLeverage = null;
-            Object marginMode = null;
+            String marginMode = null;
             for (var i = 0; i < ((List<?>)safeResponse).size(); i++)
             {
                 Object entrty = (safeResponse == null || i < 0 || i >= safeResponse.size() ? null : safeResponse.get(i));

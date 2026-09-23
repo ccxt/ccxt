@@ -3438,7 +3438,7 @@ public class Upbit extends UpbitApi
                 put( "nonce", nonce );
             }};
             Object hasQuery = ((List<?>)Helpers.objectKeys(query)).size();
-            Object auth = null;
+            String auth = null;
             if ((!java.util.Objects.equals(method, "GET")) && (!java.util.Objects.equals(method, "DELETE")))
             {
                 body = (String) (this.json(parameters));

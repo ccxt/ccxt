@@ -1551,11 +1551,11 @@ public class Ndax extends NdaxApi
         Long timestamp = null;
         String id = null;
         String marketId = null;
-        Object side = null;
+        String side = null;
         String orderId = null;
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
-        Object type = null;
+        String type = null;
         if ((trade instanceof List))
         {
             priceString = this.safeString(trade, 3);
@@ -1600,9 +1600,9 @@ public class Ndax extends NdaxApi
         final String finalId = id;
         final Long finalTimestamp = timestamp;
         final String finalOrderId = orderId;
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final String finalPriceString = priceString;
         final String finalAmountString = amountString;
         final String finalCostString = costString;

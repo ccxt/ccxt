@@ -3488,7 +3488,7 @@ public class Xt extends XtApi
                 put( "side", ((String)finalSide).toUpperCase() );
                 put( "type", ((String)finalType).toUpperCase() );
             }};
-            Object timeInForce = null;
+            String timeInForce = null;
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);

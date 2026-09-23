@@ -8422,7 +8422,7 @@ public class Okx extends OkxApi
     public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = null;
-        Object marginMode = null;
+        String marginMode = null;
         Long longLeverage = null;
         Long shortLeverage = null;
         for (var i = 0; i < ((List<?>)leverage).size(); i++)
@@ -8444,7 +8444,7 @@ public class Okx extends OkxApi
             }
         }
         final String finalMarketId = marketId;
-        final Object finalMarginMode = marginMode;
+        final String finalMarginMode = marginMode;
         final Long finalLongLeverage = longLeverage;
         final Long finalShortLeverage = shortLeverage;
         return new HashMap<String, Object>() {{

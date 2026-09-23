@@ -680,9 +680,9 @@ public class Hibachi extends HibachiApi
         String amount = this.safeString(trade, "quantity");
         Long timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
         String cost = Precise.stringMul(price, amount);
-        Object side = null;
+        String side = null;
         Map<String, Object> fee = null;
-        Object orderType = null;
+        String orderType = null;
         String orderId = null;
         String takerOrMaker = null;
         if (java.util.Objects.equals(id, null))
@@ -708,10 +708,10 @@ public class Hibachi extends HibachiApi
             }
         }
         final String finalId = id;
-        final Object finalSide = side;
+        final String finalSide = side;
         final String finalOrderId = orderId;
         final String finalTakerOrMaker = takerOrMaker;
-        final Object finalOrderType = orderType;
+        final String finalOrderType = orderType;
         final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
@@ -2582,7 +2582,7 @@ public class Hibachi extends HibachiApi
     public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         String transactionType = this.safeString(item, "transactionType");
-        Object timestamp = null;
+        Long timestamp = null;
         String type = null;
         String direction = null;
         Double amount = null;
@@ -2633,7 +2633,7 @@ public class Hibachi extends HibachiApi
         final Double finalAmount = amount;
         final Map<String, Object> finalFee = fee;
         final String finalDirection = direction;
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalType = type;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "id", Hibachi.this.safeString(item, "id") );

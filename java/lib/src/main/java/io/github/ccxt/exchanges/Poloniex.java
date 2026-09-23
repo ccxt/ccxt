@@ -4538,7 +4538,7 @@ public class Poloniex extends PoloniexApi
         Long shortLeverage = null;
         Long longLeverage = null;
         String marketId = null;
-        Object marginMode = null;
+        String marginMode = null;
         List<Object> data = (List<Object>) this.safeList(leverage, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -4562,7 +4562,7 @@ public class Poloniex extends PoloniexApi
             }
         }
         final String finalMarketId = marketId;
-        final Object finalMarginMode = marginMode;
+        final String finalMarginMode = marginMode;
         final Long finalLongLeverage = longLeverage;
         final Long finalShortLeverage = shortLeverage;
         return new HashMap<String, Object>() {{

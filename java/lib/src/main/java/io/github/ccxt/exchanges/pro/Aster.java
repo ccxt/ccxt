@@ -870,7 +870,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //     }
         //
         String marketType = this.getAccountTypeFromUrl(client.url);
-        Object data = message;
+        Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object ticker = this.parseWsBidAsk((Map<String, Object>) (data), market);
@@ -1153,7 +1153,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //     }
         //
         String marketType = this.getAccountTypeFromUrl(client.url);
-        Object trade = message;
+        Map<String, Object> trade = message;
         String marketId = this.safeString(trade, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);

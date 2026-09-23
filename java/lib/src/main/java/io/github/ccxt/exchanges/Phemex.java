@@ -2435,9 +2435,9 @@ public class Phemex extends PhemexApi
         //
         Object priceString = null;
         Object amountString = null;
-        Object timestamp = null;
+        Long timestamp = null;
         String id = null;
-        Object side = null;
+        String side = null;
         Object costString = null;
         String type = null;
         Map<String, Object> fee = null;
@@ -2558,10 +2558,10 @@ public class Phemex extends PhemexApi
             }};
         }
         final String finalId = id;
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalOrderId = orderId;
         final String finalType = type;
-        final Object finalSide = side;
+        final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         final Object finalPriceString = priceString;
         final Object finalAmountString = amountString;
@@ -2634,7 +2634,7 @@ public class Phemex extends PhemexApi
             String lockedTradingBalance = this.fromEn(lockedTradingBalanceEv, scale);
             String lockedWithdraw = this.fromEn(lockedWithdrawEv, scale);
             String used = Precise.stringAdd(lockedTradingBalance, lockedWithdraw);
-            Object lastUpdateTimeNs = this.safeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001);
+            Long lastUpdateTimeNs = this.safeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001);
             timestamp = (((java.util.Objects.equals(timestamp, null)))) ? lastUpdateTimeNs : Helpers.mathMax(timestamp, lastUpdateTimeNs);
             ((Map<String, Object>)account).put("total", total);
             ((Map<String, Object>)account).put("used", used);
@@ -6061,7 +6061,7 @@ final Object finalI = i;
         Object query = this.omit(parameters, this.extractParams(path));
         Object requestPath = ("/" + this.implodeParams(path, parameters));
         Object url = requestPath;
-        Object queryString = "";
+        String queryString = "";
         if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")) || (java.util.Objects.equals(method, "PUT")) || (java.util.Objects.equals(url, "/positions/assign")))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
@@ -6097,7 +6097,7 @@ final Object finalI = i;
                 body = payload;
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
-            String auth = ((Helpers.add(requestPath, queryString) + expiryString) + payload);
+            String auth = (((requestPath + queryString) + expiryString) + payload);
             ((Map<String, Object>)headers).put("x-phemex-request-signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
         }
         url = Helpers.add(this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)), url);

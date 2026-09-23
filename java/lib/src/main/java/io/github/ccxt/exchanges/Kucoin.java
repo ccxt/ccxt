@@ -12012,8 +12012,8 @@ public class Kucoin extends KucoinApi
         String rawStatus = this.safeString(transfer, "status");
         String bizType = this.safeString(transfer, "bizType");
         Boolean isLedgerEntry = (!java.util.Objects.equals(bizType, null));
-        Object accountFromRaw = null;
-        Object accountToRaw = null;
+        String accountFromRaw = null;
+        String accountToRaw = null;
         if (Boolean.TRUE.equals(isLedgerEntry))
         {
             // Ledger entry format: uses accountType + direction

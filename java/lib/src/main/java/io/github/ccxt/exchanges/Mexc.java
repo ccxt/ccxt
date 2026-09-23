@@ -1404,7 +1404,7 @@ public class Mexc extends MexcApi
             String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            Object status = null;
+            String status = null;
             Long updated = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -1425,7 +1425,7 @@ public class Mexc extends MexcApi
                 status = ((Boolean.TRUE.equals(success))) ? "ok" : this.json(response);
                 updated = this.safeInteger(response, "data");
             }
-            final Object finalStatus = status;
+            final String finalStatus = status;
             final Long finalUpdated = updated;
             final Map<String, Object> finalResponse = response;
             return new HashMap<String, Object>() {{

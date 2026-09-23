@@ -1575,7 +1575,7 @@ public class Latoken extends LatokenApi
             }
         }
         String orderSide = this.safeString(order, "side");
-        Object side = null;
+        String side = null;
         if (!java.util.Objects.equals(orderSide, null))
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)orderSide).split(java.util.regex.Pattern.quote("_"))));
@@ -1603,7 +1603,7 @@ public class Latoken extends LatokenApi
         String timeInForce = this.parseTimeInForce(this.safeString(order, "condition"));
         final String finalStatus = status;
         final String finalSymbol = symbol;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
