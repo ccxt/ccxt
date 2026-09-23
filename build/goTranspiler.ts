@@ -3940,6 +3940,7 @@ ${constStatements.join('\n')}
         // accessors already use (see coerceTypedStringAccessors), so the locals initialised
         // from them can be typed and the printer's pointer-aware comparisons apply.
         baseClass = this.coerceTypedStringAccessors (baseClass);
+    baseClass = this.coerceTypedMapAccessors (baseClass);
 
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
@@ -4810,6 +4811,173 @@ ${caseStatements.join('\n')}
     }
 
     // ---------------------------------------------------------------------------------------------
+    /**
+     * Index of the `}` that closes the brace-matched block opened at `open`, or -1 when the
+     * text is unbalanced. Used by the map-accessor coercion to cut a method body out of the
+     * printed file without a parser.
+     */
+    goBraceClose (content: string, open: number): number {
+        let depth = 0;
+        for (let i = open; i < content.length; i++) {
+            const c = content[i];
+            if (c === '{') {
+                depth += 1;
+            } else if (c === '}') {
+                depth -= 1;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Wraps every function-level `return <expr>` of a generated Go body with `wrapper`.
+     * The returns of nested function literals are deliberately left alone: the closure's
+     * expression has the closure's own type (Ndax's ParseOrderBook closure returns the two
+     * key names, so `MapTyped(asksKey)` would not compile) and the printer always writes the
+     * literal's `{` on the `func(` line (verified: 0 `= func(...) <type>` openings in go/v4
+     * @0b32e4ad). Returns undefined - the caller keeps the transpiled `any` - when the body
+     * cannot be scanned confidently (unbalanced braces, a `func(` head whose brace is on
+     * another line, a bare `return`).
+     */
+    wrapGoFunctionLevelReturns (body: string, wrapper: (expr: string) => string): { text: string, total: number, exprs: string[] } | undefined {
+        const inLiteral: boolean[] = [];
+        const stack: boolean[] = [];
+        let literalOpen = 0;
+        for (let i = 0; i < body.length; i++) {
+            inLiteral[i] = literalOpen > 0;
+            const c = body[i];
+            if (c === '{') {
+                const lineStart = body.lastIndexOf ('\n', i - 1) + 1;
+                const head = body.substring (lineStart, i);
+                const isLiteral = /(^|[^\w.])func\s*\([^)]*\)/.test (head);
+                stack.push (isLiteral);
+                if (isLiteral) {
+                    literalOpen += 1;
+                }
+            } else if (c === '}') {
+                if (!stack.length) {
+                    return undefined;
+                }
+                if (stack.pop ()) {
+                    literalOpen -= 1;
+                }
+            }
+        }
+        if (stack.length) {
+            return undefined;
+        }
+        const lines = body.split ('\n');
+        const out: string[] = [];
+        const exprs: string[] = [];
+        let offset = 0;
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const trimmed = line.trim ();
+            if (!inLiteral[offset] && /^return([ \t]|$)/.test (trimmed)) {
+                const expr = trimmed.substring ('return'.length).trim ();
+                if (expr.length === 0) {
+                    return undefined;
+                }
+                const indent = line.substring (0, line.length - line.trimStart ().length);
+                out.push (indent + 'return ' + wrapper (expr));
+                exprs.push (expr);
+            } else {
+                out.push (line);
+            }
+            offset += line.length + 1;
+            if (!inLiteral[offset - 1] && /func\s*\(/.test (line) && (line.indexOf ('{', line.search (/func\s*\(/)) < 0)) {
+                return undefined; // a func literal that opens its brace on a later line
+            }
+        }
+        return { text: out.join ('\n'), total: exprs.length, exprs: exprs };
+    }
+
+    /**
+     * Retypes one generated method to `map[string]any` and - when `wrap` - rewrites every
+     * function-level return through MapTyped, which is the identity on a map value, converts a
+     * *sync.Map and maps anything else (including nil) to a map. Without `wrap` the body must
+     * consist of exactly one `return <expr>` line whose expression satisfies `accept` (the
+     * fail-closed shape check of coerceTypedStringAccessors). `accept`, when given with
+     * `wrap`, must hold for every function-level return expression.
+     */
+    retypeGoMapMethod (content: string, receiver: string, method: string, accept: (expr: string) => boolean | undefined, wrap: boolean): string {
+        const headRegex = new RegExp ('func\\s+\\(this \\*' + receiver + '\\)\\s+' + method + '\\(([^)]*)\\)\\s+any\\s*\\{', 'g');
+        let out = '';
+        let cursor = 0;
+        let match = headRegex.exec (content);
+        if (match === null) {
+            return content;
+        }
+        while (match !== null) {
+            const headStart = match.index;
+            const open = content.indexOf ('{', headStart + match[0].length - 1);
+            const close = (open < 0) ? -1 : this.goBraceClose (content, open);
+            if ((open < 0) || (close < 0)) {
+                return content; // unbalanced: keep the transpiled signature
+            }
+            const body = content.substring (open + 1, close);
+            let newBody = body;
+            if (wrap) {
+                const scanned = this.wrapGoFunctionLevelReturns (body, (expr: string) => 'MapTyped(' + expr + ')');
+                if ((scanned === undefined) || (scanned.total === 0)) {
+                    return content;
+                }
+                if ((accept !== undefined) && (!scanned.exprs.every (accept))) {
+                    return content;
+                }
+                newBody = scanned.text;
+            } else {
+                const returns = body.match (/^[ \t]*return .*$/gm) || [];
+                if ((returns.length !== 1) || (!accept (returns[0].trim ().replace (/\s+/g, ' ').replace (/^return /, '')))) {
+                    return content;
+                }
+            }
+            const head = content.substring (headStart, open);
+            out += content.substring (cursor, headStart) + head.replace (/\s+any\s*$/, ' map[string]any ') + '{' + newBody;
+            cursor = close;
+            match = headRegex.exec (content);
+        }
+        out += content.substring (cursor);
+        return out;
+    }
+
+    /**
+     * Map-returning accessors whose transpiled `any` signature hides a proven
+     * `map[string]any` body (see the C3 SPECs). One row per method; a sibling unit that
+     * lands the same change appends its own row to this table instead of adding a second
+     * table. Fail closed: an unexpected body shape leaves the transpiled `any` signature.
+     */
+    coerceTypedMapAccessors (content: string): string {
+        // receiver, method, accepted single-return shape, wrap-every-function-level-return
+        const rows: [string, string, (expr: string) => boolean, boolean][] = [
+            [ 'BaseExchange', 'Account', (expr: string) => expr.indexOf ('map[string]any{') === 0, false ],
+        ];
+        for (let i = 0; i < rows.length; i++) {
+            content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], rows[i][2], rows[i][3]);
+        }
+        return content;
+    }
+
+    /**
+     * An exchange may override one of the coerced map accessors; its transpiled copy shadows
+     * the embedded base method, so it has to carry the same `map[string]any` shape or the
+     * locals the classifier types against the call would not compile (the compiler resolves
+     * the receiver, the classifier cannot). Every function-level return is wrapped in
+     * MapTyped; the returns of nested function literals are untouched. Fail closed: an
+     * unscannable body leaves the transpiled `any` signature, and a receiver that does not
+     * declare the method is a no-op (the unit must then not add its classifier row).
+     */
+    coerceTypedMapAccessorOverrides (content: string): string {
+        const rows: [string, string][] = [];
+        for (let i = 0; i < rows.length; i++) {
+            content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], undefined, true);
+        }
+        return content;
+    }
+
     // Tuple-helper return signatures (U28 family)
     //
     // ts/src/base/Exchange.ts declares the `[ value, params ]` helpers with a TS tuple return
@@ -4950,6 +5118,7 @@ ${caseStatements.join('\n')}
         }
 
         content = this.coerceTypedStringAccessorOverrides (content);
+        content = this.coerceTypedMapAccessorOverrides (content);
         content = coerceGoBoolMethodReturns (content, CCXT_GO_BOOL_METHOD_NAMES);
         // The destructured `[ value, params ]` helpers carry a concrete `[]any` return (see
         // coerceTupleHelperSignatures); an exchange that overrides one of them (Okx, Deepcoin)

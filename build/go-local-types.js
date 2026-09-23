@@ -136,6 +136,7 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     // deepExtend2 is Go-only: every return path hands back the `outDict` accumulator (a
     // non-map operand panics on the assertion instead of escaping), so `map[string]any` is exact.
     'this.DeepExtend2': 'map[string]any',
+    'this.Account': 'map[string]any',
     // exchange.go / exchange_string.go
     'this.StringToCharsArray': '[]string',
     'this.Capitalize': 'string',
