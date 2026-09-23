@@ -1233,11 +1233,11 @@ func (this *Myriad) createOrderbookOrderBody(ch chan any, outcome any, typeVar a
 	var parsed any = this.ParsePredictionOrder(wrapper, outcomeObj)
 	// the POST /orders response is minimal (hash + status), so backfill the known request values
 	// side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
-	var sideStr any = func() any {
+	var sideStr *string = func() *string {
 		if ccxt.IsEqual(side, nil) {
 			return nil
 		}
-		return ccxt.ToLower(side)
+		return ccxt.SafeStringPtr(ccxt.ToLower(side))
 	}()
 	var typeStr string = func() string {
 		if ccxt.IsEqual(typeVar, nil) {
@@ -1801,23 +1801,23 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	var amountWei *string = this.SafeString(inner, "amount")
 	var priceWei *string = this.SafeString(inner, "price")
 	var filledWei *string = this.SafeString(order, "filledAmount")
-	var amount any = func() any {
+	var amount *float64 = func() *float64 {
 		if amountWei == nil {
 			return nil
 		}
-		return this.ParseNumber(ccxt.Precise.StringDiv(amountWei, "1000000000000000000"))
+		return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(amountWei, "1000000000000000000")))
 	}()
-	var price any = func() any {
+	var price *float64 = func() *float64 {
 		if priceWei == nil {
 			return nil
 		}
-		return this.ParseNumber(ccxt.Precise.StringDiv(priceWei, "1000000000000000000"))
+		return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(priceWei, "1000000000000000000")))
 	}()
-	var filled any = func() any {
+	var filled *float64 = func() *float64 {
 		if filledWei == nil {
 			return nil
 		}
-		return this.ParseNumber(ccxt.Precise.StringDiv(filledWei, "1000000000000000000"))
+		return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(filledWei, "1000000000000000000")))
 	}()
 	var statusRaw *string = this.SafeStringLower(order, "status")
 	var status *string = this.ParseOrderStatus(statusRaw)

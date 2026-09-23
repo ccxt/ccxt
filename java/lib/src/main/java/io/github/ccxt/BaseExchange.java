@@ -12348,7 +12348,7 @@ public Object describe()
             removeRepeatedOption = ((List<Object>) removeRepeatedOptionparametersVariable).get(0);
             parameters = ((List<Object>) removeRepeatedOptionparametersVariable).get(1);
             Object calls = 0;
-            Object result = new ArrayList<Object>(Arrays.asList());
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object errors = 0;
             Long until = this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("until", "untill", "till"))); // do not omit it from params here
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
@@ -12391,7 +12391,7 @@ public Object describe()
                             break;
                         }
                         errors = 0;
-                        result = this.arrayConcat(result, response);
+                        result = (List<Object>) this.arrayConcat(result, response);
                         Object firstElement = this.safeValue(response, 0);
                         paginationTimestamp = this.safeInteger2(firstElement, "timestamp", 0);
                         if (java.util.Objects.equals(paginationTimestamp, null))
@@ -12421,7 +12421,7 @@ public Object describe()
                             break;
                         }
                         errors = 0;
-                        result = this.arrayConcat(result, response);
+                        result = (List<Object>) this.arrayConcat(result, response);
                         Object last = this.safeValue(response, Helpers.subtract(responseLength, 1));
                         Long lastTimestamp = this.safeInteger(last, "timestamp", 0);
                         if (java.util.Objects.equals(lastTimestamp, null))
@@ -12579,10 +12579,10 @@ public Object describe()
                 currentSince = Helpers.subtract(this.sum(currentSince, step), 1);
             }
             Object results = (Helpers.promiseAll(tasks)).join();
-            Object result = new ArrayList<Object>(Arrays.asList());
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                result = this.arrayConcat(result, (results == null || i < 0 || i >= ((List<?>)results).size() ? null : ((List<?>)results).get(i)));
+                result = (List<Object>) this.arrayConcat(result, (results == null || i < 0 || i >= ((List<?>)results).size() ? null : ((List<?>)results).get(i)));
             }
             Object uniqueResults = ((Object)this.removeRepeatedElementsFromArray(result));
             Object key = (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp";
@@ -12626,7 +12626,7 @@ public Object describe()
             Object cursorValue = null;
             Object i = 0;
             Object errors = 0;
-            Object result = new ArrayList<Object>(Arrays.asList());
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             String timeframe = this.safeString(parameters, "timeframe");
             parameters = this.omit(parameters, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
             while (Helpers.isLessThan(i, maxCalls))
@@ -12682,7 +12682,7 @@ public Object describe()
                     }
                     if (!java.util.Objects.equals(response, null))
                     {
-                        result = this.arrayConcat(result, response);
+                        result = (List<Object>) this.arrayConcat(result, response);
                     }
                     Map<String, Object> last = (Map<String, Object>) this.safeDict(response, (((long) responseLength) - 1L));
                     // cursorValue = this.safeValue (last['info'], cursorReceived);
@@ -12757,7 +12757,7 @@ public Object describe()
             parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             Object i = 0;
             Object errors = 0;
-            Object result = new ArrayList<Object>(Arrays.asList());
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             while (Helpers.isLessThan(i, maxCalls))
             {
                 try
@@ -12776,7 +12776,7 @@ public Object describe()
                     {
                         break;
                     }
-                    result = this.arrayConcat(result, response);
+                    result = (List<Object>) this.arrayConcat(result, response);
                 } catch(Exception e)
                 {
                     errors = Helpers.add(errors, 1);

@@ -1287,11 +1287,11 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) an
 		raw = this.SafeDict(ticker, "market", map[string]any{})
 		book = ccxt.MapTyped(this.SafeDict(ticker, "book"))
 	}
-	var rawLabel any = func() any {
+	var rawLabel *string = func() *string {
 		if market != nil {
 			return this.SafeString(market, "label", this.SafeString(ccxt.GetValue(market, "info"), "outcomeLabel", "yes"))
 		}
-		return "yes"
+		return ccxt.SafeStringPtr("yes")
 	}()
 	var isYes bool = (ccxt.ToLower(rawLabel) != "no")
 	var bidStr *string = nil

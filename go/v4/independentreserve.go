@@ -1432,9 +1432,9 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 	if tag != nil {
 		request["destinationTag"] = tag
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		panic(BadRequest(this.Id + " withdraw () does not accept params[\"networkCode\"]"))

@@ -4570,14 +4570,14 @@ public class Xt extends XtApi
             //         }
             //     }
             //
-            Object orders = new ArrayList<Object>(Arrays.asList());
+            List<Object> orders = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> resultDict = (Map<String, Object>) this.safeDict(response, "result");
             if (!java.util.Objects.equals(resultDict, null))
             {
-                orders = this.safeList(resultDict, "items", new ArrayList<Object>(Arrays.asList()));
+                orders = (List<Object>) this.safeList(resultDict, "items", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                orders = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+                orders = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             }
             if (java.util.Objects.equals(trailing, true))
             {

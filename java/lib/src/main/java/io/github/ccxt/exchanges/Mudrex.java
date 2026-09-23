@@ -697,15 +697,15 @@ public class Mudrex extends MudrexApi
                 }}, parameters);
                 Map<String, Object> response = (this.privateGetFutures(q)).join();
                 Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
-                Object items = new ArrayList<Object>(Arrays.asList());
+                List<Object> items = new ArrayList<Object>(Arrays.asList());
                 if ((data instanceof Map) && !(data instanceof List))
                 {
-                    items = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
+                    items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
                     // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                     Object itemsLength = ((List<?>)items).size();
                     if ((java.util.Objects.equals(itemsLength, null)) || (java.util.Objects.equals(itemsLength, 0)))
                     {
-                        items = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
+                        items = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
                         itemsLength = ((List<?>)items).size();
                     }
                     if ((java.util.Objects.equals(itemsLength, 0)) && (Helpers.inOp(data, "symbol")))
@@ -724,7 +724,7 @@ public class Mudrex extends MudrexApi
                 }
                 for (var i = 0; Helpers.isLessThan(i, numItems); i++)
                 {
-                    ((List<Object>)aggregated).add((items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)));
+                    ((List<Object>)aggregated).add((items == null || i < 0 || i >= items.size() ? null : items.get(i)));
                 }
                 if (Helpers.isLessThan(numItems, pageLimit))
                 {

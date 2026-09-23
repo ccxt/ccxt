@@ -2046,9 +2046,9 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		onlyContractSymbols = false
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "method", method)
@@ -2056,7 +2056,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(methodparamsVariable, 1))
 	if method == nil {
 		// if the user did not specify a method, choose it based on market type and symbols
-		if onlyContractSymbols || (IsEqual(marketType, "swap")) {
+		if onlyContractSymbols || (marketType != nil && *marketType == "swap") {
 			method = "v4PublicGetFutures"
 		} else {
 			method = "v4PublicGetTicker"
@@ -3176,12 +3176,12 @@ func (this *Whitebit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.V4PrivatePostCollateralAccountBalance(params)).Raw
 		PanicOnError(response)

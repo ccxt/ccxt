@@ -838,11 +838,11 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var leverageRatio *string = this.SafeString(market, "leverage-ratio", "1")
 		var superLeverageRatio *string = this.SafeString(market, "super-margin-leverage-ratio", "1")
 		var margin bool = Precise.StringGt(leverageRatio, "1") || Precise.StringGt(superLeverageRatio, "1")
-		var fee any = func() any {
+		var fee *float64 = func() *float64 {
 			if base != nil && *base == "OMG" {
-				return this.ParseNumber("0")
+				return Float64PtrTyped(this.ParseNumber("0"))
 			}
-			return this.ParseNumber("0.002")
+			return Float64PtrTyped(this.ParseNumber("0.002"))
 		}()
 		if baseId == nil {
 			panic(ExchangeError(this.Id + " fetchMarkets() missing baseId"))

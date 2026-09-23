@@ -377,7 +377,7 @@ public class Zebpay extends ZebpayApi
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
             Map<String, Object> response = null;
-            Object data = new HashMap<String, Object>() {{}};
+            Map<String, Object> data = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSpot))
             {
                 response = (this.publicSpotGetV2SystemStatus(parameters)).join();
@@ -385,7 +385,7 @@ public class Zebpay extends ZebpayApi
             } else
             {
                 response = (this.publicSwapGetV1SystemStatus(parameters)).join();
-                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             //
             // {
@@ -444,7 +444,7 @@ public class Zebpay extends ZebpayApi
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
             Map<String, Object> response = null;
-            Object data = new HashMap<String, Object>() {{}};
+            Map<String, Object> data = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSpot))
             {
                 response = (this.publicSpotGetV2SystemTime(parameters)).join();
@@ -452,7 +452,7 @@ public class Zebpay extends ZebpayApi
             } else
             {
                 response = (this.publicSwapGetV1SystemTime(parameters)).join();
-                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             //
             // {

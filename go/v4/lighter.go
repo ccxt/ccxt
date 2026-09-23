@@ -1630,9 +1630,9 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			baseId = GetValue(Split(baseId, "/"), 0)
 		}
 		var quoteId string = "USDC"
-		var settleId any = func() any {
+		var settleId *string = func() *string {
 			if IsEqual(typeVar, "swap") {
-				return "USDC"
+				return SafeStringPtr("USDC")
 			}
 			return nil
 		}()
@@ -1645,17 +1645,17 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var amountDecimals *string = this.SafeString2(market, "size_decimals", "supported_size_decimals")
 		var priceDecimals *string = this.SafeString2(market, "price_decimals", "supported_price_decimals")
-		var amountPrecision any = func() any {
+		var amountPrecision *float64 = func() *float64 {
 			if amountDecimals == nil {
 				return nil
 			}
-			return this.ParseNumber(this.ParsePrecision(amountDecimals))
+			return Float64PtrTyped(this.ParseNumber(this.ParsePrecision(amountDecimals)))
 		}()
-		var pricePrecision any = func() any {
+		var pricePrecision *float64 = func() *float64 {
 			if priceDecimals == nil {
 				return nil
 			}
-			return this.ParseNumber(this.ParsePrecision(priceDecimals))
+			return Float64PtrTyped(this.ParseNumber(this.ParsePrecision(priceDecimals)))
 		}()
 		var quoteMultiplier *float64 = this.SafeNumber(market, "quote_multiplier")
 		result = append(result, map[string]any{

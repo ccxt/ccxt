@@ -2165,14 +2165,14 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	// so this method uses the live native endpoints instead
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchStatus", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var status string
 	var eta *int64 = nil
 	var response any = nil
-	if IsEqual(marketType, "spot") {
+	if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.SpotPublicGetV2MarketStatus(params)).Raw
 		PanicOnError(response)
@@ -2197,9 +2197,9 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		}()
 		eta = this.SafeInteger(data, "haltEndTime")
 	} else {
-		var subType any = nil
+		var subType *string = nil
 		var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchStatus", nil, params)
-		subType = GetValue(subTypeparamsVariable, 0)
+		subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 		params = MapTyped(GetValue(subTypeparamsVariable, 1))
 
 		response = (<-this.ContractPublicGetHeartbeat(params)).Raw
@@ -2223,10 +2223,10 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		var data map[string]any = SafeMapTyped(response, "data")
 		var heartbeatKey string = "heartbeat"
 		var etaKey string = "estimated_recovery_time"
-		if IsEqual(subType, "linear") {
+		if subType != nil && *subType == "linear" {
 			heartbeatKey = "linear_swap_heartbeat"
 			etaKey = "linear_swap_estimated_recovery_time"
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 			heartbeatKey = "swap_heartbeat"
 			etaKey = "swap_estimated_recovery_time"
 		}
@@ -3172,20 +3172,20 @@ func (this *Htx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(first)
 	}
 	var isSubTypeRequested bool = (InOp(params, "subType")) || (InOp(params, "business_type"))
-	var typeVar any = nil
-	var subType any = nil
+	var typeVar *string = nil
+	var subType *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchTickers", market, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var request map[string]any = map[string]any{}
-	var isSpot bool = (IsEqual(typeVar, "spot"))
-	var future bool = (IsEqual(typeVar, "future"))
-	var swap bool = (IsEqual(typeVar, "swap"))
-	var linear bool = (IsEqual(subType, "linear"))
-	var inverse bool = (IsEqual(subType, "inverse"))
+	var isSpot bool = (typeVar != nil && *typeVar == "spot")
+	var future bool = (typeVar != nil && *typeVar == "future")
+	var swap bool = (typeVar != nil && *typeVar == "swap")
+	var linear bool = (subType != nil && *subType == "linear")
+	var inverse bool = (subType != nil && *subType == "inverse")
 	var response any = nil
 	if !isSpot || isSubTypeRequested {
 		if linear {
@@ -3307,23 +3307,23 @@ func (this *Htx) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var market any = this.GetMarketFromSymbols(symbols)
 	var typeVar any = nil
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchLastPrices", market, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
-	if ((IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future"))) && (IsEqual(subType, "linear")) {
+	if ((IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future"))) && (subType != nil && *subType == "linear") {
 
 		response = (<-this.ContractPublicGetLinearSwapExMarketTrade(params)).Raw
 		PanicOnError(response)
-	} else if (IsEqual(typeVar, "swap")) && (IsEqual(subType, "inverse")) {
+	} else if (IsEqual(typeVar, "swap")) && (subType != nil && *subType == "inverse") {
 
 		response = (<-this.ContractPublicGetSwapExMarketTrade(params)).Raw
 		PanicOnError(response)
-	} else if (IsEqual(typeVar, "future")) && (IsEqual(subType, "inverse")) {
+	} else if (IsEqual(typeVar, "future")) && (subType != nil && *subType == "inverse") {
 
 		response = (<-this.ContractPublicGetMarketTrade(params)).Raw
 		PanicOnError(response)
@@ -3678,11 +3678,11 @@ func (this *Htx) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	if !IsEqual(marketType, "spot") {
+	if marketType == nil || *marketType != "spot" {
 		panic(NotSupported(this.Id + " fetchOrderTrades() is only supported for spot markets"))
 	}
 
@@ -5702,11 +5702,11 @@ func (this *Htx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	if IsEqual(marketType, "spot") {
+	if marketType != nil && *marketType == "spot" {
 
 		var retRes429819 []any = ListTyped(PanicOnError((<-this.FetchClosedSpotOrdersAsync(symbol, since, limit, params))))
 		ch <- BoxAbsent(retRes429819)
@@ -5762,17 +5762,17 @@ func (this *Htx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchOpenOrders", market, params, "linear")
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var isLinear bool = (IsEqual(subType, "linear"))
+	var isLinear bool = (subType != nil && *subType == "linear")
 	var response any = nil
-	if IsEqual(marketType, "spot") {
+	if marketType != nil && *marketType == "spot" {
 		if symbol != nil {
 			request["symbol"] = this.SafeString(market, "id")
 		}
@@ -5839,8 +5839,8 @@ func (this *Htx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 				response = (<-this.ContractPrivateGetV5TradeOrderOpens(this.Extend(request, params)))
 				PanicOnError(response)
 			}
-		} else if IsEqual(subType, "inverse") {
-			if IsEqual(marketType, "swap") {
+		} else if subType != nil && *subType == "inverse" {
+			if marketType != nil && *marketType == "swap" {
 				if trigger != nil && *trigger == true {
 
 					response = (<-this.ContractPrivatePostSwapApiV1SwapTriggerOpenorders(this.Extend(request, params))).Raw
@@ -5858,7 +5858,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 					response = (<-this.ContractPrivatePostSwapApiV1SwapOpenorders(this.Extend(request, params))).Raw
 					PanicOnError(response)
 				}
-			} else if IsEqual(marketType, "future") {
+			} else if marketType != nil && *marketType == "future" {
 				request["symbol"] = this.SafeString(market, "settleId", "usdt")
 				if trigger != nil && *trigger == true {
 
@@ -6763,11 +6763,11 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 	if postOnly == true {
 		typeVar = "post_only"
 	}
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("createOrder", market, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var isLinear bool = (IsEqual(subType, "linear"))
+	var isLinear bool = (subType != nil && *subType == "linear")
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var hedged *bool = this.SafeBool(params, "hedged", false)
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force", "gtc")
@@ -7389,11 +7389,11 @@ func (this *Htx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("cancelOrder", market, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var isLinear bool = (IsEqual(subType, "linear"))
+	var isLinear bool = (subType != nil && *subType == "linear")
 	var request map[string]any = map[string]any{}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var stopLossTakeProfit *bool = this.SafeBoolN(params, []any{"stopLossTakeProfit", "stopLoss", "takeProfit"})
@@ -8718,9 +8718,9 @@ func (this *Htx) transferBody(ch chan any, code any, amount any, fromAccount any
 		"currency": currency["id"],
 		"amount":   ParseFloat(transferAmount),
 	}
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("transfer", nil, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var fromAccountId any = this.ConvertTypeToAccount(fromAccount)
 	var toAccountId any = this.ConvertTypeToAccount(toAccount)
@@ -8761,7 +8761,7 @@ func (this *Htx) transferBody(ch chan any, code any, amount any, fromAccount any
 		response = (<-this.PrivatePostDwTransferOutMargin(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if IsEqual(subType, "linear") {
+		if subType != nil && *subType == "linear" {
 			if (IsEqual(fromAccountId, "swap")) || (IsEqual(fromAccount, "linear-swap")) {
 				fromAccountId = "linear-swap"
 			} else {
@@ -9723,9 +9723,9 @@ func (this *Htx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var request any = map[string]any{
 		"type": "30,31",
@@ -9741,7 +9741,7 @@ func (this *Htx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var response any = nil
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 		if GetValue(market, "linear") == true {
 			var marginMode any = nil
 			var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchFundingHistory", params)
@@ -10108,28 +10108,28 @@ func (this *Htx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			market = this.Market(first)
 		}
 	}
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositions", market, params, "linear")
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositions", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	if IsEqual(marketType, "spot") {
-		marketType = "future"
+	if marketType != nil && *marketType == "spot" {
+		marketType = SafeStringPtr("future")
 	}
 	var response any = nil
-	if IsEqual(subType, "linear") {
+	if subType != nil && *subType == "linear" {
 
 		response = (<-this.ContractPrivateGetV5TradePositionOpens(params))
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "future") {
+		if marketType != nil && *marketType == "future" {
 
 			response = (<-this.ContractPrivatePostApiV1ContractPositionInfo(params)).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.ContractPrivatePostSwapApiV1SwapPositionInfo(params)).Raw
 			PanicOnError(response)
@@ -10702,20 +10702,20 @@ func (this *Htx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchOpenInterests", market, params, "linear")
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenInterests", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
-	if IsEqual(marketType, "future") {
+	if marketType != nil && *marketType == "future" {
 
 		response = (<-this.ContractPublicGetApiV1ContractOpenInterest(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(subType, "inverse") {
+	} else if subType != nil && *subType == "inverse" {
 
 		response = (<-this.ContractPublicGetSwapApiV1SwapOpenInterest(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -11924,28 +11924,28 @@ func (this *Htx) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 			market = this.Market(first)
 		}
 	}
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositionsADLRank", market, params, "linear")
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositionsADLRank", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	if IsEqual(marketType, "spot") {
-		marketType = "future"
+	if marketType != nil && *marketType == "spot" {
+		marketType = SafeStringPtr("future")
 	}
 	var response any = nil
-	if IsEqual(subType, "linear") {
+	if subType != nil && *subType == "linear" {
 
 		response = (<-this.ContractPrivateGetV5TradePositionOpens(params))
 		PanicOnError(response)
 	} else {
-		if IsEqual(marketType, "future") {
+		if marketType != nil && *marketType == "future" {
 
 			response = (<-this.ContractPrivatePostApiV1ContractPositionInfo(params)).Raw
 			PanicOnError(response)
-		} else if IsEqual(marketType, "swap") {
+		} else if marketType != nil && *marketType == "swap" {
 
 			response = (<-this.ContractPrivatePostSwapApiV1SwapPositionInfo(params)).Raw
 			PanicOnError(response)

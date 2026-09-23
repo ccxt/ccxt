@@ -1964,7 +1964,7 @@ public class Apex extends ApexApi
             String ethAddress = this.safeString(accountData, "ethereumAddress", "");
             String accountId = this.safeString(accountData, "id", "");
             Object currency = new HashMap<String, Object>() {{}};
-            Object assets = new ArrayList<Object>(Arrays.asList());
+            List<Object> assets = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(fromAccount, null) && java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract"))
             {
                 assets = contractAssets;
@@ -1974,9 +1974,9 @@ public class Apex extends ApexApi
             }
             for (var i = 0; i < ((List<?>)assets).size(); i++)
             {
-                if (java.util.Objects.equals(this.safeString((assets == null || i < 0 || i >= ((List<?>)assets).size() ? null : ((List<?>)assets).get(i)), "token", ""), code))
+                if (java.util.Objects.equals(this.safeString((assets == null || i < 0 || i >= assets.size() ? null : assets.get(i)), "token", ""), code))
                 {
-                    currency = (assets == null || i < 0 || i >= ((List<?>)assets).size() ? null : ((List<?>)assets).get(i));
+                    currency = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
                 }
             }
             String tokenId = this.safeString(currency, "tokenId", "");

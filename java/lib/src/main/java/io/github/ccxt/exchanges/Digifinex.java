@@ -1341,10 +1341,10 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             Object timestamp = null;
-            Object orderBook = null;
+            Map<String, Object> orderBook = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                orderBook = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                orderBook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(orderBook, "timestamp");
             } else
             {
@@ -1574,7 +1574,7 @@ public class Digifinex extends DigifinexApi
             List<Object> tickers = (List<Object>) this.safeList(response, "ticker", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-            Object result = null;
+            Map<String, Object> result = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 result = data;
@@ -2406,20 +2406,20 @@ public class Digifinex extends DigifinexApi
             //         ]
             //     }
             //
-            Object data = new ArrayList<Object>(Arrays.asList());
+            List<Object> data = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                data = this.safeList(response, "order_ids", new ArrayList<Object>(Arrays.asList()));
+                data = (List<Object>) this.safeList(response, "order_ids", new ArrayList<Object>(Arrays.asList()));
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 Map<String, Object> individualOrder = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)individualOrder).put("order_id", (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i)));
+                ((Map<String, Object>)individualOrder).put("order_id", (data == null || i < 0 || i >= data.size() ? null : data.get(i)));
                 ((Map<String, Object>)individualOrder).put("instrument_id", ((Map<String, Object>)market).get("id"));
                 ((Map<String, Object>)individualOrder).put("amount", this.safeNumber(rawOrder, "amount"));
                 ((Map<String, Object>)individualOrder).put("price", this.safeNumber(rawOrder, "price"));

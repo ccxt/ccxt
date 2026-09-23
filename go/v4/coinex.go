@@ -1502,9 +1502,9 @@ func (this *Coinex) fetchContractMarketsBody(ch chan any, params any) any {
 		var quoteId *string = this.SafeString(entry, "quote_ccy")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var settleId any = func() any {
+		var settleId *string = func() *string {
 			if subType != nil && *subType == "linear" {
-				return "USDT"
+				return SafeStringPtr("USDT")
 			}
 			return baseId
 		}()
@@ -2546,21 +2546,21 @@ func (this *Coinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	var isMargin bool = (marginMode != nil) || (IsEqual(marketType, "margin"))
-	if IsEqual(marketType, "swap") {
+	var isMargin bool = (marginMode != nil) || (marketType != nil && *marketType == "margin")
+	if marketType != nil && *marketType == "swap" {
 
 		var retRes189119 map[string]any = MapTyped(PanicOnError((<-this.FetchSwapBalanceAsync(params))))
 		ch <- BoxAbsent(retRes189119)
 		return nil
-	} else if IsEqual(marketType, "financial") {
+	} else if marketType != nil && *marketType == "financial" {
 
 		var retRes189319 map[string]any = MapTyped(PanicOnError((<-this.FetchFinancialBalanceAsync(params))))
 		ch <- BoxAbsent(retRes189319)
@@ -3811,14 +3811,14 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
 	var isClosed bool = (IsEqual(status, "finished")) || (IsEqual(status, "closed"))
 	var isOpen bool = (IsEqual(status, "pending")) || (IsEqual(status, "open"))
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 		request["market_type"] = "FUTURES"
 		if isClosed {
 			if trigger != nil && *trigger == true {

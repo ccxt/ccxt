@@ -350,11 +350,11 @@ func (this *Zebpay) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchStatus", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var isSpot bool = (IsEqual(typeVar, "spot"))
+	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var response any = nil
 	var data any = map[string]any{}
 	if isSpot {
@@ -410,11 +410,11 @@ func (this *Zebpay) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var isSpot bool = (IsEqual(typeVar, "spot"))
+	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var response any = nil
 	var data any = map[string]any{}
 	if isSpot {
@@ -749,12 +749,12 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
-	if IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 
 		response = (<-this.PublicSpotGetV2ExTradefees(params)).Raw
 		PanicOnError(response)
@@ -1174,12 +1174,12 @@ func (this *Zebpay) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
-	if IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 		panic(NotSupported(this.Id + " fetchMyTrades() does not support spot markets"))
 	} else {
 
@@ -1344,11 +1344,11 @@ func (this *Zebpay) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var isSpot bool = (IsEqual(typeVar, "spot"))
+	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var response any = nil
 	if isSpot {
 

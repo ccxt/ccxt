@@ -1527,9 +1527,9 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString2(trade, "p", "price")
 	var amountString *string = this.SafeString2(trade, "q", "qty")
 	var sideRaw *string = this.SafeString2(trade, "S", "side")
-	var side any = func() any {
+	var side *string = func() *string {
 		if sideRaw != nil {
-			return ToLower(sideRaw)
+			return SafeStringPtr(ToLower(sideRaw))
 		}
 		return nil
 	}()
@@ -2645,11 +2645,11 @@ func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var assetId *string = this.SafeString(transfer, "asset")
 	var code any = this.GetExtendedCurrencyCodeById(assetId, currency)
 	var amountString *string = this.SafeString(transfer, "amount")
-	var amount any = func() any {
+	var amount *float64 = func() *float64 {
 		if amountString == nil {
 			return nil
 		}
-		return this.ParseNumber(Precise.StringAbs(amountString))
+		return Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountString)))
 	}()
 	var accountId *string = this.SafeString(transfer, "accountId")
 	var counterpartyAccountId *string = this.SafeString(transfer, "counterpartyAccountId")
@@ -2741,11 +2741,11 @@ func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) any
 	var assetId *string = this.SafeString(transaction, "asset")
 	var code any = this.GetExtendedCurrencyCodeById(assetId, currency)
 	var amountString *string = this.SafeString(transaction, "amount")
-	var amount any = func() any {
+	var amount *float64 = func() *float64 {
 		if amountString == nil {
 			return nil
 		}
-		return this.ParseNumber(Precise.StringAbs(amountString))
+		return Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountString)))
 	}()
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(transaction, "fee")

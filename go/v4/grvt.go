@@ -3891,9 +3891,9 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 	var isPostOnly *bool = this.SafeBool(order, "post_only")
 	var isReduceOnly *bool = this.SafeBool(order, "reduce_only")
 	var timeInForceRaw *string = this.SafeString(order, "time_in_force")
-	var timeInForce any = func() any {
+	var timeInForce *string = func() *string {
 		if isPostOnly != nil && *isPostOnly == true {
-			return "PO"
+			return SafeStringPtr("PO")
 		}
 		return this.ParseTimeInForce(timeInForceRaw)
 	}()

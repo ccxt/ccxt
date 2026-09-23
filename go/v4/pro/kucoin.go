@@ -2508,11 +2508,11 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 		params = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
-		var marketType any = nil
+		var marketType *string = nil
 		var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
-		marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
+		marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
 		params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
-		var isFuturesMethod bool = ((!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "margin")))
+		var isFuturesMethod bool = ((marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "margin"))
 
 		url := (<-this.NegotiateAsync(true, isFuturesMethod))
 		ccxt.PanicOnError(url)
@@ -2831,9 +2831,9 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	var matchSize *string = this.SafeString(data, "matchSize")
 	if (rawType != nil && *rawType == "match") && (matchPrice != nil) && (matchSize != nil) {
 		var matchCost *string = ccxt.Precise.StringMul(matchPrice, matchSize)
-		var previousCost any = func() any {
+		var previousCost *string = func() *string {
 			if ccxt.IsEqual(order, nil) {
-				return "0"
+				return ccxt.SafeStringPtr("0")
 			}
 			return this.NumberToString(this.SafeNumber(order, "cost", 0))
 		}()
@@ -2957,11 +2957,11 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		symbol = ccxt.GetValue(market, "symbol")
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "symbol"))
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
-	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
+	marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
-	var isFuturesMethod bool = ((!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "margin")))
+	var isFuturesMethod bool = ((marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "margin"))
 
 	uta := (<-this.IsUTAEnabledAsync())
 	ccxt.PanicOnError(uta)

@@ -783,11 +783,11 @@ func (this *Hibachi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	return nil
 }
 func (this *Hibachi) ParseOrderStatus(status *string) *string {
-	var uppercaseStatus any = func() any {
+	var uppercaseStatus *string = func() *string {
 		if status == nil {
 			return nil
 		}
-		return ToUpper(status)
+		return SafeStringPtr(ToUpper(status))
 	}()
 	var statuses map[string]any = map[string]any{
 		"PENDING":           "open",

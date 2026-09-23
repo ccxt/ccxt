@@ -1273,18 +1273,18 @@ func (this *Bitrue) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchBalance", nil, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var response any = nil
 	var result any = nil
-	if IsEqual(typeVar, "swap") {
-		if (subType != nil) && (IsEqual(subType, "inverse")) {
+	if typeVar != nil && *typeVar == "swap" {
+		if subType != nil && *subType == "inverse" {
 
 			response = (<-this.DapiV2PrivateGetAccount(params)).Raw
 			PanicOnError(response)
@@ -1834,7 +1834,7 @@ func (this *Bitrue) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var response any = []any{}
 	var data []any = []any{}
 	var request map[string]any = map[string]any{}
-	var typeVar any = nil
+	var typeVar *string = nil
 	if symbols != nil {
 		var first *string = this.SafeString(symbols, 0)
 		var market map[string]any = this.Market(first)
@@ -1850,9 +1850,9 @@ func (this *Bitrue) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	} else {
 		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
-		typeVar = GetValue(typeVarparamsVariable, 0)
+		typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 		params = MapTyped(GetValue(typeVarparamsVariable, 1))
-		if !IsEqual(typeVar, "spot") {
+		if typeVar == nil || *typeVar != "spot" {
 			panic(NotSupported(this.Id + " fetchTickers only support spot when symbols are not proved"))
 		}
 

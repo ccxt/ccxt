@@ -859,7 +859,7 @@ public class Btcturk extends BtcturkApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data");
-            Object dataList = new ArrayList<Object>(Arrays.asList());
+            List<Object> dataList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(data, null))
             {
                 dataList = data;
@@ -1425,7 +1425,7 @@ public class Btcturk extends BtcturkApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data");
-            Object dataList = new ArrayList<Object>(Arrays.asList());
+            List<Object> dataList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(data, null))
             {
                 dataList = data;

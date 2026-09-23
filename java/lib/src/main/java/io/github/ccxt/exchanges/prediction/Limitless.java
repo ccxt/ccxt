@@ -342,7 +342,7 @@ public class Limitless extends LimitlessApi
             // scope the listing: without a search query loadMarkets would otherwise page through
             // every active limitless market. Cap the total number of markets collected.
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
-            Object allRaw = new ArrayList<Object>(Arrays.asList());
+            List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
             Integer queriesLength = ((List<?>)queries).size();
             if (Helpers.isGreaterThan(queriesLength, 0))
             {
@@ -383,7 +383,7 @@ public class Limitless extends LimitlessApi
                 Map<String, Object> firstPageResponse = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
                 Long totalMarketsCount = this.safeInteger(firstPageResponse, "totalMarketsCount");
                 List<Object> firstData = (List<Object>) this.safeList(firstPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
-                allRaw = this.arrayConcat(allRaw, firstData);
+                allRaw = (List<Object>) this.arrayConcat(allRaw, firstData);
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 Double cappedPages = Math.ceil(Double.parseDouble(String.valueOf((((double) maxMarkets) / ((double) pageSize)))));
                 Object knownTotal = (((!java.util.Objects.equals(totalMarketsCount, null)))) ? totalMarketsCount : 0;
@@ -401,7 +401,7 @@ public class Limitless extends LimitlessApi
                 {
                     Map<String, Object> response = (Map<String, Object>) this.safeDict(responses, j);
                     List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                    allRaw = this.arrayConcat(allRaw, data);
+                    allRaw = (List<Object>) this.arrayConcat(allRaw, data);
                 }
                 Map<String, Object> lastPageResponse = (Map<String, Object>) this.safeDict(responses, (((long) length) - 1L));
                 List<Object> lastPageData = (List<Object>) this.safeList(lastPageResponse, "data", new ArrayList<Object>(Arrays.asList()));

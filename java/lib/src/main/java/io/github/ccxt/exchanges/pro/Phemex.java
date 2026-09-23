@@ -1486,7 +1486,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //        ...
         //    ]
         //
-        Object trades = new ArrayList<Object>(Arrays.asList());
+        List<Object> trades = new ArrayList<Object>(Arrays.asList());
         List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
         if ((Helpers.inOp(message, "closed")) || (Helpers.inOp(message, "fills")) || (Helpers.inOp(message, "open")))
         {
@@ -1498,7 +1498,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 return;
             }
-            trades = this.safeList(message, "fills", new ArrayList<Object>(Arrays.asList()));
+            trades = (List<Object>) this.safeList(message, "fills", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object rawOrder = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));

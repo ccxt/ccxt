@@ -1260,11 +1260,11 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	_ = market
 	var marketAny any = market
 	var outcomeObj any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
-	var outcomeLabel any = func() any {
+	var outcomeLabel *string = func() *string {
 		if market != nil {
 			return this.SafeString(market, "label", this.SafeString(ccxt.GetValue(market, "info"), "outcomeLabel", "YES"))
 		}
-		return "YES"
+		return ccxt.SafeStringPtr("YES")
 	}()
 	var isNo bool = (ccxt.ToUpper(outcomeLabel) == "NO")
 	var timestamp *int64 = this.Parse8601(this.SafeString(raw, "updated_time"))
@@ -1543,9 +1543,9 @@ func (this *Kalshi) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 				}
 				return nil
 			}(), 0)
-			var price any = func() any {
+			var price *float64 = func() *float64 {
 				if yesPrice != nil {
-					return this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(yesPrice)))
+					return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(yesPrice))))
 				}
 				return nil
 			}()
@@ -1579,9 +1579,9 @@ func (this *Kalshi) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 				}
 				return nil
 			}(), 0)
-			var price any = func() any {
+			var price *float64 = func() *float64 {
 				if noPrice != nil {
-					return this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(noPrice)))
+					return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(noPrice))))
 				}
 				return nil
 			}()

@@ -1530,17 +1530,17 @@ public class Deribit extends DeribitApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
         }};
-        Object summaries = new ArrayList<Object>(Arrays.asList());
+        List<Object> summaries = new ArrayList<Object>(Arrays.asList());
         if (Helpers.inOp(balance, "summaries"))
         {
-            summaries = this.safeList(balance, "summaries", new ArrayList<Object>(Arrays.asList()));
+            summaries = (List<Object>) this.safeList(balance, "summaries", new ArrayList<Object>(Arrays.asList()));
         } else
         {
             summaries = new ArrayList<Object>(Arrays.asList(balance));
         }
         for (var i = 0; i < ((List<?>)summaries).size(); i++)
         {
-            Object data = (summaries == null || i < 0 || i >= ((List<?>)summaries).size() ? null : ((List<?>)summaries).get(i));
+            Object data = (summaries == null || i < 0 || i >= summaries.size() ? null : summaries.get(i));
             String currencyId = this.safeString(data, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();

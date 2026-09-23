@@ -495,12 +495,12 @@ func (this *Lbank) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
-	if IsEqual(typeVar, "swap") {
+	if typeVar != nil && *typeVar == "swap" {
 
 		response = (<-this.ContractPublicGetCfdOpenApiV1PubGetTime(params))
 		PanicOnError(response)
@@ -1065,12 +1065,12 @@ func (this *Lbank) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
-	if IsEqual(typeVar, "swap") {
+	if typeVar != nil && *typeVar == "swap" {
 		request["productGroup"] = "SwapU"
 
 		response = (<-this.ContractPublicGetCfdOpenApiV1PubMarketData(this.Extend(request, params)))
@@ -1166,12 +1166,12 @@ func (this *Lbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
-	if IsEqual(typeVar, "swap") {
+	if typeVar != nil && *typeVar == "swap" {
 		request["depth"] = limit
 
 		response = (<-this.ContractPublicGetCfdOpenApiV1PubMarketOrder(this.Extend(request, params)))

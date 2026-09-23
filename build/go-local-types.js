@@ -5455,6 +5455,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         installNilDeclaredJoin (goTranspiler);
         installCcxtGoClosurePointerJoin (goTranspiler);
         installCcxtGoClosureDefaultValue (goTranspiler);
+        installCcxtGoTernaryLiftJoin (goTranspiler);
     }
     // the emitted signature of the same helpers: `any` → `*string` for the methods
     // the predicate above accepts, so the coercion and the local typing can never
@@ -5494,6 +5495,202 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     // string locals grown by `x += s` / `x = x + s`
     installCcxtGoStringConcatJoin (goTranspiler);
     installCcxtGoScalarElementReads (goTranspiler);
+    installCcxtGoTupleStringJoin (goTranspiler);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Tuple-element *string join: `let t: Str = undefined; [ t, params ] = this.handleMarketTypeAndParams (…)`.
+// Element 0 of these helpers is a string or absent in every return path, so `var t *string = nil`
+// with `t = SafeStringPtr(GetValue(h, 0))` keeps the absent/present split of the untyped box.
+const CCXT_GO_TUPLE_STRING_PRODUCERS = [
+    'this.HandleMarketTypeAndParams', 'this.HandleSubTypeAndParams', 'this.HandleParamString',
+    'this.HandleParamString2', 'this.HandleNetworkCodeAndParams',
+];
+
+// callee -> argument slots below which the Go body only derefScalars / GetArgStringPtr-binds the value
+const CCXT_GO_TUPLE_STRING_SAFE_ARGS = {
+    'this.IsLinear': 2, 'this.IsInverse': 2, 'ToLower': 1, 'ToUpper': 1, 'IsString': 1,
+};
+
+const CCXT_GO_TUPLE_STRING_CACHE = new WeakMap ();
+const CCXT_GO_TUPLE_STRING_IN_PROGRESS = new Set ();
+
+function ccxtGoTupleStringIsProducerElement (goTranspiler, node) {
+    const pattern = node.parent;
+    const assignment = pattern?.parent;
+    if ((pattern?.kind !== ts.SyntaxKind.ArrayLiteralExpression) || (assignment?.kind !== ts.SyntaxKind.BinaryExpression)
+        || (assignment.left !== pattern) || (assignment.operatorToken.kind !== ts.SyntaxKind.EqualsToken)
+        || (pattern.elements.indexOf (node) !== 0) || (assignment.parent?.kind !== ts.SyntaxKind.ExpressionStatement)) {
+        return false;
+    }
+    return CCXT_GO_TUPLE_STRING_PRODUCERS.indexOf (ccxtGoWriteSiteCallee (goTranspiler, assignment.right)) >= 0;
+}
+
+// a plain write that stores a *string (or a literal the write wraps into one)
+function ccxtGoTupleStringWriteIsProven (goTranspiler, right) {
+    if ((right?.kind === ts.SyntaxKind.StringLiteral) || (right?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral)) {
+        return true;
+    }
+    return goTranspiler.goTypeOfInitializer (right, goTranspiler.printNode (right, 0)) === '*string';
+}
+
+function ccxtGoTupleStringReadIsSafe (goTranspiler, node) {
+    let current = node;
+    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    const parent = current.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    if ((parent.kind === ts.SyntaxKind.BinaryExpression) && (COMPARISON_TOKENS.indexOf (parent.operatorToken.kind) >= 0)) {
+        const other = (parent.left === current) ? parent.right : parent.left;
+        if ((other?.kind === ts.SyntaxKind.StringLiteral) || isUndefinedLiteral (other)) {
+            return true; // nil-guarded deref or IsEqual, both answer the boxed comparison
+        }
+    }
+    if (((parent.kind === ts.SyntaxKind.IfStatement) || (parent.kind === ts.SyntaxKind.ConditionalExpression)) && (parent.expression === current || parent.condition === current)) {
+        return true;
+    }
+    if ((parent.kind === ts.SyntaxKind.PrefixUnaryExpression) && (parent.operator === ts.SyntaxKind.ExclamationToken)) {
+        return true;
+    }
+    if ((parent.kind === ts.SyntaxKind.CallExpression) && (parent.expression !== current)) {
+        const callee = printedCalleeOfCall (goTranspiler, parent);
+        const slots = CCXT_GO_TUPLE_STRING_SAFE_ARGS[(callee ?? '').replace (/^ccxt\./, '')];
+        if ((slots !== undefined) && (parent.arguments.indexOf (current) < slots)) {
+            return true;
+        }
+    }
+    return (current === node) && nilDeclaredReadIsSafe (goTranspiler, node);
+}
+
+function ccxtGoTupleStringJoinTypeUncached (goTranspiler, declaration) {
+    const name = declaration.name.escapedText;
+    const scope = goTranspiler.goEnclosingFunction (declaration);
+    if ((scope === undefined) || (NIL_DECLARED_GUARD_NAMES.indexOf (name) >= 0)
+        || goTranspiler.goTypeNameIsShadowed (scope, '*string')) {
+        return undefined;
+    }
+    let producers = 0;
+    let ok = true;
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if ((n !== scope) && (FUNCTION_LIKE_KINDS.indexOf (n.kind) >= 0)) {
+            ok = !scopeMentionsIdentifier (n, name); // a closure over the local
+            return;
+        }
+        if ((n !== declaration) && ((n.kind === ts.SyntaxKind.VariableDeclaration) || (n.kind === ts.SyntaxKind.Parameter))
+            && bindingMentionsName (n.name, name)) {
+            ok = false;
+            return;
+        }
+        if (isIdentifierNamed (n, name) && (n !== declaration.name)) {
+            const parent = n.parent;
+            if (ccxtGoTupleStringIsProducerElement (goTranspiler, n)) {
+                producers += 1;
+            } else if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)
+                && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+                ok = ccxtGoTupleStringWriteIsProven (goTranspiler, parent.right);
+            } else if (isDestructuringTarget (n) || !ccxtGoTupleStringReadIsSafe (goTranspiler, n)) {
+                ok = false;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    return (ok && (producers > 0)) ? '*string' : undefined;
+}
+
+// '*string' when `declaration` is a nil-declared local of this family, else undefined
+function ccxtGoTupleStringJoinType (goTranspiler, declaration) {
+    if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || !ts.isIdentifier (declaration.name)
+        || !isNilDeclaredInitializer (declaration.initializer)
+        || (declaration.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)
+        || (declaration.parent.declarations.length !== 1)) {
+        return undefined;
+    }
+    if (CCXT_GO_TUPLE_STRING_CACHE.has (declaration)) {
+        return CCXT_GO_TUPLE_STRING_CACHE.get (declaration);
+    }
+    if (CCXT_GO_TUPLE_STRING_IN_PROGRESS.has (declaration)) {
+        return undefined;
+    }
+    CCXT_GO_TUPLE_STRING_IN_PROGRESS.add (declaration);
+    let result;
+    try {
+        result = ccxtGoTupleStringJoinTypeUncached (goTranspiler, declaration);
+    } finally {
+        CCXT_GO_TUPLE_STRING_IN_PROGRESS.delete (declaration);
+    }
+    CCXT_GO_TUPLE_STRING_CACHE.set (declaration, result);
+    return result;
+}
+
+function ccxtGoTupleStringDeclarationOf (goTranspiler, node) {
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const declaration = ccxtGoParamDeclarationOf (goTranspiler, node);
+    return (ccxtGoTupleStringJoinType (goTranspiler, declaration) === '*string') ? declaration : undefined;
+}
+
+function installCcxtGoTupleStringJoin (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoTupleStringJoinInstalled
+        || (typeof goTranspiler.goDeclaredTypeOfIdentifier !== 'function') || (typeof goTranspiler.printBinaryExpression !== 'function')
+        || (typeof goTranspiler.printCustomBinaryExpressionIfAny !== 'function') || (typeof goTranspiler.printVariableDeclarationList !== 'function')) {
+        return;
+    }
+    // every consumer (inline equality, truthiness) must see the pointer
+    const shippedDeclared = goTranspiler.goDeclaredTypeOfIdentifier;
+    goTranspiler.goDeclaredTypeOfIdentifier = function (node) {
+        const known = shippedDeclared.call (this, node);
+        if (known !== undefined) {
+            return known;
+        }
+        return (ccxtGoTupleStringDeclarationOf (this, node) !== undefined) ? '*string' : undefined;
+    };
+    const shippedDeclaration = goTranspiler.printVariableDeclarationList;
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = shippedDeclaration.call (this, node, identation);
+        const declaration = node?.declarations?.[0];
+        if ((typeof printed !== 'string') || (ccxtGoTupleStringJoinType (this, declaration) !== '*string')) {
+            return printed;
+        }
+        const head = this.getIden (identation) + 'var ' + this.printNode (declaration.name, 0) + ' ';
+        return (printed === head + 'any = ' + this.UNDEFINED_TOKEN) ? (head + '*string = ' + this.UNDEFINED_TOKEN) : printed;
+    };
+    const shippedCustom = goTranspiler.printCustomBinaryExpressionIfAny;
+    goTranspiler.printCustomBinaryExpressionIfAny = function (node, identation) {
+        const printed = shippedCustom.call (this, node, identation);
+        const target = node?.left?.elements?.[0];
+        if ((typeof printed !== 'string') || (node.left.kind !== ts.SyntaxKind.ArrayLiteralExpression)
+            || (target === undefined) || (ccxtGoTupleStringDeclarationOf (this, target) === undefined)) {
+            return printed;
+        }
+        const read = this.printNode (target, 0) + ' = GetValue(';
+        const lines = printed.split ('\n');
+        const index = lines.findIndex ((line) => line.trimStart ().startsWith (read) && line.endsWith (', 0)'));
+        if (index < 0) {
+            return printed;
+        }
+        const indent = lines[index].substring (0, lines[index].length - lines[index].trimStart ().length);
+        lines[index] = indent + this.printNode (target, 0) + ' = SafeStringPtr(' + lines[index].trimStart ().substring (read.length - 'GetValue('.length) + ')';
+        return lines.join ('\n');
+    };
+    const shippedBinary = goTranspiler.printBinaryExpression;
+    goTranspiler.printBinaryExpression = function (node, identation) {
+        const right = node?.right;
+        if ((node?.operatorToken?.kind === ts.SyntaxKind.EqualsToken) && ts.isIdentifier (node.left)
+            && ((right?.kind === ts.SyntaxKind.StringLiteral) || (right?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral))
+            && (ccxtGoTupleStringDeclarationOf (this, node.left) !== undefined)) {
+            return this.printNode (node.left, 0) + ' = SafeStringPtr(' + this.printNode (right, 0) + ')';
+        }
+        return shippedBinary.call (this, node, identation);
+    };
+    goTranspiler.__ccxtGoTupleStringJoinInstalled = true;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -6925,3 +7122,102 @@ function installCcxtGoTernaryCast (goTranspiler) {
 }
 
 export default installCcxtGoLocalTypes;
+
+// ------------------------- G14: ternary literal pointer joins with value arms -------------------------
+// `c ? "lit" : this.safeString (..)` / `c ? undefined : this.parseNumber (s)`: every arm is a producer of
+// one pointer family once its value arms are lifted (a Go string / int64 never nil, 1-arg ParseNumber
+// float64-or-nil), so the literal returns that pointer; reads are admitted by the closure join's table.
+const CCXT_GO_TERNARY_LIFT = { 'string': [ '*string', 'SafeStringPtr' ], 'int64': [ '*int64', 'Int64PtrTyped' ], 'bool': [ '*bool', 'SafeBoolPtr' ] };
+
+function ccxtGoTernaryLiftArm (goTranspiler, armNode, armText) {
+    let node = armNode;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if ((node?.kind === ts.SyntaxKind.StringLiteral) || (node?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral)) {
+        return { type: '*string', wrap: 'SafeStringPtr' };
+    }
+    if ((node?.kind === ts.SyntaxKind.CallExpression) && (node.arguments.length === 1)
+            && (ccxtGoWholePrintedCallee (goTranspiler, armText) === 'this.ParseNumber')) {
+        return { type: '*float64', wrap: 'Float64PtrTyped' };
+    }
+    const armType = ccxtGoClosureArmType (goTranspiler, armNode, armText);
+    if (armType === 'nil') {
+        return { type: 'nil' };
+    }
+    if (CCXT_GO_CLOSURE_POINTER_JOIN_TYPES.indexOf (armType) >= 0) {
+        return { type: armType };
+    }
+    const lift = CCXT_GO_TERNARY_LIFT[armType];
+    return (lift === undefined) ? undefined : { type: lift[0], wrap: lift[1] };
+}
+
+// { joinType, whenTrue, whenFalse } with the lifted arm texts, or undefined when unproven
+export function ccxtGoTernaryLiftJoin (goTranspiler, declaration, literal) {
+    const initializer = declaration?.initializer;
+    if ((declaration?.name?.kind !== ts.SyntaxKind.Identifier) || (initializer?.kind !== ts.SyntaxKind.ConditionalExpression)) {
+        return undefined;
+    }
+    const arms = [ [ initializer.whenTrue, literal.whenTrue ], [ initializer.whenFalse, literal.whenFalse ] ]
+        .map (([ armNode, armText ]) => ccxtGoTernaryLiftArm (goTranspiler, armNode, armText));
+    if (arms.some ((arm) => arm === undefined) || !arms.some ((arm) => arm.wrap !== undefined)) {
+        return undefined; // an unproven arm, or no lift needed (the closure join's own case)
+    }
+    const types = arms.map ((arm) => arm.type).filter ((armType) => armType !== 'nil');
+    const joinType = types[0];
+    if ((joinType === undefined) || types.some ((armType) => armType !== joinType)) {
+        return undefined;
+    }
+    const scope = goTranspiler.goEnclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const varName = declaration.name.escapedText;
+    let unproven = false;
+    const visit = (n) => {
+        if (unproven) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== declaration.name)) {
+            unproven = !ccxtGoClosureReadIsSafe (goTranspiler, n, varName);
+            return;
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    if (unproven || goTranspiler.goTypeNameIsShadowed (scope, joinType) || !goTranspiler.goLocalIsSafeToType (scope, declaration, varName, joinType)) {
+        return undefined;
+    }
+    const lifted = (arm, text) => ((arm.wrap === undefined) ? text : arm.wrap + '(' + text + ')');
+    return { joinType: joinType, whenTrue: lifted (arms[0], literal.whenTrue), whenFalse: lifted (arms[1], literal.whenFalse) };
+}
+
+function installCcxtGoTernaryLiftJoin (goTranspiler) {
+    if ((typeof goTranspiler.printVariableDeclarationList !== 'function') || (typeof goTranspiler.goEnclosingFunction !== 'function')
+            || (typeof goTranspiler.goLocalIsSafeToType !== 'function') || goTranspiler.__ccxtGoTernaryLiftJoinInstalled) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList.bind (goTranspiler);
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        if ((typeof printed !== 'string') || (node?.declarations?.length !== 1)) {
+            return printed;
+        }
+        const declaration = node.declarations[0];
+        const literal = ccxtGoClosureLiteralLines (printed);
+        if ((literal === undefined) || (literal.name !== (goTranspiler.printNode (declaration.name) ?? '').trim ())) {
+            return printed;
+        }
+        const join = ccxtGoTernaryLiftJoin (goTranspiler, declaration, literal);
+        if (join === undefined) {
+            return printed;
+        }
+        const lines = printed.split ('\n');
+        const body = literal.indent + '\t';
+        lines[0] = literal.indent + 'var ' + literal.name + ' ' + join.joinType + ' = func() ' + join.joinType + ' {';
+        lines[2] = body + '\treturn ' + join.whenTrue;
+        lines[4] = body + 'return ' + join.whenFalse;
+        return lines.join ('\n');
+    };
+    goTranspiler.__ccxtGoTernaryLiftJoinInstalled = true;
+}

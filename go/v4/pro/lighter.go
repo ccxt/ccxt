@@ -940,11 +940,11 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			}
 			return this.SafeString(trade, "taker_fee")
 		}()
-		var feeRate any = func() any {
+		var feeRate *string = func() *string {
 			if feeRateRaw != nil {
 				return ccxt.Precise.StringDiv(feeRateRaw, "1000000")
 			}
-			return "0"
+			return ccxt.SafeStringPtr("0")
 		}()
 		var feeAmount *string = ccxt.Precise.StringMul(costString, feeRate)
 		fee = map[string]any{

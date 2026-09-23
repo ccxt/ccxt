@@ -4566,11 +4566,11 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			var currency *string = this.SafeString(params, "ccy", defaultCurrency)
 			AddElementToObject(request, "ccy", this.SafeCurrencyCode(currency))
 		}
-		var tradeMode any = func() any {
+		var tradeMode *string = func() *string {
 			if IsEqual(margin, true) {
 				return marginMode
 			}
-			return "cash"
+			return SafeStringPtr("cash")
 		}()
 		AddElementToObject(request, "tdMode", tradeMode)
 	} else if contract != nil && *contract == true {
@@ -10256,12 +10256,12 @@ func (this *Okx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		market = this.Market(GetValue(symbols, 0))
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchOpenInterests", market, params, "swap")
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var instType string = "SWAP"
-	if IsEqual(marketType, "future") {
+	if marketType != nil && *marketType == "future" {
 		instType = "FUTURES"
 	} else if instType == "option" {
 		instType = "OPTION"
@@ -10357,12 +10357,12 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 		"ccy":    currencyId,
 		"period": timeframe,
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var response any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenInterestHistory", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = GetValue(typeVarparamsVariable, 1)
-	if IsEqual(typeVar, "option") {
+	if typeVar != nil && *typeVar == "option" {
 
 		response = (<-this.PublicGetRubikStatOptionOpenInterestVolume(this.Extend(request, params))).Raw
 		PanicOnError(response)

@@ -8112,16 +8112,16 @@ public class Htx extends HtxApi
             //         "ts": 1737103890390
             //     }
             //
-            Object result = null;
+            Map<String, Object> result = null;
             if (Boolean.TRUE.equals(isLinear))
             {
                 if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)))
                 {
                     List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                    result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                    result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 } else
                 {
-                    result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 }
             } else
             {

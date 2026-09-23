@@ -2400,7 +2400,7 @@ public class Poloniex extends PoloniexApi
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            Object response = new ArrayList<Object>(Arrays.asList());
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(marketType, "spot"))
             {
                 Map<String, Object> raw = (this.swapPrivateGetV3TradeOrderOpens(this.extend(request, parameters))).join();
@@ -2443,7 +2443,7 @@ public class Poloniex extends PoloniexApi
                 //                "qCcy": "USDT"
                 //            },
                 //
-                response = this.safeList(raw, "data", new ArrayList<Object>(Arrays.asList()));
+                response = (List<Object>) this.safeList(raw, "data", new ArrayList<Object>(Arrays.asList()));
             } else if (java.util.Objects.equals(isTrigger, true))
             {
                 response = (this.privateGetSmartorders(this.extend(request, parameters))).join();
@@ -2835,7 +2835,7 @@ public class Poloniex extends PoloniexApi
             var requestparametersVariable = this.orderRequest(symbol, (String) (type), (String) (side), amount, (Map<String, Object>) (request), price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Object response = new HashMap<String, Object>() {{}};
+            Map<String, Object> response = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 response = (this.privatePutSmartordersId(this.extend(request, parameters))).join();
@@ -2987,7 +2987,7 @@ public class Poloniex extends PoloniexApi
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("symbols", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))));
             }
-            Object response = new ArrayList<Object>(Arrays.asList());
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
             String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
@@ -3009,7 +3009,7 @@ public class Poloniex extends PoloniexApi
                 //        ]
                 //    }
                 //
-                response = this.safeList(raw, "data", new ArrayList<Object>(Arrays.asList()));
+                response = (List<Object>) this.safeList(raw, "data", new ArrayList<Object>(Arrays.asList()));
                 return this.parseOrders(response, market);
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");

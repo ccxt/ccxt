@@ -1387,11 +1387,11 @@ func (this *Aster) ParseMarket(market any) any {
 	if IsEqual(pricePrecision, nil) {
 		pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
 	}
-	var amountPrecision any = func() any {
+	var amountPrecision *float64 = func() *float64 {
 		if !IsEqual(filterLotSize, nil) {
 			return this.SafeNumber(filterLotSize, "stepSize")
 		}
-		return this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
+		return Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision"))))
 	}()
 	return this.SafeMarketStructure(map[string]any{
 		"id":       id,
@@ -1476,12 +1476,12 @@ func (this *Aster) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.FapiPublicGetV3Time(params)).Raw
 		PanicOnError(response)
@@ -1835,9 +1835,9 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	if since != nil {
 		AddElementToObject(request, "startTime", since)
@@ -1849,7 +1849,7 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.FapiPrivateGetV3UserTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -2155,16 +2155,16 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.FapiPublicGetV3Ticker24hr(params))
 		PanicOnError(response)
-	} else if IsEqual(marketType, "spot") {
+	} else if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.SapiPublicGetV3Ticker24hr(params))
 		PanicOnError(response)
@@ -2335,16 +2335,16 @@ func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.FapiPublicGetV3TickerBookTicker(params)).Raw
 		PanicOnError(response)
-	} else if IsEqual(marketType, "spot") {
+	} else if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.SapiPublicGetV3TickerBookTicker(params)).Raw
 		PanicOnError(response)
@@ -2675,17 +2675,17 @@ func (this *Aster) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
 	var data any = nil
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 
 		data = (<-this.FapiPrivateGetV3Balance(params)).Raw
 		PanicOnError(data)
-	} else if IsEqual(marketType, "spot") {
+	} else if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.SapiPrivateGetV3Account(params)).Raw
 		PanicOnError(response)
@@ -3321,7 +3321,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	var marketType any = nil
+	var marketType *string = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -3335,18 +3335,18 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchOpenOrders", market, params)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var response any = nil
 	if this.IsLinear(marketType, subType) {
 
 		response = (<-this.FapiPrivateGetV3OpenOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(marketType, "spot") {
+	} else if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.SapiPrivateGetV3OpenOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)

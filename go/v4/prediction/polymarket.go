@@ -2130,9 +2130,9 @@ func (this *Polymarket) fetchTradingFeeBody(ch chan any, outcome any, optionalAr
 	//     { "base_fee": 30 }   // base fee in basis points
 	//
 	var baseFeeBps *string = this.SafeString(response, "base_fee")
-	var rate any = func() any {
+	var rate *float64 = func() *float64 {
 		if baseFeeBps != nil {
-			return this.ParseNumber(ccxt.Precise.StringDiv(baseFeeBps, "10000"))
+			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(baseFeeBps, "10000")))
 		}
 		return nil
 	}()

@@ -3033,12 +3033,12 @@ public class Okx extends OkxApi
                     ((List<Object>)promises).add(this.publicGetPublicInstruments(this.extend(request, parameters)));
                 }
                 Object promisesResult = (Helpers.promiseAll(promises)).join();
-                Object markets = new ArrayList<Object>(Arrays.asList());
+                List<Object> markets = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)promisesResult).size(); i++)
                 {
                     Map<String, Object> res = (Map<String, Object>) this.safeDict(promisesResult, i, new HashMap<String, Object>() {{}});
                     List<Object> options = (List<Object>) this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
-                    markets = this.arrayConcat(markets, options);
+                    markets = (List<Object>) this.arrayConcat(markets, options);
                 }
                 return this.parseMarkets(markets);
             }

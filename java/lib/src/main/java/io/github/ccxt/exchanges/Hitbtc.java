@@ -1603,7 +1603,7 @@ public class Hitbtc extends HitbtcApi
                 return this.parseTrades(responseInner, market);
             }
             Map<String, Object> response = (this.publicGetPublicTrades(this.extend(request, parameters))).join();
-            Object trades = new ArrayList<Object>(Arrays.asList());
+            List<Object> trades = new ArrayList<Object>(Arrays.asList());
             List<Object> marketIds = new ArrayList<Object>(response.keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
@@ -1611,7 +1611,7 @@ public class Hitbtc extends HitbtcApi
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(marketId);
                 List<Object> rawTrades = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                 List<Object> parsed = this.parseTrades(rawTrades, marketInner);
-                trades = this.arrayConcat(trades, parsed);
+                trades = (List<Object>) this.arrayConcat(trades, parsed);
             }
             return trades;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1680,7 +1680,7 @@ public class Hitbtc extends HitbtcApi
             }
             String marketType = null;
             Object marginMode = null;
-            Object response = new ArrayList<Object>(Arrays.asList());
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
@@ -2451,7 +2451,7 @@ public class Hitbtc extends HitbtcApi
             }
             String price = this.safeString(parameters, "price");
             parameters = (Map<String, Object>) this.omit(parameters, "price");
-            Object response = new ArrayList<Object>(Arrays.asList());
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(price, "mark"))
             {
                 response = (this.publicGetPublicFuturesCandlesMarkPriceSymbol(this.extend(request, parameters))).join();
@@ -2799,7 +2799,7 @@ public class Hitbtc extends HitbtcApi
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-            Object response = new ArrayList<Object>(Arrays.asList());
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privateGetMarginHistoryTrade(this.extend(request, parameters))).join();
