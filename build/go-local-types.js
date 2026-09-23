@@ -121,7 +121,7 @@ export const CCXT_GO_BOOL_METHOD_NAMES = [
 
 export const CCXT_GO_HELPER_RETURN_TYPES = {
     // Typed twins of GetArg (go/v4/exchange_helpers.go) -- the `var x <T> = GetArg<T>(...)`
-    // locals the printer declares for a provable optional argument (SPEC-go-getarg.md)
+    // locals the printer declares for a provable optional argument
     'GetArgMap': 'map[string]any',
     'GetArgMapSlice': '[]map[string]any',
     'GetArgAnySlice': '[]any',
@@ -3431,7 +3431,7 @@ export const CCXT_GO_GETARG_SAFE_CONSUMERS = {
     // the AddElementToObject value/key arguments (its container argument is separate)
     'AddElementToObject': {'0': 'container', '1': 'deref', '2': 'deref'},
     // typed/typed-by-ABI methods of the port: GetArg derefs, so a pointer or a container reads
-    // exactly like the raw value (measured consumers, SPEC-go-getarg.md section 5)
+    // exactly like the raw value (measured consumers)
     'Market': '*', 'MarketId': '*', 'Currency': '*', 'MarketSymbols': '*',
     'PriceToPrecision': '*', 'AmountToPrecision': '*', 'DecimalToPrecision': '*',
     'ImplodeParams': '*', 'ParseTimeframe': {'0': 'unsafe'},
@@ -4482,7 +4482,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     if (typeof goTranspiler.goTypeOfInitializer !== 'function' || typeof goTranspiler.isWholePrintedCall !== 'function') {
         return; // older printer without local typing: nothing to extend
     }
-    // SPEC-go-getarg.md: the typed optional-argument locals read both tables
+    // the typed optional-argument locals read both tables
     goTranspiler.CCXT_GO_GETARG_DECLARED_TYPES = CCXT_GO_GETARG_DECLARED_TYPES;
     goTranspiler.CCXT_GO_GETARG_SAFE_CONSUMERS = CCXT_GO_GETARG_SAFE_CONSUMERS;
     installCcxtGoTypedConcat (goTranspiler);
