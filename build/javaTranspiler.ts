@@ -377,7 +377,8 @@ function retypeCopyWrite (rhs: string, token: string, name: string): string | un
     const value = rhs.replace (/;\s*(\/\/.*)?$/, '').trim ();
     const write = (v: string) => `${v};${comment}`;
     if (value === 'null' || retypeWrittenValueMatches (value, token)) return rhs;
-    const tupleRead = /^\(\(List<Object>\) [A-Za-z_$][\w$]*Variable\)\.get\(\d\)$/.test (value);
+    // the pass runs before applyJavaImports, so the printed casts are still `java.util.`-qualified
+    const tupleRead = /^\(\((?:java\.util\.)?List<Object>\) [A-Za-z_$][\w$]*Variable\)\.get\(\d\)$/.test (value);
     if (RETYPE_COPY_MAP_TOKEN.test (token)) {
         const extend = value.match (/^this\.extend\((.*)\)$/);
         if (extend !== null) {
@@ -396,7 +397,7 @@ function retypeCopyWrite (rhs: string, token: string, name: string): string | un
         return undefined;
     }
     if (token === 'String') {
-        if (/^\(\(Map<String, Object>\)[A-Za-z_$][\w$]*\)\.get\("[^"]*"\)$/.test (value)) return write (`(String) ${value}`);
+        if (/^\(\((?:java\.util\.)?Map<String, Object>\)[A-Za-z_$][\w$]*\)\.get\("[^"]*"\)$/.test (value)) return write (`(String) ${value}`);
         if (tupleRead && value.endsWith ('.get(0)')) return write (`(String) ${value}`);
         if (new RegExp (`^\\(\\(String\\)${name}\\)\\.to(?:Upper|Lower)Case\\(\\)$`).test (value)) return rhs;
     }
