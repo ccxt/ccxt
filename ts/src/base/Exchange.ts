@@ -7359,13 +7359,10 @@ export class BaseExchange {
     }
 
     handleWithdrawTagAndParams (tag: any, params: any): any {
-        const tagIsDict = this.isDictionary (tag);
         let paramsExtended = params;
-        if (tagIsDict) {
-            paramsExtended = this.extend (tag, params);
-        }
         let tagValue = tag;
-        if (tagIsDict) {
+        if (this.isDictionary (tag)) {
+            paramsExtended = this.extend (tag, params);
             tagValue = undefined;
         }
         const tagResolved = (tagValue === undefined) ? this.safeString (paramsExtended, 'tag') : tagValue;
@@ -8927,8 +8924,10 @@ export class BaseExchange {
             'DEC': '12',
         };
         // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
-        const dateLength = date.length;
-        const datePadded = (dateLength === 6) ? ('0' + date) : date;
+        let datePadded = date;
+        if (date.length === 6) {
+            datePadded = '0' + date;
+        }
         const year = datePadded.slice (0, 2);
         const monthName = datePadded.slice (2, 5);
         const month = this.safeString (monthMappping, monthName);
