@@ -1597,13 +1597,13 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const maxHistoricalLimit = 100;
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             const paramsExtended: Dict = this.extend (paramsPaginate, { 'historical': true });
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsExtended, maxHistoricalLimit) as OHLCV[];
         }
         const until = this.safeInteger (paramsPaginate, 'until');
-        const [ historical, paramsHistorical ] = this.handleOptionAndParams (paramsPaginate, 'fetchOHLCV', 'historical');
+        const [ historical, paramsHistorical ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsPaginate, 'fetchOHLCV', 'historical');
         const timeframeOption = this.safeDict (this.options, 'timeframes', {});
         const contractTimeframes = this.safeDict (timeframeOption, 'contract', {});
         const market = this.market (symbol);
@@ -2734,7 +2734,7 @@ export default class weex extends Exchange {
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const isSpot = (marketType === 'spot');
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (paramsMarketType, 'fetchOpenOrders', 'paginate', false);
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsMarketType, 'fetchOpenOrders', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
             if (isSpot) {
@@ -3396,7 +3396,7 @@ export default class weex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, paramsPaginate, maxLimit);

@@ -475,7 +475,7 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000) as OHLCV[];
         }
@@ -2245,7 +2245,7 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         const pageKey = 'ccxtPageKey';
         const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         if (paginate) {
