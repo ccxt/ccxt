@@ -3504,11 +3504,11 @@ const HANDLE_ELEMENT_TYPES = {
 // venue-declared tuple producers whose Java body boxes element 0 as this type (or null) on
 // every return path, declared once in the named venue file with no subclass override
 const HANDLE_VENUE_ELEMENT_TYPES = {
-    'handleProductTypeAndParams': { element0: 'String', file: /[\\/]ts[\\/]src[\\/]bitget\.ts$/ },
-    'handleOriginAndSingleAddress': { element0: 'String', file: /[\\/]ts[\\/]src[\\/]pacifica\.ts$/ },
-    'handleApiKeyIndex': { element0: 'Long', file: /[\\/]ts[\\/]src[\\/]lighter\.ts$/ },
-    'handleAccountIndex': { element0: 'Long', file: /[\\/]ts[\\/]src[\\/]lighter\.ts$/ },
-    'handleHfAndParams': { element0: 'Boolean', file: /[\\/]ts[\\/]src[\\/]kucoin\.ts$/ },
+    'handleProductTypeAndParams': { element0: 'String', file: /(?:^|[\\/])ts[\\/]src[\\/]bitget\.ts$/ },
+    'handleOriginAndSingleAddress': { element0: 'String', file: /(?:^|[\\/])ts[\\/]src[\\/]pacifica\.ts$/ },
+    'handleApiKeyIndex': { element0: 'Long', file: /(?:^|[\\/])ts[\\/]src[\\/]lighter\.ts$/ },
+    'handleAccountIndex': { element0: 'Long', file: /(?:^|[\\/])ts[\\/]src[\\/]lighter\.ts$/ },
+    'handleHfAndParams': { element0: 'Boolean', file: /(?:^|[\\/])ts[\\/]src[\\/]kucoin\.ts$/ },
 };
 
 function handleVenueElementType (printer, node) {
