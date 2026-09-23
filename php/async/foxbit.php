@@ -14,7 +14,7 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
-use const ccxt\DECIMAL_PLACES;
+use const ccxt\TICK_SIZE;
 
 class foxbit extends Exchange {
     public function describe(): mixed {
@@ -101,7 +101,7 @@ class foxbit extends Exchange {
                     'https://docs.foxbit.com.br',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     // https://docs.foxbit.com.br/rest/v3/#tag/API-Codes/Errors
@@ -386,7 +386,6 @@ class foxbit extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        $precision = $this->safe_integer($rawCurrency, 'precision');
         $currencyId = $this->safe_string($rawCurrency, 'symbol');
         $name = $this->safe_string($rawCurrency, 'name');
         $code = $this->safe_currency_code($currencyId);
@@ -412,7 +411,7 @@ class foxbit extends Exchange {
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
                     'active' => true,
-                    'precision' => $precision,
+                    'precision' => null,
                     'fee' => $this->safe_number($networkWithdrawInfo, 'fee'),
                     'limits' => array(
                         'amount' => array(
@@ -441,7 +440,7 @@ class foxbit extends Exchange {
             'deposit' => $this->safe_bool($depositInfo, 'enabled', false),
             'withdraw' => $this->safe_bool($withdrawInfo, 'enabled', false),
             'fee' => $this->safe_number($withdrawInfo, 'fee'),
-            'precision' => $precision,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision'))),
             'limits' => array(
                 'amount' => array(
                     'min' => null,
@@ -1819,9 +1818,8 @@ class foxbit extends Exchange {
             'tierBased' => false,
             'feeSide' => 'get',
             'precision' => array(
-                'price' => $this->safe_integer($quoteAssets, 'precision'),
-                'amount' => $this->safe_integer($baseAssets, 'precision'),
-                'cost' => $this->safe_integer($quoteAssets, 'precision'),
+                'price' => $this->safe_number($market, 'price_increment'),
+                'amount' => $this->safe_number($market, 'quantity_increment'),
             ),
             'limits' => array(
                 'amount' => array(
