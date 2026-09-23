@@ -1349,7 +1349,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         put( "properties", properties );
     }})) );
             }};
-            Object ohlcv = (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});

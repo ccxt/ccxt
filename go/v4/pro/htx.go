@@ -262,7 +262,7 @@ func (this *Htx) HandleTicker(client any, message map[string]any) any {
 	//         }
 	//     }
 	//
-	var tick any = this.SafeDict(message, "tick", map[string]any{})
+	var tick map[string]any = ccxt.MapTyped(this.SafeDict(message, "tick", map[string]any{}))
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message
@@ -904,7 +904,7 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var tick any = this.SafeDict(message, "tick", map[string]any{})
+	var tick map[string]any = ccxt.MapTyped(this.SafeDict(message, "tick", map[string]any{}))
 	var seqNum *int64 = this.SafeInteger(tick, "seqNum")
 	var prevSeqNum *int64 = this.SafeInteger(tick, "prevSeqNum")
 	var event *string = this.SafeString(tick, "event")
@@ -924,8 +924,8 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	var spotConditon bool = (ccxt.GetValue(market, "spot") == true) && (ccxt.IsEqual(prevSeqNum, ccxt.GetValue(orderbook, "nonce")))
 	var nonSpotCondition bool = (ccxt.GetValue(market, "contract") == true) && (version != nil) && (ccxt.IsEqual(ccxt.Subtract(version, 1), ccxt.GetValue(orderbook, "nonce")))
 	if (spotConditon == true) || (nonSpotCondition == true) {
-		var asks any = this.SafeList(tick, "asks", []any{})
-		var bids any = this.SafeList(tick, "bids", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(tick, "bids", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "nonce", func() any {
@@ -1498,8 +1498,8 @@ func (this *Htx) HandleOrder(client any, message any) {
 	} else {
 		// contract branch
 		parsedOrder = this.ParseWsOrder(message, market)
-		var rawTrades any = this.SafeList(message, "trade", []any{})
-		var tradesLength int = ccxt.GetArrayLength(rawTrades)
+		var rawTrades []any = ccxt.SafeListTypedDefault(message, "trade", []any{})
+		var tradesLength int = len(rawTrades)
 		if tradesLength > 0 {
 			var tradesObject map[string]any = map[string]any{
 				"trades": rawTrades,
@@ -2034,7 +2034,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 	if ccxt.IsEqual(clientPositions, nil) {
 		ccxt.AddElementToObject(this.Positions, url, map[string]any{})
 	}
-	var rawPositions any = this.SafeList(message, "data", []any{})
+	var rawPositions []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	if this.IsEmpty(rawPositions) {
 		var prefixes []any = []any{"cross:positions", "isolated:positions"}
 		for i := 0; i < len(prefixes); i++ {
@@ -2053,8 +2053,13 @@ func (this *Htx) HandlePositions(client any, message any) {
 	var newPositions []any = []any{}
 	var positionsByMarginMode map[string]any = map[string]any{}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
-		var rawPosition any = ccxt.GetValue(rawPositions, i)
+	for i := 0; i < len(rawPositions); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(rawPositions) {
+				return ccxt.DerefScalar(rawPositions[i])
+			}
+			return nil
+		}()
 		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
 		position["timestamp"] = timestamp
 		position["datetime"] = this.Iso8601(timestamp)

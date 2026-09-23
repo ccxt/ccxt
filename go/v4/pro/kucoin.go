@@ -902,7 +902,7 @@ func (this *Kucoin) HandleTicker(client any, message any) {
 			}
 			market = this.SafeMarket(marketId, market, "-")
 		}
-		var data any = this.SafeDict(message, "data", map[string]any{})
+		var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 		var rawTicker any = this.SafeDict(data, "data", data)
 		var ticker any = this.ParseSpotOrUtaTicker(rawTicker, market)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
@@ -939,7 +939,7 @@ func (this *Kucoin) HandleContractTicker(client any, message any) {
 	//     }
 	//    }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-"))
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data, market))
@@ -980,7 +980,7 @@ func (this *Kucoin) HandleUtaTicker(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "d", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "d", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var ticker any = this.ParseWsUtaTicker(data, market)
@@ -988,7 +988,7 @@ func (this *Kucoin) HandleUtaTicker(client any, message map[string]any) {
 	var messageHash any = ccxt.Add("uta:ticker:", market["symbol"])
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Kucoin) ParseWsUtaTicker(ticker any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsUtaTicker(ticker map[string]any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeString(market, "symbol")
@@ -1159,8 +1159,8 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 		market = ccxt.MapTyped(this.SafeMarket(marketId, market))
 		var symbol *string = this.SafeString(market, "symbol")
 		var data map[string]any = ccxt.SafeMapTyped(ticker, "data")
-		var ask any = this.SafeList(data, "asks", []any{})
-		var bid any = this.SafeList(data, "bids", []any{})
+		var ask []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
+		var bid []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 		var timestamp *int64 = this.SafeInteger(data, "timestamp")
 		return this.SafeTicker(map[string]any{
 			"symbol":    symbol,
@@ -1387,7 +1387,7 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
-	var candles any = this.SafeList(data, "candles", []any{})
+	var candles []any = ccxt.SafeListTypedDefault(data, "candles", []any{})
 	var topic *string = this.SafeString(message, "topic")
 	var parts []string = ccxt.Split(topic, "_")
 	var interval *string = this.SafeString(parts, 1)
@@ -1703,7 +1703,7 @@ func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 	//         "type": "message"
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(data, market))
@@ -1734,7 +1734,7 @@ func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "d", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "d", map[string]any{}))
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var trade any = this.ParseWsUtaTrade(data, market)
@@ -1749,7 +1749,7 @@ func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
 	cache.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
-func (this *Kucoin) ParseWsUtaTrade(trade any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsUtaTrade(trade map[string]any, optionalArgs ...any) any {
 	// trades
 	//     {
 	//         "E": "20745928670070784",
@@ -2229,7 +2229,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var typeVar *string = this.SafeString(message, "t")
-	var data any = this.SafeDict(message, "d", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "d", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -2322,20 +2322,25 @@ func (this *Kucoin) HandleDelta(orderbook any, delta any) {
 			storedAsks.(ccxt.IOrderBookSide).StoreArray(value)
 		}
 	} else if !ccxt.IsEqual(changes, nil) {
-		var bids any = this.SafeList(changes, "bids", []any{})
-		var asks any = this.SafeList(changes, "asks", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(changes, "asks", []any{})
 		this.HandleBidAsks(storedBids, bids)
 		this.HandleBidAsks(storedAsks, asks)
 	} else {
-		var bids any = this.SafeList2(delta, "bids", "b", []any{})
-		var asks any = this.SafeList2(delta, "asks", "a", []any{})
+		var bids []any = ccxt.SafeList2Typed(delta, "bids", "b", []any{})
+		var asks []any = ccxt.SafeList2Typed(delta, "asks", "a", []any{})
 		this.HandleBidAsks(storedBids, bids)
 		this.HandleBidAsks(storedAsks, asks)
 	}
 }
-func (this *Kucoin) HandleBidAsks(bookSide any, bidAsks any) {
-	for i := 0; i < ccxt.GetArrayLength(bidAsks); i++ {
-		var bidAsk any = this.ParseOrderBookBidAsk(ccxt.GetValue(bidAsks, i))
+func (this *Kucoin) HandleBidAsks(bookSide any, bidAsks []any) {
+	for i := 0; i < len(bidAsks); i++ {
+		var bidAsk any = this.ParseOrderBookBidAsk(func() any {
+			if i >= 0 && i < len(bidAsks) {
+				return ccxt.DerefScalar(bidAsks[i])
+			}
+			return nil
+		}())
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
@@ -2676,7 +2681,7 @@ func (this *Kucoin) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Kucoin) ParseWsUtaOrder(order any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsUtaOrder(order map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "tT": "FUTURES",
@@ -2900,7 +2905,7 @@ func (this *Kucoin) HandleUtaOrder(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "d", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "d", map[string]any{}))
 	var parsed any = this.ParseWsUtaOrder(data)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	if ccxt.IsEqual(this.Orders, nil) {
@@ -3085,7 +3090,7 @@ func (this *Kucoin) HandleUtaMyTrade(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "d", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "d", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var trade any = this.ParseWsUtaTrade(data, market)
@@ -3796,7 +3801,7 @@ func (this *Kucoin) HandlePosition(client any, message map[string]any) {
 	var cache any = this.Positions
 	var currentPosition any = this.GetCurrentPosition(symbol)
 	var messageHash string = "position:" + *symbol
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var newPosition map[string]any = ccxt.MapTyped(this.ParsePosition(data))
 	var keys []string = ccxt.ObjectKeys(newPosition)
 	for i := 0; i < len(keys); i++ {
@@ -3838,7 +3843,7 @@ func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolById()
 	}
-	var data any = this.SafeDict(message, "d", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "d", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	var symbol *string = this.SafeSymbol(marketId)
 	var cache any = this.Positions
@@ -3858,7 +3863,7 @@ func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(this.Positions, messageHash)
 	client.(ccxt.ClientInterface).Resolve(this.Positions, symbolMessageHash)
 }
-func (this *Kucoin) ParseWsUtaPosition(position any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsUtaPosition(position map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "pi": "30000000000084845",
@@ -4010,7 +4015,7 @@ func (this *Kucoin) HandleUtaFundingRate(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "d", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "d", map[string]any{}))
 	var fundingRate any = this.ParseWsFundingRate(data)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 	if symbol != nil {
@@ -4019,7 +4024,7 @@ func (this *Kucoin) HandleUtaFundingRate(client any, message map[string]any) {
 	var messageHash any = ccxt.Add("fundingRate:", symbol)
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
-func (this *Kucoin) ParseWsFundingRate(data any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsFundingRate(data map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "s": "ETHUSDTM",

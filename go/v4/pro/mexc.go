@@ -792,12 +792,12 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 	var timeframe any = nil
 	if ccxt.InOp(message, "publicSpotKline") {
 		symbol = this.Symbol(this.SafeString(message, "symbol"))
-		var data any = this.SafeDict(message, "publicSpotKline", map[string]any{})
+		var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "publicSpotKline", map[string]any{}))
 		var timeframeId *string = this.SafeString(data, "interval")
 		timeframe = ccxt.DerefScalar(this.FindTimeframe(timeframeId, ccxt.GetValue(this.Options, "timeframes")))
 		parsed = this.ParseWsOHLCV(data, this.SafeMarket(symbol))
 	} else {
-		var d any = this.SafeDict2(message, "d", "data", map[string]any{})
+		var d map[string]any = ccxt.SafeDict2Typed(message, "d", "data", map[string]any{})
 		var rawOhlcv any = this.SafeDict(d, "k", d)
 		var timeframeId *string = this.SafeString2(rawOhlcv, "i", "interval")
 		var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
@@ -1111,8 +1111,8 @@ func (this *Mexc) HandleDelta(orderbook any, delta any) {
 		return
 	}
 	ccxt.AddElementToObject(orderbook, "nonce", deltaNonce)
-	var asks any = this.SafeList(delta, "asks", []any{})
-	var bids any = this.SafeList(delta, "bids", []any{})
+	var asks []any = ccxt.SafeListTypedDefault(delta, "asks", []any{})
+	var bids []any = ccxt.SafeListTypedDefault(delta, "bids", []any{})
 	var asksOrderSide any = ccxt.GetValue(orderbook, "asks")
 	var bidsOrderSide any = ccxt.GetValue(orderbook, "bids")
 	this.HandleBooksideDelta(asksOrderSide, asks)
@@ -1979,7 +1979,7 @@ func (this *Mexc) HandleFundingRate(client any, message map[string]any) {
 	//         "ts": 1771069020506
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var fundingRate any = this.ParseFundingRate(data)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 	if symbol != nil {

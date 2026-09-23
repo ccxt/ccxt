@@ -782,7 +782,7 @@ func (this *Opinion) ParseEvent(rawEvent any) any {
 		end = this.SafeTimestamp(rawEvent, "cutoffAt")
 	}
 	var created *int64 = this.SafeTimestamp(rawEvent, "createdAt")
-	var labels any = this.SafeList(rawEvent, "labels", []any{})
+	var labels []any = ccxt.SafeListTypedDefault(rawEvent, "labels", []any{})
 	return this.Extend(map[string]any{
 		"id":              eventId,
 		"event":           eventHandle,
@@ -875,8 +875,8 @@ func (this *Opinion) ParsePredictionTicker(ticker any, optionalArgs ...any) any 
 	var priceResult map[string]any = ccxt.SafeMapTyped(priceResponse, "result")
 	var bookResponse map[string]any = ccxt.SafeMapTyped(ticker, "book")
 	var bookResult map[string]any = ccxt.SafeMapTyped(bookResponse, "result")
-	var bids any = this.SafeList(bookResult, "bids", []any{})
-	var asks any = this.SafeList(bookResult, "asks", []any{})
+	var bids []any = ccxt.SafeListTypedDefault(bookResult, "bids", []any{})
+	var asks []any = ccxt.SafeListTypedDefault(bookResult, "asks", []any{})
 	var bestBid map[string]any = ccxt.SafeMapTyped(bids, 0)
 	var bestAsk map[string]any = ccxt.SafeMapTyped(asks, 0)
 	var last *float64 = this.SafeNumber(priceResult, "price")

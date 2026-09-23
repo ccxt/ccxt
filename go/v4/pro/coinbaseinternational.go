@@ -883,7 +883,7 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 		orderbook.(ccxt.OrderBookInterface).Reset(parsedSnapshot)
 		ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	} else {
-		var changes any = this.SafeList(message, "changes", []any{})
+		var changes []any = ccxt.SafeListTypedDefault(message, "changes", []any{})
 		this.HandleDeltas(orderbook, changes)
 	}
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(message, "sequence"))

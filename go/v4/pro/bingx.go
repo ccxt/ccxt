@@ -310,7 +310,7 @@ func (this *Bingx) HandleTicker(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	// const marketId = messageHash.split('@')[0]
 	var isSwap bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
@@ -333,7 +333,7 @@ func (this *Bingx) HandleTicker(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker"))
 	}
 }
-func (this *Bingx) ParseWsTicker(message any, optionalArgs ...any) any {
+func (this *Bingx) ParseWsTicker(message map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "e": "24hTicker",
@@ -848,7 +848,7 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var dataType *string = this.SafeString(message, "dataType", "")
 	var parts []string = ccxt.Split(dataType, "@")
 	var firstPart *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 0))
@@ -2081,7 +2081,7 @@ func (this *Bingx) HandleOrder(client any, message any) {
 	//    }
 	//
 	var isSpot bool = (ccxt.InOp(message, "dataType"))
-	var data any = this.SafeDict2(message, "data", "o", map[string]any{})
+	var data map[string]any = ccxt.SafeDict2Typed(message, "data", "o", map[string]any{})
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -2181,7 +2181,7 @@ func (this *Bingx) HandleMyTrades(client any, message any) {
 	//    }
 	//
 	var isSpot bool = (ccxt.InOp(message, "dataType"))
-	var result any = this.SafeDict2(message, "data", "o", map[string]any{})
+	var result map[string]any = ccxt.SafeDict2Typed(message, "data", "o", map[string]any{})
 	var cachedTrades any = this.MyTrades
 	if ccxt.IsEqual(cachedTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

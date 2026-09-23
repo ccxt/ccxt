@@ -210,7 +210,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsedTrades any = this.ParseTrades(data, market)
 	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))

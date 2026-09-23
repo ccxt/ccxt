@@ -1848,7 +1848,7 @@ func (this *Bitvavo) HandleWithdraw(client any, message map[string]any) {
 	// const action = this.safeString (message, 'action')
 	// const messageHash = this.buildMessageHash (action, message)
 	var messageHash *string = this.SafeString(message, "requestId")
-	var response any = this.SafeDict(message, "response", map[string]any{})
+	var response map[string]any = ccxt.MapTyped(this.SafeDict(message, "response", map[string]any{}))
 	var withdraw map[string]any = ccxt.MapTyped(this.ParseTransaction(response))
 	client.(ccxt.ClientInterface).Resolve(withdraw, messageHash)
 }
@@ -2016,7 +2016,7 @@ func (this *Bitvavo) HandleDeposits(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var response any = this.SafeList(message, "response", []any{})
+	var response []any = ccxt.SafeListTypedDefault(message, "response", []any{})
 	var deposits any = this.ParseTransactions(response, nil, nil, nil, map[string]any{
 		"type": "deposit",
 	})
@@ -2189,7 +2189,7 @@ func (this *Bitvavo) HandleFetchBalance(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "requestId")
-	var response any = this.SafeList(message, "response", []any{})
+	var response []any = ccxt.SafeListTypedDefault(message, "response", []any{})
 	var balance any = this.ParseBalance(response)
 	client.(ccxt.ClientInterface).Resolve(balance, messageHash)
 }
@@ -2222,7 +2222,7 @@ func (this *Bitvavo) HandleSingleOrder(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var response any = this.SafeDict(message, "response", map[string]any{})
+	var response map[string]any = ccxt.MapTyped(this.SafeDict(message, "response", map[string]any{}))
 	var order map[string]any = ccxt.MapTyped(this.ParseOrder(response))
 	var messageHash *string = this.SafeString(message, "requestId")
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
@@ -2247,7 +2247,7 @@ func (this *Bitvavo) HandleMarkets(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var response any = this.SafeList(message, "response", []any{})
+	var response []any = ccxt.SafeListTypedDefault(message, "response", []any{})
 	var markets any = this.ParseMarkets(response)
 	var messageHash *string = this.SafeString(message, "requestId")
 	client.(ccxt.ClientInterface).Resolve(markets, messageHash)

@@ -1157,7 +1157,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 put( "req_id", requestId );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -1577,7 +1577,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 ((Map<String, Object>)subscribe).put("params", this.deepExtend(((Map<String, Object>)subscribe).get("params"), parameters));
             }
-            Object result = (this.watch(url, messageHash, subscribe, subscriptionHash, null)).join();
+            List<Object> result = (this.<List<Object>>watch(url, messageHash, subscribe, subscriptionHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(result, "getLimit", new Object[]{symbol, limit});

@@ -405,7 +405,7 @@ func (this *Backpack) HandleTicker(client any, message any) {
 	//         stream: 'bookTicker.ETH_USDC'
 	//     }
 	//
-	var ticker any = this.SafeDict(message, "data", map[string]any{})
+	var ticker map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(ticker, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -414,7 +414,7 @@ func (this *Backpack) HandleTicker(client any, message any) {
 	ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
-func (this *Backpack) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Backpack) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         E: '1754178406415232',
@@ -556,7 +556,7 @@ func (this *Backpack) HandleBidAsk(client any, message any) {
 	//         },
 	//         stream: 'bookTicker.ETH_USDC'
 	//     }
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -565,7 +565,7 @@ func (this *Backpack) HandleBidAsk(client any, message any) {
 	ccxt.AddElementToObject(this.Bidsasks, symbol, parsedBidAsk)
 	client.(ccxt.ClientInterface).Resolve(parsedBidAsk, messageHash)
 }
-func (this *Backpack) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Backpack) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         A: '0.4087',
@@ -783,7 +783,7 @@ func (this *Backpack) HandleOHLCV(client any, message any) {
 	//         stream: 'kline.2h.ETH_USDC'
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -993,7 +993,7 @@ func (this *Backpack) HandleTrades(client any, message any) {
 	//         stream: 'trade.ETH_USDC_PERP'
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1222,7 +1222,7 @@ func (this *Backpack) HandleOrderBook(client any, message any) {
 	//         "stream": "depth.ETH_USDC"
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	var symbol *string = this.SafeSymbol(marketId)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -1253,16 +1253,21 @@ func (this *Backpack) HandleDelta(orderbook any, delta any) {
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "u"))
-	var bids any = this.SafeList(delta, "b", []any{})
-	var asks any = this.SafeList(delta, "a", []any{})
+	var bids []any = ccxt.SafeListTypedDefault(delta, "b", []any{})
+	var asks []any = ccxt.SafeListTypedDefault(delta, "a", []any{})
 	var storedBids any = ccxt.GetValue(orderbook, "bids")
 	var storedAsks any = ccxt.GetValue(orderbook, "asks")
 	this.HandleBidAsks(storedBids, bids)
 	this.HandleBidAsks(storedAsks, asks)
 }
-func (this *Backpack) HandleBidAsks(bookSide any, bidAsks any) {
-	for i := 0; i < ccxt.GetArrayLength(bidAsks); i++ {
-		var bidAsk any = this.ParseOrderBookBidAsk(ccxt.GetValue(bidAsks, i))
+func (this *Backpack) HandleBidAsks(bookSide any, bidAsks []any) {
+	for i := 0; i < len(bidAsks); i++ {
+		var bidAsk any = this.ParseOrderBookBidAsk(func() any {
+			if i >= 0 && i < len(bidAsks) {
+				return ccxt.DerefScalar(bidAsks[i])
+			}
+			return nil
+		}())
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
@@ -1413,7 +1418,7 @@ func (this *Backpack) HandleOrder(client any, message any) {
 	//     }
 	//
 	var messageHash string = "orders"
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1652,7 +1657,7 @@ func (this *Backpack) HandlePositions(client any, message any) {
 	//     }
 	//
 	var messageHash string = "positions"
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolById()
 	}
@@ -1667,7 +1672,7 @@ func (this *Backpack) HandlePositions(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, messageHash)
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, symbolSpecificMessageHash)
 }
-func (this *Backpack) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         B: '4236.36',

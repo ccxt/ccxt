@@ -908,7 +908,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }};
             try
             {
-                Object orderbook = (this.watch(url, requestId, request, requestId, snapshotSubscription)).join();
+                io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, requestId, request, requestId, snapshotSubscription)).join();
                 return Helpers.callDynamically(orderbook, "limit", new Object[]{});
             } catch(Exception e)
             {

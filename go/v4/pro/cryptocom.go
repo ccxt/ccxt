@@ -582,8 +582,8 @@ func (this *Cryptocom) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var data any = this.SafeList(message, "data", []any{})
-	var dataLength int = ccxt.GetArrayLength(data)
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var dataLength int = len(data)
 	if dataLength == 0 {
 		return
 	}
@@ -962,8 +962,8 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Cryptocom) HandleBidAsk(client any, message map[string]any) {
-	var data any = this.SafeList(message, "data", []any{})
-	var ticker any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var ticker map[string]any = ccxt.MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var parsedTicker any = this.ParseWsBidAsk(ticker)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsedTicker, "symbol"))
 	if symbol != nil {
@@ -1197,8 +1197,8 @@ func (this *Cryptocom) HandleOrders(client any, message any, optionalArgs ...any
 	_ = subscription
 	var channel *string = this.SafeString(message, "channel")
 	var symbolSpecificMessageHash *string = this.SafeString(message, "subscription")
-	var orders any = this.SafeList(message, "data", []any{})
-	var ordersLength int = ccxt.GetArrayLength(orders)
+	var orders []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var ordersLength int = len(orders)
 	if ordersLength > 0 {
 		if ccxt.IsEqual(this.Orders, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -1363,7 +1363,7 @@ func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 	//
 	// each account is connected to a different endpoint
 	// and has exactly one subscriptionhash which is the account type
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var firstData map[string]any = ccxt.SafeMapTyped(data, 0)
 	var rawPositions []any = ccxt.SafeListTyped(firstData, "positions")
 	if ccxt.IsEqual(this.Positions, nil) {
@@ -1594,7 +1594,7 @@ func (this *Cryptocom) HandleOrder(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var rawOrder any = this.SafeDict(message, "result", map[string]any{})
+	var rawOrder map[string]any = ccxt.MapTyped(this.SafeDict(message, "result", map[string]any{}))
 	var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }

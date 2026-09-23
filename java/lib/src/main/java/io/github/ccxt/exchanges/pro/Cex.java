@@ -685,7 +685,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "oid", finalSymbol );
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object orders = (this.watch(url, messageHash, request, messageHash, request)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, request)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -1271,7 +1271,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "oid", Cex.this.requestId() );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -1428,7 +1428,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "i", timeframe );
                 put( "rooms", new ArrayList<Object>(Arrays.asList(((("pair-" + ((Map<String, Object>)market).get("baseId")) + "-") + ((Map<String, Object>)market).get("quoteId")))) );
             }};
-            Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});

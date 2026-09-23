@@ -471,7 +471,7 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else if typeVar != nil && *typeVar == "ORDER_BOOK_UPDATE" {
-		var changes any = this.SafeList(message, "changes", []any{})
+		var changes []any = ccxt.SafeListTypedDefault(message, "changes", []any{})
 		this.HandleDeltas(orderbook, changes)
 	} else {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id+" watchOrderBook() did not recognize message type ", typeVar)))
@@ -1092,7 +1092,7 @@ func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) 
 	}
 	var symbol any = nil
 	var orders any = this.Orders
-	var update any = this.SafeDict(message, "update", map[string]any{})
+	var update map[string]any = ccxt.MapTyped(this.SafeDict(message, "update", map[string]any{}))
 	var updateType *string = this.SafeString(update, "type")
 	if (updateType != nil && *updateType == "ORDER_REJECTED") || (updateType != nil && *updateType == "ORDER_CLOSED") || (updateType != nil && *updateType == "STOP_ORDER_TRIGGERED") {
 		var orderId *string = this.SafeString(update, "order_id")

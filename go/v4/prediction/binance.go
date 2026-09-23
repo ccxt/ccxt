@@ -392,8 +392,8 @@ func (this *Binance) completeRawTopicsBody(ch chan any, rawTopics any) any {
 	var rawTopicsLength int = ccxt.GetArrayLength(rawTopics)
 	for i := 0; i < rawTopicsLength; i++ {
 		var rawTopic any = ccxt.GetValue(rawTopics, i)
-		var rawMarkets any = this.SafeList(rawTopic, "markets", []any{})
-		var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
+		var rawMarkets []any = ccxt.SafeListTypedDefault(rawTopic, "markets", []any{})
+		var rawMarketsLength int = len(rawMarkets)
 		var hasOutcomes bool = false
 		if rawMarketsLength > 0 {
 			var firstMarket map[string]any = ccxt.SafeMapTyped(rawMarkets, 0)

@@ -810,7 +810,7 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
 	//      "time_ms":1777275365214,
 	//      "event":"update"
 	//   }
-	var result any = this.SafeDict(message, "result", map[string]any{})
+	var result map[string]any = ccxt.MapTyped(this.SafeDict(message, "result", map[string]any{}))
 	var full *bool = this.SafeBool(result, "full", false)
 	var marketIdWithPrefix *string = this.SafeString(result, "s")
 	if marketIdWithPrefix == nil {
@@ -967,9 +967,14 @@ func (this *Gate) GetCacheIndex(orderBook any, cache any) any {
 	}
 	return ccxt.GetArrayLength(cache)
 }
-func (this *Gate) HandleBidAsks(bookSide any, bidAsks any) {
-	for i := 0; i < ccxt.GetArrayLength(bidAsks); i++ {
-		var bidAsk any = ccxt.GetValue(bidAsks, i)
+func (this *Gate) HandleBidAsks(bookSide any, bidAsks []any) {
+	for i := 0; i < len(bidAsks); i++ {
+		var bidAsk any = func() any {
+			if i >= 0 && i < len(bidAsks) {
+				return ccxt.DerefScalar(bidAsks[i])
+			}
+			return nil
+		}()
 		if ccxt.IsArray(bidAsk) {
 			bookSide.(ccxt.IOrderBookSide).StoreArray(this.ParseOrderBookBidAsk(bidAsk))
 		} else {
@@ -984,8 +989,8 @@ func (this *Gate) HandleDelta(orderbook any, delta any) {
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "u"))
-	var bids any = this.SafeList(delta, "b", []any{})
-	var asks any = this.SafeList(delta, "a", []any{})
+	var bids []any = ccxt.SafeListTypedDefault(delta, "b", []any{})
+	var asks []any = ccxt.SafeListTypedDefault(delta, "a", []any{})
 	var storedBids any = ccxt.GetValue(orderbook, "bids")
 	var storedAsks any = ccxt.GetValue(orderbook, "asks")
 	this.HandleBidAsks(storedBids, bids)
@@ -1212,7 +1217,7 @@ func (this *Gate) HandleTickerAndBidAsk(objectName any, client any, message map[
 	if ccxt.IsArray(result) {
 		results = this.SafeList(message, "result", []any{})
 	} else {
-		var rawTicker any = this.SafeDict(message, "result", map[string]any{})
+		var rawTicker map[string]any = ccxt.MapTyped(this.SafeDict(message, "result", map[string]any{}))
 		results = []any{rawTicker}
 	}
 	var isTicker bool = (ccxt.IsEqual(objectName, "ticker")) // whether ticker or bid-ask
@@ -1637,8 +1642,8 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	//     ]
 	// }
 	//
-	var result any = this.SafeList(message, "result", []any{})
-	var tradesLength int = ccxt.GetArrayLength(result)
+	var result []any = ccxt.SafeListTypedDefault(message, "result", []any{})
+	var tradesLength int = len(result)
 	if tradesLength == 0 {
 		return
 	}
@@ -2188,7 +2193,7 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var orders any = this.SafeList(message, "result", []any{})
+	var orders []any = ccxt.SafeListTypedDefault(message, "result", []any{})
 	var channel *string = this.SafeString(message, "channel", "")
 	var isTrigger bool = (func() int {
 		if channel == nil {

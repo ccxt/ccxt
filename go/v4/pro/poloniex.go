@@ -361,7 +361,7 @@ func (this *Poloniex) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any
 	_ = params
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
-		var clientOrderIds any = this.SafeList(params, "clientOrderId", []any{})
+		var clientOrderIds []any = ccxt.SafeListTypedDefault(params, "clientOrderId", []any{})
 		ccxt.AddElementToObject(params, "clientOrderIds", this.ArrayConcat(clientOrderIds, []any{clientOrderId}))
 	}
 
@@ -1138,7 +1138,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 	//        ]
 	//    }
 	//
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var orders any = this.Orders
 	if ccxt.IsEqual(orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit")
@@ -1146,7 +1146,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 		this.Orders = orders
 	}
 	var marketIds []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+	for i := 0; i < len(data); i++ {
 		var order any = this.SafeDict(data, i)
 		var marketId *string = this.SafeString(order, "symbol")
 		var eventType *string = this.SafeString(order, "eventType")
@@ -1449,7 +1449,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 			if !ccxt.IsEqual(bids, nil) {
 				for j := 0; j < ccxt.GetArrayLength(bids); j++ {
-					var bid any = this.SafeList(bids, j)
+					var bid []any = ccxt.SafeListTyped(bids, j)
 					var price *float64 = this.SafeNumber(bid, 0)
 					var amount *float64 = this.SafeNumber(bid, 1)
 					var bidsSide any = ccxt.GetValue(orderbook, "bids")
@@ -1458,7 +1458,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 			}
 			if !ccxt.IsEqual(asks, nil) {
 				for j := 0; j < ccxt.GetArrayLength(asks); j++ {
-					var ask any = this.SafeList(asks, j)
+					var ask []any = ccxt.SafeListTyped(asks, j)
 					var price *float64 = this.SafeNumber(ask, 0)
 					var amount *float64 = this.SafeNumber(ask, 1)
 					var asksSide any = ccxt.GetValue(orderbook, "asks")
@@ -1492,12 +1492,12 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var messageHash string = "balances"
 	this.Balance = this.ParseWsBalance(data)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Poloniex) ParseWsBalance(response any) any {
+func (this *Poloniex) ParseWsBalance(response []any) any {
 	//
 	//    [
 	//        {
@@ -1521,7 +1521,7 @@ func (this *Poloniex) ParseWsBalance(response any) any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	for i := 0; i < ccxt.GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var balance map[string]any = ccxt.SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -1636,7 +1636,7 @@ func (this *Poloniex) HandleErrorMessage(client any, message any) any {
 	//
 	var id *string = this.SafeString(message, "id")
 	var event *string = this.SafeString(message, "event")
-	var data any = this.SafeList(message, "data")
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var orderId *string = this.SafeString(first, "orderId")
 	if (event != nil && *event == "error") || (orderId != nil && *orderId == "0") {

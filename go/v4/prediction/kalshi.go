@@ -855,7 +855,7 @@ func (this *Kalshi) ParseMarket(raw any) any {
 	// kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
 	// e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
 	// used tick_size (in cents). amount is a whole number of contracts
-	var priceRanges any = this.SafeList(raw, "price_ranges", []any{})
+	var priceRanges []any = ccxt.SafeListTypedDefault(raw, "price_ranges", []any{})
 	var firstRange map[string]any = ccxt.SafeMapTyped(priceRanges, 0)
 	var stepDollars *string = this.SafeString(firstRange, "step")
 	var pricePrecision any = this.ParseNumber(ccxt.Precise.StringDiv(this.SafeString(raw, "tick_size", "1"), "100"))
@@ -2039,7 +2039,7 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 	var sideLeg *string = this.SafeStringLower(fill, "side")
 	var outcomeKey *string = ticker
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
-		outcomeKey = ccxt.SafeStringPtr(*ticker+"-NO")
+		outcomeKey = ccxt.SafeStringPtr(*ticker + "-NO")
 	}
 	var mkt any = this.SafeOutcome(outcomeKey, market)
 	var ts *int64 = this.Parse8601(this.SafeString(fill, "created_time"))
@@ -2658,7 +2658,7 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	var sideLeg *string = this.SafeStringLower(order, "side")
 	var outcomeKey *string = ticker
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
-		outcomeKey = ccxt.SafeStringPtr(*ticker+"-NO")
+		outcomeKey = ccxt.SafeStringPtr(*ticker + "-NO")
 	}
 	var mkt any = this.SafeOutcome(outcomeKey, market)
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))

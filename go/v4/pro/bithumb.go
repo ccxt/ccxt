@@ -574,7 +574,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	//
 	var content any = this.SafeDict(message, "content")
 	if !ccxt.IsEqual(content, nil) {
-		var list any = this.SafeList(content, "list", []any{})
+		var list []any = ccxt.SafeListTypedDefault(content, "list", []any{})
 		var first map[string]any = ccxt.SafeMapTyped(list, 0)
 		var legacyMarketId *string = this.SafeString(first, "symbol")
 		if legacyMarketId == nil {
@@ -1150,7 +1150,7 @@ func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateGen2")
 	var messageHash any = "myOrder"
-	var codes any = this.SafeList(params, "codes", []any{})
+	var codes []any = ccxt.SafeListTypedDefault(params, "codes", []any{})
 	var request any = this.BuildGen2SubscriptionRequest(messageHash, map[string]any{
 		"type":  messageHash,
 		"codes": codes,

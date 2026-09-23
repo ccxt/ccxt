@@ -228,7 +228,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 put( "bars", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
             }};
             String messageHash = ("ohlcv:" + symbol);
-            Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -313,7 +313,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 put( "action", "subscribe" );
                 put( "orderbooks", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
             }};
-            Object orderbook = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -429,7 +429,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 put( "action", "subscribe" );
                 put( "trades", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
             }};
-            Object trades = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -519,7 +519,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                     put( "streams", new ArrayList<Object>(Arrays.asList("trade_updates")) );
                 }} );
             }};
-            Object trades = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -581,7 +581,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                     put( "streams", new ArrayList<Object>(Arrays.asList("trade_updates")) );
                 }} );
             }};
-            Object orders = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});

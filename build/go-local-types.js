@@ -1364,7 +1364,8 @@ function ccxtGoSafeCollectionLocalType (goTranspiler, declaration, families, res
     }
     const sourceName = declaration.name.text;
     const defaulted = found.fallback !== undefined;
-    const restTree = restUses && ccxtGoSafeCollectionIsRestSource (declaration) && !ccxtGoSafeCollectionReadsThisField (found.args[0]);
+    const restTree = restUses && !ccxtGoSafeCollectionReadsThisField (found.args[0])
+        && (ccxtGoSafeCollectionIsRestSource (declaration) || ccxtGoSafeCollectionReadsDecodedValue (goTranspiler, found.args[0]));
     // a property name is never a reference, and the checker resolves every other binding of the
     // same name: only the identifiers that really read this local have to be container reads
     const refersToDeclaration = typeof goTranspiler.goIdentifierRefersToDeclaration === 'function' ? goTranspiler.goIdentifierRefersToDeclaration : undefined;
@@ -1391,6 +1392,44 @@ function ccxtGoSafeCollectionLocalType (goTranspiler, declaration, families, res
 function ccxtGoSafeCollectionIsRestSource (node) {
     const fileName = node?.getSourceFile?. ()?.fileName;
     return (typeof fileName === 'string') && (/(^|[\\/])ts[\\/]src[\\/][^\\/]+\.ts$/).test (fileName);
+}
+
+// a ws/prediction container whose every link the checker types as data, not a class instance
+// (Client, OrderBook, ArrayCache, Future): the member is decoded JSON like a REST response
+function ccxtGoSafeCollectionReadsDecodedValue (goTranspiler, node, depth = 0) {
+    const checker = (typeof goTranspiler.checkerOrUndefined === 'function') ? goTranspiler.checkerOrUndefined () : undefined;
+    if (checker === undefined) {
+        return false;
+    }
+    let current = node;
+    while (current !== undefined) {
+        if (ccxtGoElementReadIsObject (checker, checker.getTypeAtLocation (current))) {
+            return false;
+        }
+        if (current.kind === ts.SyntaxKind.StringLiteral) {
+            return true;
+        }
+        if (current.kind === ts.SyntaxKind.Identifier) {
+            // a parameter, or a local initialised from decoded data itself (never a this.* field)
+            const decl = ccxtGoParamDeclarationOf (goTranspiler, current);
+            if (decl?.kind === ts.SyntaxKind.Parameter) {
+                return true;
+            }
+            if ((decl?.kind !== ts.SyntaxKind.VariableDeclaration) || (decl.initializer === undefined) || (depth > 4)) {
+                return false;
+            }
+            return !ccxtGoSafeCollectionReadsThisField (decl.initializer) && ccxtGoSafeCollectionReadsDecodedValue (goTranspiler, decl.initializer, depth + 1);
+        }
+        if ((current.kind === ts.SyntaxKind.ElementAccessExpression) || (current.kind === ts.SyntaxKind.ParenthesizedExpression)) {
+            current = current.expression;
+        } else if ((current.kind === ts.SyntaxKind.CallExpression) && CCXT_GO_SAFE_ACCESSOR_CALLEE.test ('this.' + ((current.expression?.name?.text ?? '').charAt (0).toUpperCase () + (current.expression?.name?.text ?? '').slice (1)))
+            && (current.expression?.expression?.kind === ts.SyntaxKind.ThisKeyword)) {
+            current = current.arguments[0];
+        } else {
+            return false; // a property access (client.subscriptions) or another call
+        }
+    }
+    return false;
 }
 
 // `this.options[...]` and friends may hold a *sync.Map, which the typed readers copy

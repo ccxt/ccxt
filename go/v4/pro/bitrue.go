@@ -164,12 +164,12 @@ func (this *Bitrue) HandleBalance(client any, message map[string]any) {
 	//      "u": 2285311
 	//    }
 	//
-	var balances any = this.SafeList(message, "B", []any{})
+	var balances []any = ccxt.SafeListTypedDefault(message, "B", []any{})
 	this.ParseWSBalances(balances)
 	var messageHash string = "balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Bitrue) ParseWSBalances(balances any) {
+func (this *Bitrue) ParseWSBalances(balances []any) {
 	//
 	//    [{
 	//         "a": "btc",
@@ -187,8 +187,13 @@ func (this *Bitrue) ParseWSBalances(balances any) {
 	//     }]
 	//
 	ccxt.AddElementToObject(this.Balance, "info", balances)
-	for i := 0; i < ccxt.GetArrayLength(balances); i++ {
-		var balance map[string]any = ccxt.MapTyped(ccxt.GetValue(balances, i))
+	for i := 0; i < len(balances); i++ {
+		var balance map[string]any = ccxt.MapTyped(func() any {
+			if i >= 0 && i < len(balances) {
+				return ccxt.DerefScalar(balances[i])
+			}
+			return nil
+		}())
 		var currencyId *string = this.SafeString(balance, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -465,8 +470,8 @@ func (this *Bitrue) HandleOrderBook(client any, message any) {
 	var tick any = this.SafeDict(message, "tick", map[string]any{})
 	var parseable any = tick
 	if isFutures {
-		var rawAsks any = this.SafeList(tick, "asks", []any{})
-		var rawBuys any = this.SafeList(tick, "buys", []any{})
+		var rawAsks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
+		var rawBuys []any = ccxt.SafeListTypedDefault(tick, "buys", []any{})
 		parseable = map[string]any{
 			"asks": this.ParseContractBidsAsks(rawAsks, symbol),
 			"buys": this.ParseContractBidsAsks(rawBuys, symbol),
@@ -500,10 +505,15 @@ func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 	}
 	return nil
 }
-func (this *Bitrue) ParseContractBidsAsks(bidsAsks any, symbol any) []any {
+func (this *Bitrue) ParseContractBidsAsks(bidsAsks []any, symbol any) []any {
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(bidsAsks); i++ {
-		var level any = ccxt.GetValue(bidsAsks, i)
+	for i := 0; i < len(bidsAsks); i++ {
+		var level any = func() any {
+			if i >= 0 && i < len(bidsAsks) {
+				return ccxt.DerefScalar(bidsAsks[i])
+			}
+			return nil
+		}()
 		var price *float64 = this.SafeNumber(level, 0)
 		var rawAmount *float64 = this.SafeNumber(level, 1)
 		var amount any = this.ConvertFromRawQuantity(symbol, rawAmount)

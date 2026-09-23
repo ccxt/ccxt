@@ -484,7 +484,7 @@ func (this *Phemex) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var trades any = this.SafeList2(message, "trades", "trades_p", []any{})
+	var trades []any = ccxt.SafeList2Typed(message, "trades", "trades_p", []any{})
 	var parsed any = this.ParseTrades(trades, market)
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsed, i))
@@ -526,8 +526,8 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var candles any = this.SafeList2(message, "kline", "kline_p", []any{})
-	var first any = this.SafeList(candles, 0, []any{})
+	var candles []any = ccxt.SafeList2Typed(message, "kline", "kline_p", []any{})
+	var first []any = ccxt.SafeListTypedDefault(candles, 0, []any{})
 	var interval *string = this.SafeString(first, 1)
 	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe != nil {
@@ -921,7 +921,7 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 	var nonce *int64 = this.SafeInteger(message, "sequence")
 	var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
 	if typeVar != nil && *typeVar == "snapshot" {
-		var book any = this.SafeDict2(message, "book", "orderbook_p", map[string]any{})
+		var book map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p", map[string]any{})
 		var snapshot any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
 		ccxt.AddElementToObject(snapshot, "nonce", nonce)
 		var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot, depth)
@@ -931,8 +931,8 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 		if ccxt.InOp(this.Orderbooks, symbol) {
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 			var changes map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p")
-			var asks any = this.SafeList(changes, "asks", []any{})
-			var bids any = this.SafeList(changes, "bids", []any{})
+			var asks []any = ccxt.SafeListTypedDefault(changes, "asks", []any{})
+			var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})
 			this.CustomHandleDeltas(ccxt.GetValue(orderbook, "asks"), asks, market)
 			this.CustomHandleDeltas(ccxt.GetValue(orderbook, "bids"), bids, market)
 			ccxt.AddElementToObject(orderbook, "nonce", nonce)
@@ -1368,8 +1368,8 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	var trades any = []any{}
 	var parsedOrders []any = []any{}
 	if (ccxt.InOp(message, "closed")) || (ccxt.InOp(message, "fills")) || (ccxt.InOp(message, "open")) {
-		var closed any = this.SafeList(message, "closed", []any{})
-		var open any = this.SafeList(message, "open", []any{})
+		var closed []any = ccxt.SafeListTypedDefault(message, "closed", []any{})
+		var open []any = ccxt.SafeListTypedDefault(message, "open", []any{})
 		var orders []any = this.ArrayConcat(open, closed)
 		var ordersLength int = len(orders)
 		if ordersLength == 0 {
@@ -1740,7 +1740,7 @@ func (this *Phemex) HandleMessage(client any, message any) {
 		return
 	}
 	if (ccxt.InOp(message, "orders")) || (ccxt.InOp(message, "orders_p")) {
-		var orders any = this.SafeDict2(message, "orders", "orders_p", map[string]any{})
+		var orders map[string]any = ccxt.SafeDict2Typed(message, "orders", "orders_p", map[string]any{})
 		this.HandleOrders(client, orders)
 	}
 	if (ccxt.InOp(message, "accounts")) || (ccxt.InOp(message, "accounts_p")) || (ccxt.InOp(message, "wallets")) {

@@ -340,7 +340,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 }})).join();
             }
             String url = this.getUrl((String) (channel), access);
-            Object trades = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -1961,7 +1961,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             String url = this.getUrl((String) (depth), "public");
-            Object orderbook = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 

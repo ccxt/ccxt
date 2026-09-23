@@ -1002,7 +1002,7 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 		return
 	}
 	var event map[string]any = ccxt.SafeMapTyped(events, 0)
-	var trades any = this.SafeList(event, "trades")
+	var trades []any = ccxt.SafeListTyped(event, "trades")
 	var trade map[string]any = ccxt.SafeMapTyped(trades, 0)
 	var marketId *string = this.SafeString(trade, "product_id")
 	var symbol *string = this.SafeSymbol(marketId)
@@ -1199,7 +1199,7 @@ func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 	var datetime *string = this.SafeString(message, "timestamp")
 	for i := 0; i < ccxt.GetArrayLength(events); i++ {
 		var event map[string]any = ccxt.MapTyped(ccxt.GetValue(events, i))
-		var updates any = this.SafeList(event, "updates", []any{})
+		var updates []any = ccxt.SafeListTypedDefault(event, "updates", []any{})
 		var marketId *string = this.SafeString(event, "product_id")
 		// sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
@@ -1250,7 +1250,7 @@ func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]an
 	//        events: [ { subscriptions: {} } ]
 	//      }
 	//
-	var events any = this.SafeList(message, "events", []any{})
+	var events []any = ccxt.SafeListTypedDefault(message, "events", []any{})
 	var firstEvent map[string]any = ccxt.SafeMapTyped(events, 0)
 	var isUnsub bool = (func() bool { _, ok := firstEvent["subscriptions"]; return ok }())
 	var subKeys []string = ccxt.ObjectKeys(firstEvent["subscriptions"])

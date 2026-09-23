@@ -553,7 +553,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 put( "id", Coinex.this.requestId() );
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -1079,7 +1079,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }};
             // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256());
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
-            Object orderbooks = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbooks = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 return orderbooks;
@@ -1297,7 +1297,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }};
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object orders = (this.watch(url, messageHash, request, messageHash, request)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, request)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});

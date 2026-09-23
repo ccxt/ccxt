@@ -300,7 +300,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             }
             String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "private"), "/") + "user-trades");
             this.authenticate(url);
-            Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, null, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});

@@ -4562,7 +4562,7 @@ final String finalOutcome = outcome;
                 put( "type", "market" );
             }};
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(PredictionOrderBook::new);
 

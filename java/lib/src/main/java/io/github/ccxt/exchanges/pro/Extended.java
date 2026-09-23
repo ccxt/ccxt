@@ -100,7 +100,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 url = (url + ("?" + query));
             }
             final String finalSymbol = symbol;
-            Object orderbook = (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "limit", limit );
             }})).join();
@@ -941,7 +941,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             }
             final String finalSymbol = symbol;
             final Object finalLimit = limit;
-            Object trades = (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "limit", finalLimit );
             }})).join();
@@ -1076,7 +1076,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             final String finalSymbol = symbol;
             final String finalCandleType = candleType;
             final Object finalLimit = limit;
-            Object ohlcv = (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "name", "ohlcv" );
                 put( "symbol", finalSymbol );
                 put( "timeframe", timeframe );

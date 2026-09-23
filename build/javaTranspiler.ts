@@ -3999,7 +3999,8 @@ class NewTranspiler {
 
         // ── watch/watchMultiple missing 5th arg ──
         for (const method of ['watch', 'watchMultiple']) {
-            const pattern = new RegExp(`this\\.${method}\\(`, 'g');
+            // an optional `<T>` type witness (ws receive locals) stays in front of the name
+            const pattern = new RegExp(`this\\.(<[\\w.<>, ]+>)?${method}\\(`, 'g');
             let result2 = '';
             let lastIdx2 = 0;
             let m2;
@@ -4022,14 +4023,15 @@ class NewTranspiler {
                 }
                 const argCount = topLevelCommas + 1;
                 result2 += content.substring(lastIdx2, m2.index);
+                const callee = `this.${m2[1] ?? ''}${method}`;
                 if (argCount === 4) {
-                    result2 += `this.${method}(${args2}, null)`;
+                    result2 += `${callee}(${args2}, null)`;
                 } else if (argCount === 3) {
-                    result2 += `this.${method}(${args2}, null, null)`;
+                    result2 += `${callee}(${args2}, null, null)`;
                 } else if (argCount === 2) {
-                    result2 += `this.${method}(${args2}, null, null, null)`;
+                    result2 += `${callee}(${args2}, null, null, null)`;
                 } else {
-                    result2 += `this.${method}(${args2})`;
+                    result2 += `${callee}(${args2})`;
                 }
                 lastIdx2 = j2;
             }

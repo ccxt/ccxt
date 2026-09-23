@@ -365,8 +365,13 @@ func (this *Coinex) HandleBalance(client any, message map[string]any) {
 		this.Balance = map[string]any{}
 	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var balances any = this.SafeList(data, "balance_list", []any{})
-	var firstEntry map[string]any = ccxt.MapTyped(ccxt.GetValue(balances, 0))
+	var balances []any = ccxt.SafeListTypedDefault(data, "balance_list", []any{})
+	var firstEntry map[string]any = ccxt.MapTyped(func() any {
+		if 0 >= 0 && 0 < len(balances) {
+			return ccxt.DerefScalar(balances[0])
+		}
+		return nil
+	}())
 	var updated *int64 = this.SafeInteger(firstEntry, "updated_at")
 	var unrealizedPnl *string = this.SafeString(firstEntry, "unrealized_pnl")
 	var isSpot bool = (updated != nil)
@@ -376,14 +381,14 @@ func (this *Coinex) HandleBalance(client any, message map[string]any) {
 	var rawBalances []any = []any{}
 	if isSpot {
 		account = "spot"
-		for i := 0; i < ccxt.GetArrayLength(balances); i++ {
+		for i := 0; i < len(balances); i++ {
 			rawBalances = this.ArrayConcat(rawBalances, balances)
 		}
 		info = rawBalances
 	}
 	if isSwap {
 		account = "swap"
-		for i := 0; i < ccxt.GetArrayLength(balances); i++ {
+		for i := 0; i < len(balances); i++ {
 			rawBalances = this.ArrayConcat(rawBalances, balances)
 		}
 		info = rawBalances
@@ -546,7 +551,7 @@ func (this *Coinex) HandleMyTrades(client any, message map[string]any) {
 	//         "id": null
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
 	var defaultType string = func() string {
@@ -1082,7 +1087,7 @@ func (this *Coinex) HandleOrderBook(client any, message map[string]any) {
 		return "swap"
 	}()
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var depth any = this.SafeDict(data, "depth", map[string]any{})
+	var depth map[string]any = ccxt.MapTyped(this.SafeDict(data, "depth", map[string]any{}))
 	var marketId *string = this.SafeString(data, "market")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1100,8 +1105,8 @@ func (this *Coinex) HandleOrderBook(client any, message map[string]any) {
 			orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		}
 	} else {
-		var asks any = this.SafeList(depth, "asks", []any{})
-		var bids any = this.SafeList(depth, "bids", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(depth, "asks", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(depth, "bids", []any{})
 		this.HandleDeltas(ccxt.GetValue(currentOrderBook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(currentOrderBook, "bids"), bids)
 		ccxt.AddElementToObject(currentOrderBook, "nonce", timestamp)
@@ -1560,14 +1565,14 @@ func (this *Coinex) HandleBidAsk(client any, message map[string]any) {
 	//         "id": null
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var parsedTicker any = this.ParseWsBidAsk(data)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsedTicker, "symbol"))
 	ccxt.AddElementToObject(this.Bidsasks, symbol, parsedTicker)
 	var messageHash any = ccxt.Add("bidsasks:", symbol)
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
-func (this *Coinex) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Coinex) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "market": "BTCUSDT",

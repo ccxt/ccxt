@@ -142,8 +142,8 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 		orderbook.(ccxt.OrderBookInterface).Reset()
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	var asks any = this.SafeList(data, "asks", []any{})
-	var bids any = this.SafeList(data, "bids", []any{})
+	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
+	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -226,14 +226,14 @@ func (this *Coinone) HandleTicker(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data))
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
 }
-func (this *Coinone) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "quote_currency": "KRW",
@@ -358,7 +358,7 @@ func (this *Coinone) HandleTrades(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 	var stored any = this.SafeValue(this.Trades, symbol)

@@ -3740,7 +3740,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "messageHashes", Predictfun.this.orderBookMessageHashes((String) (finalMarketId)) );
             }};
             Object url = this.socketUrl();
-            Object orderbook = (this.watch(url, messageHash, this.extend(request, parameters), topic, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), topic, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(PredictionOrderBook::new);
 

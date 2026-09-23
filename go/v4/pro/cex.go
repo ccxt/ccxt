@@ -120,7 +120,7 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 	//         "ok": "ok"
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var freeBalance map[string]any = ccxt.SafeMapTyped(data, "balance")
 	var usedBalance map[string]any = ccxt.SafeMapTyped(data, "obalance")
 	var result map[string]any = map[string]any{
@@ -441,7 +441,7 @@ func (this *Cex) HandleTicker(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data))
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol == nil {
@@ -456,7 +456,7 @@ func (this *Cex) HandleTicker(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 }
-func (this *Cex) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Cex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//  public
 	//    {
@@ -482,7 +482,7 @@ func (this *Cex) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	//    }
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var pair any = this.SafeList(ticker, "pair", []any{})
+	var pair []any = ccxt.SafeListTypedDefault(ticker, "pair", []any{})
 	var baseId *string = this.SafeString(ticker, "symbol1")
 	if baseId == nil {
 		baseId = this.SafeString(pair, 0)
@@ -721,7 +721,7 @@ func (this *Cex) HandleMyTrades(client any, message map[string]any) {
 	//             "id": "59091012962"
 	//         }
 	//     }
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var stored any = this.MyTrades
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -866,7 +866,7 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var isTransaction bool = (this.SafeString(message, "e") != nil && *this.SafeString(message, "e") == "tx")
 	var orderId *string = this.SafeString2(data, "id", "order")
 	var remains any = ccxt.DerefScalar(this.SafeString(data, "remains"))
@@ -1163,7 +1163,7 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	//         "ok": "ok"
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var pair *string = this.SafeString(data, "pair")
 	var symbol any = this.PairToSymbol(pair)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
@@ -1215,8 +1215,8 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(data, "time")
-	var asks any = this.SafeList(data, "asks", []any{})
-	var bids any = this.SafeList(data, "bids", []any{})
+	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
+	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "asks"), asks)
 	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "bids"), bids)
 	ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
@@ -1314,7 +1314,7 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(symbol))
 	var messageHash any = ccxt.Add("ohlcv:", symbol)
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 	stored := ccxt.NewArrayCacheByTimestamp(limit)
 	var sorted []any = this.SortBy(data, 0)

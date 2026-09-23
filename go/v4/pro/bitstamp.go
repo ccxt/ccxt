@@ -239,16 +239,21 @@ func (this *Bitstamp) HandleDelta(orderbook any, delta any) {
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "microtimestamp"))
-	var bids any = this.SafeList(delta, "bids", []any{})
-	var asks any = this.SafeList(delta, "asks", []any{})
+	var bids []any = ccxt.SafeListTypedDefault(delta, "bids", []any{})
+	var asks []any = ccxt.SafeListTypedDefault(delta, "asks", []any{})
 	var storedBids any = ccxt.GetValue(orderbook, "bids")
 	var storedAsks any = ccxt.GetValue(orderbook, "asks")
 	this.HandleBidAsks(storedBids, bids)
 	this.HandleBidAsks(storedAsks, asks)
 }
-func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks any) {
-	for i := 0; i < ccxt.GetArrayLength(bidAsks); i++ {
-		var bidAsk any = this.ParseOrderBookBidAsk(ccxt.GetValue(bidAsks, i))
+func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks []any) {
+	for i := 0; i < len(bidAsks); i++ {
+		var bidAsk any = this.ParseOrderBookBidAsk(func() any {
+			if i >= 0 && i < len(bidAsks) {
+				return ccxt.DerefScalar(bidAsks[i])
+			}
+			return nil
+		}())
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
@@ -507,7 +512,7 @@ func (this *Bitstamp) HandleFundingRate(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 2)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var fundingRate any = this.ParseFundingRate(data, market)
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 	client.(ccxt.ClientInterface).Resolve(fundingRate, "fundingRate:"+*symbol)
@@ -714,7 +719,7 @@ func (this *Bitstamp) HandleMyTrades(client any, message map[string]any) {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var subscription any = func() any {
 		if channel == nil {
 			return nil

@@ -123,7 +123,7 @@ func (this *Bittrade) HandleTicker(client any, message map[string]any) any {
 	//         }
 	//     }
 	//
-	var tick any = this.SafeDict(message, "tick", map[string]any{})
+	var tick map[string]any = ccxt.MapTyped(this.SafeDict(message, "tick", map[string]any{}))
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message
@@ -556,8 +556,8 @@ func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook 
 		return orderbook
 	}
 	if (ccxt.IsLessThanOrEqual(prevSeqNum, ccxt.GetValue(orderbook, "nonce"))) && (ccxt.IsGreaterThan(seqNum, ccxt.GetValue(orderbook, "nonce"))) {
-		var asks any = this.SafeList(tick, "asks", []any{})
-		var bids any = this.SafeList(tick, "bids", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(tick, "bids", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "nonce", seqNum)

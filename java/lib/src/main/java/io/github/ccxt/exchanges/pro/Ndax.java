@@ -195,7 +195,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "o", Ndax.this.json(payload) );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -319,7 +319,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "o", Ndax.this.json(payload) );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -516,7 +516,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "params", parameters );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object orderbook = (this.watch(url, messageHash, message, messageHash, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 

@@ -862,14 +862,19 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 	// push requested tags server-side (gamma accepts one tag_slug per request) so a tags-only
 	// fetchEvents returns the tagged events rather than filtering the top-volume listing down
 	// to nothing; multiple tags run one listing per tag, unioned and deduped by event id
-	var requestedTags any = this.SafeList(params, "tags", []any{})
-	var requestedTagsLength int = ccxt.GetArrayLength(requestedTags)
+	var requestedTags []any = ccxt.SafeListTypedDefault(params, "tags", []any{})
+	var requestedTagsLength int = len(requestedTags)
 	if requestedTagsLength > 1 {
 		var seen map[string]any = map[string]any{}
 		var unioned []any = []any{}
 		for ti := 0; ti < requestedTagsLength; ti++ {
 			var singleTagParams map[string]any = this.Extend(map[string]any{}, params)
-			singleTagParams["tags"] = []any{ccxt.GetValue(requestedTags, ti)}
+			singleTagParams["tags"] = []any{func() any {
+				if ti >= 0 && ti < len(requestedTags) {
+					return ccxt.DerefScalar(requestedTags[ti])
+				}
+				return nil
+			}()}
 
 			var tagEvents []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawEventsListAsync(singleTagParams))))
 			for ei := 0; ei < ccxt.GetArrayLength(tagEvents); ei++ {

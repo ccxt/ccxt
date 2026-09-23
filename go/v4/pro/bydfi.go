@@ -880,7 +880,7 @@ func (this *Bydfi) HandleOrder(client any, message any) {
 	//         }
 	//     }
 	//
-	var rawOrder any = this.SafeDict(message, "o", map[string]any{})
+	var rawOrder map[string]any = ccxt.MapTyped(this.SafeDict(message, "o", map[string]any{}))
 	var marketId *string = this.SafeString(rawOrder, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1061,8 +1061,8 @@ func (this *Bydfi) HandlePositions(client any, message any) {
 	//     }
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "a")
-	var positionsData any = this.SafeList(data, "p", []any{})
-	var rawPosition any = this.SafeDict(positionsData, 0, map[string]any{})
+	var positionsData []any = ccxt.SafeListTypedDefault(data, "p", []any{})
+	var rawPosition map[string]any = ccxt.MapTyped(this.SafeDict(positionsData, 0, map[string]any{}))
 	var marketId *string = this.SafeString(rawPosition, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1080,7 +1080,7 @@ func (this *Bydfi) HandlePositions(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, messageHash)
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, symbolMessageHash)
 }
-func (this *Bydfi) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Bydfi) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "S": "1",

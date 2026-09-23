@@ -302,8 +302,8 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 		orderBookSnapshot["nonce"] = this.SafeInteger(data, "seqId")
 		orderbook.(ccxt.OrderBookInterface).Reset(orderBookSnapshot)
 	} else {
-		var asks any = this.SafeList(data, "asks", []any{})
-		var bids any = this.SafeList(data, "bids", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 		this.HandleDeltasWithKeys(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltasWithKeys(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -963,8 +963,8 @@ func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(message, "data", []any{})
-	var first any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var first map[string]any = ccxt.MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var fundingRate any = this.ParseFundingRate(first)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)

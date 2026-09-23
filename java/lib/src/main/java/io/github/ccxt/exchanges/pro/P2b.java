@@ -372,7 +372,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 put( "id", P2b.this.milliseconds() );
             }};
             Map<String, Object> query = this.extend(subscribe, parameters);
-            Object trades = (this.watchMultiple(url, messageHashes, query, messageHashes, null)).join();
+            List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, query, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);

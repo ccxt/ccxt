@@ -407,7 +407,7 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	//
 	var typeVar *string = this.SafeString(message, "type")
 	var isSnapshot bool = (typeVar != nil && *typeVar == "snapshot")
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -420,8 +420,8 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
-		var asks any = this.SafeList(data, "a", []any{})
-		var bids any = this.SafeList(data, "b", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(data, "a", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(data, "b", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -550,7 +550,7 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 	// }
 	var topic *string = this.SafeString(message, "topic", "")
 	var updateType *string = this.SafeString(message, "type", "")
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var symbol any = nil
 	var parsed any = this.ParseTicker(data)
 	if updateType != nil && *updateType == "snapshot" {
@@ -909,7 +909,7 @@ func (this *Apex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Apex) HandleMyTrades(client any, lists any) {
+func (this *Apex) HandleMyTrades(client any, lists []any) {
 	// [
 	//     {
 	//         "symbol":"ETH-USDT",
@@ -933,8 +933,13 @@ func (this *Apex) HandleMyTrades(client any, lists any) {
 	}
 	var trades any = this.MyTrades
 	var symbols map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(lists); i++ {
-		var rawTrade any = ccxt.GetValue(lists, i)
+	for i := 0; i < len(lists); i++ {
+		var rawTrade any = func() any {
+			if i >= 0 && i < len(lists) {
+				return ccxt.DerefScalar(lists[i])
+			}
+			return nil
+		}()
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		ccxt.AddElementToObject(symbols, symbol, true)
@@ -949,7 +954,7 @@ func (this *Apex) HandleMyTrades(client any, lists any) {
 	var messageHash string = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
-func (this *Apex) HandleOrder(client any, lists any) {
+func (this *Apex) HandleOrder(client any, lists []any) {
 	// [
 	//     {
 	//         "symbol":"ETH-USDT",
@@ -985,8 +990,13 @@ func (this *Apex) HandleOrder(client any, lists any) {
 	}
 	var orders any = this.Orders
 	var symbols map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(lists); i++ {
-		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(ccxt.GetValue(lists, i)))
+	for i := 0; i < len(lists); i++ {
+		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(func() any {
+			if i >= 0 && i < len(lists) {
+				return ccxt.DerefScalar(lists[i])
+			}
+			return nil
+		}()))
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		ccxt.AddElementToObject(symbols, symbol, true)
 		orders.(ccxt.Appender).Append(parsed)
@@ -1045,7 +1055,7 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan any, client any, messageHash
 	}
 	return nil
 }
-func (this *Apex) HandlePositions(client any, lists any) {
+func (this *Apex) HandlePositions(client any, lists []any) {
 	//
 	// [
 	//     {
@@ -1073,8 +1083,13 @@ func (this *Apex) HandlePositions(client any, lists any) {
 	}
 	var cache any = this.Positions
 	var newPositions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(lists); i++ {
-		var rawPosition any = ccxt.GetValue(lists, i)
+	for i := 0; i < len(lists); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(lists) {
+				return ccxt.DerefScalar(lists[i])
+			}
+			return nil
+		}()
 		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions
@@ -1378,15 +1393,15 @@ func (this *Apex) HandlePing(client any, message map[string]any) {
 }
 func (this *Apex) HandleAccount(client any, message map[string]any) {
 	var contents map[string]any = ccxt.SafeMapTyped(message, "contents")
-	var fills any = this.SafeList(contents, "fills", []any{})
+	var fills []any = ccxt.SafeListTypedDefault(contents, "fills", []any{})
 	if !ccxt.IsEqual(fills, nil) {
 		this.HandleMyTrades(client, fills)
 	}
-	var positions any = this.SafeList(contents, "positions", []any{})
+	var positions []any = ccxt.SafeListTypedDefault(contents, "positions", []any{})
 	if !ccxt.IsEqual(positions, nil) {
 		this.HandlePositions(client, positions)
 	}
-	var orders any = this.SafeList(contents, "orders", []any{})
+	var orders []any = ccxt.SafeListTypedDefault(contents, "orders", []any{})
 	if !ccxt.IsEqual(orders, nil) {
 		this.HandleOrder(client, orders)
 	}

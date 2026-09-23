@@ -2179,7 +2179,7 @@ func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) any {
 		AddElementToObject(fee, "cost", this.SafeNumber(fee, "cost"))
 	}
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
-	var info any = this.SafeDict(entry, "info", map[string]any{})
+	var info map[string]any = MapTyped(this.SafeDict(entry, "info", map[string]any{}))
 	return map[string]any{
 		"id":               this.SafeString(entry, "id"),
 		"timestamp":        timestamp,
@@ -3598,13 +3598,13 @@ func (this *BaseExchange) ConvertTradingViewToOHLCV(ohlcvs any, optionalArgs ...
 	var ms bool = GetArgBool(optionalArgs, 6, false)
 	_ = ms
 	var result []any = []any{}
-	var timestamps any = this.SafeList(ohlcvs, timestamp, []any{})
-	var opens any = this.SafeList(ohlcvs, open, []any{})
-	var highs any = this.SafeList(ohlcvs, high, []any{})
-	var lows any = this.SafeList(ohlcvs, low, []any{})
-	var closes any = this.SafeList(ohlcvs, close, []any{})
-	var volumes any = this.SafeList(ohlcvs, volume, []any{})
-	for i := 0; i < GetArrayLength(timestamps); i++ {
+	var timestamps []any = SafeListTypedDefault(ohlcvs, timestamp, []any{})
+	var opens []any = SafeListTypedDefault(ohlcvs, open, []any{})
+	var highs []any = SafeListTypedDefault(ohlcvs, high, []any{})
+	var lows []any = SafeListTypedDefault(ohlcvs, low, []any{})
+	var closes []any = SafeListTypedDefault(ohlcvs, close, []any{})
+	var volumes []any = SafeListTypedDefault(ohlcvs, volume, []any{})
+	for i := 0; i < len(timestamps); i++ {
 		result = append(result, []any{func() any {
 			if ms == true {
 				return this.SafeInteger(timestamps, i)

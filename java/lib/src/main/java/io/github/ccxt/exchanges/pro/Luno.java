@@ -92,7 +92,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 put( "api_key_secret", Luno.this.secret );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            Object trades = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, subscriptionHash, subscription)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -230,7 +230,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 put( "api_key_secret", Luno.this.secret );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            Object orderbook = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, subscriptionHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 

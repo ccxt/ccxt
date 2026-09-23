@@ -96,7 +96,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }};
             String subscribeHash = ("l2:" + ((Map<String, Object>)market).get("symbol"));
             Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v2/marketdata");
-            Object trades = (this.watch(url, messageHash, request, subscribeHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, subscribeHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
@@ -388,7 +388,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }};
             String messageHash = ((("ohlcv:" + ((Map<String, Object>)market).get("symbol")) + ":") + timeframeId);
             Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v2/marketdata");
-            Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -514,7 +514,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }};
             String subscribeHash = ("l2:" + ((Map<String, Object>)market).get("symbol"));
             Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v2/marketdata");
-            Object orderbook = (this.watch(url, messageHash, request, subscribeHash, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, subscribeHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -889,7 +889,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             String messageHash = "orders";
-            Object orders = (this.watch(url, messageHash, null, messageHash, null)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, null, messageHash, null)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});

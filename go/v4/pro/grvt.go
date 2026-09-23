@@ -326,7 +326,7 @@ func (this *Grvt) HandleTicker(client any, message map[string]any) {
 	//        "prev_sequence_number": "1061717"
 	//    }
 	//
-	var data any = this.SafeDict(message, "feed", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "feed", map[string]any{}))
 	var selector *string = this.SafeString(message, "selector", "")
 	var parts []string = ccxt.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
@@ -336,7 +336,7 @@ func (this *Grvt) HandleTicker(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*symbol)
 }
-func (this *Grvt) ParseWsTicker(message any, optionalArgs ...any) any {
+func (this *Grvt) ParseWsTicker(message map[string]any, optionalArgs ...any) any {
 	// same dict as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
@@ -452,7 +452,7 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 	//        "prev_sequence_number": "0"
 	//    }
 	//
-	var data any = this.SafeDict(message, "feed", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "feed", map[string]any{}))
 	var selector *string = this.SafeString(message, "selector", "")
 	var parts []string = ccxt.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
@@ -593,7 +593,7 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 	//        "prev_sequence_number": "0"
 	//    }
 	//
-	var data any = this.SafeDict(message, "feed", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "feed", map[string]any{}))
 	var selector *string = this.SafeString(message, "selector", "")
 	var parts []string = ccxt.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
@@ -752,7 +752,7 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	//        "prev_sequence_number": "0"
 	//    }
 	//
-	var data any = this.SafeDict(message, "feed", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "feed", map[string]any{}))
 	var selector *string = this.SafeString(message, "selector", "")
 	var parts []string = ccxt.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
@@ -771,8 +771,8 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
-		var asks any = this.SafeList(data, "asks", []any{})
-		var bids any = this.SafeList(data, "bids", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 		this.HandleDeltasWithKeys(ccxt.GetValue(orderbook, "asks"), asks, "price", "size")
 		this.HandleDeltasWithKeys(ccxt.GetValue(orderbook, "bids"), bids, "price", "size")
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -922,7 +922,7 @@ func (this *Grvt) HandleMyTrade(client any, message map[string]any) {
 	//        "prev_sequence_number": "0"
 	//    }
 	//
-	var data any = this.SafeDict(message, "feed", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "feed", map[string]any{}))
 	if ccxt.IsEqual(this.MyTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -932,7 +932,7 @@ func (this *Grvt) HandleMyTrade(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, ccxt.Add("myTrades::", ccxt.GetValue(trade, "symbol")))
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades")
 }
-func (this *Grvt) ParseWsMyTrade(trade any, optionalArgs ...any) any {
+func (this *Grvt) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return this.ParseTrade(trade, market)

@@ -410,15 +410,15 @@ func (this *Weex) HandleTicker(client any, message any) {
 	if ccxt.IsEqual(market, nil) {
 		return
 	}
-	var tickers any = this.SafeList(message, "d", []any{})
-	var data any = this.SafeDict(tickers, 0, map[string]any{})
+	var tickers []any = ccxt.SafeListTypedDefault(message, "d", []any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(tickers, 0, map[string]any{}))
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var messageHash string = "ticker::" + *symbol
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
 }
-func (this *Weex) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Weex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "p": "-18.93",
@@ -666,10 +666,10 @@ func (this *Weex) HandleTrade(client any, message any) {
 		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
 	}
 	var tradesArray any = ccxt.GetValue(this.Trades, symbol)
-	var data any = this.SafeList(message, "d", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "d", []any{})
 	var newTrades []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var rawTrade any = this.SafeDict(data, i, map[string]any{})
+	for i := 0; i < len(data); i++ {
+		var rawTrade map[string]any = ccxt.MapTyped(this.SafeDict(data, i, map[string]any{}))
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade, market))
 		newTrades = append(newTrades, trade)
 	}
@@ -808,7 +808,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	params = ccxt.MapTyped(this.Omit(params, "callerMethodName"))
 	var channels []any = []any{}
 	var messageHashes []any = []any{}
-	var firstEntry any = this.SafeList(symbolsAndTimeframes, 0, []any{})
+	var firstEntry []any = ccxt.SafeListTypedDefault(symbolsAndTimeframes, 0, []any{})
 	var firstSymbol *string = this.SafeString(firstEntry, 0)
 	var firstMarket map[string]any = ccxt.MapTyped(this.Market(firstSymbol))
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
@@ -819,7 +819,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		params = ccxt.MapTyped(ccxt.GetValue(priceTypeparamsVariable, 1))
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var data any = this.SafeList(symbolsAndTimeframes, i)
+		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		var market map[string]any = this.Market(symbolString)
 		if market["type"] != ccxt.GetValue(firstMarket, "type") {
@@ -904,7 +904,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	var channels []any = []any{}
 	var subHashes []any = []any{}
 	var unSubHashes []any = []any{}
-	var firstEntry any = this.SafeList(symbolsAndTimeframes, 0, []any{})
+	var firstEntry []any = ccxt.SafeListTypedDefault(symbolsAndTimeframes, 0, []any{})
 	var firstSymbol *string = this.SafeString(firstEntry, 0)
 	var firstMarket map[string]any = ccxt.MapTyped(this.Market(firstSymbol))
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
@@ -915,7 +915,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 		params = ccxt.MapTyped(ccxt.GetValue(priceTypeparamsVariable, 1))
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var data any = this.SafeList(symbolsAndTimeframes, i)
+		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		var market map[string]any = this.Market(symbolString)
 		if market["type"] != ccxt.GetValue(firstMarket, "type") {
@@ -976,7 +976,7 @@ func (this *Weex) HandleOHLCV(client any, message any) {
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
-	var data any = this.SafeList(message, "d", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "d", []any{})
 	var firstEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var interval *string = this.SafeString(firstEntry, "i")
 	var timeframe *string = this.FindTimeframe(interval)
@@ -988,8 +988,8 @@ func (this *Weex) HandleOHLCV(client any, message any) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
 	}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+	for i := 0; i < len(data); i++ {
+		var entry map[string]any = ccxt.MapTyped(this.SafeDict(data, i, map[string]any{}))
 		var parsed any = this.ParseWsOHLCV(entry)
 		stored.(ccxt.Appender).Append(parsed)
 	}
@@ -1230,8 +1230,8 @@ func (this *Weex) HandleOrderBook(client any, message any) {
 		parsed["nonce"] = nonce
 		orderbook.(ccxt.OrderBookInterface).Reset(parsed)
 	} else {
-		var asks any = this.SafeList(message, "a", []any{})
-		var bids any = this.SafeList(message, "b", []any{})
+		var asks []any = ccxt.SafeListTypedDefault(message, "a", []any{})
+		var bids []any = ccxt.SafeListTypedDefault(message, "b", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -1567,10 +1567,10 @@ func (this *Weex) HandleMyTrades(client any, message any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var trades any = this.MyTrades
-	var data any = this.SafeList(message, "d", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "d", []any{})
 	var symbols map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var trade any = this.SafeDict(data, i, map[string]any{})
+	for i := 0; i < len(data); i++ {
+		var trade map[string]any = ccxt.MapTyped(this.SafeDict(data, i, map[string]any{}))
 		var parsed any = this.ParseWsMyTrade(trade)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 		if symbol != nil {
@@ -1591,7 +1591,7 @@ func (this *Weex) HandleMyTrades(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
-func (this *Weex) ParseWsMyTrade(trade any, optionalArgs ...any) any {
+func (this *Weex) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
 	//
 	// spot
 	//     {
@@ -1816,15 +1816,15 @@ func (this *Weex) HandleOrders(client any, message any) {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(message, "d", []any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "d", []any{})
 	var symbols map[string]any = map[string]any{}
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var rawOrder any = this.SafeDict(data, i, map[string]any{})
+	for i := 0; i < len(data); i++ {
+		var rawOrder map[string]any = ccxt.MapTyped(this.SafeDict(data, i, map[string]any{}))
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(rawOrder))
 		orders.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
@@ -2157,8 +2157,8 @@ func (this *Weex) HandleBalance(client any, message any) {
 		ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
 	}
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
-	var balanceUpdates any = this.SafeList(message, "d", []any{})
-	for i := 0; i < ccxt.GetArrayLength(balanceUpdates); i++ {
+	var balanceUpdates []any = ccxt.SafeListTypedDefault(message, "d", []any{})
+	for i := 0; i < len(balanceUpdates); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(balanceUpdates, i)
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -2361,9 +2361,9 @@ func (this *Weex) HandlePositions(client any, message any) {
 	}
 	var cache any = this.Positions
 	var newPositions []any = []any{}
-	var data any = this.SafeList(message, "d", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var rawPosition any = this.SafeDict(data, i, map[string]any{})
+	var data []any = ccxt.SafeListTypedDefault(message, "d", []any{})
+	for i := 0; i < len(data); i++ {
+		var rawPosition map[string]any = ccxt.MapTyped(this.SafeDict(data, i, map[string]any{}))
 		var position any = this.ParseWsPosition(rawPosition)
 		cache.(ccxt.Appender).Append(position)
 		newPositions = append(newPositions, position)
@@ -2386,7 +2386,7 @@ func (this *Weex) HandlePositions(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 }
-func (this *Weex) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Weex) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
 	// same as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market

@@ -1832,7 +1832,9 @@ public class BaseExchange {
                 });
     }
 
-    public CompletableFuture<Object> watch(Object url, Object messageHash2, Object message, Object subscribeHash2, Object subscription) {
+    // T is the class the handlers resolve for messageHash (ArrayCache, WsOrderBook, ...), bound per call site
+    @SuppressWarnings("unchecked")
+    public <T> CompletableFuture<T> watch(Object url, Object messageHash2, Object message, Object subscribeHash2, Object subscription) {
         String messageHash = messageHash2.toString();
         String subscribeHash = subscribeHash2 != null ? subscribeHash2.toString() : messageHash;
         var client = this.client(url);
@@ -1860,13 +1862,13 @@ public class BaseExchange {
                 return null;
             });
         }
-        return future.getFuture();
+        return (CompletableFuture<T>) future.getFuture();
     }
 
     // Note: a single subscribe message is sent for all symbols, matching JS/C# design.
     // Exchange-specific code is responsible for building the message with all symbols.
     @SuppressWarnings("unchecked")
-    public CompletableFuture<Object> watchMultiple(Object url, Object messageHashes2, Object message, Object subscribeHashes2, Object subscription) {
+    public <T> CompletableFuture<T> watchMultiple(Object url, Object messageHashes2, Object message, Object subscribeHashes2, Object subscription) {
         var client = this.client(url);
 
         List<Object> messageHashes = (List<Object>) messageHashes2;
@@ -1913,7 +1915,7 @@ public class BaseExchange {
             });
         }
 
-        return raceFuture.getFuture();
+        return (CompletableFuture<T>) raceFuture.getFuture();
     }
 
     public void handleMessage(Client client, Object message) {

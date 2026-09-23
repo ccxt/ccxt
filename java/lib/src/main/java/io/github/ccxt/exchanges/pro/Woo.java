@@ -212,7 +212,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 ((Map<String, Object>)subscription).put("method", "handleOrderBookSubscription");
             }
-            Object orderbook = (this.watch(url, topic, this.extend(request, parameters), topic, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, topic, this.extend(request, parameters), topic, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
