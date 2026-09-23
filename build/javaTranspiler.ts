@@ -3709,6 +3709,11 @@ class NewTranspiler {
         // Object future = Helpers.GetValue(client.futures, x) → cast to Future
         content = content.replace(/Object\s+future\s*=\s*Helpers\.GetValue\(client\.futures,\s*(\w+)\)/gm,
             'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, $1)');
+        // Object future = this.safeValue(client.futures, x) → cast to Future
+        // client.futures is a ConcurrentHashMap<String, Future> (WsClient), so every path
+        // hands back a Future or null and the checkcast cannot fail
+        content = content.replace(/Object\s+future\s*=\s*this\.safeValue\(client\.futures,\s*([^)]+)\)/gm,
+            'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, $1)');
 
         // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ──
         // client.future(hash) where the hash local is Object-typed. any
