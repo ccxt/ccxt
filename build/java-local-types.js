@@ -10349,6 +10349,10 @@ function joinParameterReadType (printer, identifier) {
         || !ts.isMethodDeclaration (declaration.parent) || enclosingFunction (identifier) !== declaration.parent) {
         return undefined;
     }
+    // an async body reads a hoisted copy whose declaration other passes type
+    if (typeof printer.isAsyncFunction !== 'function' || printer.isAsyncFunction (declaration.parent)) {
+        return undefined;
+    }
     let printed;
     try {
         printed = printer.javaNativeParameterType (declaration);
