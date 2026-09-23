@@ -384,14 +384,15 @@ export default class gate extends gateRest {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
+            symbolResolved = market['symbol'];
             if (market['swap'] !== true) {
                 throw new NotSupported (this.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
             }
         }
-        const [ request, requestParams ] = this.prepareOrdersByStatusRequest (status, symbol, since, limit, params);
+        const [ request, requestParams ] = this.prepareOrdersByStatusRequest (status, symbolResolved, since, limit, params);
         const newRequest = this.omit (request, [ 'settle' ]);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.order_list';
@@ -399,7 +400,7 @@ export default class gate extends gateRest {
         await this.authenticate (url, messageType);
         const rawOrders = await this.requestPrivate (url, this.extend (newRequest, requestParams), channel);
         const orders = this.parseOrders (rawOrders, market);
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limit);
     }
 
     /**
@@ -431,16 +432,13 @@ export default class gate extends gateRest {
         const [ interval, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', intervalDefault);
         const messageType = this.getTypeByMarket (market);
         const messageHash = 'orderbook' + ':' + symbolValue;
-        if (limit === undefined) {
-            limit = (market['spot'] === true) ? 50 : 100; // max 100 atm
-            if (messageType === 'options') {
-                limit = 50; // max 50 for options
-            }
-        }
+        // max 100 atm, max 50 for options
+        const defaultLimit = ((market['spot'] === true) || (messageType === 'options')) ? 50 : 100;
+        let limitResolved: Int = (limit === undefined) ? defaultLimit : limit;
         if (market['spot'] === true) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             const maxSpotLimit = this.handleOption ('fetchOrderBook', 'maxSpotLimit', 1000);
-            limit = Math.min (limit, maxSpotLimit);
+            limitResolved = Math.min (limitResolved, maxSpotLimit);
         }
         let payload: List = [];
         let channel = '';
@@ -450,19 +448,19 @@ export default class gate extends gateRest {
         } else if (market['spot'] === true) {
             channel = 'spot.obu';
             let finalInterval = interval;
-            if (limit === 400) {
+            if (limitResolved === 400) {
                 finalInterval = '400';
             }
             payload = [ 'ob.' + market['id'] + '.' + finalInterval ];
         } else {
             channel = messageType + '.order_book_update';
             payload = [ marketId, interval ];
-            const stringLimit = limit.toString ();
+            const stringLimit = limitResolved.toString ();
             payload.push (stringLimit);
         }
         const subscription: Dict = {
             'symbol': symbolValue,
-            'limit': limit,
+            'limit': limitResolved,
         };
         const orderbook = await this.subscribePublic (url, messageHash, payload, channel, query, subscription);
         return orderbook.limit ();
@@ -938,12 +936,10 @@ export default class gate extends gateRest {
         }
         const url = this.getUrlByMarket (market);
         const trades = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
-        if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -1054,10 +1050,8 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket (market);
         const payload = [ interval, marketId ];
         const ohlcv = await this.subscribePublic (url, messageHash, payload, channel, params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -1163,10 +1157,8 @@ export default class gate extends gateRest {
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const trades = await this.subscribePrivate (url, messageHash, payload, channel, paramsSubType, requiresUid);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
     }
 
     handleMyTrades (client: Client, message: Dict) {
@@ -1549,10 +1541,11 @@ export default class gate extends gateRest {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const marketResolved = this.market (symbol);
             market = marketResolved;
-            symbol = market['symbol'];
+            symbolResolved = market['symbol'];
         }
         let type: Str = undefined;
         let query: NullableDict = undefined;
@@ -1592,10 +1585,8 @@ export default class gate extends gateRest {
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const orders = await this.subscribePrivate (url, messageHash, payload, channel, query, requiresUid);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -2312,17 +2303,14 @@ export default class gate extends gateRest {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         const event = 'api';
-        if (requestId === undefined) {
-            const reqId = this.requestId ();
-            requestId = reqId.toString ();
-        }
-        const messageHash = requestId;
+        const requestIdResolved: Str = (requestId === undefined) ? this.requestId ().toString () : requestId;
+        const messageHash = requestIdResolved;
         const time = this.seconds ();
         // unfortunately, PHP demands double quotes for the escaped newline symbol
         const signatureString = [ event, channel, this.json (reqParams), time.toString () ].join ("\n"); // eslint-disable-line quotes
         const signature = this.hmac (this.encode (signatureString), this.encode (this.secret), sha512, 'hex');
         const payload: Dict = {
-            'req_id': requestId,
+            'req_id': requestIdResolved,
             'timestamp': time.toString (),
             'api_key': this.apiKey,
             'signature': signature,
@@ -2334,13 +2322,13 @@ export default class gate extends gateRest {
             };
         }
         const request: Dict = {
-            'id': requestId,
+            'id': requestIdResolved,
             'time': time,
             'channel': channel,
             'event': event,
             'payload': payload,
         };
-        return await this.watch (url, messageHash, request, messageHash, requestId);
+        return await this.watch (url, messageHash, request, messageHash, requestIdResolved);
     }
 
     async subscribePrivate (url: Str, messageHash: string, payload: any, channel: Str, params: Dict, requiresUid: Bool = false) {
@@ -2350,13 +2338,10 @@ export default class gate extends gateRest {
             if (this.uid === undefined || this.uid.length === 0) {
                 throw new ArgumentsRequired (this.id + ' requires uid to subscribe');
             }
-            const idArray = [ this.uid ];
-            if (payload === undefined) {
-                payload = idArray;
-            } else {
-                payload = this.arrayConcat (idArray, payload);
-            }
         }
+        const idArray = [ this.uid ];
+        const payloadWithUid = (payload === undefined) ? idArray : this.arrayConcat (idArray, payload);
+        const payloadValue = (requiresUid) ? payloadWithUid : payload;
         const time = this.seconds ();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
@@ -2374,8 +2359,8 @@ export default class gate extends gateRest {
             'event': event,
             'auth': auth,
         };
-        if (payload !== undefined) {
-            request['payload'] = payload;
+        if (payloadValue !== undefined) {
+            request['payload'] = payloadValue;
         }
         const client = this.client (url);
         if (!(messageHash in client.subscriptions)) {

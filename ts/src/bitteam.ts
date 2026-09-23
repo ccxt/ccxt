@@ -2435,24 +2435,28 @@ export default class bitteam extends Exchange {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             if (method === 'POST') {
-                body = this.json (request);
+                requestBody = this.json (request);
             } else if (query.length !== 0) {
                 url += '?' + query;
             }
             const auth = this.apiKey + ':' + this.secret;
             const auth64 = this.stringToBase64 (auth);
             const signature = 'Basic ' + auth64;
-            headers = {
+            requestHeaders = {
                 'Authorization': signature,
                 'Content-Type': 'application/json',
             };
         } else if (query.length !== 0) {
             url += '?' + query;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = (requestBody === undefined) ? body : requestBody;
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

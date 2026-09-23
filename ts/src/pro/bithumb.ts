@@ -120,20 +120,18 @@ export default class bithumb extends bithumbRest {
         }
         const [ generation, paramsGeneration ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'watchTickers', 'generation', 2);
         const isGenerationTwo = (generation === 2);
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const symbolsLength = (symbols === undefined) ? 0 : symbols.length;
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false, true, true);
+        const symbolsLength = (symbolsNormalized === undefined) ? 0 : symbolsNormalized.length;
         if (isGenerationTwo && (symbolsLength === 0)) {
             throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for the generation 2 API');
         }
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        }
-        const symbolsLengthDefined = symbols.length;
+        const symbolsResolved: string[] = (symbolsNormalized === undefined) ? this.symbols : symbolsNormalized;
+        const symbolsLengthDefined = symbolsResolved.length;
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const streamMarketIds: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsLengthDefined; i++) {
-            const symbol = symbols[i];
+            const symbol = symbolsResolved[i];
             const market = this.market (symbol);
             let streamMarketId: Str = undefined;
             if (isGenerationTwo) {
@@ -168,7 +166,7 @@ export default class bithumb extends bithumbRest {
             result[newTicker['symbol']] = newTicker;
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsResolved);
     }
 
     handleTicker (client: Client, message: Dict) {
@@ -581,10 +579,8 @@ export default class bithumb extends bithumbRest {
             request = this.extend (request, paramsGeneration);
         }
         const trades = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -906,16 +902,15 @@ export default class bithumb extends bithumbRest {
         let messageHash = 'myOrder';
         const codes = this.safeList (paramsGeneration, 'codes', []);
         const request = this.buildGen2SubscriptionRequest (messageHash, { 'type': messageHash, 'codes': codes });
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
+            symbolResolved = market['symbol'];
+            messageHash = messageHash + ':' + symbolResolved;
         }
         const orders = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleOrders (client: Client, message: Dict) {
