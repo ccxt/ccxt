@@ -318,9 +318,7 @@ func (this *Coinex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	retRes28615 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes28615)
-	ch <- retRes28615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Coinex) HandleBalance(client any, message map[string]any) {
@@ -848,9 +846,7 @@ func (this *Coinex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
 
-	retRes71515 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes71515)
-	ch <- retRes71515
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -1039,9 +1035,7 @@ func (this *Coinex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchOrderBook")
 
-	retRes84115 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes84115)
-	ch <- retRes84115
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 func (this *Coinex) HandleDelta(bookside any, delta any) {
@@ -1708,9 +1702,7 @@ func (this *Coinex) authenticateBody(ch chan any, typeVar any) any {
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if !ccxt.IsEqual(authenticated, nil) {
 
-		retRes144919 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes144919)
-		ch <- retRes144919
+		ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 		return nil
 	}
 	var requestId any = this.RequestId()
@@ -1731,9 +1723,7 @@ func (this *Coinex) authenticateBody(ch chan any, typeVar any) any {
 	this.Watch(url, messageHash, request, requestId, subscribe)
 	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, true)
 
-	retRes146815 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes146815)
-	ch <- retRes146815
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 

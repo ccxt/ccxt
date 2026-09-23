@@ -5389,9 +5389,7 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 			return Precise.StringAbs(currentLeverage)
 		}()
 
-		retRes455419 := (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params))).Raw
-		PanicOnError(retRes455419)
-		ch <- retRes455419
+		ch <- PanicOnError((<-this.PrivatePutGPositionsLeverage(this.Extend(request, params))).Raw)
 		return nil
 	}
 	var leverage any = DerefScalar(this.SafeInteger(params, "leverage"))
@@ -5403,9 +5401,7 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	}
 	request["leverage"] = leverage
 
-	retRes456415 := (<-this.PrivatePutPositionsLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes456415)
-	ch <- retRes456415
+	ch <- PanicOnError((<-this.PrivatePutPositionsLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -5449,9 +5445,7 @@ func (this *Phemex) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 		request["targetPosMode"] = "OneWay"
 	}
 
-	retRes459415 := (<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params))).Raw
-	PanicOnError(retRes459415)
-	ch <- retRes459415
+	ch <- PanicOnError((<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params))).Raw)
 	return nil
 }
 

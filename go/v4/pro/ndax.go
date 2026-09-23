@@ -86,9 +86,7 @@ func (this *Ndax) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes7415 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes7415)
-	ch <- retRes7415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Ndax) HandleTicker(client any, message map[string]any) {

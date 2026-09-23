@@ -657,9 +657,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes47615 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes47615)
-	ch <- retRes47615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
@@ -845,9 +843,7 @@ func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		},
 	}
 
-	retRes60915 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes60915)
-	ch <- retRes60915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 
@@ -970,9 +966,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes68415 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes68415)
-	ch <- retRes68415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Pacifica) HandleWsTickers(client any, message map[string]any) any {
@@ -1184,9 +1178,7 @@ func (this *Pacifica) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes84715 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes84715)
-	ch <- retRes84715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Pacifica) HandleTrades(client any, message map[string]any) {
@@ -1428,9 +1420,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var messagehash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var message map[string]any = this.Extend(request, params)
 
-	retRes103715 := (<-this.Watch(url, messagehash, message, messagehash))
-	ccxt.PanicOnError(retRes103715)
-	ch <- retRes103715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messagehash, message, messagehash)))
 	return nil
 }
 func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
@@ -1596,9 +1586,7 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes115615 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes115615)
-	ch <- retRes115615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Pacifica) HandleOrder(client any, message map[string]any) {

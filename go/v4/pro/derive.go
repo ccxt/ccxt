@@ -85,9 +85,7 @@ func (this *Derive) watchPublicBody(ch chan any, messageHash any, message any, s
 		"method": "subscribe",
 	})
 
-	retRes6915 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-	ccxt.PanicOnError(retRes6915)
-	ch <- retRes6915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
 	return nil
 }
 
@@ -217,9 +215,7 @@ func (this *Derive) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		"params": params,
 	}
 
-	retRes17215 := (<-this.WatchPublicAsync(topic, request, subscription))
-	ccxt.PanicOnError(retRes17215)
-	ch <- retRes17215
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topic, request, subscription)))
 	return nil
 }
 func (this *Derive) HandleTicker(client any, message map[string]any) any {
@@ -367,9 +363,7 @@ func (this *Derive) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"name": topic,
 	}
 
-	retRes31115 := (<-this.UnWatchPublicAsync(messageHash, request, subscription))
-	ccxt.PanicOnError(retRes31115)
-	ch <- retRes31115
+	ch <- ccxt.PanicOnError((<-this.UnWatchPublicAsync(messageHash, request, subscription)))
 	return nil
 }
 
@@ -408,9 +402,7 @@ func (this *Derive) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"name": topic,
 	}
 
-	retRes34015 := (<-this.UnWatchPublicAsync(messageHah, request, subscription))
-	ccxt.PanicOnError(retRes34015)
-	ch <- retRes34015
+	ch <- ccxt.PanicOnError((<-this.UnWatchPublicAsync(messageHah, request, subscription)))
 	return nil
 }
 func (this *Derive) UnWatchPublicAsync(messageHash any, message any, subscription any) <-chan any {
@@ -431,9 +423,7 @@ func (this *Derive) unWatchPublicBody(ch chan any, messageHash any, message any,
 		"method": "unsubscribe",
 	})
 
-	retRes35315 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-	ccxt.PanicOnError(retRes35315)
-	ch <- retRes35315
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
 	return nil
 }
 func (this *Derive) HandleOrderBookUnSubscription(client any, topic any) {
@@ -605,9 +595,7 @@ func (this *Derive) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, message, messageHash, message)
 	}
 
-	retRes50315 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes50315)
-	ch <- retRes50315
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Derive) WatchPrivateAsync(messageHash any, message any, subscription any) <-chan any {
@@ -630,9 +618,7 @@ func (this *Derive) watchPrivateBody(ch chan any, messageHash any, message any, 
 		"method": "subscribe",
 	})
 
-	retRes51715 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-	ccxt.PanicOnError(retRes51715)
-	ch <- retRes51715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
 	return nil
 }
 

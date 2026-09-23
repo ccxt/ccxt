@@ -65,9 +65,7 @@ func (this *Bitopro) watchPublicBody(ch chan any, path any, messageHash any, mar
 	defer ccxt.ReturnPanicError(ch)
 	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "public"), "/"), path), "/"), marketId)
 
-	retRes5315 := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(retRes5315)
-	ch <- retRes5315
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash)))
 	return nil
 }
 
@@ -429,9 +427,7 @@ func (this *Bitopro) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("TICKER"+":", symbol)
 
-	retRes35215 := (<-this.WatchPublicAsync("tickers", messageHash, market["id"]))
-	ccxt.PanicOnError(retRes35215)
-	ch <- retRes35215
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync("tickers", messageHash, market["id"])))
 	return nil
 }
 func (this *Bitopro) HandleTicker(client any, message map[string]any) {
@@ -531,9 +527,7 @@ func (this *Bitopro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "account-balance")
 	this.Authenticate(url)
 
-	retRes44215 := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(retRes44215)
-	ch <- retRes44215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash)))
 	return nil
 }
 func (this *Bitopro) HandleBalance(client any, message map[string]any) {

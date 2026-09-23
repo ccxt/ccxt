@@ -321,10 +321,8 @@ func (this *Whitebit) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	var method string = "market_subscribe"
 	var messageHash any = ccxt.Add("ticker:", symbol)
 
-	retRes27215 := (<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, false, params))
-	ccxt.PanicOnError(retRes27215)
 	// every time we want to subscribe to another market we have to "re-subscribe" sending it all again
-	ch <- retRes27215
+	ch <- ccxt.PanicOnError((<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, false, params)))
 	return nil
 }
 
@@ -931,11 +929,9 @@ func (this *Whitebit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))))
 	}
 
-	retRes77415 := (<-this.WatchPrivateAsync(messageHash, method, []any{}, params))
-	ccxt.PanicOnError(retRes77415)
 	// an empty params array subscribes to updates for all assets,
 	// listing all tickers explicitly is rejected with "invalid argument"
-	ch <- retRes77415
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, method, []any{}, params)))
 	return nil
 }
 func (this *Whitebit) SetBalanceCache(client any, typeVar any, subscriptionHash any) {
@@ -1084,9 +1080,7 @@ func (this *Whitebit) watchPublicBody(ch chan any, messageHash any, method any, 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes89215 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes89215)
-	ch <- retRes89215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Whitebit) WatchMultipleSubscriptionAsync(messageHash any, method any, symbol any, optionalArgs ...any) <-chan any {
@@ -1128,9 +1122,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 		}
 		var message map[string]any = this.Extend(request, params)
 
-		retRes92119 := (<-this.Watch(url, messageHash, message, method, subscription))
-		ccxt.PanicOnError(retRes92119)
-		ch <- retRes92119
+		ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, method, subscription)))
 		return nil
 	} else {
 		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), method, map[string]any{})
@@ -1146,10 +1138,8 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 		}
 		if hasSymbolSubscription {
 
-			retRes93623 := (<-this.Watch(url, messageHash, request, method, subscription))
-			ccxt.PanicOnError(retRes93623)
 			// already subscribed to this market(s)
-			ch <- retRes93623
+			ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, method, subscription)))
 			return nil
 		} else {
 			// resubscribe
@@ -1167,9 +1157,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), method)
 			}
 
-			retRes95223 := (<-this.Watch(url, messageHash, resubRequest, method, subscription))
-			ccxt.PanicOnError(retRes95223)
-			ch <- retRes95223
+			ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, resubRequest, method, subscription)))
 			return nil
 		}
 	}
@@ -1198,9 +1186,7 @@ func (this *Whitebit) watchPrivateBody(ch chan any, messageHash any, method any,
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes96815 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes96815)
-	ch <- retRes96815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Whitebit) AuthenticateAsync(optionalArgs ...any) <-chan any {

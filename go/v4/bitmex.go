@@ -3820,9 +3820,7 @@ func (this *Bitmex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		"leverage": leverage,
 	}
 
-	retRes300015 := (<-this.PrivatePostPositionLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes300015)
-	ch <- retRes300015
+	ch <- PanicOnError((<-this.PrivatePostPositionLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -3874,9 +3872,7 @@ func (this *Bitmex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		"enabled": enabled,
 	}
 
-	retRes303315 := (<-this.PrivatePostPositionIsolate(this.Extend(request, params))).Raw
-	PanicOnError(retRes303315)
-	ch <- retRes303315
+	ch <- PanicOnError((<-this.PrivatePostPositionIsolate(this.Extend(request, params))).Raw)
 	return nil
 }
 

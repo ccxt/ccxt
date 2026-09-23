@@ -175,9 +175,7 @@ func (this *Okx) subscribeMultipleBody(ch chan any, access any, channel any, opt
 		"args": args,
 	}
 
-	retRes15715 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes15715)
-	ch <- retRes15715
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 func (this *Okx) SubscribeAsync(access any, messageHash any, channel any, symbol any, optionalArgs ...any) <-chan any {
@@ -208,9 +206,7 @@ func (this *Okx) subscribeBody(ch chan any, access any, messageHash any, channel
 		"args": []any{this.DeepExtend(firstArgument, params)},
 	}
 
-	retRes17915 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes17915)
-	ch <- retRes17915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 
@@ -241,9 +237,7 @@ func (this *Okx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes19515 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes19515)
-	ch <- retRes19515
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -379,9 +373,7 @@ func (this *Okx) unWatchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 	}
 	var url any = this.GetUrl(channel, access)
 
-	retRes29115 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes29115)
-	ch <- retRes29115
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 
@@ -404,9 +396,7 @@ func (this *Okx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes30315 := (<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes30315)
-	ch <- retRes30315
+	ch <- ccxt.PanicOnError((<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 func (this *Okx) HandleTrades(client any, message map[string]any) {
@@ -649,9 +639,7 @@ func (this *Okx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes48315 := (<-this.UnWatchTickersAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes48315)
-	ch <- retRes48315
+	ch <- ccxt.PanicOnError((<-this.UnWatchTickersAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -826,9 +814,7 @@ func (this *Okx) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var url any = this.GetUrl(channel, "public")
 
-	retRes58815 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes58815)
-	ch <- retRes58815
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 func (this *Okx) HandleTicker(client any, message map[string]any) {
@@ -1448,9 +1434,7 @@ func (this *Okx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes109515 := (<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params))
-	ccxt.PanicOnError(retRes109515)
-	ch <- retRes109515
+	ch <- ccxt.PanicOnError((<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)))
 	return nil
 }
 
@@ -1590,9 +1574,7 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	}
 	var url any = this.GetUrl("candle", "public")
 
-	retRes118415 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes118415)
-	ch <- retRes118415
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 func (this *Okx) HandleOHLCV(client any, message any) {
@@ -1679,9 +1661,7 @@ func (this *Okx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes125415 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes125415)
-	ch <- retRes125415
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -1823,9 +1803,7 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	}
 	var url any = this.GetUrl(depth, "public")
 
-	retRes136215 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes136215)
-	ch <- retRes136215
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 
@@ -1851,9 +1829,7 @@ func (this *Okx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes137715 := (<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes137715)
-	ch <- retRes137715
+	ch <- ccxt.PanicOnError((<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 func (this *Okx) HandleDelta(bookside any, delta any) {
@@ -2133,9 +2109,7 @@ func (this *Okx) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, request, messageHash)
 	}
 
-	retRes163615 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes163615)
-	ch <- retRes163615
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 
@@ -2164,9 +2138,7 @@ func (this *Okx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 
-	retRes165215 := (<-this.SubscribeAsync("private", "account", "account", nil, params))
-	ccxt.PanicOnError(retRes165215)
-	ch <- retRes165215
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync("private", "account", "account", nil, params)))
 	return nil
 }
 func (this *Okx) HandleBalanceAndPosition(client any, message map[string]any) {
@@ -2931,9 +2903,7 @@ func (this *Okx) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 		"args": []any{args},
 	}
 
-	retRes226615 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes226615)
-	ch <- retRes226615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Okx) HandlePlaceOrders(client any, message map[string]any) {
@@ -3024,9 +2994,7 @@ func (this *Okx) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 		"args": []any{args},
 	}
 
-	retRes233915 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes233915)
-	ch <- retRes233915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 
@@ -3082,9 +3050,7 @@ func (this *Okx) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any
 		"args": []any{this.Extend(arg, params)},
 	}
 
-	retRes238015 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes238015)
-	ch <- retRes238015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 
@@ -3143,9 +3109,7 @@ func (this *Okx) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) a
 		"args": args,
 	}
 
-	retRes242415 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-	ccxt.PanicOnError(retRes242415)
-	ch <- retRes242415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)))
 	return nil
 }
 
@@ -3194,9 +3158,7 @@ func (this *Okx) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 		}, params)},
 	}
 
-	retRes245815 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes245815)
-	ch <- retRes245815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Okx) HandleCancelAllOrders(client any, message map[string]any) {

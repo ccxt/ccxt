@@ -209,9 +209,7 @@ func (this *Poloniex) subscribeBody(ch chan any, name any, messageHash any, isPr
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 
-	retRes17015 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes17015)
-	ch <- retRes17015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 
@@ -241,9 +239,7 @@ func (this *Poloniex) tradeRequestBody(ch chan any, name any, optionalArgs ...an
 		"params": params,
 	}
 
-	retRes18915 := (<-this.Watch(url, messageHash, subscribe, messageHash))
-	ccxt.PanicOnError(retRes18915)
-	ch <- retRes18915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, subscribe, messageHash)))
 	return nil
 }
 
@@ -409,9 +405,7 @@ func (this *Poloniex) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 		"orderIds": ids,
 	}
 
-	retRes30715 := (<-this.TradeRequestAsync("cancelOrders", this.Extend(request, params)))
-	ccxt.PanicOnError(retRes30715)
-	ch <- retRes30715
+	ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("cancelOrders", this.Extend(request, params))))
 	return nil
 }
 
@@ -443,9 +437,7 @@ func (this *Poloniex) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 
-	retRes32415 := (<-this.TradeRequestAsync("cancelAllOrders", params))
-	ccxt.PanicOnError(retRes32415)
-	ch <- retRes32415
+	ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("cancelAllOrders", params)))
 	return nil
 }
 func (this *Poloniex) HandleOrderRequest(client any, message any) {
@@ -621,9 +613,7 @@ func (this *Poloniex) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes43015 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes43015)
-	ch <- retRes43015
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -858,9 +848,7 @@ func (this *Poloniex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 
-	retRes56715 := (<-this.SubscribeAsync(name, name, true, nil, params))
-	ccxt.PanicOnError(retRes56715)
-	ch <- retRes56715
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync(name, name, true, nil, params)))
 	return nil
 }
 func (this *Poloniex) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {

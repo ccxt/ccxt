@@ -132,15 +132,11 @@ func (this *Bithumb) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 			"codes": []any{marketIdRequest},
 		}, params)}
 
-		retRes10019 := (<-this.Watch(url, messageHash, request, messageHash))
-		ccxt.PanicOnError(retRes10019)
-		ch <- retRes10019
+		ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 		return nil
 	}
 
-	retRes10215 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes10215)
-	ch <- retRes10215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 

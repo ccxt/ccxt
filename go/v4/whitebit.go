@@ -4008,9 +4008,7 @@ func (this *Whitebit) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 		"leverage": leverage,
 	}
 
-	retRes306715 := (<-this.V4PrivatePostCollateralAccountLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes306715)
-	ch <- retRes306715
+	ch <- PanicOnError((<-this.V4PrivatePostCollateralAccountLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 

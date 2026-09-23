@@ -2229,8 +2229,6 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan any, builder any, maxFeeR
 		"vaultAddress": nil,
 	}
 
-	retRes190715 := (<-this.PrivatePostExchange(request)).Raw
-	PanicOnError(retRes190715)
 	//
 	// {
 	//     "status": "ok",
@@ -2239,7 +2237,7 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan any, builder any, maxFeeR
 	//     }
 	// }
 	//
-	ch <- retRes190715
+	ch <- PanicOnError((<-this.PrivatePostExchange(request)).Raw)
 	return nil
 }
 func (this *Hyperliquid) InitializeClientAsync() <-chan any {
@@ -2477,8 +2475,6 @@ func (this *Hyperliquid) setUserAbstractionBody(ch chan any, abstraction any, op
 		"vaultAddress": nil,
 	}
 
-	retRes203815 := (<-this.PrivatePostExchange(request)).Raw
-	PanicOnError(retRes203815)
 	//
 	// {
 	//     "status": "ok",
@@ -2487,7 +2483,7 @@ func (this *Hyperliquid) setUserAbstractionBody(ch chan any, abstraction any, op
 	//     }
 	// }
 	//
-	ch <- retRes203815
+	ch <- PanicOnError((<-this.PrivatePostExchange(request)).Raw)
 	return nil
 }
 
@@ -2545,8 +2541,6 @@ func (this *Hyperliquid) enableUserDexAbstractionBody(ch chan any, enabled any, 
 		"vaultAddress": nil,
 	}
 
-	retRes208615 := (<-this.PrivatePostExchange(request)).Raw
-	PanicOnError(retRes208615)
 	//
 	// {
 	//     "status": "ok",
@@ -2555,7 +2549,7 @@ func (this *Hyperliquid) enableUserDexAbstractionBody(ch chan any, enabled any, 
 	//     }
 	// }
 	//
-	ch <- retRes208615
+	ch <- PanicOnError((<-this.PrivatePostExchange(request)).Raw)
 	return nil
 }
 

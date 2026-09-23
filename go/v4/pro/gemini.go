@@ -568,9 +568,7 @@ func (this *Gemini) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes46315 := (<-this.HelperForWatchMultipleConstructAsync("bidsasks", symbols, params))
-	ccxt.PanicOnError(retRes46315)
-	ch <- retRes46315
+	ch <- ccxt.PanicOnError((<-this.HelperForWatchMultipleConstructAsync("bidsasks", symbols, params)))
 	return nil
 }
 func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []any, timestamp any, nonce any) {
@@ -689,9 +687,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 		url = ccxt.Add(url, "trades=true&bids=false&offers=false")
 	}
 
-	retRes56015 := (<-this.WatchMultiple(url, messageHashes, nil))
-	ccxt.PanicOnError(retRes56015)
-	ch <- retRes56015
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, nil)))
 	return nil
 }
 func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges []any, timestamp any, nonce any) {

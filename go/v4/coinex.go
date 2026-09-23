@@ -4496,9 +4496,7 @@ func (this *Coinex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		"leverage":    leverage,
 	}
 
-	retRes443315 := (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes443315)
-	ch <- retRes443315
+	ch <- PanicOnError((<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -4552,9 +4550,7 @@ func (this *Coinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		"leverage":    leverage,
 	}
 
-	retRes448115 := (<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes448115)
-	ch <- retRes448115
+	ch <- PanicOnError((<-this.V2PrivatePostFuturesAdjustPositionLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 

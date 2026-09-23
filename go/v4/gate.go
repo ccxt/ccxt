@@ -2017,9 +2017,7 @@ func (this *Gate) upgradeUnifiedTradeAccountBody(ch chan any, optionalArgs ...an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes127415 := (<-this.PrivateUnifiedPutUnifiedMode(params))
-	PanicOnError(retRes127415)
-	ch <- retRes127415
+	ch <- PanicOnError((<-this.PrivateUnifiedPutUnifiedMode(params)))
 	return nil
 }
 
@@ -10267,9 +10265,7 @@ func (this *Gate) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	query := GetValue(requestqueryVariable, 1)
 	AddElementToObject(request, "dual_mode", hedged)
 
-	retRes791515 := (<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query))).Raw
-	PanicOnError(retRes791515)
-	ch <- retRes791515
+	ch <- PanicOnError((<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query))).Raw)
 	return nil
 }
 

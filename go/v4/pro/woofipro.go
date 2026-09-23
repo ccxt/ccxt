@@ -103,9 +103,7 @@ func (this *Woofipro) watchPublicBody(ch chan any, messageHash any, message any)
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	retRes9215 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
-	ccxt.PanicOnError(retRes9215)
-	ch <- retRes9215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscribe)))
 	return nil
 }
 
@@ -219,9 +217,7 @@ func (this *Woofipro) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes18015 := (<-this.WatchPublicAsync(topic, message))
-	ccxt.PanicOnError(retRes18015)
-	ch <- retRes18015
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message)))
 	return nil
 }
 func (this *Woofipro) ParseWsTicker(ticker any, optionalArgs ...any) any {
@@ -788,9 +784,7 @@ func (this *Woofipro) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	retRes65115 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes65115)
-	ch <- retRes65115
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Woofipro) WatchPrivateAsync(messageHash any, message any, optionalArgs ...any) <-chan any {
@@ -812,9 +806,7 @@ func (this *Woofipro) watchPrivateBody(ch chan any, messageHash any, message any
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	retRes66215 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
-	ccxt.PanicOnError(retRes66215)
-	ch <- retRes66215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscribe)))
 	return nil
 }
 func (this *Woofipro) WatchPrivateMultipleAsync(messageHashes any, message any, optionalArgs ...any) <-chan any {
@@ -836,9 +828,7 @@ func (this *Woofipro) watchPrivateMultipleBody(ch chan any, messageHashes any, m
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	retRes67315 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe))
-	ccxt.PanicOnError(retRes67315)
-	ch <- retRes67315
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe)))
 	return nil
 }
 
@@ -1496,9 +1486,7 @@ func (this *Woofipro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes123015 := (<-this.WatchPrivateAsync(messageHash, message))
-	ccxt.PanicOnError(retRes123015)
-	ch <- retRes123015
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, message)))
 	return nil
 }
 func (this *Woofipro) HandleBalance(client any, message map[string]any) {

@@ -773,9 +773,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var subMessageHash any = ccxt.Add("orderbook"+":", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:orderbook"+":", symbol)
 
-	retRes51915 := (<-this.UnSubscribePublicMultipleAsync(url, "orderbook", []any{symbol}, []any{messageHash}, []any{subMessageHash}, payload, channel, params))
-	ccxt.PanicOnError(retRes51915)
-	ch <- retRes51915
+	ch <- ccxt.PanicOnError((<-this.UnSubscribePublicMultipleAsync(url, "orderbook", []any{symbol}, []any{messageHash}, []any{subMessageHash}, payload, channel, params)))
 	return nil
 }
 func (this *Gate) HandleOrderBookSubscription(client any, message map[string]any, optionalArgs ...any) {
@@ -1267,9 +1265,7 @@ func (this *Gate) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes90815 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes90815)
-	ch <- retRes90815
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -1365,9 +1361,7 @@ func (this *Gate) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 	}
 	var url any = this.GetUrlByMarket(market)
 
-	retRes97415 := (<-this.UnSubscribePublicMultipleAsync(url, "trades", symbols, messageHashes, subMessageHashes, marketIds, channel, params))
-	ccxt.PanicOnError(retRes97415)
-	ch <- retRes97415
+	ch <- ccxt.PanicOnError((<-this.UnSubscribePublicMultipleAsync(url, "trades", symbols, messageHashes, subMessageHashes, marketIds, channel, params)))
 	return nil
 }
 
@@ -1390,9 +1384,7 @@ func (this *Gate) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes98615 := (<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes98615)
-	ch <- retRes98615
+	ch <- ccxt.PanicOnError((<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 func (this *Gate) HandleTrades(client any, message map[string]any) {
@@ -1725,9 +1717,7 @@ func (this *Gate) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var channel any = ccxt.Add(channelType, ".balances")
 	var messageHash any = ccxt.Add(typeVar, ".balance")
 
-	retRes125715 := (<-this.SubscribePrivateAsync(url, messageHash, nil, channel, params, requiresUid))
-	ccxt.PanicOnError(retRes125715)
-	ch <- retRes125715
+	ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(url, messageHash, nil, channel, params, requiresUid)))
 	return nil
 }
 func (this *Gate) HandleBalance(client any, message map[string]any) {
@@ -1898,9 +1888,7 @@ func (this *Gate) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var cache any = this.SafeValue(this.Positions, typeVar)
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (ccxt.IsEqual(cache, nil)) {
 
-		retRes140719 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
-		ccxt.PanicOnError(retRes140719)
-		ch <- retRes140719
+		ch <- ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot"))))
 		return nil
 	}
 
@@ -2303,9 +2291,7 @@ func (this *Gate) watchMyLiquidationsBody(ch chan any, symbol any, optionalArgs 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes170315 := (<-this.WatchMyLiquidationsForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes170315)
-	ch <- retRes170315
+	ch <- ccxt.PanicOnError((<-this.WatchMyLiquidationsForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -2956,9 +2942,7 @@ func (this *Gate) subscribePublicBody(ch chan any, url any, messageHash any, pay
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes225815 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(retRes225815)
-	ch <- retRes225815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, subscription)))
 	return nil
 }
 func (this *Gate) SubscribePublicMultipleAsync(url any, messageHashes any, payload any, channel any, optionalArgs ...any) <-chan any {
@@ -2982,9 +2966,7 @@ func (this *Gate) subscribePublicMultipleBody(ch chan any, url any, messageHashe
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes227215 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-	ccxt.PanicOnError(retRes227215)
-	ch <- retRes227215
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes)))
 	return nil
 }
 func (this *Gate) UnSubscribePublicMultipleAsync(url any, topic any, symbols any, messageHashes any, subMessageHashes any, payload any, channel any, optionalArgs ...any) <-chan any {
@@ -3016,9 +2998,7 @@ func (this *Gate) unSubscribePublicMultipleBody(ch chan any, url any, topic any,
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes229415 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub))
-	ccxt.PanicOnError(retRes229415)
-	ch <- retRes229415
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub)))
 	return nil
 }
 func (this *Gate) AuthenticateAsync(url any, messageType any) <-chan any {
@@ -3036,9 +3016,7 @@ func (this *Gate) authenticateBody(ch chan any, url any, messageType any) any {
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
 
-		retRes230419 := (<-this.RequestPrivateAsync(url, map[string]any{}, channel, messageHash))
-		ccxt.PanicOnError(retRes230419)
-		ch <- retRes230419
+		ch <- ccxt.PanicOnError((<-this.RequestPrivateAsync(url, map[string]any{}, channel, messageHash)))
 		return nil
 	}
 
@@ -3092,9 +3070,7 @@ func (this *Gate) requestPrivateBody(ch chan any, url any, reqParams any, channe
 		"payload": payload,
 	}
 
-	retRes234715 := (<-this.Watch(url, messageHash, request, messageHash, requestId))
-	ccxt.PanicOnError(retRes234715)
-	ch <- retRes234715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, requestId)))
 	return nil
 }
 func (this *Gate) SubscribePrivateAsync(url any, messageHash any, payload any, channel any, params any, optionalArgs ...any) <-chan any {
@@ -3148,9 +3124,7 @@ func (this *Gate) subscribePrivateBody(ch chan any, url any, messageHash any, pa
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes239115 := (<-this.Watch(url, messageHash, message, messageHash, messageHash))
-	ccxt.PanicOnError(retRes239115)
-	ch <- retRes239115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, messageHash)))
 	return nil
 }
 

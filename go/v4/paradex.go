@@ -4044,9 +4044,7 @@ func (this *Paradex) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 		"margin_type": this.EncodeMarginMode(marginMode),
 	}
 
-	retRes303815 := (<-this.PrivatePostAccountMarginMarket(this.Extend(request, params))).Raw
-	PanicOnError(retRes303815)
-	ch <- retRes303815
+	ch <- PanicOnError((<-this.PrivatePostAccountMarginMarket(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -4161,9 +4159,7 @@ func (this *Paradex) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 		"margin_type": this.EncodeMarginMode(marginMode),
 	}
 
-	retRes312215 := (<-this.PrivatePostAccountMarginMarket(this.Extend(request, params))).Raw
-	PanicOnError(retRes312215)
-	ch <- retRes312215
+	ch <- PanicOnError((<-this.PrivatePostAccountMarginMarket(this.Extend(request, params))).Raw)
 	return nil
 }
 

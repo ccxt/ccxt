@@ -113,9 +113,7 @@ func (this *Mudrex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 
-	retRes8615 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes8615)
-	ch <- retRes8615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Mudrex) WatchTickersAsync(optionalArgs ...any) <-chan any {

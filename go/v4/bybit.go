@@ -2409,9 +2409,7 @@ func (this *Bybit) upgradeUnifiedTradeAccountBody(ch chan any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes158415 := (<-this.PrivatePostV5AccountUpgradeToUta(params)).Raw
-	PanicOnError(retRes158415)
-	ch <- retRes158415
+	ch <- PanicOnError((<-this.PrivatePostV5AccountUpgradeToUta(params)).Raw)
 	return nil
 }
 func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {

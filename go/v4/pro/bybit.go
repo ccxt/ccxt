@@ -324,9 +324,7 @@ func (this *Bybit) createOrderWsBody(ch chan any, symbol any, typeVar any, side 
 		},
 	}
 
-	retRes28515 := (<-this.Watch(url, requestId, request, requestId, true))
-	ccxt.PanicOnError(retRes28515)
-	ch <- retRes28515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, requestId, request, requestId, true)))
 	return nil
 }
 
@@ -388,9 +386,7 @@ func (this *Bybit) editOrderWsBody(ch chan any, id any, symbol any, typeVar any,
 		},
 	}
 
-	retRes33215 := (<-this.Watch(url, requestId, request, requestId, true))
-	ccxt.PanicOnError(retRes33215)
-	ch <- retRes33215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, requestId, request, requestId, true)))
 	return nil
 }
 
@@ -444,9 +440,7 @@ func (this *Bybit) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) a
 		},
 	}
 
-	retRes37315 := (<-this.Watch(url, requestId, request, requestId, true))
-	ccxt.PanicOnError(retRes37315)
-	ch <- retRes37315
+	ch <- ccxt.PanicOnError((<-this.Watch(url, requestId, request, requestId, true)))
 	return nil
 }
 
@@ -489,9 +483,7 @@ func (this *Bybit) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	topic = ccxt.Add(topic, ccxt.Add(".", market["id"]))
 	var topics []any = []any{topic}
 
-	retRes40215 := (<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params))
-	ccxt.PanicOnError(retRes40215)
-	ch <- retRes40215
+	ch <- ccxt.PanicOnError((<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params)))
 	return nil
 }
 
@@ -595,9 +587,7 @@ func (this *Bybit) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	url := (<-this.GetUrlByMarketTypeAsync(ccxt.GetValue(symbols, 0), false, "watchTickers", params))
 	ccxt.PanicOnError(url)
 
-	retRes47015 := (<-this.UnWatchTopicsAsync(url, "ticker", symbols, messageHashes, subMessageHashes, topics, params))
-	ccxt.PanicOnError(retRes47015)
-	ch <- retRes47015
+	ch <- ccxt.PanicOnError((<-this.UnWatchTopicsAsync(url, "ticker", symbols, messageHashes, subMessageHashes, topics, params)))
 	return nil
 }
 
@@ -622,9 +612,7 @@ func (this *Bybit) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes48415 := (<-this.UnWatchTickersAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes48415)
-	ch <- retRes48415
+	ch <- ccxt.PanicOnError((<-this.UnWatchTickersAsync([]any{symbol}, params)))
 	return nil
 }
 func (this *Bybit) HandleTicker(client any, message map[string]any) {
@@ -1015,9 +1003,7 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		"symbolsAndTimeframes": symbolsAndTimeframes,
 	}
 
-	retRes77715 := (<-this.UnWatchTopicsAsync(url, "ohlcv", symbols, messageHashes, subMessageHashes, rawHashes, params, subExtension))
-	ccxt.PanicOnError(retRes77715)
-	ch <- retRes77715
+	ch <- ccxt.PanicOnError((<-this.UnWatchTopicsAsync(url, "ohlcv", symbols, messageHashes, subMessageHashes, rawHashes, params, subExtension)))
 	return nil
 }
 
@@ -1046,9 +1032,7 @@ func (this *Bybit) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchOHLCV")
 
-	retRes79315 := (<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params))
-	ccxt.PanicOnError(retRes79315)
-	ch <- retRes79315
+	ch <- ccxt.PanicOnError((<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)))
 	return nil
 }
 func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
@@ -1161,9 +1145,7 @@ func (this *Bybit) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes89015 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes89015)
-	ch <- retRes89015
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -1291,9 +1273,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	url := (<-this.GetUrlByMarketTypeAsync(ccxt.GetValue(symbols, 0), false, "watchOrderBook", params))
 	ccxt.PanicOnError(url)
 
-	retRes98215 := (<-this.UnWatchTopicsAsync(url, "orderbook", symbols, messageHashes, subMessageHashes, topics, params))
-	ccxt.PanicOnError(retRes98215)
-	ch <- retRes98215
+	ch <- ccxt.PanicOnError((<-this.UnWatchTopicsAsync(url, "orderbook", symbols, messageHashes, subMessageHashes, topics, params)))
 	return nil
 }
 
@@ -1318,9 +1298,7 @@ func (this *Bybit) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes99615 := (<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes99615)
-	ch <- retRes99615
+	ch <- ccxt.PanicOnError((<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 func (this *Bybit) HandleOrderBook(client any, message any) {
@@ -1436,9 +1414,7 @@ func (this *Bybit) watchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes109515 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes109515)
-	ch <- retRes109515
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -1543,9 +1519,7 @@ func (this *Bybit) unWatchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		subMessageHashes = append(subMessageHashes, ccxt.Add("trade:", symbol))
 	}
 
-	retRes116615 := (<-this.UnWatchTopicsAsync(url, "trades", symbols, messageHashes, subMessageHashes, topics, params))
-	ccxt.PanicOnError(retRes116615)
-	ch <- retRes116615
+	ch <- ccxt.PanicOnError((<-this.UnWatchTopicsAsync(url, "trades", symbols, messageHashes, subMessageHashes, topics, params)))
 	return nil
 }
 
@@ -1569,9 +1543,7 @@ func (this *Bybit) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes117915 := (<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes117915)
-	ch <- retRes117915
+	ch <- ccxt.PanicOnError((<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 func (this *Bybit) HandleTrades(client any, message map[string]any) {
@@ -1835,9 +1807,7 @@ func (this *Bybit) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		topic = ccxt.SafeStringPtr("execution.fast")
 	}
 
-	retRes138515 := (<-this.UnWatchTopicsAsync(url, "myTrades", []any{}, []any{messageHash}, []any{subHash}, []any{topic}, params))
-	ccxt.PanicOnError(retRes138515)
-	ch <- retRes138515
+	ch <- ccxt.PanicOnError((<-this.UnWatchTopicsAsync(url, "myTrades", []any{}, []any{messageHash}, []any{subHash}, []any{topic}, params)))
 	return nil
 }
 func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
@@ -2242,9 +2212,7 @@ func (this *Bybit) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	var topics []any = []any{"position"}
 
-	retRes171915 := (<-this.UnWatchTopicsAsync(url, "positions", symbols, []any{messageHash}, []any{subHash}, topics, params))
-	ccxt.PanicOnError(retRes171915)
-	ch <- retRes171915
+	ch <- ccxt.PanicOnError((<-this.UnWatchTopicsAsync(url, "positions", symbols, []any{messageHash}, []any{subHash}, topics, params)))
 	return nil
 }
 
@@ -2510,9 +2478,7 @@ func (this *Bybit) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var topics any = this.SafeList(topicsByMarket, this.GetPrivateType(url))
 
-	retRes191615 := (<-this.UnWatchTopicsAsync(url, "orders", []any{}, []any{messageHash}, []any{subHash}, topics, params))
-	ccxt.PanicOnError(retRes191615)
-	ch <- retRes191615
+	ch <- ccxt.PanicOnError((<-this.UnWatchTopicsAsync(url, "orders", []any{}, []any{messageHash}, []any{subHash}, topics, params)))
 	return nil
 }
 func (this *Bybit) HandleOrderWs(client any, message map[string]any) {
@@ -2736,9 +2702,7 @@ func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var topics []any = []any{this.SafeString(topicByMarket, this.GetPrivateType(url))}
 
-	retRes212215 := (<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params))
-	ccxt.PanicOnError(retRes212215)
-	ch <- retRes212215
+	ch <- ccxt.PanicOnError((<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params)))
 	return nil
 }
 func (this *Bybit) HandleBalance(client any, message map[string]any) {
@@ -3068,9 +3032,7 @@ func (this *Bybit) watchTopicsBody(ch chan any, url any, messageHashes any, topi
 		}
 	}
 
-	retRes242715 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription))
-	ccxt.PanicOnError(retRes242715)
-	ch <- retRes242715
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription)))
 	return nil
 }
 func (this *Bybit) UnWatchTopicsAsync(url any, topic any, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) <-chan any {
@@ -3100,9 +3062,7 @@ func (this *Bybit) unWatchTopicsBody(ch chan any, url any, topic any, symbols an
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes244515 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes, this.Extend(subscription, subExtension)))
-	ccxt.PanicOnError(retRes244515)
-	ch <- retRes244515
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes, this.Extend(subscription, subExtension))))
 	return nil
 }
 func (this *Bybit) AuthenticateAsync(url any, optionalArgs ...any) <-chan any {
@@ -3134,9 +3094,7 @@ func (this *Bybit) authenticateBody(ch chan any, url any, optionalArgs ...any) a
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	retRes246915 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes246915)
-	ch <- retRes246915
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Bybit) HandleErrorMessage(client any, message any) any {

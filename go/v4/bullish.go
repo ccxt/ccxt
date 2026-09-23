@@ -3920,9 +3920,7 @@ func (this *Bullish) handleTokenBody(ch chan any, optionalArgs ...any) any {
 	var tokenExpires *int64 = this.SafeInteger(this.Options, "tokenExpires")
 	if (token == nil) || (tokenExpires == nil) || (now > *tokenExpires) {
 
-		retRes306319 := (<-this.SignInAsync())
-		PanicOnError(retRes306319)
-		ch <- retRes306319
+		ch <- PanicOnError((<-this.SignInAsync()))
 		return nil
 	} else {
 

@@ -131,9 +131,7 @@ func (this *Hitbtc) authenticateBody(ch chan any) any {
 		this.Watch(url, messageHash, request, messageHash)
 	}
 
-	retRes13115 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes13115)
-	ch <- retRes13115
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 
@@ -179,9 +177,7 @@ func (this *Hitbtc) subscribePublicBody(ch chan any, name any, messageHashPrefix
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 
-	retRes16315 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes16315)
-	ch <- retRes16315
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 
@@ -222,9 +218,7 @@ func (this *Hitbtc) subscribePrivateBody(ch chan any, name any, optionalArgs ...
 		"id":     this.Nonce(),
 	}
 
-	retRes18915 := (<-this.Watch(url, messageHash, subscribe, messageHash))
-	ccxt.PanicOnError(retRes18915)
-	ch <- retRes18915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, subscribe, messageHash)))
 	return nil
 }
 
@@ -258,9 +252,7 @@ func (this *Hitbtc) tradeRequestBody(ch chan any, name any, optionalArgs ...any)
 		"id":     messageHash,
 	}
 
-	retRes21015 := (<-this.Watch(url, messageHash, subscribe, messageHash))
-	ccxt.PanicOnError(retRes21015)
-	ch <- retRes21015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, subscribe, messageHash)))
 	return nil
 }
 
@@ -1318,9 +1310,7 @@ func (this *Hitbtc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"mode": mode,
 	}
 
-	retRes111715 := (<-this.SubscribePrivateAsync(name, nil, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes111715)
-	ch <- retRes111715
+	ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(name, nil, this.Extend(request, params))))
 	return nil
 }
 
@@ -1376,21 +1366,15 @@ func (this *Hitbtc) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 	request = this.Extend(request, params)
 	if ccxt.IsEqual(marketType, "swap") {
 
-		retRes115319 := (<-this.TradeRequestAsync("futures_new_order", request))
-		ccxt.PanicOnError(retRes115319)
-		ch <- retRes115319
+		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("futures_new_order", request)))
 		return nil
 	} else if (ccxt.IsEqual(marketType, "margin")) || (marginMode != nil) {
 
-		retRes115519 := (<-this.TradeRequestAsync("margin_new_order", request))
-		ccxt.PanicOnError(retRes115519)
-		ch <- retRes115519
+		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("margin_new_order", request)))
 		return nil
 	} else {
 
-		retRes115719 := (<-this.TradeRequestAsync("spot_new_order", request))
-		ccxt.PanicOnError(retRes115719)
-		ch <- retRes115719
+		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("spot_new_order", request)))
 		return nil
 	}
 }
@@ -1442,21 +1426,15 @@ func (this *Hitbtc) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 	request = this.Extend(request, query)
 	if ccxt.IsEqual(marketType, "swap") {
 
-		retRes119119 := (<-this.TradeRequestAsync("futures_cancel_order", request))
-		ccxt.PanicOnError(retRes119119)
-		ch <- retRes119119
+		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("futures_cancel_order", request)))
 		return nil
 	} else if (ccxt.IsEqual(marketType, "margin")) || (!ccxt.IsEqual(marginMode, nil)) {
 
-		retRes119319 := (<-this.TradeRequestAsync("margin_cancel_order", request))
-		ccxt.PanicOnError(retRes119319)
-		ch <- retRes119319
+		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("margin_cancel_order", request)))
 		return nil
 	} else {
 
-		retRes119519 := (<-this.TradeRequestAsync("spot_cancel_order", request))
-		ccxt.PanicOnError(retRes119519)
-		ch <- retRes119519
+		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("spot_cancel_order", request)))
 		return nil
 	}
 }
@@ -1503,17 +1481,13 @@ func (this *Hitbtc) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	params = ccxt.MapTyped(ccxt.GetValue(marginModeparamsVariable, 1))
 	if ccxt.IsEqual(marketType, "swap") {
 
-		retRes122419 := (<-this.TradeRequestAsync("futures_cancel_orders", params))
-		ccxt.PanicOnError(retRes122419)
-		ch <- retRes122419
+		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("futures_cancel_orders", params)))
 		return nil
 	} else if (ccxt.IsEqual(marketType, "margin")) || (marginMode != nil) {
 		panic(ccxt.NotSupported(this.Id + " cancelAllOrdersWs is not supported for margin orders"))
 	} else {
 
-		retRes122819 := (<-this.TradeRequestAsync("spot_cancel_orders", params))
-		ccxt.PanicOnError(retRes122819)
-		ch <- retRes122819
+		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("spot_cancel_orders", params)))
 		return nil
 	}
 }
@@ -1569,21 +1543,15 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	params = ccxt.MapTyped(ccxt.GetValue(marginModeparamsVariable, 1))
 	if ccxt.IsEqual(marketType, "swap") {
 
-		retRes126219 := (<-this.TradeRequestAsync("futures_get_orders", request))
-		ccxt.PanicOnError(retRes126219)
-		ch <- retRes126219
+		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("futures_get_orders", request)))
 		return nil
 	} else if (ccxt.IsEqual(marketType, "margin")) || (marginMode != nil) {
 
-		retRes126419 := (<-this.TradeRequestAsync("margin_get_orders", request))
-		ccxt.PanicOnError(retRes126419)
-		ch <- retRes126419
+		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("margin_get_orders", request)))
 		return nil
 	} else {
 
-		retRes126619 := (<-this.TradeRequestAsync("spot_get_orders", request))
-		ccxt.PanicOnError(retRes126619)
-		ch <- retRes126619
+		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("spot_get_orders", request)))
 		return nil
 	}
 }

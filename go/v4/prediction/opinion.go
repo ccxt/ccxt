@@ -282,9 +282,7 @@ func (this *Opinion) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 		}
 	}
 
-	retRes24715 := (<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol))
-	ccxt.PanicOnError(retRes24715)
-	ch <- retRes24715
+	ch <- ccxt.PanicOnError((<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol)))
 	return nil
 }
 
@@ -2318,9 +2316,7 @@ func (this *Opinion) subscribeOpinionChannelBody(ch chan any, messageHash any, c
 		"marketId": marketId,
 	}
 
-	retRes169915 := (<-this.Watch(url, messageHash, subscribeMsg, subscriptionKey))
-	ccxt.PanicOnError(retRes169915)
-	ch <- retRes169915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, subscribeMsg, subscriptionKey)))
 	return nil
 }
 func (this *Opinion) HandleMessage(client any, message any) {
@@ -2516,9 +2512,7 @@ func (this *Opinion) watchTickerBody(ch chan any, outcome any, optionalArgs ...a
 	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var messageHash any = ccxt.Add("ticker::", sym)
 
-	retRes184415 := (<-this.SubscribeOpinionChannelAsync(messageHash, "market.last.price", marketId))
-	ccxt.PanicOnError(retRes184415)
-	ch <- retRes184415
+	ch <- ccxt.PanicOnError((<-this.SubscribeOpinionChannelAsync(messageHash, "market.last.price", marketId)))
 	return nil
 }
 func (this *Opinion) HandleTicker(client any, message any) {

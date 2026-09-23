@@ -133,9 +133,7 @@ func (this *Bydfi) watchPublicBody(ch chan any, messageHashes any, channels any,
 		"params": channels,
 	}
 
-	retRes11615 := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(message, params), messageHashes, this.Extend(subscriptionParams, subscription)))
-	ccxt.PanicOnError(retRes11615)
-	ch <- retRes11615
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(message, params), messageHashes, this.Extend(subscriptionParams, subscription))))
 	return nil
 }
 func (this *Bydfi) WatchPrivateAsync(messageHashes any, optionalArgs ...any) <-chan any {
@@ -172,9 +170,7 @@ func (this *Bydfi) watchPrivateBody(ch chan any, messageHashes any, optionalArgs
 		subscription["id"] = id
 	}
 
-	retRes14315 := (<-this.WatchMultiple(url, messageHashes, params, []any{"private"}, subscription))
-	ccxt.PanicOnError(retRes14315)
-	ch <- retRes14315
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, params, []any{"private"}, subscription)))
 	return nil
 }
 
@@ -206,9 +202,7 @@ func (this *Bydfi) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	var messageHash any = ccxt.Add("ticker::", symbol)
 	var channel any = ccxt.Add(marketId, "@ticker")
 
-	retRes16315 := (<-this.WatchPublicAsync([]any{messageHash}, []any{channel}, params))
-	ccxt.PanicOnError(retRes16315)
-	ch <- retRes16315
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync([]any{messageHash}, []any{channel}, params)))
 	return nil
 }
 
@@ -232,9 +226,7 @@ func (this *Bydfi) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes17615 := (<-this.UnWatchTickersAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes17615)
-	ch <- retRes17615
+	ch <- ccxt.PanicOnError((<-this.UnWatchTickersAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -349,9 +341,7 @@ func (this *Bydfi) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		"unsubscribe": true,
 	})
 
-	retRes26115 := (<-this.WatchPublicAsync(messageHashes, channels, params, subscription))
-	ccxt.PanicOnError(retRes26115)
-	ch <- retRes26115
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(messageHashes, channels, params, subscription)))
 	return nil
 }
 func (this *Bydfi) GetMessageHashesForTickersUnsubscription() any {
@@ -447,9 +437,7 @@ func (this *Bydfi) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes32815 := (<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params))
-	ccxt.PanicOnError(retRes32815)
-	ch <- retRes32815
+	ch <- ccxt.PanicOnError((<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)))
 	return nil
 }
 
@@ -553,9 +541,7 @@ func (this *Bydfi) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		"symbolsAndTimeframes": symbolsAndTimeframes,
 	}
 
-	retRes39915 := (<-this.WatchPublicAsync(messageHashes, channels, params, subscription))
-	ccxt.PanicOnError(retRes39915)
-	ch <- retRes39915
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(messageHashes, channels, params, subscription)))
 	return nil
 }
 func (this *Bydfi) HandleOHLCV(client any, message any) {
@@ -617,9 +603,7 @@ func (this *Bydfi) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes44915 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes44915)
-	ch <- retRes44915
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -643,9 +627,7 @@ func (this *Bydfi) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes46215 := (<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes46215)
-	ch <- retRes46215
+	ch <- ccxt.PanicOnError((<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -756,9 +738,7 @@ func (this *Bydfi) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		"unsubscribe": true,
 	})
 
-	retRes53615 := (<-this.WatchPublicAsync(messageHashes, channels, params, subscription))
-	ccxt.PanicOnError(retRes53615)
-	ch <- retRes53615
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(messageHashes, channels, params, subscription)))
 	return nil
 }
 func (this *Bydfi) HandleOrderBook(client any, message any) {
@@ -817,9 +797,7 @@ func (this *Bydfi) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		symbols = []any{symbol}
 	}
 
-	retRes57915 := (<-this.WatchOrdersForSymbolsAsync(symbols, since, limit, params))
-	ccxt.PanicOnError(retRes57915)
-	ch <- retRes57915
+	ch <- ccxt.PanicOnError((<-this.WatchOrdersForSymbolsAsync(symbols, since, limit, params)))
 	return nil
 }
 
@@ -1201,9 +1179,7 @@ func (this *Bydfi) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash string = "balance"
 
-	retRes90915 := (<-this.WatchPrivateAsync([]any{messageHash}, params))
-	ccxt.PanicOnError(retRes90915)
-	ch <- retRes90915
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync([]any{messageHash}, params)))
 	return nil
 }
 func (this *Bydfi) FetchBalanceSnapshot(client any) {

@@ -119,9 +119,7 @@ func (this *Coinbase) subscribeBody(ch chan any, name any, isPrivate any, option
 		subscribe = this.Extend(subscribe, this.CreateWSAuth(name, productIds))
 	}
 
-	retRes10215 := (<-this.Watch(url, messageHash, subscribe, messageHash))
-	ccxt.PanicOnError(retRes10215)
-	ch <- retRes10215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, subscribe, messageHash)))
 	return nil
 }
 
@@ -249,9 +247,7 @@ func (this *Coinbase) subscribeMultipleBody(ch chan any, name any, isPrivate any
 		subscribe = this.Extend(subscribe, this.CreateWSAuth(name, productIds))
 	}
 
-	retRes20215 := (<-this.WatchMultiple(url, messageHashes, subscribe, messageHashes))
-	ccxt.PanicOnError(retRes20215)
-	ch <- retRes20215
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, subscribe, messageHashes)))
 	return nil
 }
 
@@ -378,9 +374,7 @@ func (this *Coinbase) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var name string = "ticker"
 
-	retRes30215 := (<-this.SubscribeAsync(name, false, symbol, params))
-	ccxt.PanicOnError(retRes30215)
-	ch <- retRes30215
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync(name, false, symbol, params)))
 	return nil
 }
 
@@ -409,9 +403,7 @@ func (this *Coinbase) unWatchTickerBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var name string = "ticker"
 
-	retRes31915 := (<-this.UnSubscribeAsync("ticker", name, false, symbol))
-	ccxt.PanicOnError(retRes31915)
-	ch <- retRes31915
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync("ticker", name, false, symbol)))
 	return nil
 }
 
@@ -489,9 +481,7 @@ func (this *Coinbase) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		symbols = this.Symbols
 	}
 
-	retRes36515 := (<-this.UnSubscribeMultipleAsync("ticker", "ticker_batch", false, symbols))
-	ccxt.PanicOnError(retRes36515)
-	ch <- retRes36515
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeMultipleAsync("ticker", "ticker_batch", false, symbols)))
 	return nil
 }
 func (this *Coinbase) HandleTickers(client any, message map[string]any) {
@@ -737,9 +727,7 @@ func (this *Coinbase) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var name string = "market_trades"
 
-	retRes57115 := (<-this.UnSubscribeAsync("trades", name, false, symbol))
-	ccxt.PanicOnError(retRes57115)
-	ch <- retRes57115
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync("trades", name, false, symbol)))
 	return nil
 }
 
@@ -811,9 +799,7 @@ func (this *Coinbase) unWatchTradesForSymbolsBody(ch chan any, symbols any, opti
 	}
 	var name string = "market_trades"
 
-	retRes61315 := (<-this.UnSubscribeMultipleAsync("trades", name, false, symbols, params))
-	ccxt.PanicOnError(retRes61315)
-	ch <- retRes61315
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeMultipleAsync("trades", name, false, symbols, params)))
 	return nil
 }
 
@@ -887,9 +873,7 @@ func (this *Coinbase) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var name string = "user"
 
-	retRes65315 := (<-this.UnSubscribeAsync("orders", name, true, this.Symbol(symbol)))
-	ccxt.PanicOnError(retRes65315)
-	ch <- retRes65315
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync("orders", name, true, this.Symbol(symbol))))
 	return nil
 }
 
@@ -955,9 +939,7 @@ func (this *Coinbase) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	symbol = this.Symbol(symbol)
 	var name string = "level2"
 
-	retRes69215 := (<-this.UnSubscribeAsync("orderbook", name, false, symbol))
-	ccxt.PanicOnError(retRes69215)
-	ch <- retRes69215
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync("orderbook", name, false, symbol)))
 	return nil
 }
 

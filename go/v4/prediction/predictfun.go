@@ -3450,9 +3450,7 @@ func (this *Predictfun) approveBody(ch chan any, optionalArgs ...any) any {
 	txHash := (<-this.SendEvmTransactionAsync(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit))
 	ccxt.PanicOnError(txHash)
 
-	retRes289515 := (<-this.WaitForTransactionReceiptAsync(rpcUrl, txHash))
-	ccxt.PanicOnError(retRes289515)
-	ch <- retRes289515
+	ch <- ccxt.PanicOnError((<-this.WaitForTransactionReceiptAsync(rpcUrl, txHash)))
 	return nil
 }
 
@@ -3582,9 +3580,7 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan any, outcome any, optionalA
 	var messageHash any = ccxt.Add("unsubscribe::orderbook::", this.SafeOutcomeSymbol(nil, outcomeObj))
 	var url any = this.SocketUrl()
 
-	retRes299215 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes299215)
-	ch <- retRes299215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))
 	return nil
 }
 
@@ -3837,9 +3833,7 @@ func (this *Predictfun) unWatchOrdersBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes317215 := (<-this.UnWatchWalletEventsAsync("orders", params))
-	ccxt.PanicOnError(retRes317215)
-	ch <- retRes317215
+	ch <- ccxt.PanicOnError((<-this.UnWatchWalletEventsAsync("orders", params)))
 	return nil
 }
 
@@ -3865,9 +3859,7 @@ func (this *Predictfun) unWatchMyTradesBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes318515 := (<-this.UnWatchWalletEventsAsync("myTrades", params))
-	ccxt.PanicOnError(retRes318515)
-	ch <- retRes318515
+	ch <- ccxt.PanicOnError((<-this.UnWatchWalletEventsAsync("myTrades", params)))
 	return nil
 }
 
@@ -3937,9 +3929,7 @@ func (this *Predictfun) watchWalletEventsBody(ch chan any, messageHash any, opti
 		"messageHashes": this.WalletEventMessageHashes(client, messageHash),
 	}
 
-	retRes323315 := (<-this.Watch(url, messageHash, this.Extend(request, params), "walletEvents", subscription))
-	ccxt.PanicOnError(retRes323315)
-	ch <- retRes323315
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), "walletEvents", subscription)))
 	return nil
 }
 
@@ -4014,9 +4004,7 @@ func (this *Predictfun) unWatchWalletEventsBody(ch chan any, channel any, option
 	var messageHash any = ccxt.Add("unsubscribe::", channel)
 	var url any = this.SocketUrl()
 
-	retRes329315 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes329315)
-	ch <- retRes329315
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))
 	return nil
 }
 

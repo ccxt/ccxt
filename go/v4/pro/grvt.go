@@ -141,9 +141,7 @@ func (this *Grvt) subscribeMultipleBody(ch chan any, messageHashes any, request 
 		return "privateTrading"
 	}()
 
-	retRes12115 := (<-this.WatchMultiple(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes))
-	ccxt.PanicOnError(retRes12115)
-	ch <- retRes12115
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes)))
 	return nil
 }
 func (this *Grvt) RequestId() any {
@@ -371,9 +369,7 @@ func (this *Grvt) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes29815 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes29815)
-	ch <- retRes29815
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -655,9 +651,7 @@ func (this *Grvt) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	symbol = this.Symbol(symbol)
 
-	retRes51015 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes51015)
-	ch <- retRes51015
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 

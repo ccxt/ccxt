@@ -138,9 +138,7 @@ func (this *Bitfinex) unSubscribeBody(ch chan any, channel any, topic any, symbo
 		"symbols":          []any{symbol},
 	}
 
-	retRes10515 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes10515)
-	ch <- retRes10515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)))
 	return nil
 }
 func (this *Bitfinex) SubscribePrivateAsync(messageHash any) <-chan any {
@@ -159,9 +157,7 @@ func (this *Bitfinex) subscribePrivateBody(ch chan any, messageHash any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
 
-	retRes11415 := (<-this.Watch(url, messageHash, nil, 1))
-	ccxt.PanicOnError(retRes11415)
-	ch <- retRes11415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, 1)))
 	return nil
 }
 
@@ -269,9 +265,7 @@ func (this *Bitfinex) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		"symbols":          []any{symbol},
 	}
 
-	retRes18815 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes18815)
-	ch <- retRes18815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)))
 	return nil
 }
 func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[string]any) {
@@ -411,9 +405,7 @@ func (this *Bitfinex) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes30115 := (<-this.UnSubscribeAsync("trades", "trades", symbol, params))
-	ccxt.PanicOnError(retRes30115)
-	ch <- retRes30115
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync("trades", "trades", symbol, params)))
 	return nil
 }
 
@@ -482,9 +474,7 @@ func (this *Bitfinex) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes33915 := (<-this.SubscribeAsync("ticker", symbol, params))
-	ccxt.PanicOnError(retRes33915)
-	ch <- retRes33915
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync("ticker", symbol, params)))
 	return nil
 }
 
@@ -507,9 +497,7 @@ func (this *Bitfinex) unWatchTickerBody(ch chan any, symbol any, optionalArgs ..
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes35115 := (<-this.UnSubscribeAsync("ticker", "ticker", symbol, params))
-	ccxt.PanicOnError(retRes35115)
-	ch <- retRes35115
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync("ticker", "ticker", symbol, params)))
 	return nil
 }
 func (this *Bitfinex) HandleMyTrade(client any, message []any, optionalArgs ...any) {
@@ -1122,9 +1110,7 @@ func (this *Bitfinex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.MapTyped(this.Omit(params, "wallet"))
 	var messageHash string = "balance:" + *balanceType
 
-	retRes82915 := (<-this.SubscribePrivateAsync(messageHash))
-	ccxt.PanicOnError(retRes82915)
-	ch <- retRes82915
+	ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(messageHash)))
 	return nil
 }
 func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[string]any) {
@@ -1360,9 +1346,7 @@ func (this *Bitfinex) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	retRes105015 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes105015)
-	ch <- retRes105015
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Bitfinex) HandleAuthenticationMessage(client any, message map[string]any) {

@@ -96,9 +96,7 @@ func (this *Cex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	retRes8015 := (<-this.Watch(url, messageHash, request, messageHash, request))
-	ccxt.PanicOnError(retRes8015)
-	ch <- retRes8015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request)))
 	return nil
 }
 func (this *Cex) HandleBalance(client any, message map[string]any) {
@@ -338,9 +336,7 @@ func (this *Cex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	retRes29615 := (<-this.Watch(url, messageHash, request, subscriptionHash))
-	ccxt.PanicOnError(retRes29615)
-	ch <- retRes29615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash)))
 	return nil
 }
 
@@ -383,9 +379,7 @@ func (this *Cex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var tickerSymbol any = ccxt.GetValue(ticker, "symbol")
 	if (symbols != nil) && !this.InArray(tickerSymbol, symbols) {
 
-		retRes32519 := (<-this.WatchTickersAsync(symbols, params))
-		ccxt.PanicOnError(retRes32519)
-		ch <- retRes32519
+		ch <- ccxt.PanicOnError((<-this.WatchTickersAsync(symbols, params)))
 		return nil
 	}
 	if this.NewUpdates {
@@ -432,9 +426,7 @@ func (this *Cex) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...any)
 		"data": []any{market["base"], market["quote"]},
 	}, params)
 
-	retRes35615 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes35615)
-	ch <- retRes35615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Cex) HandleTicker(client any, message map[string]any) {
@@ -562,9 +554,7 @@ func (this *Cex) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
 		"oid": messageHash,
 	}, params)
 
-	retRes47115 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes47115)
-	ch <- retRes47115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 
@@ -1922,9 +1912,7 @@ func (this *Cex) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, this.Extend(request, params), messageHash)
 	}
 
-	retRes162015 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes162015)
-	ch <- retRes162015
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 

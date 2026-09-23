@@ -3829,9 +3829,7 @@ func (this *Modetrade) setLeverageBody(ch chan any, leverage any, optionalArgs .
 		"leverage": leverage,
 	}
 
-	retRes287715 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes287715)
-	ch <- retRes287715
+	ch <- PanicOnError((<-this.V1PrivatePostClientLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Modetrade) ParsePosition(position any, optionalArgs ...any) any {

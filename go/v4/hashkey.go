@@ -4720,9 +4720,7 @@ func (this *Hashkey) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 		"marginType": marginMode,
 	}
 
-	retRes422415 := (<-this.PrivatePostApiV1FuturesMarginType(this.Extend(request, params))).Raw
-	PanicOnError(retRes422415)
-	ch <- retRes422415
+	ch <- PanicOnError((<-this.PrivatePostApiV1FuturesMarginType(this.Extend(request, params))).Raw)
 	return nil
 }
 

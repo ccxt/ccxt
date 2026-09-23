@@ -4514,9 +4514,7 @@ func (this *Mexc) fetchAccountHelperBody(ch chan any, typeVar any, params any) a
 	defer ReturnPanicError(ch)
 	if IsEqual(typeVar, "spot") {
 
-		retRes375619 := (<-this.SpotPrivateGetAccount(params)).Raw
-		PanicOnError(retRes375619)
-		ch <- retRes375619
+		ch <- PanicOnError((<-this.SpotPrivateGetAccount(params)).Raw)
 		return nil
 	} else if IsEqual(typeVar, "swap") {
 
@@ -5265,9 +5263,7 @@ func (this *Mexc) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 		request["positionId"] = positionId
 	}
 
-	retRes441615 := (<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes441615)
-	ch <- retRes441615
+	ch <- PanicOnError((<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 

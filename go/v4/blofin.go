@@ -3915,8 +3915,6 @@ func (this *Blofin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 		}(),
 	}
 
-	retRes305215 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
-	PanicOnError(retRes305215)
 	//
 	//     {
 	//         "code": "0",
@@ -3926,7 +3924,7 @@ func (this *Blofin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 	//         }
 	//     }
 	//
-	ch <- retRes305215
+	ch <- PanicOnError((<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params))))
 	return nil
 }
 

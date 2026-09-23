@@ -103,9 +103,7 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name any, optionalArgs 
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 
-	retRes8715 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes8715)
-	ch <- retRes8715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Coinbaseexchange) SubscribeMultipleAsync(name any, optionalArgs ...any) <-chan any {
@@ -148,9 +146,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name any, optio
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 
-	retRes11715 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes11715)
-	ch <- retRes11715
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 
@@ -174,9 +170,7 @@ func (this *Coinbaseexchange) watchTickerBody(ch chan any, symbol any, optionalA
 	_ = params
 	var name string = "ticker"
 
-	retRes13015 := (<-this.SubscribeAsync(name, symbol, name, params))
-	ccxt.PanicOnError(retRes13015)
-	ch <- retRes13015
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync(name, symbol, name, params)))
 	return nil
 }
 

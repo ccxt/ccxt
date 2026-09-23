@@ -369,9 +369,7 @@ func (this *Binance) fetchRawTopicDetailBody(ch chan any, topicId any, optionalA
 		"marketTopicId": topicId,
 	}
 
-	retRes28515 := (<-this.SapiPrivateGetMarketDetail(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(retRes28515)
-	ch <- retRes28515
+	ch <- ccxt.PanicOnError((<-this.SapiPrivateGetMarketDetail(this.Extend(request, params))).Raw)
 	return nil
 }
 

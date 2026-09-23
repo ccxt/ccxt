@@ -107,9 +107,7 @@ func (this *Krakenfutures) authenticateBody(ch chan any, optionalArgs ...any) an
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	retRes9015 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes9015)
-	ch <- retRes9015
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 
@@ -194,9 +192,7 @@ func (this *Krakenfutures) subscribePublicBody(ch chan any, name any, symbols an
 	subscribe["product_ids"] = marketIds
 	var request map[string]any = this.Extend(subscribe, params)
 
-	retRes14215 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes14215)
-	ch <- retRes14215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 
@@ -235,9 +231,7 @@ func (this *Krakenfutures) subscribePrivateBody(ch chan any, name any, messageHa
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 
-	retRes16815 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes16815)
-	ch <- retRes16815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 
@@ -375,9 +369,7 @@ func (this *Krakenfutures) watchTradesBody(ch chan any, symbol any, optionalArgs
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes24315 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes24315)
-	ch <- retRes24315
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -442,9 +434,7 @@ func (this *Krakenfutures) watchOrderBookBody(ch chan any, symbol any, optionalA
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes27815 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes27815)
-	ch <- retRes27815
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -773,9 +763,7 @@ func (this *Krakenfutures) watchBalanceBody(ch chan any, optionalArgs ...any) an
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", account))
 	}
 
-	retRes52415 := (<-this.SubscribePrivateAsync(name, messageHash, params))
-	ccxt.PanicOnError(retRes52415)
-	ch <- retRes52415
+	ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(name, messageHash, params)))
 	return nil
 }
 func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
@@ -1914,9 +1902,7 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan any, unifiedName any, ch
 		}
 	}
 
-	retRes163115 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
-	ccxt.PanicOnError(retRes163115)
-	ch <- retRes163115
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs)))
 	return nil
 }
 func (this *Krakenfutures) SubscriptionExistsForHash(url any, hash any) any {

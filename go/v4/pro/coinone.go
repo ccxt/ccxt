@@ -193,9 +193,7 @@ func (this *Coinone) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes16215 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes16215)
-	ch <- retRes16215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Coinone) HandleTicker(client any, message map[string]any) {

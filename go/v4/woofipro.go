@@ -4196,15 +4196,13 @@ func (this *Woofipro) setMarginModeBody(ch chan any, marginMode any, optionalArg
 		"default_margin_mode": ToUpper(marginMode),
 	}
 
-	retRes315015 := (<-this.V1PrivatePostClientMarginMode(this.Extend(request, params))).Raw
-	PanicOnError(retRes315015)
 	//
 	// {
 	//     "success": true,
 	//     "timestamp": 1702989203989
 	// }
 	//
-	ch <- retRes315015
+	ch <- PanicOnError((<-this.V1PrivatePostClientMarginMode(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) any {
@@ -4447,9 +4445,7 @@ func (this *Woofipro) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 		"leverage": leverage,
 	}
 
-	retRes331615 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes331615)
-	ch <- retRes331615
+	ch <- PanicOnError((<-this.V1PrivatePostClientLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Woofipro) ParsePosition(position any, optionalArgs ...any) any {

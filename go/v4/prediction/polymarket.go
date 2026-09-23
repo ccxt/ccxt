@@ -1314,9 +1314,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 		}
 	}
 
-	retRes90615 := (<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol))
-	ccxt.PanicOnError(retRes90615)
-	ch <- retRes90615
+	ch <- ccxt.PanicOnError((<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol)))
 	return nil
 }
 
@@ -4676,9 +4674,7 @@ func (this *Polymarket) subscribeUserChannelBody(ch chan any, messageHash any, o
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "wsUser")
 	var subscribeHash string = "user"
 
-	retRes329715 := (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
-	ccxt.PanicOnError(retRes329715)
-	ch <- retRes329715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash)))
 	return nil
 }
 func (this *Polymarket) HandleOrder(client any, event any) {

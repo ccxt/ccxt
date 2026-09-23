@@ -137,9 +137,7 @@ func (this *Bitstamp) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var channel any = ccxt.Add("diff_order_book_", market["id"])
 	var subHash any = ccxt.Add("orderbook:", symbol)
 
-	retRes10315 := (<-this.UnWatchChannelAsync(channel, subHash, "orderbook", []any{symbol}, params))
-	ccxt.PanicOnError(retRes10315)
-	ch <- retRes10315
+	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(channel, subHash, "orderbook", []any{symbol}, params)))
 	return nil
 }
 
@@ -178,9 +176,7 @@ func (this *Bitstamp) unWatchChannelBody(ch chan any, channel any, subHash any, 
 		"symbols": symbols,
 	}
 
-	retRes13115 := (<-this.Watch(url, unsubHash, this.Extend(request, params), unsubHash, subscription))
-	ccxt.PanicOnError(retRes13115)
-	ch <- retRes13115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, unsubHash, this.Extend(request, params), unsubHash, subscription)))
 	return nil
 }
 func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
@@ -356,9 +352,7 @@ func (this *Bitstamp) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var channel any = ccxt.Add("live_trades_", market["id"])
 	var subHash any = ccxt.Add("trades:", symbol)
 
-	retRes28115 := (<-this.UnWatchChannelAsync(channel, subHash, "trades", []any{symbol}, params))
-	ccxt.PanicOnError(retRes28115)
-	ch <- retRes28115
+	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(channel, subHash, "trades", []any{symbol}, params)))
 	return nil
 }
 func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -488,9 +482,7 @@ func (this *Bitstamp) watchFundingRateBody(ch chan any, symbol any, optionalArgs
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes39415 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes39415)
-	ch <- retRes39415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Bitstamp) HandleFundingRate(client any, message map[string]any) {
@@ -610,9 +602,7 @@ func (this *Bitstamp) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("private-my_orders_", market["id"]), "-"), ccxt.GetValue(this.Options, "userId"))
 
-	retRes48015 := (<-this.UnWatchChannelAsync(channel, channel, "orders", []any{symbol}, params))
-	ccxt.PanicOnError(retRes48015)
-	ch <- retRes48015
+	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(channel, channel, "orders", []any{symbol}, params)))
 	return nil
 }
 
@@ -705,9 +695,7 @@ func (this *Bitstamp) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("private-my_trades_", market["id"]), "-"), ccxt.GetValue(this.Options, "userId"))
 
-	retRes53815 := (<-this.UnWatchChannelAsync(channel, channel, "myTrades", []any{symbol}, params))
-	ccxt.PanicOnError(retRes53815)
-	ch <- retRes53815
+	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(channel, channel, "myTrades", []any{symbol}, params)))
 	return nil
 }
 func (this *Bitstamp) HandleMyTrades(client any, message map[string]any) {
@@ -1281,9 +1269,7 @@ func (this *Bitstamp) subscribePrivateBody(ch chan any, subscription any, messag
 	}
 	ccxt.AddElementToObject(subscription, "messageHash", messageHash)
 
-	retRes105215 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes105215)
-	ch <- retRes105215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))
 	return nil
 }
 

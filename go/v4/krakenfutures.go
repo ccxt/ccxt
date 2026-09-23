@@ -4435,12 +4435,10 @@ func (this *Krakenfutures) setLeverageBody(ch chan any, leverage any, optionalAr
 		"symbol":      ToUpper(marketIdUpper),
 	}
 
-	retRes371015 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params))).Raw
-	PanicOnError(retRes371015)
 	//
 	// { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
 	//
-	ch <- retRes371015
+	ch <- PanicOnError((<-this.PrivatePutLeveragepreferences(this.Extend(request, params))).Raw)
 	return nil
 }
 

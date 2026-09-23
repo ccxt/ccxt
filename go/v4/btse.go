@@ -4244,9 +4244,7 @@ func (this *Btse) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 		"positionMode": positionMode,
 	}
 
-	retRes346215 := (<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params))).Raw
-	PanicOnError(retRes346215)
-	ch <- retRes346215
+	ch <- PanicOnError((<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -4365,9 +4363,7 @@ func (this *Btse) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 		"positionMode": positionMode,
 	}
 
-	retRes355315 := (<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params))).Raw
-	PanicOnError(retRes355315)
-	ch <- retRes355315
+	ch <- PanicOnError((<-this.PrivatePostFuturesApiV3TradePositionMode(this.Extend(request, params))).Raw)
 	return nil
 }
 

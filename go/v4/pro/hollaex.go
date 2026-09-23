@@ -497,9 +497,7 @@ func (this *Hollaex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var messageHash string = "wallet"
 
-	retRes41115 := (<-this.WatchPrivateAsync(messageHash, params))
-	ccxt.PanicOnError(retRes41115)
-	ch <- retRes41115
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, params)))
 	return nil
 }
 func (this *Hollaex) HandleBalance(client any, message map[string]any) {
@@ -567,9 +565,7 @@ func (this *Hollaex) watchPublicBody(ch chan any, messageHash any, optionalArgs 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes46515 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes46515)
-	ch <- retRes46515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Hollaex) WatchPrivateAsync(messageHash any, optionalArgs ...any) <-chan any {
@@ -610,9 +606,7 @@ func (this *Hollaex) watchPrivateBody(ch chan any, messageHash any, optionalArgs
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes49615 := (<-this.Watch(signedUrl, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes49615)
-	ch <- retRes49615
+	ch <- ccxt.PanicOnError((<-this.Watch(signedUrl, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Hollaex) HandleErrorMessage(client any, message any) any {

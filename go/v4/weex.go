@@ -5132,9 +5132,7 @@ func (this *Weex) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 		"marginType": this.EncodeMarginMode(marginMode),
 	}
 
-	retRes406815 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params))).Raw
-	PanicOnError(retRes406815)
-	ch <- retRes406815
+	ch <- PanicOnError((<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Weex) EncodeMarginMode(marginMode any) any {
@@ -5299,9 +5297,7 @@ func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 		}
 	}
 
-	retRes418915 := (<-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes418915)
-	ch <- retRes418915
+	ch <- PanicOnError((<-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -5397,9 +5393,7 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 		"separatedType": separatedType,
 	}
 
-	retRes424815 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params))).Raw
-	PanicOnError(retRes424815)
-	ch <- retRes424815
+	ch <- PanicOnError((<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Weex) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {

@@ -1911,9 +1911,7 @@ func (this *Hitbtc) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes165815 := (<-this.FetchTransactionsHelperAsync("DEPOSIT,WITHDRAW", code, since, limit, params))
-	PanicOnError(retRes165815)
-	ch <- retRes165815
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("DEPOSIT,WITHDRAW", code, since, limit, params)))
 	return nil
 }
 
@@ -1945,9 +1943,7 @@ func (this *Hitbtc) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes167315 := (<-this.FetchTransactionsHelperAsync("DEPOSIT", code, since, limit, params))
-	PanicOnError(retRes167315)
-	ch <- retRes167315
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("DEPOSIT", code, since, limit, params)))
 	return nil
 }
 
@@ -1979,9 +1975,7 @@ func (this *Hitbtc) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes168815 := (<-this.FetchTransactionsHelperAsync("WITHDRAW", code, since, limit, params))
-	PanicOnError(retRes168815)
-	ch <- retRes168815
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("WITHDRAW", code, since, limit, params)))
 	return nil
 }
 
@@ -4600,9 +4594,7 @@ func (this *Hitbtc) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		"margin_balance": this.AmountToPrecision(symbol, amount),
 	}
 
-	retRes371415 := (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params))).Raw
-	PanicOnError(retRes371415)
-	ch <- retRes371415
+	ch <- PanicOnError((<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params))).Raw)
 	return nil
 }
 

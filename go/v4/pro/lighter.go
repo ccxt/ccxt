@@ -106,9 +106,7 @@ func (this *Lighter) subscribePublicBody(ch chan any, messageHash any, optionalA
 		"params":      params,
 	}
 
-	retRes8515 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes8515)
-	ch <- retRes8515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))
 	return nil
 }
 func (this *Lighter) SubscribePublicMultipleAsync(messageHashes any, optionalArgs ...any) <-chan any {
@@ -130,9 +128,7 @@ func (this *Lighter) subscribePublicMultipleBody(ch chan any, messageHashes any,
 		"params":        params,
 	}
 
-	retRes9715 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscription))
-	ccxt.PanicOnError(retRes9715)
-	ch <- retRes9715
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscription)))
 	return nil
 }
 func (this *Lighter) UnsubscribeAsync(messageHash any, optionalArgs ...any) <-chan any {
@@ -154,9 +150,7 @@ func (this *Lighter) unsubscribeBody(ch chan any, messageHash any, optionalArgs 
 		"params":      params,
 	}
 
-	retRes10915 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes10915)
-	ch <- retRes10915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))
 	return nil
 }
 func (this *Lighter) SubscribePrivateAsync(messageHash any, optionalArgs ...any) <-chan any {
@@ -173,9 +167,7 @@ func (this *Lighter) subscribePrivateBody(ch chan any, messageHash any, optional
 	ccxt.PanicOnError((<-this.PreLoadLighterLibraryAsync()))
 	ccxt.AddElementToObject(params, "auth", this.CreateAuth(params))
 
-	retRes11515 := (<-this.SubscribePublicAsync(messageHash, params))
-	ccxt.PanicOnError(retRes11515)
-	ch <- retRes11515
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHash, params)))
 	return nil
 }
 func (this *Lighter) HandleDelta(bookside any, delta any) {
@@ -317,9 +309,7 @@ func (this *Lighter) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var subMessageHash any = this.GetMessageHash("orderbook", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 
-	retRes23415 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes23415)
-	ch <- retRes23415
+	ch <- ccxt.PanicOnError((<-this.UnsubscribeAsync(messageHash, this.Extend(request, params))))
 	return nil
 }
 func (this *Lighter) HandleTicker(client any, message any) {
@@ -430,9 +420,7 @@ func (this *Lighter) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var messageHash any = this.GetMessageHash("ticker", symbol)
 
-	retRes33415 := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes33415)
-	ch <- retRes33415
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHash, this.Extend(request, params))))
 	return nil
 }
 
@@ -470,9 +458,7 @@ func (this *Lighter) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...
 	var subMessageHash any = this.GetMessageHash("ticker", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 
-	retRes36015 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes36015)
-	ch <- retRes36015
+	ch <- ccxt.PanicOnError((<-this.UnsubscribeAsync(messageHash, this.Extend(request, params))))
 	return nil
 }
 
@@ -573,9 +559,7 @@ func (this *Lighter) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var subMessageHash any = this.GetMessageHash("ticker")
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 
-	retRes42915 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes42915)
-	ch <- retRes42915
+	ch <- ccxt.PanicOnError((<-this.UnsubscribeAsync(messageHash, this.Extend(request, params))))
 	return nil
 }
 
@@ -599,9 +583,7 @@ func (this *Lighter) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ..
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes44215 := (<-this.WatchTickerAsync(symbol, params))
-	ccxt.PanicOnError(retRes44215)
-	ch <- retRes44215
+	ch <- ccxt.PanicOnError((<-this.WatchTickerAsync(symbol, params)))
 	return nil
 }
 
@@ -627,9 +609,7 @@ func (this *Lighter) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes45515 := (<-this.WatchTickersAsync(symbols, params))
-	ccxt.PanicOnError(retRes45515)
-	ch <- retRes45515
+	ch <- ccxt.PanicOnError((<-this.WatchTickersAsync(symbols, params)))
 	return nil
 }
 
@@ -653,9 +633,7 @@ func (this *Lighter) unWatchMarkPriceBody(ch chan any, symbol any, optionalArgs 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes46815 := (<-this.UnWatchTickerAsync(symbol, params))
-	ccxt.PanicOnError(retRes46815)
-	ch <- retRes46815
+	ch <- ccxt.PanicOnError((<-this.UnWatchTickerAsync(symbol, params)))
 	return nil
 }
 
@@ -681,9 +659,7 @@ func (this *Lighter) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes48115 := (<-this.UnWatchTickersAsync(symbols, params))
-	ccxt.PanicOnError(retRes48115)
-	ch <- retRes48115
+	ch <- ccxt.PanicOnError((<-this.UnWatchTickersAsync(symbols, params)))
 	return nil
 }
 func (this *Lighter) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -880,9 +856,7 @@ func (this *Lighter) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...
 	var subMessageHash any = this.GetMessageHash("trade", market["symbol"])
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 
-	retRes64315 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes64315)
-	ch <- retRes64315
+	ch <- ccxt.PanicOnError((<-this.UnsubscribeAsync(messageHash, this.Extend(request, params))))
 	return nil
 }
 func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
@@ -1158,9 +1132,7 @@ func (this *Lighter) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"channel": ccxt.Add("account_all_trades/", this.NumberToString(accountIndex)),
 	}
 
-	retRes85715 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes85715)
-	ch <- retRes85715
+	ch <- ccxt.PanicOnError((<-this.UnsubscribeAsync(messageHash, this.Extend(request, params))))
 	return nil
 }
 func (this *Lighter) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
@@ -1317,9 +1289,7 @@ func (this *Lighter) watchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	}
 	var messageHash any = this.GetMessageHash("liquidations", symbol)
 
-	retRes99315 := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes99315)
-	ch <- retRes99315
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHash, this.Extend(request, params))))
 	return nil
 }
 
@@ -1360,16 +1330,12 @@ func (this *Lighter) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(typeVar, "spot") {
 		request["channel"] = ccxt.Add("account_all_assets/", this.NumberToString(accountIndex))
 
-		retRes101819 := (<-this.SubscribePrivateAsync(messageHash, this.Extend(request, params)))
-		ccxt.PanicOnError(retRes101819)
-		ch <- retRes101819
+		ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(messageHash, this.Extend(request, params))))
 		return nil
 	} else {
 		request["channel"] = ccxt.Add("user_stats/", this.NumberToString(accountIndex))
 
-		retRes102119 := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
-		ccxt.PanicOnError(retRes102119)
-		ch <- retRes102119
+		ch <- ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHash, this.Extend(request, params))))
 		return nil
 	}
 }
@@ -1567,9 +1533,7 @@ func (this *Lighter) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 
-	retRes117715 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes117715)
-	ch <- retRes117715
+	ch <- ccxt.PanicOnError((<-this.UnsubscribeAsync(messageHash, this.Extend(request, params))))
 	return nil
 }
 func (this *Lighter) RequestId(url any) any {

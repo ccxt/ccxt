@@ -743,9 +743,7 @@ func (this *Lighter) createSubAccountBody(ch chan any, name any, optionalArgs ..
 		"tx_info": txInfo,
 	}
 
-	retRes56815 := (<-this.PublicPostSendTx(request)).Raw
-	PanicOnError(retRes56815)
-	ch <- retRes56815
+	ch <- PanicOnError((<-this.PublicPostSendTx(request)).Raw)
 	return nil
 }
 func (this *Lighter) CreateAuth(optionalArgs ...any) any {
@@ -4095,9 +4093,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan any, leverage any, 
 		"tx_info": txInfo,
 	}
 
-	retRes314615 := (<-this.PublicPostSendTx(request)).Raw
-	PanicOnError(retRes314615)
-	ch <- retRes314615
+	ch <- PanicOnError((<-this.PublicPostSendTx(request)).Raw)
 	return nil
 }
 func (this *Lighter) SignAndCancelOrderAsync(method any, id any, optionalArgs ...any) <-chan any {

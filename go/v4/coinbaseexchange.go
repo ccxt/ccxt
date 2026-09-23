@@ -2242,9 +2242,7 @@ func (this *Coinbaseexchange) fetchPaymentMethodsBody(ch chan any, optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes171715 := (<-this.PrivateGetPaymentMethods(params)).Raw
-	PanicOnError(retRes171715)
-	ch <- retRes171715
+	ch <- PanicOnError((<-this.PrivateGetPaymentMethods(params)).Raw)
 	return nil
 }
 

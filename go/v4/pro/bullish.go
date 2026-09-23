@@ -112,9 +112,7 @@ func (this *Bullish) watchPublicBody(ch chan any, url any, messageHash any, opti
 	}
 	var fullUrl any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), url)
 
-	retRes9715 := (<-this.Watch(fullUrl, messageHash, this.DeepExtend(message, params), messageHash))
-	ccxt.PanicOnError(retRes9715)
-	ch <- retRes9715
+	ch <- ccxt.PanicOnError((<-this.Watch(fullUrl, messageHash, this.DeepExtend(message, params), messageHash)))
 	return nil
 }
 func (this *Bullish) WatchPrivateAsync(messageHash any, subscribeHash any, optionalArgs ...any) <-chan any {
@@ -272,9 +270,7 @@ func (this *Bullish) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), market["id"])
 	var messageHash any = ccxt.Add("ticker::", symbol)
 
-	retRes21015 := (<-this.Watch(url, messageHash, params, messageHash))
-	ccxt.PanicOnError(retRes21015)
-	ch <- retRes21015 // no need to send a subscribe message, the server sends a ticker update on connect
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, params, messageHash))) // no need to send a subscribe message, the server sends a ticker update on connect
 	return nil
 }
 func (this *Bullish) HandleTicker(client any, message any) {
@@ -743,9 +739,7 @@ func (this *Bullish) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, "::"+*tradingAccountId)
 	}
 
-	retRes61715 := (<-this.WatchPrivateAsync(messageHash, messageHash, request, params))
-	ccxt.PanicOnError(retRes61715)
-	ch <- retRes61715
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, messageHash, request, params)))
 	return nil
 }
 func (this *Bullish) HandleBalance(client any, message any) {

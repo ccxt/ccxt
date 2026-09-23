@@ -2952,9 +2952,7 @@ func (this *Limitless) approveBody(ch chan any, optionalArgs ...any) any {
 	txHash := (<-this.SendEvmTransactionAsync(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit))
 	ccxt.PanicOnError(txHash)
 
-	retRes230915 := (<-this.WaitForTransactionReceiptAsync(rpcUrl, txHash))
-	ccxt.PanicOnError(retRes230915)
-	ch <- retRes230915
+	ch <- ccxt.PanicOnError((<-this.WaitForTransactionReceiptAsync(rpcUrl, txHash)))
 	return nil
 }
 

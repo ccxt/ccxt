@@ -2777,9 +2777,7 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan any, builder any, maxFeeR
 		"vaultAddress": nil,
 	}
 
-	retRes218215 := (<-this.PrivatePostExchange(request)).Raw
-	ccxt.PanicOnError(retRes218215)
-	ch <- retRes218215
+	ch <- ccxt.PanicOnError((<-this.PrivatePostExchange(request)).Raw)
 	return nil
 }
 func (this *Hyperliquid) InitializeClientAsync() <-chan any {

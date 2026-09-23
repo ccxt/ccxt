@@ -4979,9 +4979,7 @@ func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 	}
 	if (symbol == nil) || (IsEqual(this.SafeBool(market, "spot"), true)) {
 
-		retRes410319 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params))).Raw
-		PanicOnError(retRes410319)
-		ch <- retRes410319
+		ch <- PanicOnError((<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params))).Raw)
 		return nil
 	} else if IsEqual(this.SafeBool(market, "swap"), true) {
 		request["symbol"] = this.SafeString(market, "id")
@@ -4991,9 +4989,7 @@ func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		request["marginMode"] = this.EncodeMarginMode(marginMode)
 
-		retRes410919 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params))).Raw
-		PanicOnError(retRes410919)
-		ch <- retRes410919
+		ch <- PanicOnError((<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params))).Raw)
 		return nil
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" fetchLeverage() is not supported for ", this.SafeString(market, "type")), " markets")))
@@ -5075,9 +5071,7 @@ func (this *Woo) modifyMarginHelperBody(ch chan any, symbol any, amount any, typ
 		"action":        typeVar,
 	}
 
-	retRes415615 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params))).Raw
-	PanicOnError(retRes415615)
-	ch <- retRes415615
+	ch <- PanicOnError((<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params))).Raw)
 	return nil
 }
 

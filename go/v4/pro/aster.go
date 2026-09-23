@@ -165,9 +165,7 @@ func (this *Aster) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "unWatchTicker")
 
-	retRes13715 := (<-this.UnWatchTickersAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes13715)
-	ch <- retRes13715
+	ch <- ccxt.PanicOnError((<-this.UnWatchTickersAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -299,9 +297,7 @@ func (this *Aster) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:ticker:", market["symbol"]))
 	}
 
-	retRes23315 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(retRes23315)
-	ch <- retRes23315
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)))
 	return nil
 }
 
@@ -362,9 +358,7 @@ func (this *Aster) unWatchMarkPriceBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "unWatchMarkPrice")
 
-	retRes27015 := (<-this.UnWatchMarkPricesAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes27015)
-	ch <- retRes27015
+	ch <- ccxt.PanicOnError((<-this.UnWatchMarkPricesAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -508,9 +502,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:ticker:", market["symbol"]))
 	}
 
-	retRes36815 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(retRes36815)
-	ch <- retRes36815
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)))
 	return nil
 }
 func (this *Aster) HandleTicker(client any, message map[string]any) {
@@ -714,9 +706,7 @@ func (this *Aster) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:bidask:", market["symbol"]))
 	}
 
-	retRes54215 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(retRes54215)
-	ch <- retRes54215
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)))
 	return nil
 }
 func (this *Aster) HandleBidAsk(client any, message map[string]any) {
@@ -796,9 +786,7 @@ func (this *Aster) watchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
 
-	retRes60215 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes60215)
-	ch <- retRes60215
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -825,9 +813,7 @@ func (this *Aster) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "unWatchTrades")
 
-	retRes61815 := (<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes61815)
-	ch <- retRes61815
+	ch <- ccxt.PanicOnError((<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -952,9 +938,7 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trade:", market["symbol"]))
 	}
 
-	retRes70915 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(retRes70915)
-	ch <- retRes70915
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)))
 	return nil
 }
 func (this *Aster) HandleTrade(client any, message map[string]any) {
@@ -1182,9 +1166,7 @@ func (this *Aster) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchOrderBook")
 
-	retRes90915 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes90915)
-	ch <- retRes90915
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -1213,9 +1195,7 @@ func (this *Aster) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "unWatchOrderBook")
 
-	retRes92715 := (<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes92715)
-	ch <- retRes92715
+	ch <- ccxt.PanicOnError((<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -1341,9 +1321,7 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:orderbook:", market["symbol"]))
 	}
 
-	retRes102215 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(retRes102215)
-	ch <- retRes102215
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)))
 	return nil
 }
 func (this *Aster) HandleOrderBook(client any, message map[string]any) {
@@ -1454,9 +1432,7 @@ func (this *Aster) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "unWatchOHLCV")
 
-	retRes110215 := (<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params))
-	ccxt.PanicOnError(retRes110215)
-	ch <- retRes110215
+	ch <- ccxt.PanicOnError((<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)))
 	return nil
 }
 
@@ -1604,9 +1580,7 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:ohlcv:", market["symbol"]), ":"), unfiedTimeframe))
 	}
 
-	retRes120515 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(retRes120515)
-	ch <- retRes120515
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)))
 	return nil
 }
 func (this *Aster) HandleOHLCV(client any, message map[string]any) {
@@ -1871,9 +1845,7 @@ func (this *Aster) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = ccxt.Add(typeVar, ":balance")
 	var message any = nil
 
-	retRes139715 := (<-this.Watch(url, messageHash, message, typeVar))
-	ccxt.PanicOnError(retRes139715)
-	ch <- retRes139715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, typeVar)))
 	return nil
 }
 func (this *Aster) SetBalanceCache(client any, typeVar any) {
