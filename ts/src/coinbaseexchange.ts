@@ -1270,7 +1270,7 @@ export default class coinbaseexchange extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 300) as OHLCV[];
         }

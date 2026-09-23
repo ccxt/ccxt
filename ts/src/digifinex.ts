@@ -1037,7 +1037,7 @@ export default class digifinex extends Exchange {
         if (first !== undefined) {
             market = this.market (first);
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request: Dict = {};
         let response = undefined;
         if (type === 'swap') {

@@ -6,7 +6,7 @@ import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Bool, Tickers, Strings, List, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification, Endpoint, Account, FundingHistory } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, List, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification, Endpoint, Account, FundingHistory } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -358,7 +358,7 @@ export default class coinbaseinternational extends Exchange {
     }
 
     async handlePortfolioAndParams (methodName: string, params: Dict = {}): Promise<[Str, Dict]> {
-        const [ portfolio, paramsPortfolio ]: [ Str, Dict ] = this.handleOptionAndParams (params, methodName, 'portfolio');
+        const [ portfolio, paramsPortfolio ] = this.handleOptionAndParams (params, methodName, 'portfolio');
         if ((portfolio !== undefined) && (portfolio !== '')) {
             return [ portfolio, paramsPortfolio ];
         }
@@ -554,7 +554,7 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         const maxEntriesPerRequest = 100;
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
@@ -650,7 +650,7 @@ export default class coinbaseinternational extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ portfolios, paramsPortfolios ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'portfolios');
+        const [ portfolios, paramsPortfolios ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'portfolios');
         if (portfolios !== undefined) {
             request['portfolios'] = portfolios;
         }
@@ -730,7 +730,7 @@ export default class coinbaseinternational extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const [ portfolios, paramsPortfolios ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'fetchTransfers', 'portfolios');
+        const [ portfolios, paramsPortfolios ] = this.handleOptionAndParams (params, 'fetchTransfers', 'portfolios');
         if (portfolios !== undefined) {
             request['portfolios'] = portfolios;
         }
@@ -1000,7 +1000,7 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'paginate');
         const maxEntriesPerRequest = 100;
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
@@ -1019,11 +1019,11 @@ export default class coinbaseinternational extends Exchange {
             const newLimit = Math.min (limit, 100);
             request['result_limit'] = newLimit;
         }
-        const [ portfolios, paramsPortfolios ]: [ Str, Dict ] = this.handleOptionAndParams (paramsMaxEntriesPerRequest, 'fetchDepositsWithdrawals', 'portfolios');
+        const [ portfolios, paramsPortfolios ] = this.handleOptionAndParams (paramsMaxEntriesPerRequest, 'fetchDepositsWithdrawals', 'portfolios');
         if (portfolios !== undefined) {
             request['portfolios'] = portfolios;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (paramsPortfolios, 'fetchDepositsWithdrawals', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (paramsPortfolios, 'fetchDepositsWithdrawals', 'until');
         if (until !== undefined) {
             request['time_to'] = this.iso8601 (until);
         }
@@ -2164,7 +2164,7 @@ export default class coinbaseinternational extends Exchange {
             await this.loadMarkets ();
         }
         const [ portfolio, paramsPortfolio ] = await this.handlePortfolioAndParams ('fetchOpenOrders', params);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsPortfolio, 'fetchOpenOrders', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (paramsPortfolio, 'fetchOpenOrders', 'paginate');
         const maxEntriesPerRequest = 100;
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
@@ -2340,14 +2340,15 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTagTuple = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag = paramsWithdrawTagTuple[1];
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
         const [ portfolio, paramsPortfolio ] = await this.handlePortfolioAndParams ('withdraw', paramsWithdrawTag);
-        const [ method, paramsMethod ]: [ Str, Dict ] = this.handleOptionAndParams (paramsPortfolio, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
+        const [ method, paramsMethod ] = this.handleOptionAndParams (paramsPortfolio, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
         const [ networkId, paramsNetworkId ] = await this.handleNetworkIdAndParams (code, 'withdraw', paramsMethod);
         const request: Dict = {
             'portfolio': portfolio,

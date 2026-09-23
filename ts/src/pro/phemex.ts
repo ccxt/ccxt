@@ -324,7 +324,7 @@ export default class phemex extends phemexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const usePerpetualApi = this.safeString (paramsMarketType, 'settle') === 'USDT';
         let messageHash = ':balance';
         messageHash = usePerpetualApi ? 'perpetual' + messageHash : type + messageHash;

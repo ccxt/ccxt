@@ -1525,7 +1525,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, paramsPaginate, 10000) as Trade[];
         }
@@ -1581,7 +1581,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000) as OHLCV[];
         }
@@ -1818,7 +1818,7 @@ export default class bitfinex extends Exchange {
         } else if (fok) {
             orderType = 'FOK';
         }
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('createOrder', params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', params);
         if ((market['spot'] === true) && (marginMode === undefined)) {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = 'EXCHANGE ' + orderType;
@@ -2281,7 +2281,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
@@ -3211,7 +3211,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, paramsPaginate, 2500) as LedgerEntry[];
         }
@@ -3329,7 +3329,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 5000) as FundingRateHistory[];
         }
@@ -3620,7 +3620,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOpenInterestHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOpenInterestHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, '8h', paramsPaginate, 5000) as OpenInterest[];
         }
@@ -3758,7 +3758,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchLiquidations', symbol, since, limit, '8h', paramsPaginate, 500) as Liquidation[];
         }

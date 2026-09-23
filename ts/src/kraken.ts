@@ -1216,7 +1216,7 @@ export default class kraken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 720) as OHLCV[];
         }
@@ -2285,7 +2285,7 @@ export default class kraken extends Exchange {
             request['timeinforce'] = timeInForce;
         }
         const isMarket = (type === 'market');
-        const [ postOnly, paramsPostOnly ]: [ Bool, Dict ] = this.handlePostOnly (isMarket, false, paramsOmitted2);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarket, false, paramsOmitted2);
         if (postOnly === true) {
             const extendedPostFlags = (flags !== undefined) ? flags + ',post' : 'post';
             request['oflags'] = extendedPostFlags;
@@ -3431,7 +3431,8 @@ export default class kraken extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTagTuple = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag = paramsWithdrawTagTuple[1];
         if ('key' in paramsWithdrawTag) {
             await this.loadMarkets ();
             const currency = this.currency (code);

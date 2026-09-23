@@ -1135,7 +1135,7 @@ export default class bydfi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -2541,8 +2541,8 @@ export default class bydfi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const [ wallet, paramsWallet ]: [ Str, Dict ] = this.handleOptionAndParams (paramsMarketType, 'fetchBalance', 'wallet');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ wallet, paramsWallet ] = this.handleOptionAndParams (paramsMarketType, 'fetchBalance', 'wallet');
         const request: Dict = {};
         let response: Dict;
         if (wallet === undefined) {

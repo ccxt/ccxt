@@ -1006,7 +1006,8 @@ export default class bitbank extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTagTuple = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag = paramsWithdrawTagTuple[1];
         if (!('uuid' in paramsWithdrawTag)) {
             throw new ExchangeError (this.id + ' uuid is required for withdrawal');
         }

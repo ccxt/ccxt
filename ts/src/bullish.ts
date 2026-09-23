@@ -1312,7 +1312,7 @@ export default class bullish extends Exchange {
     }
 
     override async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}) {
-        const [ maxRetries, paramsMaxRetries ]: [ Int, Dict ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        const [ maxRetries, paramsMaxRetries ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
             throw new NotSupported (this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
@@ -1362,7 +1362,7 @@ export default class bullish extends Exchange {
         }
         const market = this.market (symbol);
         const maxLimit = 100;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
         }

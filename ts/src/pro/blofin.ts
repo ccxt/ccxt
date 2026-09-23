@@ -189,8 +189,8 @@ export default class blofin extends blofinRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ callerMethodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
-        const [ channelName, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (paramsCallerMethodName, callerMethodName, 'channel', 'books');
+        const [ callerMethodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
+        const [ channelName, paramsChannel ] = this.handleOptionAndParams (paramsCallerMethodName, callerMethodName, 'channel', 'books');
         // due to some problem, temporarily disable other channels
         if (channelName !== 'books') {
             throw new NotSupported (this.id + ' ' + callerMethodName + '() at this moment ' + channelName + ' is not supported, coming soon');
@@ -332,7 +332,7 @@ export default class blofin extends blofinRest {
         const symbolsList = symbolsNormalized as string[];
         const firstMarket = this.market (symbolsList[0]);
         const channel = 'tickers';
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
         const url = (this.urls['api'])['ws'][marketType]['public'];
         const messageHashes: List = [];
         const args: List = [];
@@ -478,7 +478,7 @@ export default class blofin extends blofinRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' watchBalance() is not supported for spot markets yet');
         }
@@ -661,7 +661,7 @@ export default class blofin extends blofinRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchFundingRate', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchFundingRate', market, params);
         const messageHash = 'fundingRate:' + market['symbol'];
         const requestParams: Dict = {
             'channel': 'funding-rate',
@@ -712,7 +712,7 @@ export default class blofin extends blofinRest {
         if (firstSymbol !== undefined) {
             firstMarket = this.market (firstSymbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams (callerMethodNameOption, firstMarket, paramsCallerMethodName);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams (callerMethodNameOption, firstMarket, paramsCallerMethodName);
         if (marketType !== 'swap') {
             throw new NotSupported (this.id + ' ' + callerMethodNameOption + '() does not support ' + marketType + ' markets yet');
         }

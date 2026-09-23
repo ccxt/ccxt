@@ -444,7 +444,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ verbose, paramsVerbose ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'watchOrders', 'verbose', false);
+        const [ verbose, paramsVerbose ] = this.handleOptionAndParams (params, 'watchOrders', 'verbose', false);
         let name = 'open_orders';
         let messageHash = 'orders';
         if (verbose) {
@@ -513,7 +513,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         const name = 'balances';
         let messageHash = name;
-        const [ account, paramsAccount ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchBalance', 'account');
+        const [ account, paramsAccount ] = this.handleOptionAndParams (params, 'watchBalance', 'account');
         if (account !== undefined) {
             if (account !== 'futures' && account !== 'flex_futures') {
                 throw new ArgumentsRequired (this.id + ' watchBalance account must be either \'futures\' or \'flex_futures\'');

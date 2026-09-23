@@ -1690,8 +1690,8 @@ export default class bybit extends Exchange {
     }
 
     getBybitType (method: any, market: any, params: Dict = {}): [Str, Dict] {
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams (method, market, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams (method, market, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams (method, market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams (method, market, paramsMarketType);
         if (type === 'option' || type === 'spot') {
             return [ type, paramsSubType ];
         }
@@ -3079,7 +3079,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 200) as FundingRateHistory[];
         }
@@ -4236,7 +4236,7 @@ export default class bybit extends Exchange {
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
         }
-        const [ method ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod);
+        const [ method ] = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod);
         let response: Dict;
         if (method === 'privatePostV5PositionTradingStop') {
             response = await this.privatePostV5PositionTradingStop (orderRequest);
@@ -5035,7 +5035,7 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'timeWindow': this.parseToInt (timeout / 1000),
         };
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, params, 'swap');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, params, 'swap');
         const productMap = {
             'spot': 'SPOT',
             'swap': 'DERIVATIVES',
@@ -5281,7 +5281,7 @@ export default class bybit extends Exchange {
         if (!isUnifiedAccount) {
             return await this.fetchOrderClassic (id, symbol, params);
         }
-        const [ acknowledge, paramsAcknowledged ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrder', 'acknowledged');
+        const [ acknowledge, paramsAcknowledged ] = this.handleOptionAndParams (params, 'fetchOrder', 'acknowledged');
         if (!acknowledge) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params["acknowledged"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder');
         }
@@ -5292,7 +5292,7 @@ export default class bybit extends Exchange {
             'orderId': id,
             'category': marketType,
         };
-        const [ isTrigger, paramsTrigger ]: [ Bool, Dict ] = this.handleParamBool2 (paramsValue, 'trigger', 'stop', false);
+        const [ isTrigger, paramsTrigger ] = this.handleParamBool2 (paramsValue, 'trigger', 'stop', false);
         if (isTrigger === true) {
             request['orderFilter'] = 'StopOrder';
         }
@@ -5381,7 +5381,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrdersClassic', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrdersClassic', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrdersClassic', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 50) as Order[];
         }
@@ -5562,7 +5562,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 50) as Order[];
         }
@@ -5739,7 +5739,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 50) as Order[];
         }
@@ -5878,7 +5878,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 100) as Trade[];
         }
@@ -6056,7 +6056,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 50);
         }
@@ -6126,7 +6126,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 50);
         }
@@ -6311,7 +6311,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 50) as LedgerEntry[];
         }
@@ -6354,7 +6354,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchLedger', undefined, paramsPaginate);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchLedger', undefined, paramsPaginate);
         let response: Dict;
         if (enableUnified[1] === true) {
             const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
@@ -6727,7 +6727,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchPositions', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchPositions', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchPositions', symbols, undefined, undefined, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 200) as Position[];
         }
@@ -7775,7 +7775,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 50);
         }
@@ -8111,7 +8111,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsType ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'fetchTradingFees', 'type', 'future');
+        const [ type, paramsType ] = this.handleOptionAndParams (params, 'fetchTradingFees', 'type', 'future');
         if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchTradingFees() is not supported for spot market');
         }
@@ -8717,7 +8717,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyLiquidations', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyLiquidations', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyLiquidations', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 100) as Liquidation[];
         }
@@ -8840,11 +8840,11 @@ export default class bybit extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'getLeverageTiersPaginated', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'getLeverageTiersPaginated', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('getLeverageTiersPaginated', symbol, undefined, undefined, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 100);
         }
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('getLeverageTiersPaginated', market, paramsPaginate, 'linear');
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('getLeverageTiersPaginated', market, paramsPaginate, 'linear');
         const request: Dict = {
             'category': subType,
         };
@@ -8978,7 +8978,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 100) as FundingHistory[];
         }
@@ -9271,7 +9271,7 @@ export default class bybit extends Exchange {
             }
         }
         const until = this.safeInteger (params, 'until');
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchPositionsHistory', market, params, 'linear');
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchPositionsHistory', market, params, 'linear');
         const paramsOmitted: Dict = this.omit (paramsSubType, 'until');
         const request: Dict = {
             'category': subType,
@@ -9348,7 +9348,7 @@ export default class bybit extends Exchange {
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        const [ accountType, paramsAccountType ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'fetchConvertCurrencies', 'accountType', accountTypeDefault);
+        const [ accountType, paramsAccountType ] = this.handleOptionAndParams (params, 'fetchConvertCurrencies', 'accountType', accountTypeDefault);
         const request: Dict = {
             'accountType': accountType,
         };
@@ -9449,7 +9449,7 @@ export default class bybit extends Exchange {
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        const [ accountType, paramsAccountType ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'fetchConvertQuote', 'accountType', accountTypeDefault);
+        const [ accountType, paramsAccountType ] = this.handleOptionAndParams (params, 'fetchConvertQuote', 'accountType', accountTypeDefault);
         const request: Dict = {
             'fromCoin': fromCode,
             'toCoin': toCode,
@@ -9540,7 +9540,7 @@ export default class bybit extends Exchange {
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        const [ accountType, paramsAccountType ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'fetchConvertTrade', 'accountType', accountTypeDefault);
+        const [ accountType, paramsAccountType ] = this.handleOptionAndParams (params, 'fetchConvertTrade', 'accountType', accountTypeDefault);
         const request: Dict = {
             'quoteTxId': id,
             'accountType': accountType,

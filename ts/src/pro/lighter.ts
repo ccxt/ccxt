@@ -1006,7 +1006,7 @@ export default class lighter extends lighterRest {
             await this.loadMarkets ();
         }
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
-        const [ type, paramsType ]: [ Str, Dict ] = this.handleParamString (params, 'type', defaultType);
+        const [ type, paramsType ] = this.handleParamString (params, 'type', defaultType);
         const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (paramsType, 'watchBalance', 'accountIndex', 'account_index');
         const messageHash = this.getMessageHash ('balances', undefined, type);
         const request: Dict = {};

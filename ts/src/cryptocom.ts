@@ -562,7 +562,7 @@ export default class cryptocom extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return {};
         }
-        const [ skipFetchCurrencies, paramsSkipFetchCurrencies ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        const [ skipFetchCurrencies, paramsSkipFetchCurrencies ] = this.handleOptionAndParams (params, 'fetchCurrencies', 'skipFetchCurrencies', false);
         if (skipFetchCurrencies) {
             // sub-accounts can't access this endpoint
             return {};
@@ -967,7 +967,7 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
@@ -1050,7 +1050,7 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
@@ -1113,7 +1113,7 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 300) as OHLCV[];
         }
@@ -1372,7 +1372,7 @@ export default class cryptocom extends Exchange {
         }
         const broker = this.safeString (this.options, 'broker', 'CCXT');
         request['broker_id'] = broker;
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const [ marginMode, paramsValue ] = this.customHandleMarginModeAndParams ('createOrder', paramsMarketType);
         if ((marketType === 'margin') || (marginMode !== undefined)) {
             request['spot_margin'] = 'MARGIN';
@@ -1955,7 +1955,7 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate, 100) as Trade[];
         }
@@ -3183,7 +3183,7 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
         }

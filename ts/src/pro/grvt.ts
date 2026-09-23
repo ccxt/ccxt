@@ -161,7 +161,7 @@ export default class grvt extends grvtRest {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchTickers requires a symbols argument');
         }
-        const [ channel, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
+        const [ channel, paramsChannel ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
         const interval = 500;
         const [ intervalOption, paramsInterval ] = this.handleOptionAndParams (paramsChannel, 'watchTickers', 'interval', interval);
         if (this.markets === undefined) {

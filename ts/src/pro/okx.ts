@@ -218,7 +218,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols);
-        const [ channel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
+        const [ channel ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
         const topics: List = [];
         const messageHashes: List = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -264,7 +264,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
-        const [ channel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
+        const [ channel ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
         const topics: List = [];
         const messageHashes: List = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -459,7 +459,7 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
-        const [ channel, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'tickers');
+        const [ channel, paramsChannel ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'tickers');
         paramsChannel['channel'] = channel;
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
@@ -496,7 +496,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const [ channel, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
+        const [ channel, paramsChannel ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
         const newTickers = await this.subscribeMultiple ('public', channel, symbolsNormalized, paramsChannel);
         if (this.newUpdates) {
             return newTickers;
@@ -515,7 +515,7 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
-        const [ channel, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchMarkPrice', 'channel', 'mark-price');
+        const [ channel, paramsChannel ] = this.handleOptionAndParams (params, 'watchMarkPrice', 'channel', 'mark-price');
         paramsChannel['channel'] = channel;
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
@@ -538,7 +538,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const [ channel, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'channel', 'mark-price');
+        const [ channel, paramsChannel ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'channel', 'mark-price');
         const newTickers = await this.subscribeMultiple ('public', channel, symbolsNormalized, paramsChannel);
         if (this.newUpdates) {
             return newTickers;
@@ -561,7 +561,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const [ channel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
+        const [ channel ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
         const topics: List = [];
         const messageHashes: List = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -645,7 +645,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const [ channel, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'channel', 'bbo-tbt');
+        const [ channel, paramsChannel ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'channel', 'bbo-tbt');
         const url = this.getUrl (channel, 'public');
         const messageHashes: List = [];
         const args: List = [];
@@ -2235,7 +2235,7 @@ export default class okx extends okxRest {
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
         const messageHash = this.requestId ();
-        const [ op, paramsOp ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'createOrderWs', 'op', 'batch-orders');
+        const [ op, paramsOp ] = this.handleOptionAndParams (params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest (symbol, type, side, amount, price, paramsOp);
         const market = this.market (symbol);
         const instIdCode = this.safeInteger (market, 'instIdCode');
@@ -2314,7 +2314,7 @@ export default class okx extends okxRest {
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
         const messageHash = this.requestId ();
-        const [ op, paramsOp ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'editOrderWs', 'op', 'amend-order');
+        const [ op, paramsOp ] = this.handleOptionAndParams (params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest (id, symbol, type, side, amount, price, paramsOp);
         const market = this.market (symbol);
         const instIdCode = this.safeInteger (market, 'instIdCode');

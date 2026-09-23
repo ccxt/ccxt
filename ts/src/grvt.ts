@@ -1167,7 +1167,7 @@ export default class grvt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
         }
@@ -1260,7 +1260,7 @@ export default class grvt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
         }
@@ -1322,7 +1322,7 @@ export default class grvt extends Exchange {
     }
 
     getSubAccountId (params: Dict): string {
-        const [ subAccountId ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'getSubAccountId', 'accountId');
+        const [ subAccountId ] = this.handleOptionAndParams (params, 'getSubAccountId', 'accountId');
         if (subAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
         }
@@ -1715,7 +1715,7 @@ export default class grvt extends Exchange {
         const request: Dict = {};
         const currency = this.currency (code);
         const maxLimit = 1000;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, paramsPaginate, maxLimit);
         }
@@ -2276,7 +2276,7 @@ export default class grvt extends Exchange {
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarketsAndSignIn ();
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
@@ -2605,7 +2605,7 @@ export default class grvt extends Exchange {
      */
     override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         await this.loadMarketsAndSignIn ();
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 1000) as FundingHistory[];
         }

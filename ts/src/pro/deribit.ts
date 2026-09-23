@@ -399,7 +399,7 @@ export default class deribit extends deribitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const [ interval, paramsInterval ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
         if (interval === 'raw') {
             await this.authenticate ();
         }

@@ -6,7 +6,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo, Endpoint, FundingHistory } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo, Endpoint, FundingHistory } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -1093,7 +1093,7 @@ export default class aster extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     override async fetchTime (params: Dict = {}): Promise<Int> {
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response: Dict;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3Time (paramsMarketType);
@@ -1409,7 +1409,7 @@ export default class aster extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -1661,7 +1661,7 @@ export default class aster extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response: NullableDict = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3Ticker24hr (paramsMarketType);
@@ -1716,7 +1716,7 @@ export default class aster extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         let response: Dict | List | undefined = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3TickerPrice (paramsMarketType);
@@ -1788,7 +1788,7 @@ export default class aster extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let response: NullableDict = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3TickerBookTicker (paramsMarketType);
@@ -2041,7 +2041,7 @@ export default class aster extends Exchange {
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadMarketsAndSignIn ();
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let response: NullableDict = undefined;
         let data: Dict | List | undefined = undefined;
         if (marketType === 'swap') {
@@ -2566,8 +2566,8 @@ export default class aster extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, paramsMarketType);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, paramsMarketType);
         let response: NullableDict = undefined;
         if (this.isLinear (marketType, subType)) {
             response = await this.fapiPrivateGetV3OpenOrders (this.extend (request, paramsSubType));
@@ -4027,7 +4027,7 @@ export default class aster extends Exchange {
         await this.loadMarketsAndSignIn ();
         await this.loadLeverageBrackets (false, params);
         const response = await this.fapiPrivateGetV4Account (params);
-        const [ filterClosed ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'filterClosed', false);
+        const [ filterClosed ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'filterClosed', false);
         const result = this.parseAccountPositions (response, filterClosed);
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
@@ -4141,7 +4141,8 @@ export default class aster extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTagTuple = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag = paramsWithdrawTagTuple[1];
         this.checkAddress (address);
         await this.loadMarketsAndSignIn ();
         const currency = this.currency (code);

@@ -1485,7 +1485,7 @@ export default class xt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000) as OHLCV[];
         }
@@ -1804,8 +1804,8 @@ export default class xt extends Exchange {
         }
         const request: Dict = {};
         let response = undefined;
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
         if (subType === 'inverse') {
             response = await this.publicInverseGetFutureMarketV1PublicQAggTickers (this.extend (request, paramsSubType));
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
@@ -1893,8 +1893,8 @@ export default class xt extends Exchange {
         if (symbolsNormalized !== undefined) {
             market = this.market (symbolsNormalized[0]);
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, paramsMarketType);
         const isInverse = (subType === 'inverse');
         const isLinear = (subType === 'linear') || (type === 'swap') || (type === 'future');
         const isContract = isInverse || isLinear;
@@ -2419,8 +2419,8 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         let response = undefined;
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchBalance', undefined, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchBalance', undefined, paramsMarketType);
         const isContractWallet = ((type === 'swap') || (type === 'future'));
         if (subType === 'inverse') {
             response = await this.privateInverseGetFutureUserV1BalanceList (paramsSubType);
@@ -3767,7 +3767,7 @@ export default class xt extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('cancelOrders', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('cancelOrders', market, params);
         if (subType !== undefined) {
             throw new NotSupported (this.id + ' cancelOrders() does not support swap and future orders, only spot orders are accepted');
         }
@@ -4027,8 +4027,8 @@ export default class xt extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchLedger', undefined, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchLedger', undefined, paramsMarketType);
         if (subType === 'inverse') {
             response = await this.privateInverseGetFutureUserV1BalanceBills (this.extend (request, paramsSubType));
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
@@ -4459,7 +4459,7 @@ export default class xt extends Exchange {
             'positionSide': positionSide,
             'leverage': leverage,
         };
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('setLeverage', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('setLeverage', market, params);
         let response: Dict;
         if (subType === 'inverse') {
             response = await this.privateInversePostFutureUserV1PositionAdjustLeverage (this.extend (request, paramsSubType));
@@ -4521,7 +4521,7 @@ export default class xt extends Exchange {
             'type': addOrReduce,
             'positionSide': positionSide,
         };
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('modifyMarginHelper', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('modifyMarginHelper', market, params);
         let response = undefined;
         if (subType === 'inverse') {
             response = await this.privateInversePostFutureUserV1PositionMargin (this.extend (request, paramsSubType));
@@ -4567,7 +4567,7 @@ export default class xt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params);
         let response = undefined;
         if (subType === 'inverse') {
             response = await this.publicInverseGetFutureMarketV1PublicLeverageBracketList (paramsSubType);
@@ -4655,7 +4655,7 @@ export default class xt extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchMarketLeverageTiers', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchMarketLeverageTiers', market, params);
         let response = undefined;
         if (subType === 'inverse') {
             response = await this.publicInverseGetFutureMarketV1PublicLeverageBracketDetail (this.extend (request, paramsSubType));
@@ -4746,7 +4746,7 @@ export default class xt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'id', 'id', 1, 200) as FundingRateHistory[];
         }
@@ -4762,7 +4762,7 @@ export default class xt extends Exchange {
         } else {
             request['limit'] = 200; // max
         }
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchFundingRateHistory', market, paramsPaginate);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchFundingRateHistory', market, paramsPaginate);
         let response = undefined;
         if (subType === 'inverse') {
             response = await this.publicInverseGetFutureMarketV1PublicQFundingRateRecord (this.extend (request, paramsSubType));
@@ -4842,7 +4842,7 @@ export default class xt extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchFundingRate', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchFundingRate', market, params);
         let response = undefined;
         if (subType === 'inverse') {
             response = await this.publicInverseGetFutureMarketV1PublicQFundingRate (this.extend (request, paramsSubType));
@@ -4922,7 +4922,7 @@ export default class xt extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchOpenInterest', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchOpenInterest', market, params);
         let response = undefined;
         if (subType === 'inverse') {
             response = await this.publicInverseGetFutureMarketV1PublicContractOpenInterest (this.extend (request, paramsSubType));
@@ -4983,7 +4983,7 @@ export default class xt extends Exchange {
         if (market['contract'] !== true) {
             throw new NotSupported (this.id + ' fetchTradingFee() supports contract markets only');
         }
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchTradingFee', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTradingFee', market, params);
         let response = undefined;
         if (subType === 'inverse') {
             response = await this.privateInverseGetFutureUserV1UserStepRate (paramsSubType);
@@ -5027,7 +5027,7 @@ export default class xt extends Exchange {
      */
     override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         await this.loadMarkets ();
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchTradingFees', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTradingFees', undefined, params);
         const isInverse = (subType === 'inverse');
         let response = undefined;
         if (isInverse) {
@@ -5092,7 +5092,7 @@ export default class xt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params);
         let response = undefined;
         if (subType === 'inverse') {
             response = await this.privateInverseGetFutureUserV1BalanceFundingRateList (this.extend (request, paramsSubType));
@@ -5214,7 +5214,7 @@ export default class xt extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchPosition', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchPosition', market, params);
         const promisesUnresolved: List = [];
         if (subType === 'inverse') {
             promisesUnresolved.push (this.privateInverseGetFutureUserV1PositionList (this.extend (request, paramsSubType)));
@@ -5295,7 +5295,7 @@ export default class xt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params);
         const promisesUnresolved: List = [];
         if (subType === 'inverse') {
             promisesUnresolved.push (this.privateInverseGetFutureUserV1PositionList (paramsSubType));
@@ -5391,7 +5391,7 @@ export default class xt extends Exchange {
             request['limit'] = limit;
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchPositionsHistory', market, paramsUntil);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchPositionsHistory', market, paramsUntil);
         let response = undefined;
         if (subType === 'inverse') {
             response = await this.privateInverseGetFutureTradeV1PositionListHistory (this.extend (requestUntil, paramsSubType));
@@ -5631,7 +5631,7 @@ export default class xt extends Exchange {
             'positionSide': posSide,
             'symbol': market['id'],
         };
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('setMarginMode', market, paramsOmitted);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('setMarginMode', market, paramsOmitted);
         let response: Dict;
         if (subType === 'inverse') {
             response = await this.privateInversePostFutureUserV1PositionChangeType (this.extend (request, paramsSubType));

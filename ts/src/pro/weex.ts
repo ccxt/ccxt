@@ -1095,7 +1095,7 @@ export default class weex extends weexRest {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const isContract = (marketType !== 'spot');
         let messageHash = isContract ? 'myContractTrades' : 'myTrades';
         const subscriptionHash = messageHash;
@@ -1125,7 +1125,7 @@ export default class weex extends weexRest {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.');
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('unWatchMyTrades', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('unWatchMyTrades', undefined, params);
         const isContract = (marketType !== 'spot');
         const subHash = isContract ? 'myContractTrades' : 'myTrades';
         const unSubHash = 'unsubscribe::' + subHash;
@@ -1300,7 +1300,7 @@ export default class weex extends weexRest {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const isContract = (marketType !== 'spot');
         let messageHash = isContract ? 'contractOrders' : 'orders';
         const subscriptionHash = messageHash;
@@ -1329,7 +1329,7 @@ export default class weex extends weexRest {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.');
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('unWatchOrders', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('unWatchOrders', undefined, params);
         const isContract = (marketType !== 'spot');
         const subHash = isContract ? 'contractOrders' : 'orders';
         const unSubHash = 'unsubscribe::' + subHash;
@@ -1588,7 +1588,7 @@ export default class weex extends weexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const isContract = (type !== 'spot');
         const urlType = isContract ? 'contract' : 'spot';
         const url = this.urls['api']['ws'][urlType] + '/private';

@@ -3102,7 +3102,7 @@ export default class mexc extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol !== undefined) {
                 request['symbol'] = this.safeString (market, 'id');
@@ -3405,7 +3405,7 @@ export default class mexc extends Exchange {
             market = this.market (symbol);
         }
         const request: Dict = {};
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 await this.spotPrivateDeleteOrderAll (paramsMarketType);
@@ -5492,7 +5492,7 @@ export default class mexc extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5501,7 +5501,7 @@ export default class mexc extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const [ fromAccountType, paramsFromAccountType ]: [ Str, Dict ] = this.handleOptionAndParams (paramsMarketType, 'fetchTransfers', 'fromAccountType');
+        const [ fromAccountType, paramsFromAccountType ] = this.handleOptionAndParams (paramsMarketType, 'fetchTransfers', 'fromAccountType');
         const accountTypes: Dict = {
             'spot': 'SPOT',
             'swap': 'FUTURES',
@@ -5514,7 +5514,7 @@ export default class mexc extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a fromAccountType parameter, one of "SPOT", "FUTURES"');
         }
-        const [ toAccountType, paramsToAccountType ]: [ Str, Dict ] = this.handleOptionAndParams (paramsFromAccountType, 'fetchTransfers', 'toAccountType');
+        const [ toAccountType, paramsToAccountType ] = this.handleOptionAndParams (paramsFromAccountType, 'fetchTransfers', 'toAccountType');
         if (toAccountType !== undefined) {
             request['toAccountType'] = this.safeString (accountTypes, toAccountType, toAccountType);
         } else {

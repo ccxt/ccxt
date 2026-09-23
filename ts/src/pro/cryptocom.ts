@@ -129,11 +129,11 @@ export default class cryptocom extends cryptocomRest {
         if (topicParams === undefined) {
             params['params'] = {};
         }
-        const [ bookSubscriptionType, paramsBookSubscriptionType ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-        const [ bookSubscriptionType2, paramsBookSubscriptionType2 ]: [ Str, Dict ] = this.handleOptionAndParams (paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
+        const [ bookSubscriptionType, paramsBookSubscriptionType ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        const [ bookSubscriptionType2, paramsBookSubscriptionType2 ] = this.handleOptionAndParams (paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
         paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2;
-        const [ bookUpdateFrequency, paramsBookUpdateFrequency ]: [ Str, Dict ] = this.handleOptionAndParams (paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
-        const [ bookUpdateFrequency2, paramsBookUpdateFrequency2 ]: [ Str, Dict ] = this.handleOptionAndParams (paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
+        const [ bookUpdateFrequency, paramsBookUpdateFrequency ] = this.handleOptionAndParams (paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
+        const [ bookUpdateFrequency2, paramsBookUpdateFrequency2 ] = this.handleOptionAndParams (paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
             paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2;
         }
@@ -174,11 +174,11 @@ export default class cryptocom extends cryptocomRest {
         if (topicParams === undefined) {
             params['params'] = {};
         }
-        const [ bookSubscriptionType, paramsBookSubscriptionType ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-        const [ bookSubscriptionType2, paramsBookSubscriptionType2 ]: [ Str, Dict ] = this.handleOptionAndParams (paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
+        const [ bookSubscriptionType, paramsBookSubscriptionType ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        const [ bookSubscriptionType2, paramsBookSubscriptionType2 ] = this.handleOptionAndParams (paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
         paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2;
-        const [ bookUpdateFrequency, paramsBookUpdateFrequency ]: [ Str, Dict ] = this.handleOptionAndParams (paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
-        const [ bookUpdateFrequency2, paramsBookUpdateFrequency2 ]: [ Str, Dict ] = this.handleOptionAndParams (paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
+        const [ bookUpdateFrequency, paramsBookUpdateFrequency ] = this.handleOptionAndParams (paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
+        const [ bookUpdateFrequency2, paramsBookUpdateFrequency2 ] = this.handleOptionAndParams (paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
             paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2;
         }

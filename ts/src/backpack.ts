@@ -1475,7 +1475,7 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchDeposits', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchDeposits', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -1510,7 +1510,7 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'until');
         if (until !== undefined) {
             request['to'] = until;
         }

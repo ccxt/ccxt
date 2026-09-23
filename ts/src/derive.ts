@@ -1286,7 +1286,9 @@ export default class derive extends Exchange {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const TRADE_MODULE_ADDRESS = (sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         const priceString = this.numberToString (price);
-        const [ maxFee, paramsMaxFee ]: [ Num, Dict ] = this.handleOptionAndParams (paramsDeriveSubaccountId, 'createOrder', 'max_fee');
+        const maxFeeTuple = this.handleOptionAndParams (paramsDeriveSubaccountId, 'createOrder', 'max_fee');
+        const maxFee: Num = maxFeeTuple[0];
+        const paramsMaxFee: Dict = maxFeeTuple[1];
         if (maxFee === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a max_fee argument in params');
         }
@@ -1769,7 +1771,7 @@ export default class derive extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, paramsPaginate, 'page', 500) as Order[];
         }
@@ -2152,7 +2154,7 @@ export default class derive extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'page', 500) as Trade[];
         }
@@ -2377,7 +2379,7 @@ export default class derive extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'page', 500) as FundingHistory[];
         }
@@ -2709,7 +2711,7 @@ export default class derive extends Exchange {
     }
 
     handleDeriveSubaccountId (methodName: string, params: Dict): [any, Dict] {
-        const [ derivesubAccountId, paramsSubaccountId ]: [ Str, Dict ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
+        const [ derivesubAccountId, paramsSubaccountId ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
             this.options['subaccount_id'] = derivesubAccountId; // saving in options
             return [ derivesubAccountId, paramsSubaccountId ];
@@ -2722,7 +2724,7 @@ export default class derive extends Exchange {
     }
 
     handleDeriveWalletAddress (methodName: string, params: Dict): [Str, Dict] {
-        const [ deriveWalletAddress, paramsDeriveWalletAddress ]: [ Str, Dict ] = this.handleOptionAndParams (params, methodName, 'deriveWalletAddress');
+        const [ deriveWalletAddress, paramsDeriveWalletAddress ] = this.handleOptionAndParams (params, methodName, 'deriveWalletAddress');
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
             this.options['deriveWalletAddress'] = deriveWalletAddress; // saving in options
             return [ deriveWalletAddress, paramsDeriveWalletAddress ];

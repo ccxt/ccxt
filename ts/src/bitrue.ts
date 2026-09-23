@@ -1125,8 +1125,8 @@ export default class bitrue extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchBalance', undefined, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchBalance', undefined, paramsMarketType);
         let response: NullableDict = undefined;
         let result: NullableDict = undefined;
         if (type === 'swap') {

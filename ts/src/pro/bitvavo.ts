@@ -1141,7 +1141,7 @@ export default class bitvavo extends bitvavoRest {
         }
         await this.authenticate ();
         const request: Dict = {};
-        const [ operatorId, paramsOperatorId ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'cancelAllOrdersWs', 'operatorId');
+        const [ operatorId, paramsOperatorId ] = this.handleOptionAndParams (params, 'cancelAllOrdersWs', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {

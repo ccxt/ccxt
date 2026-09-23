@@ -910,7 +910,7 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 2000) as OHLCV[];
         }
@@ -1278,7 +1278,7 @@ export default class krakenfutures extends Exchange {
         const symbolValue: Str = market['symbol'];
         type = this.safeString (params, 'orderType', type);
         const timeInForce = this.safeString (params, 'timeInForce');
-        const [ postOnly, paramsPostOnly ]: [ boolean, Dict ] = this.handlePostOnly (type === 'market', type === 'post', params);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 'post', params);
         if (postOnly) {
             type = 'post';
         } else if (timeInForce === 'ioc') {

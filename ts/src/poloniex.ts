@@ -6,7 +6,7 @@ import Exchange from './abstract/poloniex.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, RateLimitExceeded, MarketClosed, OperationRejected, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -687,7 +687,7 @@ export default class poloniex extends Exchange {
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 500) as OHLCV[];
         }
@@ -1150,7 +1150,7 @@ export default class poloniex extends Exchange {
                 }
             }
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (marketType === 'swap') {
             const responseRaw = await this.swapPublicGetV3MarketTickers (this.extend (request, paramsMarketType));
             //
@@ -1557,7 +1557,7 @@ export default class poloniex extends Exchange {
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
@@ -1565,7 +1565,7 @@ export default class poloniex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsPaginate);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsPaginate);
         const isContract = this.inArray (marketType, [ 'swap', 'future' ]);
         const request: Dict = {
             // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
@@ -1878,7 +1878,7 @@ export default class poloniex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (limit !== undefined) {
             const max = (marketType === 'spot') ? 2000 : 100;
             request['limit'] = Math.max (limit, max);
@@ -1980,7 +1980,7 @@ export default class poloniex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params, 'swap');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params, 'swap');
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchClosedOrders() is not supported for spot markets yet');
         }
@@ -2299,7 +2299,7 @@ export default class poloniex extends Exchange {
             ];
         }
         let response: Dict | List = [];
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'swap' || marketType === 'future') {
             const raw = await this.swapPrivateDeleteV3TradeAllOrders (this.extend (request, paramsMarketType));
             //
@@ -2369,7 +2369,7 @@ export default class poloniex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         if (marketType !== 'spot') {
             throw new NotSupported (this.id + ' fetchOrder() is not supported for ' + marketType + ' markets yet');
         }
@@ -2512,7 +2512,7 @@ export default class poloniex extends Exchange {
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         if (marketType !== 'spot') {
             const responseRaw = await this.swapPrivateGetV3AccountBalance (paramsMarketType);
             //
@@ -3288,11 +3288,11 @@ export default class poloniex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('setLeverage', params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('setLeverage', params);
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a marginMode parameter "cross" or "isolated"');
         }
-        const [ hedged, paramsHedged ]: [ Bool, Dict ] = this.handleParamBool (paramsMarginMode, 'hedged', false);
+        const [ hedged, paramsHedged ] = this.handleParamBool (paramsMarginMode, 'hedged', false);
         if (hedged === true) {
             if (!('posSide' in paramsHedged)) {
                 throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide parameter for hedged mode: "LONG" or "SHORT"');
@@ -3322,7 +3322,7 @@ export default class poloniex extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchLeverage', params);
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a marginMode parameter "cross" or "isolated"');
         }

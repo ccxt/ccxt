@@ -2179,8 +2179,8 @@ export default class okx extends Exchange {
         const request: Dict = {
             'instId': market['id'],
         };
-        const [ rpi, paramsRpi ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'rpi');
-        const [ method, paramsMethod ]: [ Str, Dict ] = this.handleOptionAndParams (paramsRpi, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
+        const [ rpi, paramsRpi ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'rpi');
+        const [ method, paramsMethod ] = this.handleOptionAndParams (paramsRpi, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if (method === 'publicGetMarketBooksFull' && limit === undefined) {
             limit = 5000;
         }
@@ -2370,7 +2370,7 @@ export default class okx extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
@@ -2465,7 +2465,7 @@ export default class okx extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMarkPrices', market, params, 'swap');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMarkPrices', market, params, 'swap');
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
@@ -2821,7 +2821,7 @@ export default class okx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100) as FundingRateHistory[];
         }
@@ -4562,7 +4562,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const maxLimit = 100;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, paramsPaginate, maxLimit) as Order[];
         }
@@ -4919,7 +4919,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const maxLimit = 100;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, paramsPaginate, maxLimit) as Order[];
         }
@@ -5099,7 +5099,7 @@ export default class okx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
@@ -5655,7 +5655,7 @@ export default class okx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, paramsPaginate);
         }
@@ -5766,7 +5766,7 @@ export default class okx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, paramsPaginate);
         }
@@ -8050,7 +8050,9 @@ export default class okx extends Exchange {
         if (symbolsNormalized !== undefined) {
             market = this.market (symbolsNormalized[0]);
         }
-        const [ marketType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchOpenInterests', market, params, 'swap');
+        const marketTypeTuple = this.handleSubTypeAndParams ('fetchOpenInterests', market, params, 'swap');
+        const marketType: Str = marketTypeTuple[0];
+        const paramsSubType: Dict = marketTypeTuple[1];
         let instType = 'SWAP';
         if (marketType === 'future') {
             instType = 'FUTURES';
@@ -8380,7 +8382,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
         if (type !== 'future' && type !== 'option') {
             throw new NotSupported (this.id + ' fetchSettlementHistory() supports futures and options markets only');
         }
@@ -8723,7 +8725,7 @@ export default class okx extends Exchange {
         const market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const code = this.safeString (params, 'code');
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
         const request: Dict = {
             'instId': market['id'],
             'mgnMode': marginMode,

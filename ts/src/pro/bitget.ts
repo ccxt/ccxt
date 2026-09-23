@@ -142,7 +142,7 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const messageHash = 'ticker:' + symbolValue;
-        const [ uta, paramsUta ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'watchTicker', 'uta', false);
+        const [ uta, paramsUta ] = this.handleOptionAndParams (params, 'watchTicker', 'uta', false);
         const [ instType, paramsValue ] = this.getInstType ('watchTicker', market, uta, paramsUta);
         const args: Dict = {
             'instType': instType,
@@ -189,7 +189,7 @@ export default class bitget extends bitgetRest {
             symbols = [];
         }
         const market = this.market (symbols[0]);
-        const [ uta, paramsUta ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'watchTickers', 'uta', false);
+        const [ uta, paramsUta ] = this.handleOptionAndParams (params, 'watchTickers', 'uta', false);
         const [ instType, paramsValue ] = this.getInstType ('watchTickers', market, uta, paramsUta);
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
@@ -433,7 +433,7 @@ export default class bitget extends bitgetRest {
             symbols = [];
         }
         const market = this.market (symbols[0]);
-        const [ uta, paramsUta ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'uta', false);
+        const [ uta, paramsUta ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'uta', false);
         const [ instType, paramsValue ] = this.getInstType ('watchBidsAsks', market, uta, paramsUta);
         const topics: Dict[] = [];
         const messageHashes: string[] = [];

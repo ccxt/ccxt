@@ -219,7 +219,7 @@ export default class mexc extends mexcRest {
         if (firstSymbol !== undefined) {
             market = this.market (firstSymbol);
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const isSpot = (type === 'spot');
         const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
         const request: Dict = {};
@@ -434,7 +434,7 @@ export default class mexc extends mexcRest {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks required symbols argument');
         }
         const markets = this.requireValue (this.marketsForSymbols (symbolsNormalized), 'watchBidsAsks() markets is required');
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
             throw new NotSupported (this.id + ' watchBidsAsks only support spot market');
@@ -1107,7 +1107,7 @@ export default class mexc extends mexcRest {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let trades: any = undefined;
         if (type === 'spot') {
             const channel = 'spot@private.deals.v3.api.pb';
@@ -1290,7 +1290,7 @@ export default class mexc extends mexcRest {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let orders: any = undefined;
         if (type === 'spot') {
             const channel = 'spot@private.orders.v3.api.pb';
@@ -1570,7 +1570,7 @@ export default class mexc extends mexcRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
         if (type === 'spot') {
             const channel = 'spot@private.account.v3.api.pb';
@@ -1764,7 +1764,7 @@ export default class mexc extends mexcRest {
         if (firstSymbol !== undefined) {
             market = this.market (firstSymbol);
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const isSpot = (type === 'spot');
         const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
         const request: Dict = {};
@@ -1824,7 +1824,7 @@ export default class mexc extends mexcRest {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks required symbols argument');
         }
         const markets = this.requireValue (this.marketsForSymbols (symbolsNormalized), 'unWatchBidsAsks() markets is required');
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
             throw new NotSupported (this.id + ' watchBidsAsks only support spot market');

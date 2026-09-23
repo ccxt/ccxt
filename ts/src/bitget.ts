@@ -2083,7 +2083,7 @@ export default class bitget extends Exchange {
     }
 
     async handleUTAAndParams (params: Dict, methodName: Str, defaultValue: boolean = false): Promise<[Bool, Dict]> {
-        const [ uta, paramsUta ]: [ Bool, Dict ] = this.handleOptionAndParams (params, methodName, 'uta');
+        const [ uta, paramsUta ] = this.handleOptionAndParams (params, methodName, 'uta');
         if (uta !== undefined) {
             return [ uta, paramsUta ];
         }
@@ -3026,7 +3026,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchDeposits', false);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsUTA, 'fetchDeposits', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (paramsUTA, 'fetchDeposits', 'paginate');
         if (paginate) {
             if (uta === true) {
                 return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, paramsPaginate, 'orderId', 'cursor', undefined, 100) as Transaction[];
@@ -3221,7 +3221,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchWithdrawals', false);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsUTA, 'fetchWithdrawals', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (paramsUTA, 'fetchWithdrawals', 'paginate');
         if (paginate) {
             if (uta === true) {
                 return await this.fetchPaginatedCallCursor ('fetchWithdrawals', undefined, since, limit, paramsPaginate, 'orderId', 'cursor', undefined, 100) as Transaction[];
@@ -3947,7 +3947,7 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         const request: Dict = {};
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
         // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
         // with higher priority and only default to spot, if `subType` is not set in params
@@ -4699,7 +4699,7 @@ export default class bitget extends Exchange {
         const maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
         const useHistoryEndpointForPagination = this.safeBool (params, 'useHistoryEndpointForPagination', true);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             const limitForPagination = (useHistoryEndpointForPagination === true) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, limitForPagination);
@@ -4794,7 +4794,7 @@ export default class bitget extends Exchange {
         request['limit'] = limit;
         // make request
         let response = undefined;
-        const [ priceType, paramsPrice ]: [ Str, Dict ] = this.handleParamString (paramsOmitted, 'price');
+        const [ priceType, paramsPrice ] = this.handleParamString (paramsOmitted, 'price');
         const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, paramsPrice);
         if (uta === true) {
             if (priceType !== undefined) {
@@ -9606,7 +9606,7 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchFundingHistory', false);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsUTA, 'fetchFundingHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (paramsUTA, 'fetchFundingHistory', 'paginate');
         if (paginate) {
             if (uta === true) {
                 return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor') as FundingHistory[];
@@ -10703,7 +10703,7 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyLiquidations', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyLiquidations', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyLiquidations', symbol, since, limit, paramsPaginate, 'minId', 'idLessThan') as Liquidation[];
         }
@@ -10711,7 +10711,7 @@ export default class bitget extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMyLiquidations', market, paramsPaginate);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyLiquidations', market, paramsPaginate);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchMyLiquidations() supports spot margin markets only');
         }
@@ -10726,7 +10726,7 @@ export default class bitget extends Exchange {
             requestUntil['limit'] = limit;
         }
         let response = undefined;
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchMyLiquidations', paramsUntil, 'cross');
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchMyLiquidations', paramsUntil, 'cross');
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchMyLiquidations() requires a symbol argument');
@@ -11094,7 +11094,7 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchBorrowInterest', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchBorrowInterest', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchBorrowInterest', symbol, since, limit, paramsPaginate, 'minId', 'idLessThan') as BorrowInterest[];
         }
@@ -11117,7 +11117,7 @@ export default class bitget extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchBorrowInterest', paramsPaginate, 'cross');
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBorrowInterest', paramsPaginate, 'cross');
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a symbol argument');

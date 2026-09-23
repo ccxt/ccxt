@@ -155,8 +155,8 @@ export default class bingx extends bingxRest {
         }
         const market = this.market (symbol);
         let url: Str = undefined;
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchTicker', market, paramsMarketType, 'linear');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchTicker', market, paramsMarketType, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -379,8 +379,8 @@ export default class bingx extends bingxRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         let url: Str = undefined;
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchTrades', market, paramsMarketType, 'linear');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchTrades', market, paramsMarketType, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -564,8 +564,8 @@ export default class bingx extends bingxRest {
         }
         const market = this.market (symbol);
         let url: Str = undefined;
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchOrderBook', market, paramsMarketType, 'linear');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchOrderBook', market, paramsMarketType, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -908,8 +908,8 @@ export default class bingx extends bingxRest {
         }
         const market = this.market (symbol);
         let url: Str = undefined;
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchOHLCV', market, paramsMarketType, 'linear');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchOHLCV', market, paramsMarketType, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -997,8 +997,8 @@ export default class bingx extends bingxRest {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        const [ subType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchOrders', market, paramsMarketType, 'linear');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const [ subType ] = this.handleSubTypeAndParams ('watchOrders', market, paramsMarketType, 'linear');
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
@@ -1060,8 +1060,8 @@ export default class bingx extends bingxRest {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
-        const [ subType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchMyTrades', market, paramsMarketType, 'linear');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        const [ subType ] = this.handleSubTypeAndParams ('watchMyTrades', market, paramsMarketType, 'linear');
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
@@ -1115,8 +1115,8 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchBalance', undefined, paramsMarketType, 'linear');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchBalance', undefined, paramsMarketType, 'linear');
         const isSpot = (type === 'spot');
         const spotSubHash = 'spot:balance';
         const swapSubHash = 'swap:private';
@@ -1144,8 +1144,8 @@ export default class bingx extends bingxRest {
         const url = baseUrl + '?listenKey=' + this.options['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, subType, subscriptionHash, paramsSubType);
-        const [ fetchBalanceSnapshot, paramsFetchBalanceSnapshot ]: [ Bool, Dict ] = this.handleOptionAndParams (paramsSubType, 'watchBalance', 'fetchBalanceSnapshot', true);
-        const [ awaitBalanceSnapshot ]: [ Bool, Dict ] = this.handleOptionAndParams (paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false);
+        const [ fetchBalanceSnapshot, paramsFetchBalanceSnapshot ] = this.handleOptionAndParams (paramsSubType, 'watchBalance', 'fetchBalanceSnapshot', true);
+        const [ awaitBalanceSnapshot ] = this.handleOptionAndParams (paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
@@ -1160,7 +1160,7 @@ export default class bingx extends bingxRest {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
-        const [ fetchBalanceSnapshot ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        const [ fetchBalanceSnapshot ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1206,8 +1206,8 @@ export default class bingx extends bingxRest {
             market = this.getMarketFromSymbols (symbolsNormalized);
             messageHash = '::' + symbolsNormalized.join (',');
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchPositions', market, params, 'swap');
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchPositions', market, paramsMarketType, 'linear');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchPositions', market, params, 'swap');
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchPositions', market, paramsMarketType, 'linear');
         if (type === 'spot') {
             throw new NotSupported (this.id + ' watchPositions is not supported for spot markets');
         }
@@ -1220,8 +1220,8 @@ export default class bingx extends bingxRest {
         const url = baseUrl + '?listenKey=' + this.options['listenKey'];
         const client = this.client (url);
         this.setPositionsCache (client, type, symbolsNormalized);
-        const [ fetchPositionsSnapshot, paramsFetchPositionsSnapshot ]: [ Bool, Dict ] = this.handleOptionAndParams (paramsSubType, 'watchPositions', 'fetchPositionsSnapshot', true);
-        const [ awaitPositionsSnapshot ]: [ Bool, Dict ] = this.handleOptionAndParams (paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false);
+        const [ fetchPositionsSnapshot, paramsFetchPositionsSnapshot ] = this.handleOptionAndParams (paramsSubType, 'watchPositions', 'fetchPositionsSnapshot', true);
+        const [ awaitPositionsSnapshot ] = this.handleOptionAndParams (paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false);
         const uuid = this.uuid ();
         const subscription: Dict = {
             'unsubscribe': false,

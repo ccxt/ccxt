@@ -576,7 +576,7 @@ export default class mudrex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'swap');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'swap');
         const requested = this.safeStringN (paramsMarketType, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
         const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
         const request: Dict = {};

@@ -759,7 +759,7 @@ export default class deepcoin extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
@@ -1772,7 +1772,7 @@ export default class deepcoin extends Exchange {
     }
 
     handleTypePostOnlyAndTimeInForce (type: Str, params: Dict): [Str, Dict] {
-        const [ postOnly, paramsPostOnly ]: [ boolean, Dict ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         if (postOnly) {
             type = 'post_only';
         }

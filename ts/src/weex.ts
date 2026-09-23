@@ -749,7 +749,7 @@ export default class weex extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     override async fetchTime (params: Dict = {}): Promise<Int> {
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
         if (type !== 'spot') {
             response = await this.contractGetCapiV3MarketTime (paramsMarketType);
@@ -1148,7 +1148,7 @@ export default class weex extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let symbolsLength = 0;
         if (symbolsNormalized !== undefined) {
             symbolsLength = symbolsNormalized.length;
@@ -1227,7 +1227,7 @@ export default class weex extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.publicGetApiV3MarketTickerBookTicker (paramsMarketType);
@@ -1359,7 +1359,7 @@ export default class weex extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets');
         }
@@ -2115,7 +2115,7 @@ export default class weex extends Exchange {
             currency = this.currency (code);
         }
         const maxLimit = 100;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, paramsPaginate, maxLimit);
         }
@@ -2513,7 +2513,7 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const trigger = this.safeBool (paramsMarketType, 'trigger', false);
         if ((trigger === true) && id === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument for trigger orders');
@@ -2579,7 +2579,7 @@ export default class weex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const trigger = this.safeBool (paramsMarketType, 'trigger', false);
         const paramsOmitted: Dict = this.omit (paramsMarketType, 'trigger');
         let response = undefined;
@@ -2621,7 +2621,7 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         const isSpot = (marketType === 'spot');
         const clientOrderIds = this.safeList (paramsMarketType, 'clientOrderIds');
         const paramsOmitted: Dict = this.omit (paramsMarketType, 'clientOrderIds');
@@ -2674,7 +2674,7 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const isSpot = (marketType === 'spot');
         const request: Dict = {};
         if ((id === undefined) && !isSpot) {
@@ -2881,7 +2881,7 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         let orders: NullableList = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
@@ -2917,7 +2917,7 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
         let orders: NullableList = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
@@ -2955,7 +2955,7 @@ export default class weex extends Exchange {
             throw new NotSupported (this.id + ' fetchOrders() supports spot markets only');
         }
         const maxLimit = 1000;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, paramsPaginate, maxLimit);
         }
@@ -3016,11 +3016,11 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsMarketType, 'fetchCanceledAndClosedOrders', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (paramsMarketType, 'fetchCanceledAndClosedOrders', 'paginate', false);
         const maxLimit = 1000;
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit);
@@ -3325,12 +3325,12 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const isSpot = (marketType === 'spot');
         if (isSpot && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument for spot markets');
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsMarketType, 'fetchMyTrades', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (paramsMarketType, 'fetchMyTrades', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit);
@@ -3588,7 +3588,7 @@ export default class weex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 100) as FundingHistory[];
         }
@@ -4153,7 +4153,7 @@ export default class weex extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('setLeverage', params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('setLeverage', params);
         if (marginMode !== undefined) {
             request['marginType'] = this.encodeMarginMode (marginMode);
         }
@@ -4216,7 +4216,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('setPositionMode', params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('setPositionMode', params);
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setPositionMode() also sets marginMode, so a marginMode parameter is required');
         }

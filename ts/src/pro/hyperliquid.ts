@@ -988,7 +988,7 @@ export default class hyperliquid extends hyperliquidRest {
         const userAddressResult = this.handlePublicAddress ('watchBalance', params);
         userAddress = this.safeString (userAddressResult, 0);
         const paramsValue: Dict = this.safeDict (userAddressResult, 1, params);
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, paramsValue);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, paramsValue);
         let isUnifiedEnabled: Bool = undefined;
         const unifiedResult = await this.isUnifiedEnabled ('watchBalance', userAddress, false, paramsMarketType);
         isUnifiedEnabled = this.safeBool (unifiedResult, 0);
@@ -1036,7 +1036,7 @@ export default class hyperliquid extends hyperliquidRest {
         const userAddressResult = this.handlePublicAddress ('unWatchBalance', params);
         userAddress = this.safeString (userAddressResult, 0);
         const paramsValue = this.safeDict (userAddressResult, 1, params);
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('unWatchBalance', undefined, paramsValue);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('unWatchBalance', undefined, paramsValue);
         let isUnifiedEnabled: Bool = undefined;
         const unifiedResult = await this.isUnifiedEnabled ('unWatchBalance', userAddress, false, paramsMarketType);
         isUnifiedEnabled = this.safeBool (unifiedResult, 0);

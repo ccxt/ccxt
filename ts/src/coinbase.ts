@@ -595,7 +595,7 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchAccounts', undefined, undefined, undefined, paramsPaginate, 'next_starting_after', 'starting_after', undefined, 100);
         }
@@ -665,7 +665,7 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchAccounts', undefined, undefined, undefined, paramsPaginate, 'cursor', 'cursor', undefined, 250);
         }
@@ -965,7 +965,7 @@ export default class coinbase extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        const [ currencyType, paramsCurrencyType ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'currencyType');
+        const [ currencyType, paramsCurrencyType ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType);
             return this.filterByArray (results, 'type', 'withdrawal', false);
@@ -987,7 +987,7 @@ export default class coinbase extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        const [ currencyType, paramsCurrencyType ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'fetchDeposits', 'currencyType');
+        const [ currencyType, paramsCurrencyType ] = this.handleOptionAndParams (params, 'fetchDeposits', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType);
             return this.filterByArray (results, 'type', 'deposit', false);
@@ -1469,7 +1469,7 @@ export default class coinbase extends Exchange {
     }
 
     async fetchMarketsV3 (params: Dict = {}): Promise<Market[]> {
-        const [ usePrivate, paramsUsePrivate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMarkets', 'usePrivate', false);
+        const [ usePrivate, paramsUsePrivate ] = this.handleOptionAndParams (params, 'fetchMarkets', 'usePrivate', false);
         const spotUnresolvedPromises: List = [];
         if (usePrivate) {
             spotUnresolvedPromises.push (this.v3PrivateGetBrokerageProducts (paramsUsePrivate));
@@ -2147,12 +2147,12 @@ export default class coinbase extends Exchange {
         if (symbolsNormalized !== undefined) {
             request['product_ids'] = this.marketIds (symbolsNormalized);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', this.getMarketFromSymbols (symbolsNormalized), params, 'default');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', this.getMarketFromSymbols (symbolsNormalized), params, 'default');
         if (marketType !== undefined && marketType !== 'default') {
             request['product_type'] = (marketType === 'swap') ? 'FUTURE' : 'SPOT';
         }
         let response = undefined;
-        const [ usePrivate, paramsUsePrivate ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsMarketType, 'fetchTickers', 'usePrivate', false);
+        const [ usePrivate, paramsUsePrivate ] = this.handleOptionAndParams (paramsMarketType, 'fetchTickers', 'usePrivate', false);
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProducts (this.extend (request, paramsUsePrivate));
         } else {
@@ -2267,7 +2267,7 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'limit': 1,
         };
-        const [ usePrivate, paramsUsePrivate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTicker', 'usePrivate', false);
+        const [ usePrivate, paramsUsePrivate ] = this.handleOptionAndParams (params, 'fetchTicker', 'usePrivate', false);
         let response = undefined;
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, paramsUsePrivate));
@@ -2511,7 +2511,7 @@ export default class coinbase extends Exchange {
         let response = undefined;
         const isV3 = this.safeBool (params, 'v3', false);
         const paramsOmitted: Dict = this.omit (params, [ 'v3' ]);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsOmitted);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsOmitted);
         const method = this.safeString (this.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if (marketType === 'future') {
             response = await this.v3PrivateGetBrokerageCfmBalanceSummary (this.extend (request, paramsMarketType));
@@ -2613,7 +2613,7 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, paramsPaginate, 'next_starting_after', 'starting_after', undefined, 100) as LedgerEntry[];
         }
@@ -3832,7 +3832,7 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 100) as Order[];
         }
@@ -3856,7 +3856,7 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchClosedOrders', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 1000) as Order[];
         }
@@ -3900,7 +3900,7 @@ export default class coinbase extends Exchange {
         }
         const maxLimit = 300;
         const limitValue: Int = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, maxLimit - 1) as OHLCV[];
         }
@@ -3928,7 +3928,7 @@ export default class coinbase extends Exchange {
             request['end'] = Precise.stringAdd (sinceString, requestedDuration.toString ());
         }
         let response = undefined;
-        const [ usePrivate, paramsUsePrivate ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsOmitted, 'fetchOHLCV', 'usePrivate', false);
+        const [ usePrivate, paramsUsePrivate ] = this.handleOptionAndParams (paramsOmitted, 'fetchOHLCV', 'usePrivate', false);
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, paramsUsePrivate));
         } else {
@@ -4002,14 +4002,14 @@ export default class coinbase extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchTrades', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchTrades', 'until');
         if (until !== undefined) {
             request['end'] = this.numberToString (this.parseToInt (until / 1000));
         } else if (since !== undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a `until` parameter when you use `since` argument');
         }
         let response = undefined;
-        const [ usePrivate, paramsUsePrivate ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsUntil, 'fetchTrades', 'usePrivate', false);
+        const [ usePrivate, paramsUsePrivate ] = this.handleOptionAndParams (paramsUntil, 'fetchTrades', 'usePrivate', false);
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, paramsUsePrivate));
         } else {
@@ -4134,7 +4134,7 @@ export default class coinbase extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        const [ usePrivate, paramsUsePrivate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'usePrivate', false);
+        const [ usePrivate, paramsUsePrivate ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'usePrivate', false);
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductBook (this.extend (request, paramsUsePrivate));
         } else {
@@ -5138,7 +5138,7 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         const isSpot = (type === 'spot');
         const productType = isSpot ? 'SPOT' : 'FUTURE';
         const request: Dict = {

@@ -161,7 +161,7 @@ export default class aster extends asterRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
-        const [ methodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'watchTickers');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchTickers');
         const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
@@ -211,7 +211,7 @@ export default class aster extends asterRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
-        const [ methodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'unWatchTickers');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchTickers');
         const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
@@ -291,7 +291,7 @@ export default class aster extends asterRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
-        const [ methodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'watchMarkPrices');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchMarkPrices');
         const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
@@ -342,7 +342,7 @@ export default class aster extends asterRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
-        const [ methodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'unWatchMarkPrices');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchMarkPrices');
         const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
@@ -636,7 +636,7 @@ export default class aster extends asterRest {
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbolsNormalized.length;
-        const [ methodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
         const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
@@ -683,7 +683,7 @@ export default class aster extends asterRest {
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbolsNormalized.length;
-        const [ methodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'unWatchTradesForSymbols');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchTradesForSymbols');
         const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
@@ -943,7 +943,7 @@ export default class aster extends asterRest {
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbolsNormalized.length;
-        const [ methodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
@@ -989,7 +989,7 @@ export default class aster extends asterRest {
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbolsNormalized.length;
-        const [ methodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
         const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
@@ -1112,7 +1112,7 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsLength = symbolsAndTimeframes.length;
-        const [ methodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'watchOHLCVForSymbols');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchOHLCVForSymbols');
         const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
@@ -1164,7 +1164,7 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsLength = symbolsAndTimeframes.length;
-        const [ methodName, paramsCallerMethodName ]: [ Str, Dict ] = this.handleParamString (params, 'callerMethodName', 'unWatchOHLCVForSymbols');
+        const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchOHLCVForSymbols');
         const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');

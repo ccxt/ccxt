@@ -835,7 +835,7 @@ export default class deribit extends Exchange {
         const instrumentsResponses: List = [];
         const result: List = [];
         const parsedMarkets: Dict = {};
-        const [ fetchAllMarkets, paramsFetchAllMarkets ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchAllMarkets', true);
+        const [ fetchAllMarkets, paramsFetchAllMarkets ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchAllMarkets', true);
         if (fetchAllMarkets) {
             const instrumentsResponse = await this.publicGetGetInstruments (paramsFetchAllMarkets);
             instrumentsResponses.push (instrumentsResponse);
@@ -3177,7 +3177,8 @@ export default class deribit extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTagTuple = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag = paramsWithdrawTagTuple[1];
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -3440,7 +3441,7 @@ export default class deribit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', undefined) as Liquidation[];
         }

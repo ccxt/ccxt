@@ -1134,8 +1134,8 @@ export default class hyperliquid extends Exchange {
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         const shouldRefresh = (this.safeString2 (params, 'user', 'address') !== undefined) && this.safeBool (params, 'enableUnifiedMargin') === undefined;
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchBalance', params);
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsPublicAddress);
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchBalance', paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsPublicAddress);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBalance', paramsMarketType);
         const [ isUnifiedEnabled, paramsValue ] = await this.isUnifiedEnabled ('fetchBalance', userAddress, shouldRefresh, paramsMarginMode);
         const dex = this.safeString (paramsValue, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
@@ -3133,7 +3133,7 @@ export default class hyperliquid extends Exchange {
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchOpenOrders', params);
-        const [ method, paramsMethod ]: [ Str, Dict ] = this.handleOptionAndParams (paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
+        const [ method, paramsMethod ] = this.handleOptionAndParams (paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4986,7 +4986,7 @@ export default class hyperliquid extends Exchange {
     }
 
     handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
-        const [ userAux, paramsUser ]: [ Str, Dict ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
+        const [ userAux, paramsUser ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
         const [ user, paramsAddress ] = this.handleOptionAndParams (paramsUser, methodName, 'address', userAux);
         if ((user !== undefined) && (user !== '')) {
             return [ user, paramsAddress ];
