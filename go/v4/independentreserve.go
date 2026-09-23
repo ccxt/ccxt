@@ -928,7 +928,7 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ..
 
 	response := (<-this.PrivatePostGetOpenOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "Data", []any{})
+	var data []any = SafeListTypedDefault(response, "Data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -979,7 +979,7 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs 
 
 	response := (<-this.PrivatePostGetClosedOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "Data", []any{})
+	var data []any = SafeListTypedDefault(response, "Data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -1030,7 +1030,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var data any = this.SafeList(response, "Data", []any{})
+	var data []any = SafeListTypedDefault(response, "Data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -1115,7 +1115,7 @@ func (this *Independentreserve) fetchTradesBody(ch chan any, symbol any, optiona
 
 	response := (<-this.PublicGetGetRecentTrades(this.Extend(request, params)))
 	PanicOnError(response)
-	var trades any = this.SafeList(response, "Trades", []any{})
+	var trades []any = SafeListTypedDefault(response, "Trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil

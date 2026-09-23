@@ -826,7 +826,7 @@ func (this *Coinbase) fetchAccountsV2Body(ch chan any, optionalArgs ...any) any 
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "next_starting_after")
 	var accounts any = this.SafeList(response, "data", []any{})
@@ -1162,7 +1162,7 @@ func (this *Coinbase) fetchMySellsBody(ch chan any, optionalArgs ...any) any {
 
 	sells := (<-this.V2PrivateGetAccountsAccountIdSells(this.Extend(request, query)))
 	PanicOnError(sells)
-	var sellsData any = this.SafeList(sells, "data", []any{})
+	var sellsData []any = SafeListTypedDefault(sells, "data", []any{})
 
 	ch <- this.ParseTrades(sellsData, nil, since, limit)
 	return nil
@@ -1206,7 +1206,7 @@ func (this *Coinbase) fetchMyBuysBody(ch chan any, optionalArgs ...any) any {
 
 	buys := (<-this.V2PrivateGetAccountsAccountIdBuys(this.Extend(request, query)))
 	PanicOnError(buys)
-	var buysData any = this.SafeList(buys, "data", []any{})
+	var buysData []any = SafeListTypedDefault(buys, "data", []any{})
 
 	ch <- this.ParseTrades(buysData, nil, since, limit)
 	return nil
@@ -1710,14 +1710,14 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) any {
 	var v3FeeCost *string = this.SafeString(trade, "commission")
 	var amountString *string = this.SafeString(amountObject, "amount", v3Amount)
 	var costString *string = this.SafeString(subtotalObject, "amount", v3Cost)
-	var priceString any = nil
+	var priceString *string = nil
 	var cost *string = nil
 	if (costString != nil) && (amountString != nil) {
 		priceString = Precise.StringDiv(costString, amountString)
 	} else {
 		priceString = v3Price
 	}
-	if (!IsEqual(priceString, nil)) && (amountString != nil) {
+	if (priceString != nil) && (amountString != nil) {
 		cost = Precise.StringMul(priceString, amountString)
 	} else {
 		cost = costString
@@ -2064,9 +2064,9 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	//         "coinbase_pro_fees": 0
 	//     }
 	//
-	var feeTier any = this.SafeDict(fees, "fee_tier", map[string]any{})
-	var expiringFeeTier any = this.SafeDict(expiringFees, "fee_tier", map[string]any{})   // fee tier null?
-	var perpetualFeeTier any = this.SafeDict(perpetualFees, "fee_tier", map[string]any{}) // fee tier null?
+	var feeTier map[string]any = MapTyped(this.SafeDict(fees, "fee_tier", map[string]any{}))
+	var expiringFeeTier map[string]any = MapTyped(this.SafeDict(expiringFees, "fee_tier", map[string]any{}))   // fee tier null?
+	var perpetualFeeTier map[string]any = MapTyped(this.SafeDict(perpetualFees, "fee_tier", map[string]any{})) // fee tier null?
 	var data []any = SafeListTyped(spot, "products")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -2122,7 +2122,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	ch <- newMarkets
 	return nil
 }
-func (this *Coinbase) ParseSpotMarket(market any, feeTier any) any {
+func (this *Coinbase) ParseSpotMarket(market any, feeTier map[string]any) any {
 	//
 	//         {
 	//             "product_id": "TONE-USD",
@@ -2228,7 +2228,7 @@ func (this *Coinbase) ParseSpotMarket(market any, feeTier any) any {
 		"info":    market,
 	})
 }
-func (this *Coinbase) ParseContractMarket(market any, feeTier any) any {
+func (this *Coinbase) ParseContractMarket(market any, feeTier map[string]any) any {
 	// expiring
 	//
 	//        {
@@ -2477,8 +2477,8 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan any, optionalArgs ...
 		//        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
 		//    }
 		//
-		var fiatData any = this.SafeList(fiatResponse, "data", []any{})
-		var cryptoData any = this.SafeList(cryptoResponse, "data", []any{})
+		var fiatData []any = SafeListTypedDefault(fiatResponse, "data", []any{})
+		var cryptoData []any = SafeListTypedDefault(cryptoResponse, "data", []any{})
 
 		exchangeRates := (<-this.V2PublicGetExchangeRates(params))
 		PanicOnError(exchangeRates)
@@ -2544,8 +2544,8 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	//          ...
 	//
 	var ratesResponse map[string]any = SafeMapTyped(promisesResult, 2)
-	var fiatData any = this.SafeList(fiatResponse, "data", []any{})
-	var cryptoData any = this.SafeList(cryptoResponse, "data", []any{})
+	var fiatData []any = SafeListTypedDefault(fiatResponse, "data", []any{})
+	var cryptoData []any = SafeListTypedDefault(cryptoResponse, "data", []any{})
 	var ratesData map[string]any = SafeMapTyped(ratesResponse, "data")
 	var rates map[string]any = SafeMapTyped(ratesData, "rates")
 	var ratesIds []string = ObjectKeys(rates)
@@ -2964,8 +2964,8 @@ func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol any, optionalArgs ..
 	//         "best_ask": "28208.62"
 	//     }
 	//
-	var data any = this.SafeList(response, "trades", []any{})
-	var first any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = SafeListTypedDefault(response, "trades", []any{})
+	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var ticker any = this.ParseTicker(first, market)
 	AddElementToObject(ticker, "bid", this.SafeNumber(response, "best_bid"))
 	AddElementToObject(ticker, "ask", this.SafeNumber(response, "best_ask"))
@@ -3071,8 +3071,8 @@ func (this *Coinbase) ParseTicker(ticker any, optionalArgs ...any) any {
 	var bidVolume *float64 = nil
 	var askVolume *float64 = nil
 	if InOp(ticker, "bids") {
-		var bids any = this.SafeList(ticker, "bids", []any{})
-		var asks any = this.SafeList(ticker, "asks", []any{})
+		var bids []any = SafeListTypedDefault(ticker, "bids", []any{})
+		var asks []any = SafeListTypedDefault(ticker, "asks", []any{})
 		var firstBid map[string]any = SafeMapTyped(bids, 0)
 		var firstAsk map[string]any = SafeMapTyped(asks, 0)
 		bid = this.SafeNumber(firstBid, "price")
@@ -3357,7 +3357,7 @@ func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.V2PrivateGetAccountsAccountIdTransactions(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var ledger any = this.ParseLedger(data, currency, since, limit)
 	var length int = GetArrayLength(ledger)
 	if length == 0 {
@@ -4113,7 +4113,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 			panic(ExchangeError(errorMessage))
 		}
 	}
-	var data any = this.SafeDict(response, "success_response", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "success_response", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -4374,9 +4374,14 @@ func (this *Coinbase) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	//         ]
 	//     }
 	//
-	var orders any = this.SafeList(response, "results", []any{})
-	for i := 0; i < GetArrayLength(orders); i++ {
-		var success *bool = this.SafeBool(GetValue(orders, i), "success")
+	var orders []any = SafeListTypedDefault(response, "results", []any{})
+	for i := 0; i < len(orders); i++ {
+		var success *bool = this.SafeBool(func() any {
+			if i >= 0 && i < len(orders) {
+				return DerefScalar(orders[i])
+			}
+			return nil
+		}(), "success")
 		if success == nil || *success != true {
 			panic(BadRequest(this.Id + " cancelOrders() has failed, check your arguments and parameters"))
 		}
@@ -4530,7 +4535,7 @@ func (this *Coinbase) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//         }
 	//     }
 	//
-	var order any = this.SafeDict(response, "order", map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, "order", map[string]any{}))
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -4992,7 +4997,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var candles any = this.SafeList(response, "candles", []any{})
+	var candles []any = SafeListTypedDefault(response, "candles", []any{})
 
 	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
 	return nil
@@ -5095,7 +5100,7 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//         ]
 	//     }
 	//
-	var trades any = this.SafeList(response, "trades", []any{})
+	var trades []any = SafeListTypedDefault(response, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -5270,7 +5275,7 @@ func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "pricebook", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "pricebook", map[string]any{}))
 	var time *string = this.SafeString(data, "time")
 	var timestamp *int64 = this.Parse8601(time)
 
@@ -5333,7 +5338,7 @@ func (this *Coinbase) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var tickers any = this.SafeList(response, "pricebooks", []any{})
+	var tickers []any = SafeListTypedDefault(response, "pricebooks", []any{})
 
 	ch <- this.ParseTickers(tickers, symbols)
 	return nil
@@ -5454,7 +5459,7 @@ func (this *Coinbase) withdrawBody(ch chan any, code any, amount any, address an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTransaction(data, currency)
 	return nil
@@ -5546,7 +5551,7 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code any, 
 	//        ]
 	//    }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var addressStructures any = this.ParseDepositAddresses(data, nil, false)
 
 	ch <- this.IndexBy(addressStructures, "network")
@@ -5719,7 +5724,7 @@ func (this *Coinbase) depositBody(ch chan any, code any, amount any, id any, opt
 	//     }
 	//
 	// https://github.com/ccxt/ccxt/issues/25484
-	var data any = this.SafeDict2(response, "data", "transfer", map[string]any{})
+	var data map[string]any = SafeDict2Typed(response, "data", "transfer", map[string]any{})
 
 	ch <- this.ParseTransaction(data)
 	return nil
@@ -5809,7 +5814,7 @@ func (this *Coinbase) fetchDepositBody(ch chan any, id any, optionalArgs ...any)
 	//     }
 	//
 	// https://github.com/ccxt/ccxt/issues/25484
-	var data any = this.SafeDict2(response, "data", "transfer", map[string]any{})
+	var data map[string]any = SafeDict2Typed(response, "data", "transfer", map[string]any{})
 
 	ch <- this.ParseTransaction(data)
 	return nil
@@ -5859,7 +5864,7 @@ func (this *Coinbase) fetchDepositMethodIdsBody(ch chan any, optionalArgs ...any
 	//         ]
 	//     }
 	//
-	var result any = this.SafeList(response, "payment_methods", []any{})
+	var result []any = SafeListTypedDefault(response, "payment_methods", []any{})
 
 	ch <- this.ParseDepositMethodIds(result)
 	return nil
@@ -5911,7 +5916,7 @@ func (this *Coinbase) fetchDepositMethodIdBody(ch chan any, id any, optionalArgs
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "payment_method", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "payment_method", map[string]any{}))
 
 	ch <- this.ParseDepositMethodId(result)
 	return nil
@@ -5974,7 +5979,7 @@ func (this *Coinbase) fetchConvertQuoteBody(ch chan any, fromCode any, toCode an
 
 	response := (<-this.V3PrivatePostBrokerageConvertQuote(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "trade", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "trade", map[string]any{}))
 
 	ch <- this.ParseConversion(data)
 	return nil
@@ -6016,7 +6021,7 @@ func (this *Coinbase) createConvertTradeBody(ch chan any, id any, fromCode any, 
 
 	response := (<-this.V3PrivatePostBrokerageConvertTradeTradeId(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "trade", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "trade", map[string]any{}))
 
 	ch <- this.ParseConversion(data)
 	return nil
@@ -6065,7 +6070,7 @@ func (this *Coinbase) fetchConvertTradeBody(ch chan any, id any, optionalArgs ..
 
 	response := (<-this.V3PrivateGetBrokerageConvertTradeTradeId(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "trade", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "trade", map[string]any{}))
 
 	ch <- this.ParseConversion(data)
 	return nil
@@ -6209,7 +6214,7 @@ func (this *Coinbase) closePositionBody(ch chan any, symbol any, optionalArgs ..
 
 	response := (<-this.V3PrivatePostBrokerageOrdersClosePosition(this.Extend(request, params)))
 	PanicOnError(response)
-	var order any = this.SafeDict(response, "success_response", map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, "success_response", map[string]any{}))
 
 	ch <- this.ParseOrder(order)
 	return nil
@@ -6271,7 +6276,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuid(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var positions any = this.SafeList(response, "positions", []any{})
+	var positions []any = SafeListTypedDefault(response, "positions", []any{})
 
 	ch <- this.ParsePositions(positions, symbols)
 	return nil
@@ -6332,7 +6337,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 		response = (<-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var position any = this.SafeDict(response, "position", map[string]any{})
+	var position map[string]any = MapTyped(this.SafeDict(response, "position", map[string]any{}))
 
 	ch <- this.ParsePosition(position, market)
 	return nil
@@ -6951,7 +6956,7 @@ func (this *Coinbase) fetchDepositAddressesBody(ch chan any, optionalArgs ...any
 
 	response := (<-this.V2PrivateGetAccountsAccountIdAddresses(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseDepositAddresses(data, codes, false, map[string]any{})
 	return nil

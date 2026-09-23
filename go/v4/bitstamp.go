@@ -2062,7 +2062,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var ohlc any = this.SafeList(data, "ohlc", []any{})
+	var ohlc []any = SafeListTypedDefault(data, "ohlc", []any{})
 
 	ch <- this.ParseOHLCVs(ohlc, market, timeframe, since, limit)
 	return nil
@@ -2889,7 +2889,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	//         ]
 	//     }
 	//
-	var values any = this.SafeList(response, "funding_rate_history", []any{})
+	var values []any = SafeListTypedDefault(response, "funding_rate_history", []any{})
 
 	ch <- this.ParseFundingRateHistories(values, market, since, limit)
 	return nil
@@ -3276,7 +3276,7 @@ func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market, "/")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var amount *string = this.SafeString(order, "amount")
-	var transactions any = this.SafeList(order, "transactions", []any{})
+	var transactions []any = SafeListTypedDefault(order, "transactions", []any{})
 	var price *string = this.SafeString(order, "price")
 	return this.SafeOrder(map[string]any{
 		"id":                 id,

@@ -2629,7 +2629,7 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) any {
 	var open *string = nil
 	var high *string = nil
 	var low *string = nil
-	var changePcnt any = nil
+	var changePcnt *string = nil
 	var changeValue *string = nil
 	var prevClose *string = nil
 	var isSwap *bool = this.SafeBool(market, "swap")
@@ -2664,7 +2664,7 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) any {
 		high = this.SafeString(ticker, "high24Price")
 		low = this.SafeString(ticker, "lower24Price")
 		changeValue = this.SafeString(ticker, "riseFallValue")
-		changePcnt = DerefScalar(this.SafeString(ticker, "riseFallRate"))
+		changePcnt = this.SafeString(ticker, "riseFallRate")
 		changePcnt = Precise.StringMul(changePcnt, "100")
 	} else {
 		//
@@ -2707,7 +2707,7 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) any {
 		low = this.SafeString(ticker, "lowPrice")
 		prevClose = this.SafeString(ticker, "prevClosePrice")
 		changeValue = this.SafeString(ticker, "priceChange")
-		changePcnt = DerefScalar(this.SafeString(ticker, "priceChangePercent"))
+		changePcnt = this.SafeString(ticker, "priceChangePercent")
 		changePcnt = Precise.StringMul(changePcnt, "100")
 	}
 	return this.SafeTicker(map[string]any{
@@ -3284,7 +3284,7 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var marginMode any = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -3848,7 +3848,7 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		swapResponse := (<-this.ContractPrivateGetOrderListOpenOrders(this.Extend(request, params)))
 		PanicOnError(swapResponse)
-		var data any = this.SafeList(swapResponse, "data", []any{})
+		var data []any = SafeListTypedDefault(swapResponse, "data", []any{})
 
 		ch <- this.ParseOrders(data, market, since, limit, params)
 		return nil
@@ -4232,7 +4232,7 @@ func (this *Mexc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		//         "code": "0"
 		//     }
 		//
-		var data any = this.SafeList(response, "data", []any{})
+		var data []any = SafeListTypedDefault(response, "data", []any{})
 
 		ch <- this.ParseOrders(data, market)
 		return nil
@@ -4665,7 +4665,7 @@ func (this *Mexc) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 	//      "timestamp":1669109672717
 	//  }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- map[string]any{
 		"info":       data,
@@ -4752,8 +4752,8 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 	if IsEqual(marketType, "margin") {
 		for i := 0; i < GetArrayLength(wallet); i++ {
 			var entry any = GetValue(wallet, i)
-			var base any = this.SafeDict(entry, "baseAsset", map[string]any{})
-			var quote any = this.SafeDict(entry, "quoteAsset", map[string]any{})
+			var base map[string]any = MapTyped(this.SafeDict(entry, "baseAsset", map[string]any{}))
+			var quote map[string]any = MapTyped(this.SafeDict(entry, "quoteAsset", map[string]any{}))
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "asset"))
 			var quoteCode *string = this.SafeCurrencyCode(this.SafeString(quote, "asset"))
 			if baseCode != nil {
@@ -4792,7 +4792,7 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 		return this.SafeBalance(result)
 	}
 }
-func (this *Mexc) ParseBalanceHelper(entry any) any {
+func (this *Mexc) ParseBalanceHelper(entry map[string]any) any {
 	var account map[string]any = this.Account()
 	account["used"] = this.SafeString(entry, "locked")
 	account["free"] = this.SafeString(entry, "free")
@@ -5519,7 +5519,7 @@ func (this *Mexc) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "data", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseFundingRate(result, market)
 	return nil
@@ -6328,7 +6328,7 @@ func (this *Mexc) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         "data": []
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParsePositions(data)
 	return nil
@@ -6426,7 +6426,7 @@ func (this *Mexc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParsePositions(data, symbols)
 	return nil
@@ -6596,7 +6596,7 @@ func (this *Mexc) fetchTransferBody(ch chan any, id any, optionalArgs ...any) an
 		//         }
 		//     }
 		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 		ch <- this.ParseTransfer(data)
 		return nil
@@ -7382,7 +7382,7 @@ func (this *Mexc) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseLeverage(data, market)
 	return nil
@@ -7531,7 +7531,7 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 	//        ]
 	//    }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var positions any = this.ParsePositions(data, symbols, params)
 
 	ch <- this.FilterBySinceLimit(positions, since, limit)

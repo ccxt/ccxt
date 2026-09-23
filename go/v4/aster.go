@@ -1159,7 +1159,7 @@ func (this *Aster) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 
 	sapiResult := (<-this.SapiPublicGetV3ExchangeInfo(params))
 	PanicOnError(sapiResult)
-	var sapiRows any = this.SafeList(sapiResult, "assets", []any{})
+	var sapiRows []any = SafeListTypedDefault(sapiResult, "assets", []any{})
 
 	//
 	//     [
@@ -1231,7 +1231,7 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	results := (<-promiseAll(promises))
 	PanicOnError(results)
 	var sapiResult map[string]any = SafeMapTyped(results, 0)
-	var sapiRows any = this.SafeList(sapiResult, "symbols", []any{})
+	var sapiRows []any = SafeListTypedDefault(sapiResult, "symbols", []any{})
 	var fapiResult map[string]any = SafeMapTyped(results, 1)
 	var fapiRows []any = SafeListTyped(fapiResult, "symbols")
 	//
@@ -3511,7 +3511,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -4637,7 +4637,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		if !precisionIsUndefined {
 			if linear {
 				// walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-				var onePlusMaintenanceMarginPercentageString any = nil
+				var onePlusMaintenanceMarginPercentageString *string = nil
 				var entryPriceSignString *string = entryPriceString
 				if IsEqual(side, "short") {
 					onePlusMaintenanceMarginPercentageString = Precise.StringAdd("1", maintenanceMarginPercentageString)
@@ -4653,7 +4653,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 				}
 			} else {
 				// walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-				var onePlusMaintenanceMarginPercentageString any = nil
+				var onePlusMaintenanceMarginPercentageString *string = nil
 				var entryPriceSignString *string = entryPriceString
 				if IsEqual(side, "short") {
 					onePlusMaintenanceMarginPercentageString = Precise.StringSub("1", maintenanceMarginPercentageString)
@@ -4691,8 +4691,8 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		maintenanceMarginString = this.SafeString(position, "maintMargin")
 	}
 	var maintenanceMargin any = this.ParseNumber(maintenanceMarginString)
-	var initialMarginString any = nil
-	var initialMarginPercentageString any = nil
+	var initialMarginString *string = nil
+	var initialMarginPercentageString *string = nil
 	var leverageString *string = this.SafeString(position, "leverage")
 	if leverageString != nil {
 		var leverage int64 = ParseInt(leverageString)
@@ -4704,7 +4704,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		var unrounded *string = Precise.StringMul(notionalStringAbs, initialMarginPercentageString)
 		initialMarginString = Precise.StringDiv(unrounded, "1", 8)
 	} else {
-		initialMarginString = DerefScalar(this.SafeString(position, "initialMargin"))
+		initialMarginString = this.SafeString(position, "initialMargin")
 		var unrounded *string = Precise.StringMul(initialMarginString, "1")
 		initialMarginPercentageString = Precise.StringDiv(unrounded, notionalStringAbs, 8)
 	}
@@ -4939,7 +4939,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	}()
 	var initialMarginString *string = this.SafeString(position, "initialMargin")
 	var initialMargin any = this.ParseNumber(initialMarginString)
-	var initialMarginPercentageString any = nil
+	var initialMarginPercentageString *string = nil
 	if leverageString != nil {
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
 		if IsEqual(leverage, nil) {
@@ -4996,22 +4996,22 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		isolated = !Precise.StringEq(isolatedMarginRaw, "0")
 	}
 	var marginMode string
-	var collateralString any = nil
-	var walletBalance any = nil
+	var collateralString *string = nil
+	var walletBalance *string = nil
 	if EvalTruthy(isolated) {
 		marginMode = "isolated"
-		walletBalance = DerefScalar(this.SafeString(position, "isolatedWallet"))
+		walletBalance = this.SafeString(position, "isolatedWallet")
 		collateralString = Precise.StringAdd(walletBalance, unrealizedPnlString)
 	} else {
 		marginMode = "cross"
-		walletBalance = DerefScalar(this.SafeString(position, "crossWalletBalance"))
-		collateralString = DerefScalar(this.SafeString(position, "crossMargin"))
+		walletBalance = this.SafeString(position, "crossWalletBalance")
+		collateralString = this.SafeString(position, "crossMargin")
 	}
 	var collateral any = this.ParseNumber(collateralString)
 	var marginRatio any = nil
 	var side any = nil
 	var percentage any = nil
-	var liquidationPriceStringRaw any = nil
+	var liquidationPriceStringRaw *string = nil
 	var liquidationPrice any = nil
 	var contractSize *float64 = this.SafeNumber(market, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
@@ -5034,7 +5034,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 			// mmp = maintenanceMarginPercentage
 			// where ± is negative for long and positive for short
 			// TODO: calculate liquidation price for coinm contracts
-			var onePlusMaintenanceMarginPercentageString any = nil
+			var onePlusMaintenanceMarginPercentageString *string = nil
 			var entryPriceSignString *string = entryPriceString
 			if IsEqual(side, "short") {
 				onePlusMaintenanceMarginPercentageString = Precise.StringAdd("1", maintenanceMarginPercentageString)
@@ -5050,7 +5050,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 			//
 			// liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
 			//
-			var onePlusMaintenanceMarginPercentageString any = nil
+			var onePlusMaintenanceMarginPercentageString *string = nil
 			var entryPriceSignString *string = entryPriceString
 			if IsEqual(side, "short") {
 				onePlusMaintenanceMarginPercentageString = Precise.StringSub("1", maintenanceMarginPercentageString)

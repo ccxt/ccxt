@@ -546,7 +546,7 @@ func (this *Mercado) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 	response := (<-this.PublicGetCoinTicker(this.Extend(request, params)))
 	PanicOnError(response)
-	var ticker any = this.SafeDict(response, "ticker", map[string]any{})
+	var ticker map[string]any = MapTyped(this.SafeDict(response, "ticker", map[string]any{}))
 
 	//
 	//     {
@@ -905,7 +905,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed_quantity")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "updated_timestamp")
-	var rawTrades any = this.SafeList(order, "operations", []any{})
+	var rawTrades []any = SafeListTypedDefault(order, "operations", []any{})
 	var symbol any = GetValue(market, "symbol")
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -1203,7 +1203,7 @@ func (this *Mercado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivatePostListOrders(this.Extend(request, params)))
 	PanicOnError(response)
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var orders any = this.SafeList(responseData, "orders", []any{})
+	var orders []any = SafeListTypedDefault(responseData, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -1251,7 +1251,7 @@ func (this *Mercado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivatePostListOrders(this.Extend(request, params)))
 	PanicOnError(response)
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var orders any = this.SafeList(responseData, "orders", []any{})
+	var orders []any = SafeListTypedDefault(responseData, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -1299,7 +1299,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivatePostListOrders(this.Extend(request, params)))
 	PanicOnError(response)
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var ordersRaw any = this.SafeList(responseData, "orders", []any{})
+	var ordersRaw []any = SafeListTypedDefault(responseData, "orders", []any{})
 	var orders any = this.ParseOrders(ordersRaw, market, since, limit)
 	var trades any = this.OrdersToTrades(orders)
 

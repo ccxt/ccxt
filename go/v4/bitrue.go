@@ -885,7 +885,7 @@ func (this *Bitrue) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         ],
 	//     }
 	//
-	var coins any = this.SafeList(response, "coins", []any{})
+	var coins []any = SafeListTypedDefault(response, "coins", []any{})
 
 	ch <- this.ParseCurrencies(coins)
 	return nil
@@ -2191,7 +2191,7 @@ func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString(order, "orderId")
 	var typeVar any = this.SafeStringLower(order, "type")
 	var side *string = this.SafeStringLower(order, "side")
-	var fills any = this.SafeList(order, "fills", []any{})
+	var fills []any = SafeListTypedDefault(order, "fills", []any{})
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var postOnly bool = (IsEqual(typeVar, "limit_maker")) || (timeInForce != nil && *timeInForce == "GTX") || (IsEqual(typeVar, "post_only"))
@@ -3083,7 +3083,7 @@ func (this *Bitrue) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
@@ -3160,7 +3160,7 @@ func (this *Bitrue) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	//        ]
 	//    }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency)
 	return nil
@@ -3593,7 +3593,7 @@ func (this *Bitrue) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	//         }]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransfers(data, currency, since, limit)
 	return nil
@@ -3645,7 +3645,7 @@ func (this *Bitrue) transferBody(ch chan any, code any, amount any, fromAccount 
 	//         'data': null
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTransfer(data, currency)
 	return nil

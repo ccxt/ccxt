@@ -843,7 +843,7 @@ func (this *Derive) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
 	// }
 	//
-	var currencies any = this.SafeList(tokenResponse, "result", []any{})
+	var currencies []any = SafeListTypedDefault(tokenResponse, "result", []any{})
 
 	ch <- this.ParseCurrencies(currencies)
 	return nil
@@ -969,7 +969,7 @@ func (this *Derive) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PublicPostGetAllInstruments(this.Extend(request, params)))
 	PanicOnError(response)
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "instruments", []any{})
+	var data []any = SafeListTypedDefault(result, "instruments", []any{})
 
 	ch <- this.ParseMarkets(data)
 	return nil
@@ -992,7 +992,7 @@ func (this *Derive) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PublicPostGetAllInstruments(this.Extend(request, params)))
 	PanicOnError(response)
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "instruments", []any{})
+	var data []any = SafeListTypedDefault(result, "instruments", []any{})
 
 	ch <- this.ParseMarkets(data)
 	return nil
@@ -1015,7 +1015,7 @@ func (this *Derive) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any
 	response := (<-this.PublicPostGetAllInstruments(this.Extend(request, params)))
 	PanicOnError(response)
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "instruments", []any{})
+	var data []any = SafeListTypedDefault(result, "instruments", []any{})
 
 	ch <- this.ParseMarkets(data)
 	return nil
@@ -1222,7 +1222,7 @@ func (this *Derive) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	//     "id": "bbd7c271-c2be-48f7-b93a-26cf6d4cb79f"
 	// }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTicker(data, market)
 	return nil
@@ -1402,7 +1402,7 @@ func (this *Derive) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	// }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "trades", []any{})
+	var data []any = SafeListTypedDefault(result, "trades", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -2070,7 +2070,7 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	//   }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var rawOrder any = this.SafeDict(result, "order", map[string]any{})
+	var rawOrder map[string]any = MapTyped(this.SafeDict(result, "order", map[string]any{}))
 	var order any = this.ParseOrder(rawOrder, market)
 
 	ch <- order
@@ -2187,7 +2187,7 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var extendParams map[string]any = map[string]any{
 		"symbol": symbol,
 	}
-	var order any = this.SafeDict(response, "result", map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 	if isByClientOrder {
 		extendParams["client_order_id"] = clientOrderIdExchangeSpecific
 	}
@@ -2391,7 +2391,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}
 	}
-	var orders any = this.SafeList(data, "orders", []any{})
+	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -2763,7 +2763,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	// }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var trades any = this.SafeList(result, "trades", []any{})
+	var trades []any = SafeListTypedDefault(result, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit, params)
 	return nil
@@ -2881,7 +2881,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}
 	}
-	var trades any = this.SafeList(result, "trades", []any{})
+	var trades []any = SafeListTypedDefault(result, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit, params)
 	return nil
@@ -2963,7 +2963,7 @@ func (this *Derive) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var positions any = this.SafeList(result, "positions", []any{})
+	var positions []any = SafeListTypedDefault(result, "positions", []any{})
 
 	ch <- this.ParsePositions(positions, symbols)
 	return nil
@@ -3153,7 +3153,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 			return nil
 		}
 	}
-	var events any = this.SafeList(result, "events", []any{})
+	var events []any = SafeListTypedDefault(result, "events", []any{})
 
 	ch <- this.ParseIncomes(events, market, since, limit)
 	return nil
@@ -3367,7 +3367,7 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var result map[string]any = SafeMapTyped(response, "result")
-	var events any = this.SafeList(result, "events", []any{})
+	var events []any = SafeListTypedDefault(result, "events", []any{})
 
 	ch <- this.ParseTransactions(events, currency, since, limit, params)
 	return nil
@@ -3438,7 +3438,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var result map[string]any = SafeMapTyped(response, "result")
-	var events any = this.SafeList(result, "events", []any{})
+	var events []any = SafeListTypedDefault(result, "events", []any{})
 
 	ch <- this.ParseTransactions(events, currency, since, limit, params)
 	return nil

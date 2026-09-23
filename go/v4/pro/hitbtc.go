@@ -112,11 +112,11 @@ func (this *Hitbtc) authenticateBody(ch chan any) any {
 	if ccxt.IsEqual(authenticated, nil) {
 		var timestamp int64 = this.Milliseconds()
 		var timestampString *string = this.NumberToString(timestamp)
-		var timestampEncoded any = func() any {
+		var timestampEncoded string = func() string {
 			if timestampString == nil {
 				return ""
 			}
-			return timestampString
+			return *timestampString
 		}()
 		var signature string = this.Hmac(this.Encode(timestampEncoded), this.Encode(this.Secret), ccxt.Sha256, "hex")
 		var request map[string]any = map[string]any{

@@ -747,7 +747,7 @@ func (this *Btse) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PublicGetPublicApiMarketV1Markets(params))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
-	var markets any = this.SafeList(data, "symbols", []any{})
+	var markets []any = SafeListTypedDefault(data, "symbols", []any{})
 
 	ch <- this.ParseMarkets(markets)
 	return nil
@@ -837,10 +837,10 @@ func (this *Btse) ParseMarket(market any) any {
 	var active *bool = this.SafeBool(market, "active")
 	var typeVar string = "spot"
 	var expiry any = nil
-	var contractSize any = nil
+	var contractSize *string = nil
 	if !isSpot {
 		symbol = Add(symbol, Add(":", quote))
-		contractSize = DerefScalar(this.SafeString(market, "contractSize"))
+		contractSize = this.SafeString(market, "contractSize")
 		if isFuture {
 			expiry = DerefScalar(this.SafeInteger(market, "contractEndTime"))
 			symbol = Add(symbol, "-"+this.Yymmdd(expiry))
@@ -1028,7 +1028,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	//         "time": 1786604274378
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var result any = this.ParseOHLCVs(data, market, timeframe, since, limit)
 
 	ch <- result
@@ -1101,7 +1101,7 @@ func (this *Btse) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//         "time": 1786605670833
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
 	ch <- this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks")
@@ -1187,7 +1187,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	//         "time": 1786607775380
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var rates any = this.ParseFundingRateHistories(data, market, since, limit)
 	if IsEqual(until, nil) {
 
@@ -1408,7 +1408,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeList(response, "data")
 	if IsEqual(data, nil) {
-		var single any = this.SafeDict(response, "data", map[string]any{})
+		var single map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 		data = []any{single}
 	}
 	var result map[string]any = map[string]any{}
@@ -1526,7 +1526,7 @@ func (this *Btse) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(params))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(data, symbols)
 	return nil
@@ -1595,7 +1595,7 @@ func (this *Btse) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	// a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
 	var data any = this.SafeDict(response, "data")
 	if IsEqual(data, nil) {
-		var rows any = this.SafeList(response, "data", []any{})
+		var rows []any = SafeListTypedDefault(response, "data", []any{})
 		data = this.SafeDict(rows, 0, map[string]any{})
 	}
 
@@ -1681,7 +1681,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 	PanicOnError(response)
 	var interest any = this.SafeDict(response, "data")
 	if IsEqual(interest, nil) {
-		var rows any = this.SafeList(response, "data", []any{})
+		var rows []any = SafeListTypedDefault(response, "data", []any{})
 		interest = this.SafeDict(rows, 0, map[string]any{})
 	}
 
@@ -1786,7 +1786,7 @@ func (this *Btse) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	PanicOnError(response)
 	var data any = this.SafeDict(response, "data")
 	if IsEqual(data, nil) {
-		var rows any = this.SafeList(response, "data", []any{})
+		var rows []any = SafeListTypedDefault(response, "data", []any{})
 		data = this.SafeDict(rows, 0, map[string]any{})
 	}
 
@@ -1965,7 +1965,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	//         "time": 1786605671650
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var trades any = this.ParseTrades(data, market, since, limit)
 	if IsEqual(until, nil) {
 
@@ -2564,7 +2564,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 		response = (<-this.PrivatePostSpotApiV4TradeOrdersAlgo(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var order any = this.SafeDict(response, 0, map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -2972,7 +2972,7 @@ func (this *Btse) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 		response = (<-this.PrivatePutFuturesApiV3TradeOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var order any = this.SafeDict(response, 0, map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -3046,7 +3046,7 @@ func (this *Btse) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		response = (<-this.PrivateDeleteFuturesApiV3TradeOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var order any = this.SafeDict(response, 0, map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -3476,7 +3476,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, hist
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var typesList any = this.SafeList(map[string]any{
+	var typesList []any = SafeListTypedDefault(map[string]any{
 		"types": historyTypes,
 	}, "types", []any{})
 
@@ -3543,8 +3543,13 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, hist
 	// and the unified enum vocabularies as the legacy endpoint ignored the
 	// filter and returned the whole mixed ledger
 	var allowed map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(typesList); i++ {
-		var historyType any = GetValue(typesList, i)
+	for i := 0; i < len(typesList); i++ {
+		var historyType any = func() any {
+			if i >= 0 && i < len(typesList) {
+				return DerefScalar(typesList[i])
+			}
+			return nil
+		}()
 		AddElementToObject(allowed, historyType, true)
 		AddElementToObject(allowed, this.Capitalize(ToLower(historyType)), true)
 	}
@@ -3968,7 +3973,7 @@ func (this *Btse) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(response)
 	}
 	var rows any = this.SafeList(response, "data", response)
-	var feeInfo any = this.SafeDict(rows, 0, map[string]any{})
+	var feeInfo map[string]any = MapTyped(this.SafeDict(rows, 0, map[string]any{}))
 	var makerFee *float64 = this.SafeNumber(feeInfo, "makerFee")
 	var takerFee *float64 = this.SafeNumber(feeInfo, "takerFee")
 
@@ -4203,7 +4208,7 @@ func (this *Btse) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	var data any = this.SafeDict(response, 0, map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 	var positionMode *string = this.SafeString(data, "positionMode")
 	var hedged bool = (positionMode != nil && *positionMode == "HEDGE") || (positionMode != nil && *positionMode == "ISOLATED")
 
@@ -4292,7 +4297,7 @@ func (this *Btse) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...a
 
 	response := (<-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, 0, map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseMarginMode(data, market)
 	return nil

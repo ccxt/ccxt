@@ -363,7 +363,7 @@ func (this *Btcturk) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var markets any = this.SafeList(data, "symbols", []any{})
+	var markets []any = SafeListTypedDefault(data, "symbols", []any{})
 
 	ch <- this.ParseMarkets(markets)
 	return nil
@@ -564,7 +564,7 @@ func (this *Btcturk) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//       }
 	//     }
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
 	ch <- this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", 0, 1)
@@ -945,13 +945,13 @@ func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
 	var tail bool = GetArgBool(optionalArgs, 4, false)
 	_ = tail
 	var results []any = []any{}
-	var timestamp any = this.SafeList(ohlcvs, "t", []any{})
-	var high any = this.SafeList(ohlcvs, "h", []any{})
-	var open any = this.SafeList(ohlcvs, "o", []any{})
-	var low any = this.SafeList(ohlcvs, "l", []any{})
-	var close any = this.SafeList(ohlcvs, "c", []any{})
-	var volume any = this.SafeList(ohlcvs, "v", []any{})
-	for i := 0; i < GetArrayLength(timestamp); i++ {
+	var timestamp []any = SafeListTypedDefault(ohlcvs, "t", []any{})
+	var high []any = SafeListTypedDefault(ohlcvs, "h", []any{})
+	var open []any = SafeListTypedDefault(ohlcvs, "o", []any{})
+	var low []any = SafeListTypedDefault(ohlcvs, "l", []any{})
+	var close []any = SafeListTypedDefault(ohlcvs, "c", []any{})
+	var volume []any = SafeListTypedDefault(ohlcvs, "v", []any{})
+	for i := 0; i < len(timestamp); i++ {
 		var ohlcv map[string]any = map[string]any{
 			"timestamp": this.SafeInteger(timestamp, i),
 			"high":      this.SafeNumber(high, i),
@@ -1013,7 +1013,7 @@ func (this *Btcturk) createOrderBody(ch chan any, symbol any, typeVar any, side 
 
 	response := (<-this.PrivatePostOrder(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -1102,8 +1102,8 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGetOpenOrders(this.Extend(request, params)))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
-	var bids any = this.SafeList(data, "bids", []any{})
-	var asks any = this.SafeList(data, "asks", []any{})
+	var bids []any = SafeListTypedDefault(data, "bids", []any{})
+	var asks []any = SafeListTypedDefault(data, "asks", []any{})
 
 	ch <- this.ParseOrders(this.ArrayConcat(bids, asks), market, since, limit)
 	return nil

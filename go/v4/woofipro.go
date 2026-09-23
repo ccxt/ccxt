@@ -1018,7 +1018,7 @@ func (this *Woofipro) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//   }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseMarkets(rows)
 	return nil
@@ -1097,7 +1097,7 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *Woofipro) ParseCurrency(rawCurrency any) any {
-	var token any = this.SafeDict(rawCurrency, "_token", map[string]any{})
+	var token map[string]any = MapTyped(this.SafeDict(rawCurrency, "_token", map[string]any{}))
 	var currencyId *string = this.SafeString(token, "token")
 	var networks []any = SafeListTyped(token, "chain_details")
 	var code *string = this.SafeCurrencyCode(currencyId)
@@ -1304,7 +1304,7 @@ func (this *Woofipro) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseTrades(rows, market, since, limit)
 	return nil
@@ -1434,7 +1434,7 @@ func (this *Woofipro) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseFundingRate(data, market)
 	return nil
@@ -1487,7 +1487,7 @@ func (this *Woofipro) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseFundingRates(rows, symbols)
 	return nil
@@ -2060,7 +2060,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseIncomes(rows, market, since, limit)
 	return nil
@@ -2193,7 +2193,7 @@ func (this *Woofipro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
 	ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
@@ -2269,7 +2269,7 @@ func (this *Woofipro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	//     }
 	// }
 	//
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseOHLCVs(rows, market, timeframe, since, limit)
 	return nil
@@ -2355,8 +2355,8 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var childOrders any = this.SafeList(order, "childOrders")
 	if !IsEqual(childOrders, nil) {
 		var first map[string]any = SafeMapTyped(childOrders, 0)
-		var innerChildOrders any = this.SafeList(first, "childOrders", []any{})
-		var innerChildOrdersLength int = GetArrayLength(innerChildOrders)
+		var innerChildOrders []any = SafeListTypedDefault(first, "childOrders", []any{})
+		var innerChildOrdersLength int = len(innerChildOrders)
 		if innerChildOrdersLength > 0 {
 			var takeProfitOrder map[string]any = SafeMapTyped(innerChildOrders, 0)
 			var stopLossOrder map[string]any = SafeMapTyped(innerChildOrders, 1)
@@ -2657,7 +2657,7 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLoss any = this.SafeDict(orderParams, "stopLoss")
 		var takeProfit any = this.SafeDict(orderParams, "takeProfit")
@@ -2692,7 +2692,7 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseOrders(rows)
 	return nil
@@ -2921,7 +2921,7 @@ func (this *Woofipro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		ch <- this.Extend(this.ParseOrder(parsedResponse), extendParams)
 		return nil
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.Extend(this.ParseOrder(data), extendParams)
 	return nil
@@ -3441,7 +3441,7 @@ func (this *Woofipro) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades any = this.SafeList(data, "rows", []any{})
+	var trades []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit, params)
 	return nil
@@ -3538,7 +3538,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades any = this.SafeList(data, "rows", []any{})
+	var trades []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit, params)
 	return nil
@@ -4079,7 +4079,7 @@ func (this *Woofipro) withdrawBody(ch chan any, code any, amount any, address an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTransaction(data, currency)
 	return nil
@@ -4144,7 +4144,7 @@ func (this *Woofipro) fetchMarginModesBody(ch chan any, optionalArgs ...any) any
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseMarginModes(rows, symbols, "symbol")
 	return nil
@@ -4440,7 +4440,7 @@ func (this *Woofipro) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseLeverage(data, market)
 	return nil
@@ -4613,7 +4613,7 @@ func (this *Woofipro) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParsePosition(data, market)
 	return nil
@@ -4686,7 +4686,7 @@ func (this *Woofipro) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var result map[string]any = SafeMapTyped(response, "data")
-	var positions any = this.SafeList(result, "rows", []any{})
+	var positions []any = SafeListTypedDefault(result, "rows", []any{})
 
 	ch <- this.ParsePositions(positions, symbols)
 	return nil

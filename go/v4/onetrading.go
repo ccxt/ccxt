@@ -816,10 +816,10 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 	//     },
 	// ];
 	//
-	var spotFees any = this.SafeDict(response, 0, map[string]any{})
+	var spotFees map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 	var futuresFees map[string]any = SafeMapTyped(response, 1)
-	var spotFeeTiers any = this.SafeList(spotFees, "fee_tiers", []any{})
-	var futuresFeeTiers any = this.SafeList(futuresFees, "fee_tiers", []any{})
+	var spotFeeTiers []any = SafeListTypedDefault(spotFees, "fee_tiers", []any{})
+	var futuresFeeTiers []any = SafeListTypedDefault(futuresFees, "fee_tiers", []any{})
 	var spotTiers map[string]any = this.ParseFeeTiers(spotFeeTiers)
 	var futuresTiers map[string]any = this.ParseFeeTiers(futuresFeeTiers)
 	var firstSpotTier any = this.SafeDict(spotTiers, 0, map[string]any{})
@@ -897,7 +897,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	//    ]
 	// }
 	//
-	var activeFeeTier any = this.SafeList(response, "active_fee_tiers")
+	var activeFeeTier []any = SafeListTyped(response, "active_fee_tiers")
 	var spotFees map[string]any = SafeMapTyped(activeFeeTier, 0)
 	var futuresFees map[string]any = SafeMapTyped(activeFeeTier, 1)
 	var spotMakerFee *string = this.SafeString(spotFees, "maker_fee")
@@ -941,13 +941,18 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	ch <- result
 	return nil
 }
-func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[string]any {
+func (this *Onetrading) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var takerFees []any = []any{}
 	var makerFees []any = []any{}
-	for i := 0; i < GetArrayLength(feeTiers); i++ {
-		var tier any = GetValue(feeTiers, i)
+	for i := 0; i < len(feeTiers); i++ {
+		var tier any = func() any {
+			if i >= 0 && i < len(feeTiers) {
+				return DerefScalar(feeTiers[i])
+			}
+			return nil
+		}()
 		var volume *float64 = this.SafeNumber(tier, "volume")
 		var taker *string = this.SafeString(tier, "taker_fee")
 		var maker *string = this.SafeString(tier, "maker_fee")
@@ -1601,7 +1606,7 @@ func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeStringLower(rawOrder, "type")
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(rawOrder, "time_in_force"))
 	var postOnly *bool = this.SafeBool(rawOrder, "is_post_only")
-	var rawTrades any = this.SafeList(order, "trades", []any{})
+	var rawTrades []any = SafeListTypedDefault(order, "trades", []any{})
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -2080,7 +2085,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	//         "max_page_size": 100
 	//     }
 	//
-	var orderHistory any = this.SafeList(response, "order_history", []any{})
+	var orderHistory []any = SafeListTypedDefault(response, "order_history", []any{})
 
 	ch <- this.ParseOrders(orderHistory, market, since, limit)
 	return nil
@@ -2195,7 +2200,7 @@ func (this *Onetrading) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	//         "cursor": "string"
 	//     }
 	//
-	var tradeHistory any = this.SafeList(response, "trade_history", []any{})
+	var tradeHistory []any = SafeListTypedDefault(response, "trade_history", []any{})
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2287,7 +2292,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	//         "cursor": "string"
 	//     }
 	//
-	var tradeHistory any = this.SafeList(response, "trade_history", []any{})
+	var tradeHistory []any = SafeListTypedDefault(response, "trade_history", []any{})
 
 	ch <- this.ParseTrades(tradeHistory, market, since, limit)
 	return nil

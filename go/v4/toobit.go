@@ -1191,8 +1191,8 @@ func (this *Toobit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//          ...
 	//
-	var symbols any = this.SafeList(response, "symbols", []any{})
-	var contracts any = this.SafeList(response, "contracts", []any{})
+	var symbols []any = SafeListTypedDefault(response, "symbols", []any{})
+	var contracts []any = SafeListTypedDefault(response, "contracts", []any{})
 	var all []any = this.ArrayConcat(symbols, contracts)
 	var result []any = []any{}
 	for i := 0; i < len(all); i++ {
@@ -2629,7 +2629,7 @@ func (this *Toobit) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		response = (<-this.PrivateDeleteApiV1FuturesCancelOrderByIds(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOrders(result, market)
 	return nil
@@ -3721,7 +3721,7 @@ func (this *Toobit) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	//     }
 	// ]
 	//
-	var data any = this.SafeDict(response, 0, map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseLeverage(data, market)
 	return nil

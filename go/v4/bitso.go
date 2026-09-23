@@ -430,7 +430,7 @@ func (this *Bitso) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//         }]
 	//     }
 	//
-	var payload any = this.SafeList(response, "payload", []any{})
+	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 
 	ch <- this.ParseLedger(payload, currency, since, limit)
@@ -504,7 +504,7 @@ func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	_ = currency
 	var operation *string = this.SafeString(item, "operation")
 	var typeVar *string = this.ParseLedgerEntryType(operation)
-	var balanceUpdates any = this.SafeList(item, "balance_updates", []any{})
+	var balanceUpdates []any = SafeListTypedDefault(item, "balance_updates", []any{})
 	var firstBalance map[string]any = SafeMapTyped(balanceUpdates, 0)
 	var direction any = nil
 	var fee any = nil
@@ -762,7 +762,7 @@ func (this *Bitso) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var payload map[string]any = SafeMapTyped(catalogues, "payload")
 	var currencies map[string]any = SafeMapTyped(payload, "currencies")
-	var metadata any = this.SafeList(currencies, "metadata", []any{})
+	var metadata []any = SafeListTypedDefault(currencies, "metadata", []any{})
 
 	ch <- this.ParseCurrencies(metadata)
 	return nil
@@ -1090,7 +1090,7 @@ func (this *Bitso) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	//         ]
 	//     }
 	//
-	var payload any = this.SafeList(response, "payload", []any{})
+	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 
 	ch <- this.ParseOHLCVs(payload, market, timeframe, since, limit)
 	return nil
@@ -1258,7 +1258,7 @@ func (this *Bitso) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 
 	response := (<-this.PublicGetTrades(this.Extend(request, params)))
 	PanicOnError(response)
-	var payload any = this.SafeList(response, "payload", []any{})
+	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 
 	ch <- this.ParseTrades(payload, market, since, limit)
 	return nil
@@ -1413,7 +1413,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetUserTrades(this.Extend(request, params)))
 	PanicOnError(response)
-	var payload any = this.SafeList(response, "payload", []any{})
+	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 
 	ch <- this.ParseTrades(payload, market, since, limit)
 	return nil
@@ -1509,7 +1509,7 @@ func (this *Bitso) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	//         "payload": ["yWTQGxDMZ0VimZgZ"]
 	//     }
 	//
-	var payload any = this.SafeList(response, "payload", []any{})
+	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 	var orderId *string = this.SafeString(payload, 0)
 
 	ch <- this.SafeOrder(map[string]any{
@@ -1738,7 +1738,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetOpenOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var payload any = this.SafeList(response, "payload", []any{})
+	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 	var orders any = this.ParseOrders(payload, market, since, limit)
 
 	ch <- orders
@@ -1827,7 +1827,7 @@ func (this *Bitso) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any
 
 	response := (<-this.PrivateGetOrderTradesOid(this.Extend(request, params)))
 	PanicOnError(response)
-	var payload any = this.SafeList(response, "payload", []any{})
+	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 
 	ch <- this.ParseTrades(payload, market)
 	return nil
@@ -1888,8 +1888,8 @@ func (this *Bitso) fetchDepositBody(ch chan any, id any, optionalArgs ...any) an
 	//         }]
 	//     }
 	//
-	var transactions any = this.SafeList(response, "payload", []any{})
-	var first any = this.SafeDict(transactions, 0, map[string]any{})
+	var transactions []any = SafeListTypedDefault(response, "payload", []any{})
+	var first map[string]any = MapTyped(this.SafeDict(transactions, 0, map[string]any{}))
 
 	ch <- this.ParseTransaction(first)
 	return nil
@@ -1956,7 +1956,7 @@ func (this *Bitso) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//         }]
 	//     }
 	//
-	var transactions any = this.SafeList(response, "payload", []any{})
+	var transactions []any = SafeListTypedDefault(response, "payload", []any{})
 
 	ch <- this.ParseTransactions(transactions, currency, since, limit, params)
 	return nil
@@ -2204,7 +2204,7 @@ func (this *Bitso) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
 	//        }
 	//    }
 	//
-	var payload any = this.SafeList(response, "payload", []any{})
+	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 
 	ch <- this.ParseDepositWithdrawFees(payload, codes)
 	return nil
@@ -2376,7 +2376,7 @@ func (this *Bitso) withdrawBody(ch chan any, code any, amount any, address any, 
 	//         ]
 	//     }
 	//
-	var payload any = this.SafeList(response, "payload", []any{})
+	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 	var first any = this.SafeDict(payload, 0)
 
 	ch <- this.ParseTransaction(first, currency)

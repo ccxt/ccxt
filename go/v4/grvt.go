@@ -882,8 +882,8 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var currentBuilders any = GetValue(results, 0)
-	var approvedBuilder any = this.SafeList(currentBuilders, "results", []any{})
-	var length int = GetArrayLength(approvedBuilder)
+	var approvedBuilder []any = SafeListTypedDefault(currentBuilders, "results", []any{})
+	var length int = len(approvedBuilder)
 	var found bool = false
 	for i := 0; i < length; i++ {
 		var builderInfo map[string]any = SafeMapTyped(approvedBuilder, i)
@@ -1001,7 +1001,7 @@ func (this *Grvt) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	results := (<-promiseAll(promises))
 	PanicOnError(results)
 	var response any = GetValue(results, 0)
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseMarkets(result)
 	return nil
@@ -1146,7 +1146,7 @@ func (this *Grvt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//            ..
 	//
-	var responseResult any = this.SafeList(response, "result", []any{})
+	var responseResult []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseCurrencies(responseResult)
 	return nil
@@ -1254,7 +1254,7 @@ func (this *Grvt) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTicker(result, market)
 	return nil
@@ -1374,7 +1374,7 @@ func (this *Grvt) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 	var timestamp *int64 = this.Parse8601(this.SafeString(result, "event_time"))
 	var marketId *string = this.SafeString(result, "instrument")
 
@@ -1448,7 +1448,7 @@ func (this *Grvt) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	//            },
 	//            ...
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseTrades(result, market, since, limit)
 	return nil
@@ -1644,7 +1644,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	//        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
 	//    }
 	//
-	var candles any = this.SafeList(response, "result", []any{})
+	var candles []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
 	return nil
@@ -1748,7 +1748,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	//        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
 	//    }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseFundingRateHistories(result, market)
 	return nil
@@ -1844,7 +1844,7 @@ func (this *Grvt) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseBalance(result)
 	return nil
@@ -1977,7 +1977,7 @@ func (this *Grvt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		//     "next": "Qw0918="
 		// }
 		//
-		var result any = this.SafeList(response, "result", []any{})
+		var result []any = SafeListTypedDefault(response, "result", []any{})
 
 		ch <- this.ParseTransactions(result, currency, since, limit)
 		return nil
@@ -2069,7 +2069,7 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		//     "next": "Qw0918="
 		// }
 		//
-		var result any = this.SafeList(response, "result", []any{})
+		var result []any = SafeListTypedDefault(response, "result", []any{})
 
 		ch <- this.ParseTransactions(result, currency, since, limit)
 		return nil
@@ -2121,7 +2121,7 @@ func (this *Grvt) internalFetchTransfersBody(ch chan any, req any, optionalArgs 
 	//        "next": ""
 	//    }
 	//
-	var rows any = this.SafeList(response, "result", []any{})
+	var rows []any = SafeListTypedDefault(response, "result", []any{})
 	var transfers any = this.ParseTransfers(rows, currency, since, limit)
 
 	ch <- transfers
@@ -2331,7 +2331,7 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	//        "next": ""
 	//    }
 	//
-	var rows any = this.SafeList(response, "result", []any{})
+	var rows []any = SafeListTypedDefault(response, "result", []any{})
 	var transfers any = this.ParseTransfers(rows, currency, since, limit)
 	var filteredResults any = this.FilterTransfersByType(transfers, "internal", false)
 
@@ -2459,7 +2459,7 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 	//     }
 	// }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTransfer(result, currency)
 	return nil
@@ -2569,8 +2569,8 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 	var mainAccountId *string = this.SafeString(result1, "main_account_id")
 	this.Options.Store("userMainAccountId", mainAccountId)
 	if accountIsUndefined {
-		var subAccountIds any = this.SafeList(GetValue(responses, 1), "sub_account_ids", []any{})
-		var length int = GetArrayLength(subAccountIds)
+		var subAccountIds []any = SafeListTypedDefault(GetValue(responses, 1), "sub_account_ids", []any{})
+		var length int = len(subAccountIds)
 		if length < 1 {
 			panic(ArgumentsRequired(this.Id + " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website"))
 		}
@@ -2641,7 +2641,7 @@ func (this *Grvt) withdrawBody(ch chan any, code any, amount any, address any, o
 	//     }
 	// }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTransaction(result, currency)
 	return nil
@@ -2888,7 +2888,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -3057,7 +3057,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//        "next": ""
 	//    }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseTrades(result, nil, since, limit)
 	return nil
@@ -3133,7 +3133,7 @@ func (this *Grvt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//        ]
 	//    }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParsePositions(result, symbols)
 	return nil
@@ -3243,7 +3243,7 @@ func (this *Grvt) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	//                "margin_type": "CROSS"
 	//            },
 	//
-	var results any = this.SafeList(response, "results", []any{})
+	var results []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseLeverages(results, symbols)
 	return nil
@@ -3366,7 +3366,7 @@ func (this *Grvt) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	//                "margin_type": "CROSS"
 	//            },
 	//
-	var results any = this.SafeList(response, "results", []any{})
+	var results []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseLeverages(results, symbols)
 	return nil
@@ -3475,7 +3475,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	//        "next": ""
 	//    }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseIncomes(result, market, since, limit)
 	return nil
@@ -3625,7 +3625,7 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//        "next": ""
 	//    }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOrders(result, market, since, limit)
 	return nil
@@ -3726,7 +3726,7 @@ func (this *Grvt) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//        ]
 	//    }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOrders(result, nil, since, limit)
 	return nil
@@ -3829,7 +3829,7 @@ func (this *Grvt) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result)
 	return nil
@@ -3930,11 +3930,11 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 	var price *string = nil
 	var filled *string = nil
 	var avgPrice *string = nil
-	var legs any = this.SafeList(order, "legs", []any{})
+	var legs []any = SafeListTypedDefault(order, "legs", []any{})
 	var metadata map[string]any = SafeMapTyped(order, "metadata")
 	var stateObj map[string]any = SafeMapTyped(order, "state")
-	var filledAmounts any = this.SafeList(stateObj, "traded_size", []any{})
-	var avgPrices any = this.SafeList(stateObj, "avg_fill_price", []any{})
+	var filledAmounts []any = SafeListTypedDefault(stateObj, "traded_size", []any{})
+	var avgPrices []any = SafeListTypedDefault(stateObj, "avg_fill_price", []any{})
 	var primaryOrderIndex int = 0
 	var firstLeg any = this.SafeDict(legs, primaryOrderIndex)
 	if !IsEqual(firstLeg, nil) {
@@ -3954,7 +3954,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var timestamp *int64 = this.SafeIntegerProduct(metadata, "create_time", 0.000001)
 	// const triggerDetails = this.safeDict (metadata, 'trigger', {});
-	var legsLength int = GetArrayLength(legs)
+	var legsLength int = len(legs)
 	return this.SafeOrder(map[string]any{
 		"isMultiLeg":          (legsLength > 1),
 		"id":                  this.SafeString(order, "order_id"),
@@ -4058,7 +4058,7 @@ func (this *Grvt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrders([]any{result})
 	return nil
@@ -4110,7 +4110,7 @@ func (this *Grvt) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result)
 	return nil

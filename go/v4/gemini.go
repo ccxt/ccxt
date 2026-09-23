@@ -720,7 +720,7 @@ func (this *Gemini) fetchCurrenciesFromWebBody(ch chan any, optionalArgs ...any)
 	//    }
 	//
 	this.Options.Store("tradingPairs", this.SafeList(data, "tradingPairs"))
-	var currenciesArray any = this.SafeList(data, "currencies", []any{})
+	var currenciesArray []any = SafeListTypedDefault(data, "currencies", []any{})
 
 	ch <- this.ParseCurrencies(currenciesArray)
 	return nil
@@ -1974,7 +1974,7 @@ func (this *Gemini) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString(order, "order_id")
 	var side *string = this.SafeStringLower(order, "side")
 	var clientOrderId *string = this.SafeString(order, "client_order_id")
-	var optionsArray any = this.SafeList(order, "options", []any{})
+	var optionsArray []any = SafeListTypedDefault(order, "options", []any{})
 	var option *string = this.SafeString(optionsArray, 0)
 	var timeInForce string = "GTC"
 	var postOnly bool = false

@@ -1776,7 +1776,7 @@ func (this *Ndax) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency = this.SafeCurrency(currencyId, currency)
 	var credit *string = this.SafeString(item, "CR")
 	var debit *string = this.SafeString(item, "DR")
-	var amount any = nil
+	var amount *string = nil
 	var direction any = nil
 	if Precise.StringLt(credit, "0") {
 		amount = credit
@@ -1785,7 +1785,7 @@ func (this *Ndax) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		amount = debit
 		direction = "out"
 	}
-	var before any = nil
+	var before *string = nil
 	var after *string = this.SafeString(item, "Balance")
 	if IsEqual(direction, "out") {
 		before = Precise.StringAdd(after, amount)
@@ -2812,7 +2812,7 @@ func (this *Ndax) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 	//     ]
 	//
 	var grouped map[string]any = this.GroupBy(response, "ChangeReason")
-	var trades any = this.SafeList(grouped, "Trade", []any{})
+	var trades []any = SafeListTypedDefault(grouped, "Trade", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -3330,7 +3330,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	//         ]
 	//     }
 	//
-	var templateTypes any = this.SafeList(withdrawTemplateTypesResponse, "TemplateTypes", []any{})
+	var templateTypes []any = SafeListTypedDefault(withdrawTemplateTypesResponse, "TemplateTypes", []any{})
 	var firstTemplateType any = this.SafeDict(templateTypes, 0)
 	if IsEqual(firstTemplateType, nil) {
 		panic(ExchangeError(Add(this.Id+" withdraw() could not find a withdraw template type for ", currency["code"])))

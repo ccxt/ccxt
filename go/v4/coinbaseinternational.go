@@ -675,7 +675,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan any, symbol any, optio
 	//       ]
 	//   }
 	//
-	var candles any = this.SafeList(response, "aggregations", []any{})
+	var candles []any = SafeListTypedDefault(response, "aggregations", []any{})
 
 	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
 	return nil
@@ -777,7 +777,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan any, opti
 	//        ]
 	//    }
 	//
-	var rawRates any = this.SafeList(response, "results", []any{})
+	var rawRates []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseFundingRateHistories(rawRates, market, since, limit)
 	return nil
@@ -876,7 +876,7 @@ func (this *Coinbaseinternational) fetchFundingHistoryBody(ch chan any, optional
 
 	response := (<-this.V1PrivateGetTransfers(this.Extend(request, params)))
 	PanicOnError(response)
-	var fundings any = this.SafeList(response, "results", []any{})
+	var fundings []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseIncomes(fundings, market, since, limit)
 	return nil
@@ -980,7 +980,7 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan any, optionalArgs 
 
 	response := (<-this.V1PrivateGetTransfers(this.Extend(request, params)))
 	PanicOnError(response)
-	var transfers any = this.SafeList(response, "results", []any{})
+	var transfers []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseTransfers(transfers, currency, since, limit)
 	return nil
@@ -1394,7 +1394,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 	//        ]
 	//    }
 	//
-	var rawTransactions any = this.SafeList(response, "results", []any{})
+	var rawTransactions []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseTransactions(rawTransactions)
 	return nil
@@ -2085,7 +2085,7 @@ func (this *Coinbaseinternational) fetchTickersBody(ch chan any, optionalArgs ..
 		var instrument any = GetValue(rows, i)
 		var marketId *string = this.SafeString(instrument, "symbol")
 		var symbol *string = this.SafeSymbol(marketId)
-		var quote any = this.SafeDict(instrument, "quote", map[string]any{})
+		var quote map[string]any = MapTyped(this.SafeDict(instrument, "quote", map[string]any{}))
 		AddElementToObject(tickers, symbol, this.ParseTicker(quote, this.SafeMarket(marketId)))
 	}
 
@@ -2892,7 +2892,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 	//        ]
 	//    }
 	//
-	var rawOrders any = this.SafeList(response, "results", []any{})
+	var rawOrders []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseOrders(rawOrders, market, since, limit)
 	return nil
@@ -3013,7 +3013,7 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 	//        ]
 	//    }
 	//
-	var trades any = this.SafeList(response, "results", []any{})
+	var trades []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil

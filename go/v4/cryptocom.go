@@ -911,7 +911,7 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	//    }
 	//
 	var resultData map[string]any = SafeMapTyped(response, "result")
-	var currencyMap any = this.SafeDict(resultData, "currency_map", map[string]any{})
+	var currencyMap map[string]any = MapTyped(this.SafeDict(resultData, "currency_map", map[string]any{}))
 	var enhancedArray any = this.AddKeyInArrayItems(currencyMap, "_coin_id")
 
 	ch <- this.ParseCurrencies(enhancedArray)
@@ -1283,7 +1283,7 @@ func (this *Cryptocom) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "data", []any{})
+	var data []any = SafeListTypedDefault(result, "data", []any{})
 
 	ch <- this.ParseTickers(data, symbols)
 	return nil
@@ -1423,7 +1423,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var orders any = this.SafeList(data, "data", []any{})
+	var orders []any = SafeListTypedDefault(data, "data", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -1509,7 +1509,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var trades any = this.SafeList(result, "data", []any{})
+	var trades []any = SafeListTypedDefault(result, "data", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -1610,7 +1610,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "data", []any{})
+	var data []any = SafeListTypedDefault(result, "data", []any{})
 
 	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
 	return nil
@@ -1671,7 +1671,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "data", []any{})
+	var data []any = SafeListTypedDefault(result, "data", []any{})
 	var orderBook any = this.SafeDict(data, 0)
 	var timestamp *int64 = this.SafeInteger(orderBook, "t")
 
@@ -2056,7 +2056,7 @@ func (this *Cryptocom) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var orderRequest any = this.CreateAdvancedOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -2457,7 +2457,7 @@ func (this *Cryptocom) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 
 	response := (<-this.V1PrivatePostPrivateCancelOrderList(this.Extend(request, params)))
 	PanicOnError(response)
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOrders(result, market, nil, nil, params)
 	return nil
@@ -2505,7 +2505,7 @@ func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan any, orders any, optio
 
 	response := (<-this.V1PrivatePostPrivateCancelOrderList(this.Extend(request, params)))
 	PanicOnError(response)
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOrders(result, nil, nil, nil, params)
 	return nil
@@ -2589,7 +2589,7 @@ func (this *Cryptocom) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var orders any = this.SafeList(data, "data", []any{})
+	var orders []any = SafeListTypedDefault(data, "data", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -2688,7 +2688,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var trades any = this.SafeList(result, "data", []any{})
+	var trades []any = SafeListTypedDefault(result, "data", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -2832,8 +2832,8 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any,
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var addresses any = this.SafeList(data, "deposit_address_list", []any{})
-	var addressesLength int = GetArrayLength(addresses)
+	var addresses []any = SafeListTypedDefault(data, "deposit_address_list", []any{})
+	var addressesLength int = len(addresses)
 	if addressesLength == 0 {
 		panic(ExchangeError(this.Id + " fetchDepositAddressesByNetwork() generating address..."))
 	}
@@ -2976,7 +2976,7 @@ func (this *Cryptocom) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var depositList any = this.SafeList(data, "deposit_list", []any{})
+	var depositList []any = SafeListTypedDefault(data, "deposit_list", []any{})
 
 	ch <- this.ParseTransactions(depositList, currency, since, limit)
 	return nil
@@ -3060,7 +3060,7 @@ func (this *Cryptocom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var withdrawalList any = this.SafeList(data, "withdrawal_list", []any{})
+	var withdrawalList []any = SafeListTypedDefault(data, "withdrawal_list", []any{})
 
 	ch <- this.ParseTransactions(withdrawalList, currency, since, limit)
 	return nil
@@ -3488,8 +3488,8 @@ func (this *Cryptocom) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var networkList any = this.SafeList(fee, "network_list", []any{})
-	var networkListLength int = GetArrayLength(networkList)
+	var networkList []any = SafeListTypedDefault(fee, "network_list", []any{})
+	var networkListLength int = len(networkList)
 	var result map[string]any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
@@ -3504,7 +3504,12 @@ func (this *Cryptocom) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
 	}
 	if !IsEqual(networkList, nil) {
 		for i := 0; i < networkListLength; i++ {
-			var networkInfo any = GetValue(networkList, i)
+			var networkInfo any = func() any {
+				if i >= 0 && i < len(networkList) {
+					return DerefScalar(networkList[i])
+				}
+				return nil
+			}()
 			var networkId *string = this.SafeString(networkInfo, "network_id")
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
@@ -3645,7 +3650,7 @@ func (this *Cryptocom) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var ledger any = this.SafeList(result, "data", []any{})
+	var ledger []any = SafeListTypedDefault(result, "data", []any{})
 
 	ch <- this.ParseLedger(ledger, currency, since, limit)
 	return nil
@@ -3790,7 +3795,7 @@ func (this *Cryptocom) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var masterAccount any = this.SafeDict(result, "master_account", map[string]any{})
+	var masterAccount map[string]any = MapTyped(this.SafeDict(result, "master_account", map[string]any{}))
 	var accounts any = this.SafeList(result, "sub_account_list", []any{})
 	AppendToArray(&accounts, masterAccount)
 
@@ -3899,7 +3904,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "data", []any{})
+	var data []any = SafeListTypedDefault(result, "data", []any{})
 	var settlements any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
@@ -3927,7 +3932,7 @@ func (this *Cryptocom) ParseSettlement(settlement any, optionalArgs ...any) map[
 		"datetime":  this.Iso8601(timestamp),
 	}
 }
-func (this *Cryptocom) ParseSettlements(settlements any, optionalArgs ...any) any {
+func (this *Cryptocom) ParseSettlements(settlements []any, optionalArgs ...any) any {
 	//
 	//     [
 	//         {
@@ -3941,8 +3946,13 @@ func (this *Cryptocom) ParseSettlements(settlements any, optionalArgs ...any) an
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(settlements); i++ {
-		result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
+	for i := 0; i < len(settlements); i++ {
+		result = append(result, this.ParseSettlement(func() any {
+			if i >= 0 && i < len(settlements) {
+				return DerefScalar(settlements[i])
+			}
+			return nil
+		}(), market))
 	}
 	return result
 }
@@ -3999,8 +4009,8 @@ func (this *Cryptocom) fetchFundingRateBody(ch chan any, symbol any, optionalArg
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "data", []any{})
-	var entry any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = SafeListTypedDefault(result, "data", []any{})
+	var entry map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(entry, market)
 	return nil
@@ -4205,7 +4215,7 @@ func (this *Cryptocom) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "data", []any{})
+	var data []any = SafeListTypedDefault(result, "data", []any{})
 
 	ch <- this.ParsePosition(this.SafeDict(data, 0), market)
 	return nil
@@ -4540,12 +4550,12 @@ func (this *Cryptocom) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	//       }
 	//   }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTradingFees(result)
 	return nil
 }
-func (this *Cryptocom) ParseTradingFees(response any) any {
+func (this *Cryptocom) ParseTradingFees(response map[string]any) any {
 	//
 	// {
 	//         "spot_tier": "3",

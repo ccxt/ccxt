@@ -506,7 +506,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 
 	response := (<-this.PrivateGetExchangeOrdersOpens(params))
 	PanicOnError(response)
-	var rawOrders any = this.SafeList(response, "orders", []any{})
+	var rawOrders []any = SafeListTypedDefault(response, "orders", []any{})
 	var parsedOrders []any = ArrayTyped(this.ParseOrders(rawOrders, market, since, limit))
 	var result []any = []any{}
 	for i := 0; i < len(parsedOrders); i++ {
@@ -844,7 +844,7 @@ func (this *Coincheck) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//                  ]
 	//      }
 	//
-	var transactions any = this.SafeList(response, "data", []any{})
+	var transactions []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(transactions, market, since, limit)
 	return nil
@@ -899,7 +899,7 @@ func (this *Coincheck) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	//          "created_at": "2021-12-08T14:10:33.000Z"
 	//      }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -960,7 +960,7 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market map[string]any = MapTyped(this.Market(symbol))
-		var fee any = this.SafeDict(fees, market["id"], map[string]any{})
+		var fee map[string]any = MapTyped(this.SafeDict(fees, market["id"], map[string]any{}))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       fee,
 			"symbol":     symbol,
@@ -1142,7 +1142,7 @@ func (this *Coincheck) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//   ]
 	// }
-	var data any = this.SafeList(response, "deposits", []any{})
+	var data []any = SafeListTypedDefault(response, "deposits", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit, map[string]any{
 		"type": "deposit",
@@ -1213,7 +1213,7 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//   ]
 	// }
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit, map[string]any{
 		"type": "withdrawal",

@@ -429,7 +429,7 @@ func (this *Foxbit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//   ]
 	// }
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseCurrencies(data)
 	return nil
@@ -628,7 +628,7 @@ func (this *Foxbit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//       }
 	//     ]
 	//   }
-	var markets any = this.SafeList(response, "data", []any{})
+	var markets []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseMarkets(markets)
 	return nil
@@ -695,8 +695,8 @@ func (this *Foxbit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	//      }
 	//    ]
 	//  }
-	var data any = this.SafeList(response, "data", []any{})
-	var result any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var result map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTicker(result, market)
 	return nil
@@ -752,7 +752,7 @@ func (this *Foxbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//      }
 	//    ]
 	//  }
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(data, symbols)
 	return nil
@@ -930,7 +930,7 @@ func (this *Foxbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 	response := (<-this.V3PublicGetMarketsMarketTradesHistory(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -1200,7 +1200,7 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 
 	response := (<-this.V3PrivateGetOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data)
 	return nil
@@ -1392,7 +1392,7 @@ func (this *Foxbit) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	//         }
 	//     ]
 	// }
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data)
 	return nil
@@ -1439,8 +1439,8 @@ func (this *Foxbit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	//         }
 	//     ]
 	// }
-	var data any = this.SafeList(response, "data", []any{})
-	var result any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var result map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(result)
 	return nil
@@ -1627,7 +1627,7 @@ func (this *Foxbit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	// }
-	var list any = this.SafeList(response, "data", []any{})
+	var list []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(list, market, since, limit)
 	return nil
@@ -1697,7 +1697,7 @@ func (this *Foxbit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         "created_at": "2021-02-15T22:06:32.999Z"
 	//     ]
 	// }
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -1819,7 +1819,7 @@ func (this *Foxbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	// }
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
@@ -1904,7 +1904,7 @@ func (this *Foxbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	// }
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
@@ -2083,7 +2083,7 @@ func (this *Foxbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	//         "client_order_id": "451637946501"
 	//     }
 	// }
-	var created any = this.SafeDict(response, "create", map[string]any{})
+	var created map[string]any = MapTyped(this.SafeDict(response, "create", map[string]any{}))
 
 	ch <- this.ParseOrder(created, market)
 	return nil
@@ -2200,7 +2200,7 @@ func (this *Foxbit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.V3PrivateGetAccountsSymbolTransactions(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseLedger(data, currency, since, limit)
 	return nil
@@ -2376,7 +2376,7 @@ func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) any {
 	var filled *string = this.SafeString(order, "quantity_executed")
 	var remaining *string = this.SafeString(order, "quantity")
 	// TODO: validate logic of amount here, should this be calculated?
-	var amount any = nil
+	var amount *string = nil
 	if (remaining != nil) && (filled != nil) {
 		amount = Precise.StringAdd(remaining, filled)
 	}

@@ -1060,7 +1060,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ..
 
 	response := (<-this.PrivateGetListorders(this.Extend(request, params)))
 	PanicOnError(response)
-	var orders any = this.SafeList(response, "orders", []any{})
+	var orders []any = SafeListTypedDefault(response, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -1444,7 +1444,7 @@ func (this *Luno) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	//          ]
 	//      }
 	//
-	var trades any = this.SafeList(response, "trades", []any{})
+	var trades []any = SafeListTypedDefault(response, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -1512,7 +1512,7 @@ func (this *Luno) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	//          "pair": "XBTEUR"
 	//     }
 	//
-	var ohlcvs any = this.SafeList(response, "candles", []any{})
+	var ohlcvs []any = SafeListTypedDefault(response, "candles", []any{})
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -1599,7 +1599,7 @@ func (this *Luno) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//          ]
 	//      }
 	//
-	var trades any = this.SafeList(response, "trades", []any{})
+	var trades []any = SafeListTypedDefault(response, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -1878,7 +1878,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetAccountsIdTransactions(this.Extend(params, request)))
 	PanicOnError(response)
-	var entries any = this.SafeList(response, "transactions", []any{})
+	var entries []any = SafeListTypedDefault(response, "transactions", []any{})
 
 	ch <- this.ParseLedger(entries, currency, since, limit)
 	return nil

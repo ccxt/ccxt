@@ -585,7 +585,7 @@ func (this *Bigone) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//     ],
 	// }
 	//
-	var currenciesData any = this.SafeList(data, "data", []any{})
+	var currenciesData []any = SafeListTypedDefault(data, "data", []any{})
 
 	ch <- this.ParseCurrencies(currenciesData)
 	return nil
@@ -1022,7 +1022,7 @@ func (this *Bigone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		//         }
 		//     }
 		//
-		var ticker any = this.SafeDict(response, "data", map[string]any{})
+		var ticker map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 		ch <- this.ParseTicker(ticker, market)
 		return nil
@@ -1248,7 +1248,7 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		//         }
 		//     }
 		//
-		var orderbook any = this.SafeDict(response, "data", map[string]any{})
+		var orderbook map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 		ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "quantity")
 		return nil
@@ -1499,7 +1499,7 @@ func (this *Bigone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	//         ]
 	//     }
 	//
-	var trades any = this.SafeList(response, "data", []any{})
+	var trades []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -1612,7 +1612,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
 	return nil
@@ -1951,7 +1951,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	//        "updated_at":"2019-01-29T06:05:56Z"
 	//    }
 	//
-	var order any = this.SafeDict(response, "data", map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -2001,7 +2001,7 @@ func (this *Bigone) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	//        "created_at":"2019-01-29T06:05:56Z",
 	//        "updated_at":"2019-01-29T06:05:56Z"
 	//    }
-	var order any = this.SafeDict(response, "data", map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(order)
 	return nil
@@ -2118,7 +2118,7 @@ func (this *Bigone) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 
 	response := (<-this.PrivateGetOrdersId(this.Extend(request, params)))
 	PanicOnError(response)
-	var order any = this.SafeDict(response, "data", map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(order)
 	return nil
@@ -2188,7 +2188,7 @@ func (this *Bigone) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//        "page_token":"dxzef",
 	//    }
 	//
-	var orders any = this.SafeList(response, "data", []any{})
+	var orders []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -2272,7 +2272,7 @@ func (this *Bigone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         "page_token":"dxfv"
 	//     }
 	//
-	var trades any = this.SafeList(response, "data", []any{})
+	var trades []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -2650,7 +2650,7 @@ func (this *Bigone) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var deposits any = this.SafeList(response, "data", []any{})
+	var deposits []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(deposits, currency, since, limit)
 	return nil
@@ -2720,7 +2720,7 @@ func (this *Bigone) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	//         "page_token":"dxvf"
 	//     }
 	//
-	var withdrawals any = this.SafeList(response, "data", []any{})
+	var withdrawals []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(withdrawals, currency, since, limit)
 	return nil
@@ -2887,7 +2887,7 @@ func (this *Bigone) withdrawBody(ch chan any, code any, amount any, address any,
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTransaction(data, currency)
 	return nil

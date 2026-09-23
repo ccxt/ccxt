@@ -673,7 +673,7 @@ func (this *Coinmate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 	response := (<-this.PublicGetOrderBook(this.Extend(request, params)))
 	PanicOnError(response)
-	var orderbook any = this.SafeDict(response, "data", map[string]any{})
+	var orderbook map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeTimestamp(orderbook, "timestamp")
 
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "amount")
@@ -882,7 +882,7 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 
 	response := (<-this.PrivatePostTransferHistory(this.Extend(request, params)))
 	PanicOnError(response)
-	var items any = this.SafeList(response, "data", []any{})
+	var items []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(items, nil, since, limit)
 	return nil
@@ -1075,7 +1075,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var transaction any = this.ParseTransaction(data, currency)
 	var fillResponseFromRequest *bool = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
@@ -1138,7 +1138,7 @@ func (this *Coinmate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivatePostTradeHistory(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, nil, since, limit)
 	return nil
@@ -1267,7 +1267,7 @@ func (this *Coinmate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -1310,7 +1310,7 @@ func (this *Coinmate) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	//         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var makerString *string = this.SafeString(data, "maker")
 	var takerString *string = this.SafeString(data, "taker")
 	var maker any = this.ParseNumber(Precise.StringDiv(makerString, "100"))
@@ -1360,7 +1360,7 @@ func (this *Coinmate) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var extension map[string]any = map[string]any{
 		"status": "open",
 	}
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, nil, since, limit, extension)
 	return nil
@@ -1411,7 +1411,7 @@ func (this *Coinmate) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivatePostOrderHistory(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil

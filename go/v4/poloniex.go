@@ -1880,7 +1880,7 @@ func (this *Poloniex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		//             cT: "1740777074704",
 		//         },
 		//
-		var tradesList any = this.SafeList(response, "data", []any{})
+		var tradesList []any = SafeListTypedDefault(response, "data", []any{})
 
 		ch <- this.ParseTrades(tradesList, market, since, limit)
 		return nil
@@ -2017,7 +2017,7 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		//                "actType": "TRADING"
 		//            },
 		//
-		var data any = this.SafeList(raw, "data", []any{})
+		var data []any = SafeListTypedDefault(raw, "data", []any{})
 
 		ch <- this.ParseTrades(data, market, since, limit)
 		return nil
@@ -2499,7 +2499,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	//                "qCcy": "USDT"
 	//            },
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -3223,7 +3223,7 @@ func (this *Poloniex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//        }
 		//    }
 		//
-		var data any = this.SafeDict(responseRaw, "data", map[string]any{})
+		var data map[string]any = MapTyped(this.SafeDict(responseRaw, "data", map[string]any{}))
 
 		ch <- this.ParseBalance(data)
 		return nil
@@ -3355,7 +3355,7 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		//       "msg": "Success"
 		//    }
 		//
-		var data any = this.SafeDict(responseRaw, "data", map[string]any{})
+		var data map[string]any = MapTyped(this.SafeDict(responseRaw, "data", map[string]any{}))
 		var ts *int64 = this.SafeInteger(data, "ts")
 
 		ch <- this.ParseOrderBook(data, symbol, ts)
@@ -3814,8 +3814,8 @@ func (this *Poloniex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var withdrawals any = this.SafeList(response, "withdrawals", []any{})
-	var deposits any = this.SafeList(response, "deposits", []any{})
+	var withdrawals []any = SafeListTypedDefault(response, "withdrawals", []any{})
+	var deposits []any = SafeListTypedDefault(response, "deposits", []any{})
 	var withdrawalTransactions any = this.ParseTransactions(withdrawals, currency, since, limit)
 	var depositTransactions any = this.ParseTransactions(deposits, currency, since, limit)
 	var transactions []any = this.ArrayConcat(depositTransactions, withdrawalTransactions)
@@ -3858,7 +3858,7 @@ func (this *Poloniex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var withdrawals any = this.SafeList(response, "withdrawals", []any{})
+	var withdrawals []any = SafeListTypedDefault(response, "withdrawals", []any{})
 	var transactions any = this.ParseTransactions(withdrawals, currency, since, limit)
 
 	ch <- this.FilterByCurrencySinceLimit(transactions, code, since, limit)
@@ -4073,7 +4073,7 @@ func (this *Poloniex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var deposits any = this.SafeList(response, "deposits", []any{})
+	var deposits []any = SafeListTypedDefault(response, "deposits", []any{})
 	var transactions any = this.ParseTransactions(deposits, currency, since, limit)
 
 	ch <- this.FilterByCurrencySinceLimit(transactions, code, since, limit)
@@ -4509,7 +4509,7 @@ func (this *Poloniex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//        ]
 	//    }
 	//
-	var positions any = this.SafeList(response, "data", []any{})
+	var positions []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParsePositions(positions, symbols)
 	return nil

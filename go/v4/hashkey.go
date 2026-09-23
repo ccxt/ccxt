@@ -1008,8 +1008,8 @@ func (this *Hashkey) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var spotMarkets any = this.SafeList(response, "symbols", []any{})
-	var swapMarkets any = this.SafeList(response, "contracts", []any{})
+	var spotMarkets []any = SafeListTypedDefault(response, "symbols", []any{})
+	var swapMarkets []any = SafeListTypedDefault(response, "contracts", []any{})
 	var markets []any = this.ArrayConcat(spotMarkets, swapMarkets)
 	if this.IsEmpty(markets) {
 		markets = []any{response} // if user provides params.symbol the exchange returns a single object instead of list of objects
@@ -1906,7 +1906,7 @@ func (this *Hashkey) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	//         }
 	//     ]
 	//
-	var ticker any = this.SafeDict(response, 0, map[string]any{})
+	var ticker map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseTicker(ticker, market)
 	return nil
@@ -2101,7 +2101,7 @@ func (this *Hashkey) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//         }
 		//     ]
 		//
-		var balance any = this.SafeDict(response, 0, map[string]any{})
+		var balance map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 		ch <- this.ParseSwapBalance(balance)
 		return nil
@@ -2172,7 +2172,7 @@ func (this *Hashkey) ParseBalance(balance any) any {
 	}
 	return this.SafeBalance(result)
 }
-func (this *Hashkey) ParseSwapBalance(balance any) any {
+func (this *Hashkey) ParseSwapBalance(balance map[string]any) any {
 	//
 	//     {
 	//         "balance": "30.63364672",
@@ -3348,7 +3348,7 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		var clientOrderId *string = this.SafeString(orderRequest, "clientOrderId")
 		if clientOrderId == nil {
@@ -3379,9 +3379,9 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+"createOrderRequest() is not supported for ", market["type"]), " type of markets")))
 	}
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 	var responseOrders []any = []any{}
-	for i := 0; i < GetArrayLength(result); i++ {
+	for i := 0; i < len(result); i++ {
 		var responseEntry map[string]any = SafeMapTyped(result, i)
 		var responseOrder any = this.SafeDict(responseEntry, "order", map[string]any{})
 		responseOrders = append(responseOrders, responseOrder)
@@ -4270,7 +4270,7 @@ func (this *Hashkey) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 	//         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
 	//     ]
 	//
-	var rate any = this.SafeDict(response, 0, map[string]any{})
+	var rate map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(rate, market)
 	return nil
@@ -4621,7 +4621,7 @@ func (this *Hashkey) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...
 	//         }
 	//     ]
 	//
-	var leverage any = this.SafeDict(response, 0, map[string]any{})
+	var leverage map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseLeverage(leverage, market)
 	return nil
@@ -4907,7 +4907,7 @@ func (this *Hashkey) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) an
 	response := (<-this.PublicGetApiV1ExchangeInfo(params))
 	PanicOnError(response)
 	// response is the same as in fetchMarkets()
-	var data any = this.SafeList(response, "contracts", []any{})
+	var data []any = SafeListTypedDefault(response, "contracts", []any{})
 	symbols = this.MarketSymbols(symbols)
 
 	ch <- this.ParseLeverageTiers(data, symbols, "symbol")
@@ -5114,10 +5114,10 @@ func (this *Hashkey) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//         "updateTimestamp": "1722320137809"
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var fee any = this.SafeDict(data, i, map[string]any{})
+	for i := 0; i < len(data); i++ {
+		var fee map[string]any = MapTyped(this.SafeDict(data, i, map[string]any{}))
 		var parsedFee any = this.ParseTradingFee(fee)
 		AddElementToObject(result, GetValue(parsedFee, "symbol"), parsedFee)
 	}
@@ -5237,8 +5237,8 @@ func (this *Hashkey) HandleErrors(code any, reason any, url any, method any, hea
 	var responseCodeString *string = this.SafeString(response, "code")
 	var responseCodeInteger *int64 = this.SafeInteger(response, "code") // some codes in response are returned as '0000' others as 0
 	if responseCodeInteger != nil && *responseCodeInteger == 0 {
-		var result any = this.SafeList(response, "result", []any{}) // for batch methods
-		for i := 0; i < GetArrayLength(result); i++ {
+		var result []any = SafeListTypedDefault(response, "result", []any{}) // for batch methods
+		for i := 0; i < len(result); i++ {
 			var entry map[string]any = SafeMapTyped(result, i)
 			var entryCodeInteger *int64 = this.SafeInteger(entry, "code")
 			if entryCodeInteger == nil || *entryCodeInteger != 0 {

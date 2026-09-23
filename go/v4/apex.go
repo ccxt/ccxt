@@ -456,7 +456,7 @@ func (this *Apex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetV3AccountBalance(params))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseBalance(data)
 	return nil
@@ -496,7 +496,7 @@ func (this *Apex) fetchAccountBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetV3Account(params))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseAccount(data)
 	return nil
@@ -615,7 +615,7 @@ func (this *Apex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//     ]
 	// }
-	var rows any = this.SafeList(spotConfig, "assets", []any{})
+	var rows []any = SafeListTypedDefault(spotConfig, "assets", []any{})
 	var chains any = this.SafeList(multiChain, "chains", []any{})
 	this.Options.Store("_temp_currencies_chains", chains)
 	var result any = this.ParseCurrencies(rows)
@@ -730,7 +730,7 @@ func (this *Apex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
 	var contractConfig map[string]any = SafeMapTyped(data, "contractConfig")
-	var perpetualContract any = this.SafeList(contractConfig, "perpetualContract", []any{})
+	var perpetualContract []any = SafeListTypedDefault(contractConfig, "perpetualContract", []any{})
 
 	// {
 	//     "perpetualContract":[
@@ -951,8 +951,8 @@ func (this *Apex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 
 	response := (<-this.PublicGetV3Ticker(this.Extend(request, params)))
 	PanicOnError(response)
-	var tickers any = this.SafeList(response, "data", []any{})
-	var rawTicker any = this.SafeDict(tickers, 0, map[string]any{})
+	var tickers []any = SafeListTypedDefault(response, "data", []any{})
+	var rawTicker map[string]any = MapTyped(this.SafeDict(tickers, 0, map[string]any{}))
 
 	ch <- this.ParseTicker(rawTicker, market)
 	return nil
@@ -986,7 +986,7 @@ func (this *Apex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetV3DataAllTickerInfo(params))
 	PanicOnError(response)
-	var tickers any = this.SafeList(response, "data", []any{})
+	var tickers []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(tickers, symbols)
 	return nil
@@ -1045,7 +1045,7 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	response := (<-this.PublicGetV3Klines(this.Extend(request, params)))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
-	var OHLCVs any = this.SafeList(data, this.SafeString(market, "id2"), []any{})
+	var OHLCVs []any = SafeListTypedDefault(data, this.SafeString(market, "id2"), []any{})
 
 	ch <- this.ParseOHLCVs(OHLCVs, market, timeframe, since, limit)
 	return nil
@@ -1132,7 +1132,7 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//     "u": 18665465
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp int64 = this.Milliseconds()
 	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "b", "a")
 	orderbook["nonce"] = this.SafeInteger(data, "u")
@@ -1203,7 +1203,7 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	//  }
 	//  ]
 	//
-	var trades any = this.SafeList(response, "data", []any{})
+	var trades []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -1279,8 +1279,8 @@ func (this *Apex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 
 	response := (<-this.PublicGetV3Ticker(this.Extend(request, params)))
 	PanicOnError(response)
-	var tickers any = this.SafeList(response, "data", []any{})
-	var rawTicker any = this.SafeDict(tickers, 0, map[string]any{})
+	var tickers []any = SafeListTypedDefault(response, "data", []any{})
+	var rawTicker map[string]any = MapTyped(this.SafeDict(tickers, 0, map[string]any{}))
 
 	ch <- this.ParseOpenInterest(rawTicker, market)
 	return nil
@@ -1762,7 +1762,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 
 	response := (<-this.PrivatePostV3Order(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -1841,11 +1841,11 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 	}
 	var tokenId *string = this.SafeString(currency, "tokenId", "")
 	var decimalsNum *float64 = this.SafeNumber(currency, "decimals", 0)
-	var decimalsNumber any = func() any {
+	var decimalsNumber float64 = func() float64 {
 		if decimalsNum == nil {
 			return 0
 		}
-		return decimalsNum
+		return *decimalsNum
 	}()
 	var mathPowResult float64 = (MathPow(10, decimalsNumber))
 	var amountNumber int64 = this.ParseToInt(Multiply(amount, mathPowResult))
@@ -1886,7 +1886,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 
 		response := (<-this.PrivatePostV3ContractTransferOut(this.Extend(request, params)))
 		PanicOnError(response)
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 		var currentTime int64 = this.Milliseconds()
 		var parsedAmount any = this.ParseNumber(amount)
 
@@ -1934,7 +1934,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 
 		response := (<-this.PrivatePostV3TransferOut(this.Extend(request, params)))
 		PanicOnError(response)
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 		var currentTime int64 = this.Milliseconds()
 
 		ch <- this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
@@ -2001,7 +2001,7 @@ func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivatePostV3DeleteOpenOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- []any{this.ParseOrder(data, market)}
 	return nil
@@ -2093,7 +2093,7 @@ func (this *Apex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetV3Order(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data)
 	return nil
@@ -2133,7 +2133,7 @@ func (this *Apex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetV3OpenOrders(params))
 	PanicOnError(response)
-	var orders any = this.SafeList(response, "data", []any{})
+	var orders []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(orders, nil, since, limit)
 	return nil
@@ -2197,7 +2197,7 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGetV3HistoryOrders(this.Extend(request, params)))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders any = this.SafeList(data, "orders", []any{})
+	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -2247,7 +2247,7 @@ func (this *Apex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 	response := (<-this.PrivateGetV3OrderFills(this.Extend(request, params)))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders any = this.SafeList(data, "orders", []any{})
+	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
 	ch <- this.ParseTrades(orders, nil, since, limit)
 	return nil
@@ -2309,7 +2309,7 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGetV3Fills(this.Extend(request, params)))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders any = this.SafeList(data, "orders", []any{})
+	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
 	ch <- this.ParseTrades(orders, market, since, limit)
 	return nil
@@ -2370,7 +2370,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	response := (<-this.PrivateGetV3Funding(this.Extend(request, params)))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
-	var fundingValues any = this.SafeList(data, "fundingValues", []any{})
+	var fundingValues []any = SafeListTypedDefault(data, "fundingValues", []any{})
 
 	ch <- this.ParseIncomes(fundingValues, market, since, limit)
 	return nil
@@ -2447,7 +2447,7 @@ func (this *Apex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 
 	response := (<-this.PrivatePostV3SetInitialMarginRate(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- data
 	return nil
@@ -2482,7 +2482,7 @@ func (this *Apex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGetV3Account(params))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
-	var positions any = this.SafeList(data, "positions", []any{})
+	var positions []any = SafeListTypedDefault(data, "positions", []any{})
 
 	ch <- this.ParsePositions(positions, symbols)
 	return nil

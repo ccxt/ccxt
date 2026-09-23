@@ -512,7 +512,7 @@ func (this *Hyperliquid) fetchCurrenciesBody(ch chan any, optionalArgs ...any) a
 	//     ]
 	//
 	// const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
-	var tokens any = this.SafeList(response, "tokens", []any{})
+	var tokens []any = SafeListTypedDefault(response, "tokens", []any{})
 	// const meta = this.safeList (response, 'universe', []);
 	this.Options.Store("cachedCurrenciesById", map[string]any{}) // used to map hip3 markets
 
@@ -688,7 +688,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 			if i >= fetchDexesLength {
 				break
 			}
-			var dex any = this.SafeDict(fetchDexes, i, map[string]any{})
+			var dex map[string]any = MapTyped(this.SafeDict(fetchDexes, i, map[string]any{}))
 			if IsEqual(dex, nil) {
 				continue
 			}
@@ -715,12 +715,12 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 		var response any = GetValue(promises, i)
 		var meta map[string]any = SafeMapTyped(response, 0)
 		var collateralToken *string = this.SafeString(meta, "collateralToken")
-		var universe any = this.SafeList(meta, "universe", []any{})
-		var assetCtxs any = this.SafeList(response, 1, []any{})
+		var universe []any = SafeListTypedDefault(meta, "universe", []any{})
+		var assetCtxs []any = SafeListTypedDefault(response, 1, []any{})
 		var result []any = []any{}
 		// helper because some endpoints return just the coin name like: flx:crcl
 		// and we don't have the base/settle information and we can't assume it's USDC for hip3 markets
-		for j := 0; j < GetArrayLength(universe); j++ {
+		for j := 0; j < len(universe); j++ {
 			var data map[string]any = this.Extend(this.SafeDict(universe, j, map[string]any{}), this.SafeDict(assetCtxs, j, map[string]any{}))
 			data["baseId"] = this.Sum(j, offset)
 			data["collateralToken"] = collateralToken
@@ -841,10 +841,10 @@ func (this *Hyperliquid) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) 
 	//
 	//
 	var meta map[string]any = SafeMapTyped(response, 0)
-	var universe any = this.SafeList(meta, "universe", []any{})
-	var assetCtxs any = this.SafeList(response, 1, []any{})
+	var universe []any = SafeListTypedDefault(meta, "universe", []any{})
+	var assetCtxs []any = SafeListTypedDefault(response, 1, []any{})
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(universe); i++ {
+	for i := 0; i < len(universe); i++ {
 		var data map[string]any = this.Extend(this.SafeDict(universe, i, map[string]any{}), this.SafeDict(assetCtxs, i, map[string]any{}))
 		data["baseId"] = i
 		result = append(result, data)
@@ -971,14 +971,14 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) 
 	// ]
 	//
 	var first map[string]any = SafeMapTyped(response, 0)
-	var second any = this.SafeList(response, 1, []any{})
-	var meta any = this.SafeList(first, "universe", []any{})
-	var tokens any = this.SafeList(first, "tokens", []any{})
+	var second []any = SafeListTypedDefault(response, 1, []any{})
+	var meta []any = SafeListTypedDefault(first, "universe", []any{})
+	var tokens []any = SafeListTypedDefault(first, "tokens", []any{})
 	var markets []any = []any{}
-	for i := 0; i < GetArrayLength(meta); i++ {
-		var market any = this.SafeDict(meta, i, map[string]any{})
+	for i := 0; i < len(meta); i++ {
+		var market map[string]any = MapTyped(this.SafeDict(meta, i, map[string]any{}))
 		var index *int64 = this.SafeInteger(market, "index")
-		var extraData any = this.SafeDict(second, index, map[string]any{})
+		var extraData map[string]any = MapTyped(this.SafeDict(second, index, map[string]any{}))
 		var marketName *string = this.SafeString(market, "name")
 		// if (marketName.indexOf ('/') < 0) {
 		//     // there are some weird spot markets in testnet, eg @2
@@ -990,10 +990,10 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) 
 		var fees map[string]any = SafeMapTyped(this.Fees, "spot")
 		var taker *float64 = this.SafeNumber(fees, "taker")
 		var maker *float64 = this.SafeNumber(fees, "maker")
-		var tokensPos any = this.SafeList(market, "tokens", []any{})
+		var tokensPos []any = SafeListTypedDefault(market, "tokens", []any{})
 		var baseTokenPos *int64 = this.SafeInteger(tokensPos, 0)
 		var quoteTokenPos *int64 = this.SafeInteger(tokensPos, 1)
-		var baseTokenInfo any = this.SafeDict(tokens, baseTokenPos, map[string]any{})
+		var baseTokenInfo map[string]any = MapTyped(this.SafeDict(tokens, baseTokenPos, map[string]any{}))
 		var quoteTokenInfo map[string]any = SafeMapTyped(tokens, quoteTokenPos)
 		var baseName *string = this.SafeString(baseTokenInfo, "name")
 		var quoteId *string = this.SafeString(quoteTokenInfo, "name")
@@ -1101,17 +1101,17 @@ func (this *Hyperliquid) ParseMarket(market any) any {
 	//     }
 	//
 	var collateralTokenCode *string = this.SafeString(market, "collateralTokenName")
-	var quoteId any = func() any {
+	var quoteId string = func() string {
 		if collateralTokenCode == nil {
 			return "USDC"
 		}
-		return collateralTokenCode
+		return *collateralTokenCode
 	}()
-	var settleId any = func() any {
+	var settleId string = func() string {
 		if collateralTokenCode == nil {
 			return "USDC"
 		}
-		return collateralTokenCode
+		return *collateralTokenCode
 	}()
 	var baseName *string = this.SafeString(market, "name")
 	var base any = DerefScalar(this.SafeCurrencyCode(baseName))
@@ -1408,7 +1408,7 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	//         "time": "1704290104840"
 	//     }
 	//
-	var data any = this.SafeList(response, "levels", []any{})
+	var data []any = SafeListTypedDefault(response, "levels", []any{})
 	var result map[string]any = map[string]any{
 		"bids": this.SafeList(data, 0, []any{}),
 		"asks": this.SafeList(data, 1, []any{}),
@@ -1590,10 +1590,10 @@ func (this *Hyperliquid) fetchFundingRatesBody(ch chan any, optionalArgs ...any)
 	//
 	//
 	var meta map[string]any = SafeMapTyped(response, 0)
-	var universe any = this.SafeList(meta, "universe", []any{})
-	var assetCtxs any = this.SafeList(response, 1, []any{})
+	var universe []any = SafeListTypedDefault(meta, "universe", []any{})
+	var assetCtxs []any = SafeListTypedDefault(response, 1, []any{})
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(universe); i++ {
+	for i := 0; i < len(universe); i++ {
 		var data map[string]any = this.Extend(this.SafeDict(universe, i, map[string]any{}), this.SafeDict(assetCtxs, i, map[string]any{}))
 		result = append(result, data)
 	}
@@ -1673,7 +1673,7 @@ func (this *Hyperliquid) ParseTicker(ticker any, optionalArgs ...any) any {
 	var name *string = this.SafeString(ticker, "name")
 	var marketId any = this.CoinToMarketId(name)
 	market = this.SafeMarket(marketId, market)
-	var bidAsk any = this.SafeList(ticker, "impactPxs")
+	var bidAsk []any = SafeListTyped(ticker, "impactPxs")
 	return this.SafeTicker(map[string]any{
 		"symbol":        GetValue(market, "symbol"),
 		"timestamp":     nil,
@@ -3736,7 +3736,7 @@ func (this *Hyperliquid) editOrdersBody(ch chan any, orders any, optionalArgs ..
 	//
 	var responseObject map[string]any = SafeMapTyped(response, "response")
 	var dataObject map[string]any = SafeMapTyped(responseObject, "data")
-	var statuses any = this.SafeList(dataObject, "statuses", []any{})
+	var statuses []any = SafeListTypedDefault(dataObject, "statuses", []any{})
 
 	ch <- this.ParseOrders(statuses)
 	return nil
@@ -4904,7 +4904,7 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 	var rawUnrealizedPnl *string = this.SafeString(entry, "unrealizedPnl")
 	var absRawUnrealizedPnl *string = Precise.StringAbs(rawUnrealizedPnl)
 	var marginUsed *string = this.SafeString(entry, "marginUsed")
-	var initialMargin any = nil
+	var initialMargin *string = nil
 	if isIsolated {
 		initialMargin = Precise.StringSub(marginUsed, rawUnrealizedPnl)
 	} else {
@@ -6377,7 +6377,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 			}
 		}
 		if func() bool { _, ok := data["status"]; return ok }() {
-			var errorStatus any = this.SafeDict(data, "status", map[string]any{})
+			var errorStatus map[string]any = MapTyped(this.SafeDict(data, "status", map[string]any{}))
 			var errorMsg *string = this.SafeString(errorStatus, "error")
 			if !IsEqual(errorStatus, nil) {
 				message = errorMsg

@@ -2082,7 +2082,7 @@ func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) an
 	}()
 	var totalAmount *string = this.SafeString(entry, "origSz")
 	var remaining *string = this.SafeString(entry, "sz")
-	var filled any = nil
+	var filled *string = nil
 	if (remaining != nil) && (totalAmount != nil) {
 		filled = ccxt.Precise.StringSub(totalAmount, remaining)
 	}
@@ -2443,9 +2443,9 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		// Apply query filter
 		if lowerQueriesLength > 0 {
 			var description string = ccxt.ToLower(this.SafeString(info, "description", ""))
-			var parentSymbolOrEmpty any = func() any {
+			var parentSymbolOrEmpty string = func() string {
 				if parentSymbol != nil {
-					return parentSymbol
+					return *parentSymbol
 				}
 				return ""
 			}()

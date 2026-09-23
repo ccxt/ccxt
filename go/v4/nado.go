@@ -403,8 +403,8 @@ func (this *Nado) createOrderBody(ch chan any, symbol any, typeVar any, side any
 
 	request := (<-this.CreateOrderRequestAsync(symbol, typeVar, side, amount, price, params))
 	PanicOnError(request)
-	var placeOrder any = this.SafeDict(request, "place_order", map[string]any{})
-	var isTriggerOrder bool = (InOp(placeOrder, "trigger"))
+	var placeOrder map[string]any = MapTyped(this.SafeDict(request, "place_order", map[string]any{}))
+	var isTriggerOrder bool = (func() bool { _, ok := placeOrder["trigger"]; return ok }())
 	var response any = nil
 	if isTriggerOrder {
 
@@ -645,7 +645,7 @@ func (this *Nado) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	//     }
 	//
 	var cancelAndPlace map[string]any = SafeMapTyped(request, "cancel_and_place")
-	var placeOrder any = this.SafeDict(cancelAndPlace, "place_order", map[string]any{})
+	var placeOrder map[string]any = MapTyped(this.SafeDict(cancelAndPlace, "place_order", map[string]any{}))
 
 	ch <- this.ParseOrder(this.Extend(map[string]any{
 		"place_order": placeOrder,
@@ -1134,7 +1134,7 @@ func (this *Nado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	//         "request_type": "query_order"
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -1242,7 +1242,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders any = this.SafeList(data, "orders", []any{})
+	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -1338,7 +1338,7 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders any = this.SafeList(data, "orders", []any{})
+	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit, map[string]any{
 		"status": "open",
@@ -1632,7 +1632,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var submissionIdx *string = this.SafeString(match, "submission_idx")
-		var tx any = this.SafeDict(txsBySubmission, submissionIdx, map[string]any{})
+		var tx map[string]any = MapTyped(this.SafeDict(txsBySubmission, submissionIdx, map[string]any{}))
 		trades = append(trades, this.Extend(tx, match))
 	}
 
@@ -1694,7 +1694,7 @@ func (this *Nado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         "request_type": "query_subaccount_info"
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseBalance(data)
 	return nil
@@ -2174,8 +2174,8 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var id *string = this.SafeString(market, "product_id")
-		var pair any = this.SafeDict(pairsById, id, map[string]any{})
-		var asset any = this.SafeDict(assetsById, id, map[string]any{})
+		var pair map[string]any = MapTyped(this.SafeDict(pairsById, id, map[string]any{}))
+		var asset map[string]any = MapTyped(this.SafeDict(assetsById, id, map[string]any{}))
 		var rawType *string = this.SafeString(market, "type")
 		var typeVar any = func() any {
 			if rawType != nil && *rawType == "perp" {
@@ -2482,7 +2482,7 @@ func (this *Nado) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, tickerId, map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, tickerId, map[string]any{}))
 
 	ch <- this.ParseFundingRate(data, market)
 	return nil
@@ -2695,7 +2695,7 @@ func (this *Nado) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, tickerId, map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, tickerId, map[string]any{}))
 
 	ch <- this.ParseOpenInterest(data, market)
 	return nil
@@ -2946,7 +2946,7 @@ func (this *Nado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "candlesticks", []any{})
+	var data []any = SafeListTypedDefault(response, "candlesticks", []any{})
 
 	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
 	return nil

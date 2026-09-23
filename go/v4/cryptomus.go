@@ -380,7 +380,7 @@ func (this *Cryptomus) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseMarkets(result)
 	return nil
@@ -701,7 +701,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
 
 	ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
@@ -838,7 +838,7 @@ func (this *Cryptomus) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseBalance(result)
 	return nil
@@ -1180,7 +1180,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	//             ...
 	//         ]
 	//     }
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOrders(result, market, nil, nil)
 	return nil
@@ -1254,7 +1254,7 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(order, "type")
 	var side *string = this.SafeString(order, "direction")
 	var price *float64 = this.SafeNumber(order, "price")
-	var transaction any = this.SafeList(deal, "transactions", []any{})
+	var transaction []any = SafeListTypedDefault(deal, "transactions", []any{})
 	var fee any = nil
 	var firstTx map[string]any = SafeMapTyped(transaction, 0)
 	var feeCurrency *string = this.SafeString(firstTx, "feeCurrency")
@@ -1385,7 +1385,7 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	var takerFee *string = this.SafeString(currentFeeTier, "taker_percent")
 	makerFee = Precise.StringDiv(makerFee, "100")
 	takerFee = Precise.StringDiv(takerFee, "100")
-	var feeTiers any = this.SafeList(data, "tariff_steps", []any{})
+	var feeTiers []any = SafeListTypedDefault(data, "tariff_steps", []any{})
 	var result map[string]any = map[string]any{}
 	var tiers map[string]any = this.ParseFeeTiers(feeTiers)
 	var symbols any = this.Symbols
@@ -1410,13 +1410,18 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	ch <- result
 	return nil
 }
-func (this *Cryptomus) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[string]any {
+func (this *Cryptomus) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var takerFees []any = []any{}
 	var makerFees []any = []any{}
-	for i := 0; i < GetArrayLength(feeTiers); i++ {
-		var tier any = GetValue(feeTiers, i)
+	for i := 0; i < len(feeTiers); i++ {
+		var tier any = func() any {
+			if i >= 0 && i < len(feeTiers) {
+				return DerefScalar(feeTiers[i])
+			}
+			return nil
+		}()
 		var turnover *float64 = this.SafeNumber(tier, "from_turnover")
 		var taker *string = this.SafeString(tier, "taker_percent")
 		var maker *string = this.SafeString(tier, "maker_percent")

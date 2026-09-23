@@ -1367,8 +1367,8 @@ func (this *Btcmarkets) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 	//        ]
 	//    }
 	//
-	var cancelOrders any = this.SafeList(response, "cancelOrders", []any{})
-	var unprocessedRequests any = this.SafeList(response, "unprocessedRequests", []any{})
+	var cancelOrders []any = SafeListTypedDefault(response, "cancelOrders", []any{})
+	var unprocessedRequests []any = SafeListTypedDefault(response, "unprocessedRequests", []any{})
 	var orders []any = this.ArrayConcat(cancelOrders, unprocessedRequests)
 
 	ch <- this.ParseOrders(orders)

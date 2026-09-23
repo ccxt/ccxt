@@ -1060,7 +1060,7 @@ func (this *Woo) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseMarkets(rows)
 	return nil
@@ -1210,7 +1210,7 @@ func (this *Woo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseTrades(rows, market, since, limit)
 	return nil
@@ -1315,7 +1315,7 @@ func (this *Woo) ParseTokenAndFeeTemp(item any, feeTokenKeys any, feeAmountKeys 
 	}
 	return fee
 }
-func (this *Woo) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Woo) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
@@ -1373,7 +1373,7 @@ func (this *Woo) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...an
 	//         "timestamp": 1751858977368
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTradingFee(data, market)
 	return nil
@@ -1589,8 +1589,8 @@ func (this *Woo) ParseCurrency(rawCurrency any) any {
 	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(keys); j++ {
 		var networkId string = GetValue(keys, j).(string)
-		var tokenEntry any = this.SafeDict(tokensByNetworkId, networkId, map[string]any{})
-		var networkEntry any = this.SafeDict(chainsByNetworkId, networkId, map[string]any{})
+		var tokenEntry map[string]any = MapTyped(this.SafeDict(tokensByNetworkId, networkId, map[string]any{}))
+		var networkEntry map[string]any = MapTyped(this.SafeDict(chainsByNetworkId, networkId, map[string]any{}))
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var specialNetworkId *string = this.SafeString(tokenEntry, "token")
 		if networkCode != nil {
@@ -2116,7 +2116,7 @@ func (this *Woo) editOrderBody(ch chan any, id any, symbol any, typeVar any, sid
 	//         "timestamp": 1786038156772
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var order map[string]any = this.Extend(response, data)
 	if isByClientOrder {
 		order["clientOrderId"] = clientOrderIdExchangeSpecific
@@ -2266,7 +2266,7 @@ func (this *Woo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1751941988134
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- []any{this.SafeOrder(map[string]any{
 		"info": data,
@@ -2378,7 +2378,7 @@ func (this *Woo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		response = (<-this.V3PrivateGetTradeOrder(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -2461,7 +2461,7 @@ func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders any = this.SafeList(data, "rows", []any{})
+	var orders []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -2811,7 +2811,7 @@ func (this *Woo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
 	ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
@@ -2925,7 +2925,7 @@ func (this *Woo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 	var first any = this.SafeDict(rows, 0)
 	if IsEqual(first, nil) {
 		panic(BadSymbol(Add(this.Id+" fetchTicker() could not find ticker data for ", symbol)))
@@ -3096,7 +3096,7 @@ func (this *Woo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseOHLCVs(rows, market, timeframe, since, limit)
 	return nil
@@ -3167,7 +3167,7 @@ func (this *Woo) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 	//       }
 	//     ]
 	// }
-	var trades any = this.SafeList(response, "rows", []any{})
+	var trades []any = SafeListTypedDefault(response, "rows", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit, params)
 	return nil
@@ -3266,7 +3266,7 @@ func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades any = this.SafeList(data, "rows", []any{})
+	var trades []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit, params)
 	return nil
@@ -3340,10 +3340,10 @@ func (this *Woo) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	mainAccountResponsesubAccountResponseVariable := (<-promiseAll([]any{mainAccountPromise, subAccountPromise}))
 	mainAccountResponse := GetValue(mainAccountResponsesubAccountResponseVariable, 0)
 	subAccountResponse := GetValue(mainAccountResponsesubAccountResponseVariable, 1)
-	var mainData any = this.SafeDict(mainAccountResponse, "data", map[string]any{})
+	var mainData map[string]any = MapTyped(this.SafeDict(mainAccountResponse, "data", map[string]any{}))
 	var mainRows []any = []any{mainData}
 	var subData map[string]any = SafeMapTyped(subAccountResponse, "data")
-	var subRows any = this.SafeList(subData, "rows", []any{})
+	var subRows []any = SafeListTypedDefault(subData, "rows", []any{})
 	var rows []any = this.ArrayConcat(mainRows, subRows)
 
 	ch <- this.ParseAccounts(rows, params)
@@ -3512,7 +3512,7 @@ func (this *Woo) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	//         "timestamp": 1721300689532
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseDepositAddress(this.Extend(data, map[string]any{
 		"network": this.SafeString(request, "network"),
@@ -3861,7 +3861,7 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) 
 
 	var currencyRows []any = ListTyped(PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, this.Extend(request, params)))))
 	var currency any = this.SafeValue(currencyRows, 0)
-	var rows any = this.SafeList(currencyRows, 1, []any{})
+	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 
 	ch <- this.ParseTransactions(rows, currency, since, limit, params)
 	return nil
@@ -4078,7 +4078,7 @@ func (this *Woo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseTransfers(rows, currency, since, limit, params)
 	return nil
@@ -4206,7 +4206,7 @@ func (this *Woo) withdrawBody(ch chan any, code any, amount any, address any, op
 	//         "withdraw_id": "20200119145703654"
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var transactionData map[string]any = this.Extend(data, map[string]any{
 		"id":        this.SafeString(data, "withdrawId"),
 		"timestamp": this.SafeInteger(response, "timestamp"),
@@ -4533,7 +4533,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseIncomes(rows, market, since, limit)
 	return nil
@@ -4670,8 +4670,8 @@ func (this *Woo) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
-	var first any = this.SafeDict(rows, 0, map[string]any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var first map[string]any = MapTyped(this.SafeDict(rows, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(first, market)
 	return nil
@@ -4727,7 +4727,7 @@ func (this *Woo) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "rows", []any{})
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
 	ch <- this.ParseFundingRates(rows, symbols)
 	return nil
@@ -4934,7 +4934,7 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" fetchLeverage() is not supported for ", market["type"]), " markets")))
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseLeverage(data, market)
 	return nil
@@ -4951,8 +4951,8 @@ func (this *Woo) ParseLeverage(leverage any, optionalArgs ...any) any {
 	}
 	var longLeverage any = spotLeverage
 	var shortLeverage any = spotLeverage
-	var details any = this.SafeList(leverage, "details", []any{})
-	for i := 0; i < GetArrayLength(details); i++ {
+	var details []any = SafeListTypedDefault(leverage, "details", []any{})
+	for i := 0; i < len(details); i++ {
 		var position map[string]any = SafeMapTyped(details, i)
 		var positionLeverage *int64 = this.SafeInteger(position, "leverage")
 		var side *string = this.SafeString(position, "positionSide")
@@ -5178,8 +5178,8 @@ func (this *Woo) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "data")
-	var positions any = this.SafeList(result, "positions", []any{})
-	var first any = this.SafeDict(positions, 0, map[string]any{})
+	var positions []any = SafeListTypedDefault(result, "positions", []any{})
+	var first map[string]any = MapTyped(this.SafeDict(positions, 0, map[string]any{}))
 
 	ch <- this.ParsePosition(first, market)
 	return nil
@@ -5254,7 +5254,7 @@ func (this *Woo) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "data")
-	var positions any = this.SafeList(result, "positions", []any{})
+	var positions []any = SafeListTypedDefault(result, "positions", []any{})
 
 	ch <- this.ParsePositions(positions, symbols)
 	return nil
@@ -5423,7 +5423,7 @@ func (this *Woo) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, op
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var fromCurrencyId *string = this.SafeString(data, "sellToken", fromCode)
 	var fromCurrency map[string]any = MapTyped(this.Currency(fromCurrencyId))
 	var toCurrencyId *string = this.SafeString(data, "buyToken", toCode)
@@ -5477,7 +5477,7 @@ func (this *Woo) createConvertTradeBody(ch chan any, id any, fromCode any, toCod
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseConversion(data)
 	return nil
@@ -5529,7 +5529,7 @@ func (this *Woo) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...any)
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var fromCurrencyId *string = this.SafeString(data, "sellAsset")
 	var toCurrencyId *string = this.SafeString(data, "buyAsset")
 	var fromCurrency any = nil
@@ -5611,7 +5611,7 @@ func (this *Woo) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any) 
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "tradeVos", []any{})
+	var rows []any = SafeListTypedDefault(data, "tradeVos", []any{})
 
 	ch <- this.ParseConversions(rows, code, "sellAsset", "buyAsset", since, limit)
 	return nil
@@ -5829,7 +5829,7 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "data")
-	var positions any = this.SafeList(result, "positions", []any{})
+	var positions []any = SafeListTypedDefault(result, "positions", []any{})
 
 	ch <- this.ParseADLRanks(positions, symbols)
 	return nil

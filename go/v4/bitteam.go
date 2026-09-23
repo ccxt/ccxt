@@ -516,7 +516,7 @@ func (this *Bitteam) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var markets any = this.SafeList(result, "pairs", []any{})
+	var markets []any = SafeListTypedDefault(result, "pairs", []any{})
 
 	ch <- this.ParseMarkets(markets)
 	return nil
@@ -703,7 +703,7 @@ func (this *Bitteam) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var responseResult map[string]any = SafeMapTyped(response, "result")
-	var currencies any = this.SafeList(responseResult, "currencies", []any{})
+	var currencies []any = SafeListTypedDefault(responseResult, "currencies", []any{})
 	// using another endpoint to fetch statuses of deposits and withdrawals
 
 	statusesResponse := (<-this.PublicGetTradeApiCmcAssets())
@@ -894,7 +894,7 @@ func (this *Bitteam) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "data", []any{})
+	var data []any = SafeListTypedDefault(result, "data", []any{})
 
 	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
 	return nil
@@ -1112,7 +1112,7 @@ func (this *Bitteam) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var orders any = this.SafeList(result, "orders", []any{})
+	var orders []any = SafeListTypedDefault(result, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -1191,7 +1191,7 @@ func (this *Bitteam) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result, market)
 	return nil
@@ -1389,7 +1389,7 @@ func (this *Bitteam) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	//         }
 	//     }
 	//
-	var order any = this.SafeDict(response, "result", map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -1435,7 +1435,7 @@ func (this *Bitteam) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result)
 	return nil
@@ -1485,7 +1485,7 @@ func (this *Bitteam) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 	var orders []any = []any{result}
 
 	ch <- this.ParseOrders(orders, market)
@@ -1952,7 +1952,7 @@ func (this *Bitteam) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var pair any = this.SafeDict(result, "pair", map[string]any{})
+	var pair map[string]any = MapTyped(this.SafeDict(result, "pair", map[string]any{}))
 
 	ch <- this.ParseTicker(pair, market)
 	return nil
@@ -2326,7 +2326,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var trades any = this.SafeList(result, "trades", []any{})
+	var trades []any = SafeListTypedDefault(result, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -2516,7 +2516,7 @@ func (this *Bitteam) ParseBalance(response any) any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 	var balanceByCurrencies any = this.Omit(result, []any{"free", "used", "total"})
 	var rawCurrencyIds []string = ObjectKeys(balanceByCurrencies)
 	for i := 0; i < len(rawCurrencyIds); i++ {
@@ -2669,7 +2669,7 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var transactions any = this.SafeList(result, "transactions", []any{})
+	var transactions []any = SafeListTypedDefault(result, "transactions", []any{})
 
 	ch <- this.ParseTransactions(transactions, currency, since, limit)
 	return nil
@@ -2733,7 +2733,7 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var networkId *string = this.SafeString(transaction, "blockChain")
 	if networkId == nil {
-		var links any = this.SafeList(currencyObject, "links", []any{})
+		var links []any = SafeListTypedDefault(currencyObject, "links", []any{})
 		var blockChain map[string]any = SafeMapTyped(links, 0)
 		networkId = this.SafeString(blockChain, "blockChain")
 	}

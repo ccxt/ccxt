@@ -888,7 +888,7 @@ func (this *Myriad) ParsePredictionPosition(position any, optionalArgs ...any) a
 	var value *float64 = this.SafeNumber(position, "value")
 	var profit *float64 = this.SafeNumber(position, "profit")
 	var roi *string = this.SafeString(position, "roi")
-	var percentage any = nil
+	var percentage *string = nil
 	if roi != nil {
 		percentage = ccxt.Precise.StringMul(roi, "100")
 	}
@@ -1926,7 +1926,7 @@ func (this *Myriad) ParseAmmEventToOrder(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeTimestamp(trade, "timestamp")
 	var amountStr *string = this.SafeString(trade, "shares")
 	var costStr *string = this.SafeString(trade, "value")
-	var priceStr any = nil
+	var priceStr *string = nil
 	if (amountStr != nil) && (costStr != nil) && !ccxt.Precise.StringEq(amountStr, "0") {
 		priceStr = ccxt.Precise.StringDiv(costStr, amountStr)
 	}
@@ -3951,7 +3951,7 @@ func (this *Myriad) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeTimestamp(trade, "timestamp")
 	var amountStr *string = this.SafeString(trade, "shares")
 	var costStr *string = this.SafeString(trade, "value")
-	var priceStr any = nil
+	var priceStr *string = nil
 	if (amountStr != nil) && (costStr != nil) && !ccxt.Precise.StringEq(amountStr, "0") {
 		priceStr = ccxt.Precise.StringDiv(costStr, amountStr)
 	}

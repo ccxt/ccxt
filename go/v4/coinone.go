@@ -472,7 +472,7 @@ func (this *Coinone) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var currencies any = this.SafeList(response, "currencies", []any{})
+	var currencies []any = SafeListTypedDefault(response, "currencies", []any{})
 
 	ch <- this.ParseCurrencies(currencies)
 	return nil
@@ -570,9 +570,9 @@ func (this *Coinone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var tickers any = this.SafeList(response, "tickers", []any{})
+	var tickers []any = SafeListTypedDefault(response, "tickers", []any{})
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(tickers); i++ {
+	for i := 0; i < len(tickers); i++ {
 		var entry any = this.SafeDict(tickers, i)
 		var id *string = this.SafeString(entry, "id")
 		var baseId *string = this.SafeStringUpper(entry, "target_currency")
@@ -828,7 +828,7 @@ func (this *Coinone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "tickers", []any{})
+	var data []any = SafeListTypedDefault(response, "tickers", []any{})
 
 	ch <- this.ParseTickers(data, symbols)
 	return nil
@@ -898,8 +898,8 @@ func (this *Coinone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "tickers", []any{})
-	var ticker any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = SafeListTypedDefault(response, "tickers", []any{})
+	var ticker map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTicker(ticker, market)
 	return nil
@@ -1098,7 +1098,7 @@ func (this *Coinone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "transactions", []any{})
+	var data []any = SafeListTypedDefault(response, "transactions", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -1427,7 +1427,7 @@ func (this *Coinone) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var openOrders any = this.SafeList2(response, "open_orders", "limitOrders", []any{})
+	var openOrders []any = SafeList2Typed(response, "open_orders", "limitOrders", []any{})
 
 	ch <- this.ParseOrders(openOrders, market, since, limit)
 	return nil
@@ -1493,7 +1493,7 @@ func (this *Coinone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var completeOrders any = this.SafeList(response, "completeOrders", []any{})
+	var completeOrders []any = SafeListTypedDefault(response, "completeOrders", []any{})
 
 	ch <- this.ParseTrades(completeOrders, market, since, limit)
 	return nil

@@ -709,7 +709,7 @@ func (this *Delta) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         "success":true
 	//     }
 	//
-	var currencies any = this.SafeList(response, "result", []any{})
+	var currencies []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseCurrencies(currencies)
 	return nil
@@ -1477,7 +1477,7 @@ func (this *Delta) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	//         "success": true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTicker(result, market)
 	return nil
@@ -1716,7 +1716,7 @@ func (this *Delta) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	//         "success":true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrderBook(result, market["symbol"], nil, "buy", "sell", "price", "size")
 	return nil
@@ -1872,7 +1872,7 @@ func (this *Delta) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	//         "success":true
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseTrades(result, market, since, limit)
 	return nil
@@ -1984,7 +1984,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	//         ]
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOHLCVs(result, market, timeframe, since, limit)
 	return nil
@@ -2105,7 +2105,7 @@ func (this *Delta) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 	//         "success":true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParsePosition(result, market)
 	return nil
@@ -2158,7 +2158,7 @@ func (this *Delta) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParsePositions(result, symbols)
 	return nil
@@ -2462,7 +2462,7 @@ func (this *Delta) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	//         "success":true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result, market)
 	return nil
@@ -2533,7 +2533,7 @@ func (this *Delta) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result, market)
 	return nil
@@ -2610,7 +2610,7 @@ func (this *Delta) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	//         "success":true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result, market)
 	return nil
@@ -2729,7 +2729,7 @@ func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result, market)
 	return nil
@@ -2865,7 +2865,7 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method any, optionalAr
 	//         }
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOrders(result, market, since, limit)
 	return nil
@@ -2960,7 +2960,7 @@ func (this *Delta) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         "success":true
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseTrades(result, market, since, limit)
 	return nil
@@ -3028,7 +3028,7 @@ func (this *Delta) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//         "success":true
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseLedger(result, currency, since, limit)
 	return nil
@@ -3159,7 +3159,7 @@ func (this *Delta) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseDepositAddress(result, currency)
 	return nil
@@ -3271,7 +3271,7 @@ func (this *Delta) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
 	//         "success": true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseFundingRate(result, market)
 	return nil
@@ -3354,7 +3354,7 @@ func (this *Delta) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	//         "success":true
 	//     }
 	//
-	var rates any = this.SafeList(response, "result", []any{})
+	var rates []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseFundingRates(rates, symbols)
 	return nil
@@ -3530,7 +3530,7 @@ func (this *Delta) modifyMarginHelperBody(ch chan any, symbol any, amount any, t
 	//         "success": true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseMarginModification(result, market)
 	return nil
@@ -3657,7 +3657,7 @@ func (this *Delta) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 	//         "success": true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOpenInterest(result, market)
 	return nil
@@ -3769,7 +3769,7 @@ func (this *Delta) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 	//         "success": true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseLeverage(result, market)
 	return nil
@@ -3938,7 +3938,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 	//         "success": true
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 	var settlements any = this.ParseSettlements(result, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
@@ -4009,10 +4009,15 @@ func (this *Delta) ParseSettlement(settlement any, market any) map[string]any {
 		"datetime":  datetime,
 	}
 }
-func (this *Delta) ParseSettlements(settlements any, market any) any {
+func (this *Delta) ParseSettlements(settlements []any, market any) any {
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(settlements); i++ {
-		result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
+	for i := 0; i < len(settlements); i++ {
+		result = append(result, this.ParseSettlement(func() any {
+			if i >= 0 && i < len(settlements) {
+				return DerefScalar(settlements[i])
+			}
+			return nil
+		}(), market))
 	}
 	return result
 }
@@ -4097,7 +4102,7 @@ func (this *Delta) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any)
 	//         "success": true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseGreeks(result, market)
 	return nil
@@ -4310,7 +4315,7 @@ func (this *Delta) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 	//         "success": true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseMarginMode(result, market)
 	return nil
@@ -4445,7 +4450,7 @@ func (this *Delta) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any)
 	//         "success": true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOption(result, nil, market)
 	return nil
@@ -4726,7 +4731,7 @@ func (this *Delta) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	//         "success": true
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseADLRanks(result, symbols)
 	return nil

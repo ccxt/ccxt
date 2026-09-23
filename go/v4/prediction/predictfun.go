@@ -2611,11 +2611,11 @@ func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...an
 	var pnl *string = this.SafeString(position, "pnlUsd")
 	// what the shares cost, which is also the collateral committed to the position
 	var collateral *string = ccxt.Precise.StringMul(entryPrice, contracts)
-	var markPrice any = nil
+	var markPrice *string = nil
 	if (notional != nil) && (contracts != nil) && ccxt.Precise.StringGt(contracts, "0") {
 		markPrice = ccxt.Precise.StringDiv(notional, contracts)
 	}
-	var percentage any = nil
+	var percentage *string = nil
 	if (pnl != nil) && (collateral != nil) && ccxt.Precise.StringGt(collateral, "0") {
 		percentage = ccxt.Precise.StringMul(ccxt.Precise.StringDiv(pnl, collateral), "100")
 	}
@@ -2646,7 +2646,7 @@ func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...an
 		}()
 	}
 	// pnl is realized once the market has resolved, unrealized while it is still trading
-	var realizedPnl any = nil
+	var realizedPnl *string = nil
 	var unrealizedPnl any = pnl
 	if resolved {
 		realizedPnl = pnl
@@ -3118,7 +3118,7 @@ func (this *Predictfun) ParsePredictionOrder(order any, optionalArgs ...any) any
 	var amount *string = ccxt.Precise.StringDiv(amountWei, "1000000000000000000")
 	var cost *string = ccxt.Precise.StringDiv(costWei, "1000000000000000000")
 	var typeVar *string = this.SafeStringLower(order, "strategy")
-	var price any = nil
+	var price *string = nil
 	// orders show same takerAmount and makerAmount as it was when they were placed
 	// the price of market orders will be calculated incorrectly
 	// we can calculate price for limit orders only
@@ -4467,7 +4467,7 @@ func (this *Predictfun) ParseWalletEventOrder(event any) any {
 	} else if quoteType != nil && *quoteType == "ask" {
 		side = "sell"
 	}
-	var remaining any = nil
+	var remaining *string = nil
 	if (amount != nil) && (filled != nil) {
 		remaining = ccxt.Precise.StringSub(amount, filled)
 	}

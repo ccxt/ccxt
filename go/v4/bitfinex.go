@@ -900,10 +900,10 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetConfConfig(this.Extend(request, params)))
 	PanicOnError(response)
-	var spotMarketsInfo any = this.SafeList(response, 0, []any{})
-	var futuresMarketsInfo any = this.SafeList(response, 1, []any{})
-	var securitiesMarketsIds any = this.SafeList(response, 2, []any{})
-	var marginIds any = this.SafeList(response, 3, []any{})
+	var spotMarketsInfo []any = SafeListTypedDefault(response, 0, []any{})
+	var futuresMarketsInfo []any = SafeListTypedDefault(response, 1, []any{})
+	var securitiesMarketsIds []any = SafeListTypedDefault(response, 2, []any{})
+	var marginIds []any = SafeListTypedDefault(response, 3, []any{})
 	var markets []any = this.ArrayConcat(spotMarketsInfo, futuresMarketsInfo)
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
@@ -1160,22 +1160,27 @@ func (this *Bitfinex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	for i := 0; i < GetArrayLength(indexed["networks"]); i++ {
 		var networkObj any = GetValue(indexed["networks"], i)
 		var networkId *string = this.SafeString(networkObj, 0)
-		var valuesList any = this.SafeList(networkObj, 1)
+		var valuesList []any = SafeListTyped(networkObj, 1)
 		var networkName *string = this.SafeString(valuesList, 0)
 		// for GOlang transpiler, do with "safe" method
 		var networksList any = this.SafeList(indexedNetworks, networkName, []any{})
 		AppendToArray(&networksList, networkId)
 		AddElementToObject(indexedNetworks, networkName, networksList)
 	}
-	var ids any = this.SafeList(response, 0, []any{})
+	var ids []any = SafeListTypedDefault(response, 0, []any{})
 
 	ch <- this.ParseCurrenciesCustom(ids, indexed, indexedNetworks)
 	return nil
 }
-func (this *Bitfinex) ParseCurrenciesCustom(ids any, indexed map[string]any, indexedNetworks map[string]any) map[string]any {
+func (this *Bitfinex) ParseCurrenciesCustom(ids []any, indexed map[string]any, indexedNetworks map[string]any) map[string]any {
 	var allowedIds []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
-		var id any = GetValue(ids, i)
+	for i := 0; i < len(ids); i++ {
+		var id any = func() any {
+			if i >= 0 && i < len(ids) {
+				return DerefScalar(ids[i])
+			}
+			return nil
+		}()
 		if EndsWith(id, "F0") {
 			continue
 		}
@@ -1197,9 +1202,9 @@ func (this *Bitfinex) ParseCurrenciesCustom(ids any, indexed map[string]any, ind
 }
 func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexedNetworks map[string]any) any {
 	var code *string = this.SafeCurrencyCode(id)
-	var label any = this.SafeList(indexed["label"], id, []any{})
+	var label []any = SafeListTypedDefault(indexed["label"], id, []any{})
 	var name *string = this.SafeString(label, 1)
-	var pool any = this.SafeList(indexed["pool"], id, []any{})
+	var pool []any = SafeListTypedDefault(indexed["pool"], id, []any{})
 	var rawType *string = this.SafeString(pool, 1)
 	var isCryptoCoin bool = (rawType != nil) || (InOp(indexed["explorer"], id)) // "hacky" solution
 	var typeVar any = func() any {
@@ -1208,18 +1213,18 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 		}
 		return nil
 	}()
-	var feeValues any = this.SafeList(indexed["fees"], id, []any{})
-	var fees any = this.SafeList(feeValues, 1, []any{})
+	var feeValues []any = SafeListTypedDefault(indexed["fees"], id, []any{})
+	var fees []any = SafeListTypedDefault(feeValues, 1, []any{})
 	var fee *float64 = this.SafeNumber(fees, 1)
-	var undl any = this.SafeList(indexed["undl"], id, []any{})
+	var undl []any = SafeListTypedDefault(indexed["undl"], id, []any{})
 	var defaultCurrencyPrecision *string = this.SafeString(this.Options, "defaultCurrencyPrecision", "8") // kept here for backward-compatibility
 	// numberToString instead of an `as string` cast: the describe() default for this option is the
 	// NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
 	// InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
 	var precision *string = this.NumberToString(this.HandleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision))
 	var networks map[string]any = map[string]any{}
-	var networkIds any = this.SafeList(indexedNetworks, id, []any{})
-	for j := 0; j < GetArrayLength(networkIds); j++ {
+	var networkIds []any = SafeListTypedDefault(indexedNetworks, id, []any{})
+	for j := 0; j < len(networkIds); j++ {
 		// safeString instead of raw access: the venue config payload can carry numeric
 		// network ids, and the raw value flows into toLowerCase and a dictionary key,
 		// which hard-casts to string in the C# build and throws InvalidCastException
@@ -1228,7 +1233,7 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 			continue
 		}
 		var network any = this.NetworkIdToCode(networkId, code)
-		var dwStatuses any = this.SafeList(indexed["statuses"], networkId, []any{})
+		var dwStatuses []any = SafeListTypedDefault(indexed["statuses"], networkId, []any{})
 		if network != nil {
 			AddElementToObject(networks, network, map[string]any{
 				"info":      networkId,
@@ -1462,7 +1467,7 @@ func (this *Bitfinex) ParseTransfer(transfer any, optionalArgs ...any) any {
 	_ = currency
 	var result any = this.SafeList(transfer, "result")
 	var timestamp *int64 = this.SafeInteger(result, 0)
-	var info any = this.SafeList(result, 4)
+	var info []any = SafeListTyped(result, 4)
 	var fromAccount *string = this.SafeString(info, 1)
 	var toAccount *string = this.SafeString(info, 2)
 	var currencyId *string = this.SafeString(info, 5)
@@ -1493,9 +1498,9 @@ func (this *Bitfinex) ConvertDerivativesId(currency any, typeVar any) any {
 	//   "id": "fUSTF0",
 	//   "code": "USTF0",
 	//   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
-	var info any = this.SafeList(currency, "info")
+	var info []any = SafeListTyped(currency, "info")
 	var transferId *string = this.SafeString(info, 0)
-	var underlying any = this.SafeList(info, 4, []any{})
+	var underlying []any = SafeListTypedDefault(info, 4, []any{})
 	var currencyId any = nil
 	if IsEqual(typeVar, "derivatives") {
 		currencyId = DerefScalar(this.SafeString(underlying, 0, transferId))
@@ -1657,7 +1662,7 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var bid *string = nil
 	var ask *string = nil
 	var change *string = nil
-	var percentage any = nil
+	var percentage *string = nil
 	var volume *string = nil
 	var high *string = nil
 	var low *string = nil
@@ -1679,7 +1684,7 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) any {
 		bid = this.SafeString(ticker, 1-minusIndex)
 		ask = this.SafeString(ticker, 3-minusIndex)
 		change = this.SafeString(ticker, 5-minusIndex)
-		percentage = DerefScalar(this.SafeString(ticker, 6-minusIndex))
+		percentage = this.SafeString(ticker, 6-minusIndex)
 		percentage = Precise.StringMul(percentage, "100")
 		volume = this.SafeString(ticker, 8-minusIndex)
 		high = this.SafeString(ticker, 9-minusIndex)
@@ -1853,8 +1858,8 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var tradeList any = this.SafeList(trade, "result", []any{})
-	var tradeLength int = GetArrayLength(tradeList)
+	var tradeList []any = SafeListTypedDefault(trade, "result", []any{})
+	var tradeLength int = len(tradeList)
 	var isPrivate bool = (tradeLength > 5)
 	var id *string = this.SafeString(tradeList, 0)
 	var amountIndex int = func() int {
@@ -1891,7 +1896,12 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	}()
 	var timestamp *int64 = this.SafeInteger(tradeList, timestampIndex)
 	if isPrivate {
-		var marketId any = GetValue(tradeList, 1)
+		var marketId any = func() any {
+			if 1 >= 0 && 1 < len(tradeList) {
+				return DerefScalar(tradeList[1])
+			}
+			return nil
+		}()
 		symbol = this.SafeSymbol(marketId)
 		orderId = this.SafeString(tradeList, 3)
 		var maker *int64 = this.SafeInteger(tradeList, 8)
@@ -1909,7 +1919,12 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 			"cost":     feeCostString,
 			"currency": feeCurrency,
 		}
-		var orderType any = GetValue(tradeList, 6)
+		var orderType any = func() any {
+			if 6 >= 0 && 6 < len(tradeList) {
+				return DerefScalar(tradeList[6])
+			}
+			return nil
+		}()
 		typeVar = this.SafeString(GetValue(this.Options, "exchangeTypes"), orderType)
 	}
 	return this.SafeTrade(map[string]any{
@@ -2425,7 +2440,7 @@ func (this *Bitfinex) createOrderBody(ch chan any, symbol any, typeVar any, side
 		var errorText *string = this.SafeString(response, 7)
 		panic(ExchangeError(Add(Add(Add(Add(Add(Add(this.Id+" ", status), ": "), errorText), " (#"), errorCode), ")")))
 	}
-	var orders any = this.SafeList(response, 4, []any{})
+	var orders []any = SafeListTypedDefault(response, 4, []any{})
 	var order any = this.SafeList(orders, 0)
 	var newOrder map[string]any = map[string]any{
 		"result": order,
@@ -2466,7 +2481,7 @@ func (this *Bitfinex) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, []any{"on", orderRequest})
 	}
@@ -3242,7 +3257,7 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	//         "success", // TEXT Text of the notification
 	//     ]
 	//
-	var result any = this.SafeList(response, 4, []any{})
+	var result []any = SafeListTypedDefault(response, 4, []any{})
 	var poolAddress *string = this.SafeString(result, 5)
 	var address *string = func() *string {
 		if poolAddress == nil {
@@ -3346,18 +3361,18 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 	var status any = nil
 	var tag *string = nil
 	var typeVar any = nil
-	var feeCost any = nil
+	var feeCost *string = nil
 	var txid *string = nil
 	var addressTo *string = nil
 	var network any = nil
 	var comment *string = nil
 	if transactionLength == 8 {
-		var data any = this.SafeList(transaction, 4, []any{})
+		var data []any = SafeListTypedDefault(transaction, 4, []any{})
 		timestamp = this.SafeInteger(transaction, 0)
 		if currency != nil {
 			code = GetValue(currency, "code")
 		}
-		feeCost = DerefScalar(this.SafeString(data, 8))
+		feeCost = this.SafeString(data, 8)
 		if !IsEqual(feeCost, nil) {
 			feeCost = Precise.StringAbs(feeCost)
 		}
@@ -3390,7 +3405,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 				typeVar = "deposit"
 			}
 		}
-		feeCost = DerefScalar(this.SafeString(transaction, 13))
+		feeCost = this.SafeString(transaction, 13)
 		if !IsEqual(feeCost, nil) {
 			feeCost = Precise.StringAbs(feeCost)
 		}
@@ -3520,9 +3535,9 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	//
 	var result map[string]any = map[string]any{}
 	var fiat map[string]any = SafeMapTyped(this.Options, "fiat")
-	var feeData any = this.SafeList(response, 4, []any{})
-	var makerData any = this.SafeList(feeData, 0, []any{})
-	var takerData any = this.SafeList(feeData, 1, []any{})
+	var feeData []any = SafeListTypedDefault(response, 4, []any{})
+	var makerData []any = SafeListTypedDefault(feeData, 0, []any{})
+	var takerData []any = SafeListTypedDefault(feeData, 1, []any{})
 	var makerFee *float64 = this.SafeNumber(makerData, 0)
 	var makerFeeFiat *float64 = this.SafeNumber(makerData, 2)
 	var makerFeeDeriv *float64 = this.SafeNumber(makerData, 5)
@@ -4061,7 +4076,7 @@ func (this *Bitfinex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var itemList any = this.SafeList(item, "result", []any{})
+	var itemList []any = SafeListTypedDefault(item, "result", []any{})
 	var typeVar any = nil
 	var id *string = this.SafeString(itemList, 0)
 	var currencyId *string = this.SafeString(itemList, 1)
@@ -5235,7 +5250,7 @@ func (this *Bitfinex) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		var errorText *string = this.SafeString(response, 7)
 		panic(ExchangeError(Add(Add(Add(Add(Add(Add(this.Id+" ", status), ": "), errorText), " (#"), errorCode), ")")))
 	}
-	var order any = this.SafeList(response, 4, []any{})
+	var order []any = SafeListTypedDefault(response, 4, []any{})
 	var newOrder map[string]any = map[string]any{
 		"result": order,
 	}

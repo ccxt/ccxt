@@ -584,11 +584,11 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 				}
 				return timestamp
 			}()
-			var newTimestampValue any = func() any {
+			var newTimestampValue int64 = func() int64 {
 				if newTimestamp == nil {
 					return 0
 				}
-				return newTimestamp
+				return *newTimestamp
 			}()
 			timestamp = ccxt.MathMax(currentTimestampValue, newTimestampValue)
 		}
@@ -602,11 +602,11 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 				}
 				return nonce
 			}()
-			var newNonceValue any = func() any {
+			var newNonceValue int64 = func() int64 {
 				if newNonce == nil {
 					return 0
 				}
-				return newNonce
+				return *newNonce
 			}()
 			nonce = ccxt.MathMax(currentNonceValue, newNonceValue)
 		}

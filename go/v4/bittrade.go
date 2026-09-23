@@ -819,14 +819,19 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//    }
 	//
-	var markets any = this.SafeList(response, "data", []any{})
-	var numMarkets int = GetArrayLength(markets)
+	var markets []any = SafeListTypedDefault(response, "data", []any{})
+	var numMarkets int = len(markets)
 	if numMarkets < 1 {
 		panic(NetworkError(Add(this.Id+" fetchMarkets() returned empty response: ", this.Json(markets))))
 	}
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var baseId *string = this.SafeString(market, "base-currency")
 		var quoteId *string = this.SafeString(market, "quote-currency")
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -1111,7 +1116,7 @@ func (this *Bittrade) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var tick any = this.SafeDict(response, "tick", map[string]any{})
+	var tick map[string]any = MapTyped(this.SafeDict(response, "tick", map[string]any{}))
 	var ticker any = this.ParseTicker(tick, market)
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	AddElementToObject(ticker, "timestamp", timestamp)
@@ -1297,7 +1302,7 @@ func (this *Bittrade) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 
 	response := (<-this.PrivateGetOrderOrdersIdMatchresults(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, nil, since, limit)
 	return nil
@@ -1348,7 +1353,7 @@ func (this *Bittrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetOrderMatchresults(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -1512,7 +1517,7 @@ func (this *Bittrade) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
 	return nil
@@ -1610,7 +1615,7 @@ func (this *Bittrade) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	//         ]
 	//     }
 	//
-	var currencies any = this.SafeList(response, "data", []any{})
+	var currencies []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseCurrencies(currencies)
 	return nil
@@ -1835,7 +1840,7 @@ func (this *Bittrade) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 	response := (<-this.PrivateGetOrderOrdersId(this.Extend(request, params)))
 	PanicOnError(response)
-	var order any = this.SafeDict(response, "data", map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(order)
 	return nil
@@ -2040,7 +2045,7 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan any, optionalArgs ...any) an
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -2512,7 +2517,7 @@ func (this *Bittrade) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- []any{this.SafeOrder(map[string]any{
 		"info": data,
@@ -2536,7 +2541,7 @@ func (this *Bittrade) ParseDepositAddress(depositAddress any, optionalArgs ...an
 	currency = this.SafeCurrency(currencyId, currency)
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var networkId *string = this.SafeString(depositAddress, "chain")
-	var networks any = this.SafeDict(currency, "networks", map[string]any{})
+	var networks map[string]any = MapTyped(this.SafeDict(currency, "networks", map[string]any{}))
 	var networksById map[string]any = this.IndexBy(networks, "id")
 	var networkValue any = this.SafeValue(networksById, networkId, networkId)
 	var network *string = this.SafeString(networkValue, "network")
@@ -2601,7 +2606,7 @@ func (this *Bittrade) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGetQueryDepositWithdraw(this.Extend(request, params)))
 	PanicOnError(response)
 	// return response
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
@@ -2658,7 +2663,7 @@ func (this *Bittrade) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	response := (<-this.PrivateGetQueryDepositWithdraw(this.Extend(request, params)))
 	PanicOnError(response)
 	// return response
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil

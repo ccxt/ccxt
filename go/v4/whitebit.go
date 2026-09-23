@@ -993,8 +993,8 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) any {
 	var hasProvider bool = (InOp(rawCurrency, "providers"))
 	var networks map[string]any = map[string]any{}
 	var rawNetworks map[string]any = SafeMapTyped(rawCurrency, "networks")
-	var depositsNetworks any = this.SafeList(rawNetworks, "deposits", []any{})
-	var withdrawsNetworks any = this.SafeList(rawNetworks, "withdraws", []any{})
+	var depositsNetworks []any = SafeListTypedDefault(rawNetworks, "deposits", []any{})
+	var withdrawsNetworks []any = SafeListTypedDefault(rawNetworks, "withdraws", []any{})
 	var networkLimits map[string]any = SafeMapTyped(rawCurrency, "limits")
 	var depositLimits map[string]any = SafeMapTyped(networkLimits, "deposit")
 	var withdrawLimits map[string]any = SafeMapTyped(networkLimits, "withdraw")
@@ -1375,7 +1375,7 @@ func (this *Whitebit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market map[string]any = MapTyped(this.Market(symbol))
-		var fee any = this.SafeDict(response, market["baseId"], map[string]any{})
+		var fee map[string]any = MapTyped(this.SafeDict(response, market["baseId"], map[string]any{}))
 		var makerFee *string = this.SafeString(fee, "maker_fee")
 		var takerFee *string = this.SafeString(fee, "taker_fee")
 		makerFee = Precise.StringDiv(makerFee, "100")
@@ -1737,7 +1737,7 @@ func (this *Whitebit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	//         },
 	//     }
 	//
-	var ticker any = this.SafeDict(response, "result", map[string]any{})
+	var ticker map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTicker(ticker, market)
 	return nil
@@ -2351,7 +2351,7 @@ func (this *Whitebit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < len(keys); i++ {
 			var marketId string = GetValue(keys, i).(string)
 			var marketNew any = this.SafeMarket(marketId, nil, "_")
-			var rawTrades any = this.SafeList(response, marketId, []any{})
+			var rawTrades []any = SafeListTypedDefault(response, marketId, []any{})
 			var parsed any = this.ParseTrades(rawTrades, marketNew, since, limit)
 			results = this.ArrayConcat(results, parsed)
 		}
@@ -2514,7 +2514,7 @@ func (this *Whitebit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOHLCVs(result, market, timeframe, since, limit)
 	return nil
@@ -3589,7 +3589,7 @@ func (this *Whitebit) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	//         "limit": 100
 	//     }
 	//
-	var data any = this.SafeList(response, "records", []any{})
+	var data []any = SafeListTypedDefault(response, "records", []any{})
 
 	ch <- this.ParseTrades(data, market)
 	return nil
@@ -3748,7 +3748,7 @@ func (this *Whitebit) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 	//         "offset": 0
 	//     }
 	//
-	var records any = this.SafeList(response, "records", []any{})
+	var records []any = SafeListTypedDefault(response, "records", []any{})
 
 	ch <- this.ParseTransactions(records, currency, since, limit)
 	return nil
@@ -3898,7 +3898,7 @@ func (this *Whitebit) createDepositAddressBody(ch chan any, code any, optionalAr
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "account", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "account", map[string]any{}))
 
 	ch <- this.ParseDepositAddress(data, currency)
 	return nil
@@ -3965,9 +3965,9 @@ func (this *Whitebit) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var subAccounts any = this.SafeList(response, "data", []any{})
-	for i := 0; i < GetArrayLength(subAccounts); i++ {
-		var subAccount any = this.SafeDict(subAccounts, i, map[string]any{})
+	var subAccounts []any = SafeListTypedDefault(response, "data", []any{})
+	for i := 0; i < len(subAccounts); i++ {
+		var subAccount map[string]any = MapTyped(this.SafeDict(subAccounts, i, map[string]any{}))
 		var accountId *string = this.SafeString(subAccount, "id")
 		var accountName *string = this.SafeString(subAccount, "alias")
 		accounts = append(accounts, map[string]any{
@@ -4335,8 +4335,8 @@ func (this *Whitebit) fetchDepositBody(ch chan any, id any, optionalArgs ...any)
 	//         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
 	//     }
 	//
-	var records any = this.SafeList(response, "records", []any{})
-	var first any = this.SafeDict(records, 0, map[string]any{})
+	var records []any = SafeListTypedDefault(response, "records", []any{})
+	var first map[string]any = MapTyped(this.SafeDict(records, 0, map[string]any{}))
 
 	ch <- this.ParseTransaction(first, currency)
 	return nil
@@ -4647,7 +4647,7 @@ func (this *Whitebit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	//        }
 	//    ]
 	//
-	var data any = this.SafeList(response, "result", []any{})
+	var data []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseFundingRates(data, symbols)
 	return nil
@@ -4783,7 +4783,7 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	//         "offset": 0
 	//     }
 	//
-	var data any = this.SafeList(response, "records", []any{})
+	var data []any = SafeListTypedDefault(response, "records", []any{})
 
 	ch <- this.ParseFundingHistories(data, market, since, limit)
 	return nil
@@ -5105,7 +5105,7 @@ func (this *Whitebit) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...
 	//         "offset": 0
 	//     }
 	//
-	var rows any = this.SafeList(response, "records", []any{})
+	var rows []any = SafeListTypedDefault(response, "records", []any{})
 
 	ch <- this.ParseConversions(rows, code, "fromCurrency", "toCurrency", since, limit)
 	return nil
@@ -5152,7 +5152,7 @@ func (this *Whitebit) ParseConversion(conversion any, optionalArgs ...any) any {
 	_ = fromCurrency
 	toCurrency := GetArg(optionalArgs, 1, nil)
 	_ = toCurrency
-	var path any = this.SafeList(conversion, "path", []any{})
+	var path []any = SafeListTypedDefault(conversion, "path", []any{})
 	var first map[string]any = SafeMapTyped(path, 0)
 	var fromPath *string = this.SafeString(first, "from")
 	var toPath *string = this.SafeString(first, "to")
@@ -5356,7 +5356,7 @@ func (this *Whitebit) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 	//         }
 	//     ]
 	//
-	var data any = this.SafeDict(response, 0, map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParsePosition(data, market)
 	return nil

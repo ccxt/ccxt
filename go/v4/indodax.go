@@ -716,7 +716,7 @@ func (this *Indodax) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	//         }
 	//     }
 	//
-	var ticker any = this.SafeDict(response, "ticker", map[string]any{})
+	var ticker map[string]any = MapTyped(this.SafeDict(response, "ticker", map[string]any{}))
 
 	ch <- this.ParseTicker(ticker, market)
 	return nil
@@ -1571,8 +1571,8 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 		}
 	} else {
 		currency = this.Currency(code)
-		var withdraws any = this.SafeList(withdraw, GetValue(currency, "id"), []any{})
-		var deposits any = this.SafeList(deposit, GetValue(currency, "id"), []any{})
+		var withdraws []any = SafeListTypedDefault(withdraw, GetValue(currency, "id"), []any{})
+		var deposits []any = SafeListTypedDefault(deposit, GetValue(currency, "id"), []any{})
 		transactions = this.ArrayConcat(withdraws, deposits)
 	}
 

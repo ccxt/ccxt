@@ -3801,7 +3801,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 	this.Options.Store("isolatedMarginPairsData", []any{})
 	for i := 0; i < GetArrayLength(results); i++ {
 		var res map[string]any = SafeMapTyped(results, i)
-		var data any = this.SafeList(res, "data", []any{})
+		var data []any = SafeListTypedDefault(res, "data", []any{})
 		var firstData map[string]any = SafeMapTyped(data, 0)
 		var isBorrowable *bool = this.SafeBool(firstData, "isBorrowable")
 		if fetchMargins && (isBorrowable != nil) {
@@ -3811,7 +3811,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 			// fail with bitget error 50001 "coin does not support cross"
 			var crossKeys []any = []any{}
 			var isolatedKeys []any = []any{}
-			for j := 0; j < GetArrayLength(data); j++ {
+			for j := 0; j < len(data); j++ {
 				var entry map[string]any = SafeMapTyped(data, j)
 				var entrySymbol *string = this.SafeString(entry, "symbol")
 				var entryBorrowable *bool = this.SafeBool(entry, "isBorrowable", true)
@@ -3900,7 +3900,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var base *string = this.SafeCurrencyCode(baseId)
-		var supportMarginCoins any = this.SafeList(market, "supportMarginCoins", []any{})
+		var supportMarginCoins []any = SafeListTypedDefault(market, "supportMarginCoins", []any{})
 		var settleId any = nil
 		if this.InArray(baseId, supportMarginCoins) {
 			settleId = baseId
@@ -4089,7 +4089,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 	var markets []any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
 		var res map[string]any = SafeMapTyped(results, i)
-		var data any = this.SafeList(res, "data", []any{})
+		var data []any = SafeListTypedDefault(res, "data", []any{})
 		markets = this.ArrayConcat(markets, data)
 	}
 	//
@@ -4402,7 +4402,7 @@ func (this *Bitget) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//            ...
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseCurrencies(data)
 	return nil
@@ -4661,7 +4661,7 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
 	//         ]
 	//     }
 	//
-	var result any = this.SafeList(response, "data", []any{})
+	var result []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseMarketLeverageTiers(result, market)
 	return nil
@@ -4883,7 +4883,7 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var rawTransactions any = this.SafeList(response, "data", []any{})
+	var rawTransactions []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(rawTransactions, nil, since, limit)
 	return nil
@@ -4998,7 +4998,7 @@ func (this *Bitget) withdrawBody(ch chan any, code any, amount any, address any,
 	//          }
 	//      }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var result any = this.ParseTransaction(data, currency)
 	AddElementToObject(result, "type", "withdrawal")
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
@@ -5159,7 +5159,7 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var rawTransactions any = this.SafeList(response, "data", []any{})
+	var rawTransactions []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(rawTransactions, currency, since, limit)
 	return nil
@@ -5260,7 +5260,7 @@ func (this *Bitget) ParseTransaction(transaction any, optionalArgs ...any) any {
 		}
 	}
 	var feeCostString *string = this.SafeString(transaction, "fee")
-	var feeCostAbsString any = nil
+	var feeCostAbsString *string = nil
 	if feeCostString != nil {
 		feeCostAbsString = Precise.StringAbs(feeCostString)
 	}
@@ -5380,7 +5380,7 @@ func (this *Bitget) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseDepositAddress(data, currency)
 	return nil
@@ -5498,7 +5498,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var bidsKey string = func() string {
 		if uta == true {
 			return "b"
@@ -6091,7 +6091,7 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(data, symbols)
 	return nil
@@ -6441,7 +6441,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -6501,7 +6501,7 @@ func (this *Bitget) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		//         }
 		//     }
 		//
-		var utaData any = this.SafeDict(utaResponse, "data", map[string]any{})
+		var utaData map[string]any = MapTyped(this.SafeDict(utaResponse, "data", map[string]any{}))
 
 		ch <- this.ParseTradingFee(utaData, market)
 		return nil
@@ -6533,7 +6533,7 @@ func (this *Bitget) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTradingFee(data, market)
 	return nil
@@ -7229,7 +7229,7 @@ func (this *Bitget) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseBalance(data)
 	return nil
@@ -7919,7 +7919,7 @@ func (this *Bitget) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -8388,7 +8388,7 @@ func (this *Bitget) createUtaOrdersBody(ch chan any, orders any, optionalArgs ..
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
 		var currentMarginMode any = GetValue(marginResult, 0)
 		if !IsEqual(currentMarginMode, nil) {
@@ -8420,7 +8420,7 @@ func (this *Bitget) createUtaOrdersBody(ch chan any, orders any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market)
 	return nil
@@ -8482,7 +8482,7 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
 		var currentMarginMode any = GetValue(marginResult, 0)
 		if !IsEqual(currentMarginMode, nil) {
@@ -8560,8 +8560,8 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var failure any = this.SafeList(data, "failureList", []any{})
-	var orderInfo any = this.SafeList(data, "successList", []any{})
+	var failure []any = SafeListTypedDefault(data, "failureList", []any{})
+	var orderInfo []any = SafeListTypedDefault(data, "successList", []any{})
 	var both []any = this.ArrayConcat(orderInfo, failure)
 
 	ch <- this.ParseOrders(both, market)
@@ -8832,7 +8832,7 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -9029,7 +9029,7 @@ func (this *Bitget) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var order any = map[string]any{}
 	if isContractTriggerEndpoint {
-		var orderInfo any = this.SafeList(data, "successList", []any{})
+		var orderInfo []any = SafeListTypedDefault(data, "successList", []any{})
 		order = this.SafeDict(orderInfo, 0, map[string]any{})
 	} else {
 		if (uta == true) && (trigger != nil && *trigger == true) {
@@ -9092,7 +9092,7 @@ func (this *Bitget) cancelUtaOrdersBody(ch chan any, ids any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market)
 	return nil
@@ -9219,7 +9219,7 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders any = this.SafeList(data, "successList", []any{})
+	var orders []any = SafeListTypedDefault(data, "successList", []any{})
 
 	ch <- this.ParseOrders(orders, market)
 	return nil
@@ -9543,12 +9543,12 @@ func (this *Bitget) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 			return nil
 		}
 	}
-	var dataList any = this.SafeList(response, "data", []any{})
-	var dataListLength int = GetArrayLength(dataList)
+	var dataList []any = SafeListTypedDefault(response, "data", []any{})
+	var dataListLength int = len(dataList)
 	if dataListLength == 0 {
 		panic(OrderNotFound(Add(Add(Add(this.Id+" fetchOrder() could not find order id ", id), " in "), this.Json(response))))
 	}
-	var first any = this.SafeDict(dataList, 0, map[string]any{})
+	var first map[string]any = MapTyped(this.SafeDict(dataList, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(first, market)
 	return nil
@@ -10003,13 +10003,13 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	} else if IsEqual(typeVar, "spot") {
 		if (marginMode != nil) || (trigger != nil && *trigger == true) {
-			var resultList any = this.SafeList(data, "orderList", []any{})
+			var resultList []any = SafeListTypedDefault(data, "orderList", []any{})
 
 			ch <- this.ParseOrders(resultList, market, since, limit)
 			return nil
 		}
 	} else {
-		var result any = this.SafeList(data, "entrustedList", []any{})
+		var result []any = SafeListTypedDefault(data, "entrustedList", []any{})
 
 		ch <- this.ParseOrders(result, market, since, limit)
 		return nil
@@ -10482,7 +10482,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	if IsString(response) {
 		response = JsonParse(response)
 	}
-	var orders any = this.SafeList(response, "data", []any{})
+	var orders []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -10642,7 +10642,7 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders any = this.SafeList(data, "list", []any{})
+	var orders []any = SafeListTypedDefault(data, "list", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -10787,7 +10787,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 			PanicOnError(response)
 		}
 		var utaData map[string]any = SafeMapTyped(response, "data")
-		var list any = this.SafeList(utaData, "list", []any{})
+		var list []any = SafeListTypedDefault(utaData, "list", []any{})
 
 		ch <- this.ParseLedger(list, currency, since, limit)
 		return nil
@@ -10855,7 +10855,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeValue(response, "data")
 	if (IsEqual(marketType, "swap")) || (IsEqual(marketType, "future")) {
-		var bills any = this.SafeList(data, "bills", []any{})
+		var bills []any = SafeListTypedDefault(data, "bills", []any{})
 
 		ch <- this.ParseLedger(bills, currency, since, limit)
 		return nil
@@ -11413,17 +11413,17 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeValue(response, "data")
 	if uta == true {
-		var fills any = this.SafeList(data, "list", []any{})
+		var fills []any = SafeListTypedDefault(data, "list", []any{})
 
 		ch <- this.ParseTrades(fills, market, since, limit)
 		return nil
 	} else if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
-		var fills any = this.SafeList(data, "fillList", []any{})
+		var fills []any = SafeListTypedDefault(data, "fillList", []any{})
 
 		ch <- this.ParseTrades(fills, market, since, limit)
 		return nil
 	} else if marginMode != nil {
-		var fills any = this.SafeList(data, "fills", []any{})
+		var fills []any = SafeListTypedDefault(data, "fills", []any{})
 
 		ch <- this.ParseTrades(fills, market, since, limit)
 		return nil
@@ -11555,7 +11555,7 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		//
 		result = this.SafeList(response, "data", []any{})
 	}
-	var first any = this.SafeDict(result, 0, map[string]any{})
+	var first map[string]any = MapTyped(this.SafeDict(result, 0, map[string]any{}))
 
 	ch <- this.ParsePosition(first, market)
 	return nil
@@ -11923,8 +11923,8 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeIntegerN(position, []any{"cTime", "ctime", "createdTime"})
 	var marginMode any = DerefScalar(this.SafeString(position, "marginMode"))
-	var collateral any = nil
-	var initialMargin any = nil
+	var collateral *string = nil
+	var initialMargin *string = nil
 	var unrealizedPnl *string = this.SafeString2(position, "unrealizedPL", "unrealisedPnl")
 	var rawCollateral *string = this.SafeString2(position, "marginSize", "positionBalance")
 	if IsEqual(marginMode, "isolated") {
@@ -11948,7 +11948,7 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) any {
 	var entryPrice *string = this.SafeStringN(position, []any{"openPriceAvg", "openAvgPrice", "avgPrice"})
 	var maintenanceMarginPercentage *string = this.SafeString(position, "keepMarginRate")
 	var openNotional *string = Precise.StringMul(entryPrice, baseAmount)
-	if IsEqual(initialMargin, nil) {
+	if initialMargin == nil {
 		initialMargin = Precise.StringDiv(openNotional, leverage)
 	}
 	var contracts any = this.ParseNumber(Precise.StringDiv(baseAmount, contractSize))
@@ -12321,7 +12321,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(response)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseFundingRates(data, symbols)
 	return nil
@@ -12826,7 +12826,7 @@ func (this *Bitget) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseLeverage(data, market)
 	return nil
@@ -13122,7 +13122,7 @@ func (this *Bitget) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
 		response = (<-this.PublicMixGetV2MixMarketOpenInterest(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOpenInterest(data, market)
 	return nil
@@ -13259,7 +13259,7 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransfers(data, currency, since, limit)
 	return nil
@@ -13522,7 +13522,7 @@ func (this *Bitget) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 	//         "requestTime": "1700120731773"
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseDepositWithdrawFees(data, codes, "coin")
 	return nil
@@ -13572,7 +13572,7 @@ func (this *Bitget) borrowCrossMarginBody(ch chan any, code any, amount any, opt
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseMarginLoan(data, currency)
 	return nil
@@ -13626,7 +13626,7 @@ func (this *Bitget) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseMarginLoan(data, currency, market)
 	return nil
@@ -13681,7 +13681,7 @@ func (this *Bitget) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseMarginLoan(data, currency, market)
 	return nil
@@ -13732,12 +13732,12 @@ func (this *Bitget) repayCrossMarginBody(ch chan any, code any, amount any, opti
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseMarginLoan(data, currency)
 	return nil
 }
-func (this *Bitget) ParseMarginLoan(info any, optionalArgs ...any) any {
+func (this *Bitget) ParseMarginLoan(info map[string]any, optionalArgs ...any) any {
 	//
 	// isolated: borrowMargin
 	//
@@ -13935,7 +13935,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var liquidations any = this.SafeList(data, "resultList", []any{})
+	var liquidations []any = SafeListTypedDefault(data, "resultList", []any{})
 
 	ch <- this.ParseLiquidations(liquidations, market, since, limit)
 	return nil
@@ -14063,7 +14063,7 @@ func (this *Bitget) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optiona
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "requestTime")
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var first any = this.SafeDict(data, 0, map[string]any{})
 	AddElementToObject(first, "timestamp", timestamp)
 
@@ -14207,7 +14207,7 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
 		//         ]
 		//     }
 		//
-		var data any = this.SafeList(response, "data", []any{})
+		var data []any = SafeListTypedDefault(response, "data", []any{})
 		result = this.SafeDict(data, 0, map[string]any{})
 	}
 	var timestamp *int64 = this.SafeInteger(response, "requestTime")
@@ -14393,7 +14393,7 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows any = this.SafeList(data, "resultList", []any{})
+	var rows []any = SafeListTypedDefault(data, "resultList", []any{})
 	var interest any = this.ParseBorrowInterests(rows, market)
 
 	ch <- this.FilterByCurrencySinceLimit(interest, code, since, limit)
@@ -14569,7 +14569,7 @@ func (this *Bitget) closeAllPositionsBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orderInfo any = this.SafeList2(data, "successList", "list", []any{})
+	var orderInfo []any = SafeList2Typed(data, "successList", "list", []any{})
 
 	ch <- this.ParsePositions(orderInfo, nil, params)
 	return nil
@@ -14639,7 +14639,7 @@ func (this *Bitget) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseMarginMode(data, market)
 	return nil
@@ -14734,7 +14734,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var responseList any = this.SafeList(data, "list", []any{})
+	var responseList []any = SafeListTypedDefault(data, "list", []any{})
 	var positions any = this.ParsePositions(responseList, symbols, params)
 
 	ch <- this.FilterBySinceLimit(positions, since, limit)
@@ -14792,7 +14792,7 @@ func (this *Bitget) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any,
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var fromCurrencyId *string = this.SafeString(data, "fromCoin", fromCode)
 	var fromCurrency map[string]any = MapTyped(this.Currency(fromCurrencyId))
 	var toCurrencyId *string = this.SafeString(data, "toCoin", toCode)
@@ -14865,7 +14865,7 @@ func (this *Bitget) createConvertTradeBody(ch chan any, id any, fromCode any, to
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var toCurrencyId *string = this.SafeString(data, "toCoin", toCode)
 	var toCurrency map[string]any = MapTyped(this.Currency(toCurrencyId))
 
@@ -14948,7 +14948,7 @@ func (this *Bitget) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var dataList any = this.SafeList(data, "dataList", []any{})
+	var dataList []any = SafeListTypedDefault(data, "dataList", []any{})
 
 	ch <- this.ParseConversions(dataList, code, "fromCoin", "toCoin", since, limit)
 	return nil
@@ -15147,8 +15147,8 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan any, symbol any, optionalAr
 		response = (<-this.PublicMixGetV2MixMarketFundingTime(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeList(response, "data", []any{})
-	var first any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(first, market)
 	return nil
@@ -15206,7 +15206,7 @@ func (this *Bitget) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...
 		response = (<-this.PublicMarginGetV2MarginMarketLongShortRatio(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseLongShortRatioHistory(data, market)
 	return nil

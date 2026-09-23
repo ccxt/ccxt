@@ -503,7 +503,7 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan any, id any, optionalArgs ...an
 	var maxOnetimeWithdrawal *string = this.SafeString(withdrawLimits, "onetime")
 	var maxDailyWithdrawal *string = this.SafeString(withdrawLimits, "daily", maxOnetimeWithdrawal)
 	var remainingDailyWithdrawal *string = this.SafeString(withdrawLimits, "remaining_daily", maxDailyWithdrawal)
-	var maxWithdrawLimit any = nil
+	var maxWithdrawLimit *string = nil
 	if Precise.StringGt(remainingDailyWithdrawal, "0") {
 		maxWithdrawLimit = remainingDailyWithdrawal
 	} else {
@@ -2375,7 +2375,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 		cost = price
 		price = nil
 	}
-	var average any = nil
+	var average *string = nil
 	var fee any = nil
 	var feeCost any = DerefScalar(this.SafeString(order, "paid_fee"))
 	var marketId *string = this.SafeString(order, "market")

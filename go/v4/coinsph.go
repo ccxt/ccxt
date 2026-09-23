@@ -2337,7 +2337,7 @@ func (this *Coinsph) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 	//       }
 	//     ]
 	//
-	var tradingFee any = this.SafeDict(response, 0, map[string]any{})
+	var tradingFee map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseTradingFee(tradingFee, market)
 	return nil

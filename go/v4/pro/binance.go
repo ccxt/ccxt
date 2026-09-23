@@ -3570,7 +3570,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan any, o
 	}
 	// the subscriptions flag is raised before the subscribe request is confirmed,
 	// so a concurrent caller would otherwise return onto an unauthenticated stream
-	var messageHash any = ccxt.Add("authenticate:signature:", marketType)
+	var messageHash string = "authenticate:signature:" + marketType
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 		// another caller is already subscribing, wait for it instead of subscribing again
 
@@ -3678,7 +3678,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan any,
 		// renewal timer re-entry through renewListenToken, so a concurrent caller
 		// waits for the leader rather than minting a second listenToken
 		var client ccxt.ClientInterface = this.Client(url)
-		var messageHash any = ccxt.Add(ccxt.Add("authenticate:", marketType), ":listenToken")
+		var messageHash string = "authenticate:" + marketType + ":listenToken"
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 			// another caller is already fetching, wait for it instead of fetching again
 
@@ -7025,11 +7025,11 @@ func (this *Binance) HandleWsError(client any, message any) {
 	var error any = this.SafeDict(message, "error", map[string]any{})
 	var code *int64 = this.SafeInteger(error, "code")
 	var msg *string = this.SafeString(error, "msg")
-	var codeValue any = func() any {
+	var codeValue int64 = func() int64 {
 		if code == nil {
 			return 0
 		}
-		return code
+		return *code
 	}()
 
 	{

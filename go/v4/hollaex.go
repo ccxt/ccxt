@@ -586,7 +586,7 @@ func (this *Hollaex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
 	var code *string = this.SafeCurrencyCode(id)
-	var withdrawalLimits any = this.SafeList(rawCurrency, "withdrawal_limits", []any{})
+	var withdrawalLimits []any = SafeListTypedDefault(rawCurrency, "withdrawal_limits", []any{})
 	var rawType *string = this.SafeString(rawCurrency, "type")
 	var typeVar string = func() string {
 		if rawType != nil && *rawType == "blockchain" {
@@ -681,7 +681,7 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
-		var orderbook any = this.SafeDict(response, marketId, map[string]any{})
+		var orderbook map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
 		AddElementToObject(result, symbol, this.ParseOrderBook(orderbook, symbol, timestamp))
@@ -968,7 +968,7 @@ func (this *Hollaex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var trades any = this.SafeList(response, market["id"], []any{})
+	var trades []any = SafeListTypedDefault(response, market["id"], []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -1087,7 +1087,7 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var firstTier map[string]any = SafeMapTyped(response, "1")
-	var fees any = this.SafeDict(firstTier, "fees", map[string]any{})
+	var fees map[string]any = MapTyped(this.SafeDict(firstTier, "fees", map[string]any{}))
 	var makerFees map[string]any = SafeMapTyped(fees, "maker")
 	var takerFees map[string]any = SafeMapTyped(fees, "taker")
 	var result map[string]any = map[string]any{}
@@ -1549,7 +1549,7 @@ func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -1883,7 +1883,7 @@ func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -2077,7 +2077,7 @@ func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
@@ -2143,8 +2143,8 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
-	var transaction any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var transaction map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTransaction(transaction, currency)
 	return nil
@@ -2219,7 +2219,7 @@ func (this *Hollaex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
@@ -2524,7 +2524,7 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	//         "network":"https://api.hollaex.network"
 	//     }
 	//
-	var coins any = this.SafeDict(response, "coins", map[string]any{})
+	var coins map[string]any = MapTyped(this.SafeDict(response, "coins", map[string]any{}))
 
 	ch <- this.ParseDepositWithdrawFees(coins, codes, "symbol")
 	return nil

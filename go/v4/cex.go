@@ -539,7 +539,7 @@ func (this *Cex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//            ...
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseMarkets(data)
 	return nil
@@ -729,7 +729,7 @@ func (this *Cex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//            ...
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTickers(data, symbols)
 	return nil
@@ -828,7 +828,7 @@ func (this *Cex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	//                ... followed by older trades
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades any = this.SafeList(data, "trades", []any{})
+	var trades []any = SafeListTypedDefault(data, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -918,7 +918,7 @@ func (this *Cex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	//                ],
 	//                ...
 	//
-	var orderBook any = this.SafeDict(response, "data", map[string]any{})
+	var orderBook map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(orderBook, "timestamp")
 
 	ch <- this.ParseOrderBook(orderBook, market["symbol"], timestamp)
@@ -1012,7 +1012,7 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	//            },
 	//            ...
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
 	return nil
@@ -1059,12 +1059,12 @@ func (this *Cex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//                ...
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var fees any = this.SafeDict(data, "tradingFee", map[string]any{})
+	var fees map[string]any = MapTyped(this.SafeDict(data, "tradingFee", map[string]any{}))
 
 	ch <- this.ParseTradingFees(fees, true)
 	return nil
 }
-func (this *Cex) ParseTradingFees(response any, optionalArgs ...any) any {
+func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) any {
 	var useKeyAsId bool = GetArgBool(optionalArgs, 0, false)
 	_ = useKeyAsId
 	var result map[string]any = map[string]any{}
@@ -1075,7 +1075,7 @@ func (this *Cex) ParseTradingFees(response any, optionalArgs ...any) any {
 		if useKeyAsId == true {
 			market = this.SafeMarket(key)
 		}
-		var parsed any = this.ParseTradingFee(GetValue(response, key), market)
+		var parsed any = this.ParseTradingFee(response[key], market)
 		if !IsEqual(GetValue(parsed, "symbol"), nil) {
 			AddElementToObject(result, GetValue(parsed, "symbol"), parsed)
 		}
@@ -1140,7 +1140,7 @@ func (this *Cex) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var balances any = this.SafeDict(data, "balancesPerAccounts", map[string]any{})
+	var balances map[string]any = MapTyped(this.SafeDict(data, "balancesPerAccounts", map[string]any{}))
 	var arrays []any = this.ToArray(balances)
 
 	ch <- this.ParseAccounts(arrays, params)
@@ -1348,7 +1348,7 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs .
 	//            },
 	//            ...
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -1708,7 +1708,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	//             "rejectCode": 405,
 	//             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -1751,7 +1751,7 @@ func (this *Cex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	//
 	//      {"ok":"ok","data":{}}
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data)
 	return nil
@@ -1883,7 +1883,7 @@ func (this *Cex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//            ...
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseLedger(data, currency, since, limit)
 	return nil
@@ -2002,7 +2002,7 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	//            },
 	//            ...
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
@@ -2149,7 +2149,7 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan any, code any, amo
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTransfer(data, currency)
 	return nil
@@ -2186,7 +2186,7 @@ func (this *Cex) transferBetweenSubAccountsBody(ch chan any, code any, amount an
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTransfer(data, currency)
 	return nil
@@ -2286,7 +2286,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseDepositAddress(data, currency)
 	return nil

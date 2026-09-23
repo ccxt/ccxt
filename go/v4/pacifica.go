@@ -876,7 +876,7 @@ func (this *Pacifica) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//   "error": null,
 	//   "code": null
 	// }
-	var markets any = this.SafeList(response, "data", []any{})
+	var markets []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseMarkets(markets)
 	return nil
@@ -1108,7 +1108,7 @@ func (this *Pacifica) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//   "error": null,
 	//   "code": null
 	// }
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var result map[string]any = map[string]any{
 		"info": data,
 	}
@@ -1487,7 +1487,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//   "code": null
 	// }
 	var data map[string]any = SafeMapTyped(response, "data")
-	var levels any = this.SafeList(data, "l", []any{})
+	var levels []any = SafeListTypedDefault(data, "l", []any{})
 	var result map[string]any = map[string]any{
 		"bids": this.SafeList(levels, 0, []any{}),
 		"asks": this.SafeList(levels, 1, []any{}),
@@ -1543,7 +1543,7 @@ func (this *Pacifica) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	//     "code": null
 	//   }
 	//
-	var result any = this.SafeList(response, "data", []any{})
+	var result []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseFundingRates(result, symbols)
 	return nil
@@ -1696,7 +1696,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	//   "code": null
 	// }
 	//
-	var candles any = this.SafeList(response, "data", []any{})
+	var candles []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
 	return nil
@@ -1775,7 +1775,7 @@ func (this *Pacifica) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//   "last_order_id": 1557404170
 	// }
 	//
-	var recentTrades any = this.SafeList(response, "data", []any{})
+	var recentTrades []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(recentTrades, market, since, limit)
 	return nil
@@ -3093,7 +3093,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	//   "last_order_id": 1557370337
 	// }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -3855,12 +3855,12 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	//   "error": null,
 	//   "code": null
 	// }
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTradingFee(data, market)
 	return nil
 }
-func (this *Pacifica) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Pacifica) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
 	//
 	//   {
 	//     "balance": "2000.000000",
@@ -3923,7 +3923,7 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 
 	response := (<-this.PublicGetInfoPrices(params))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOpenInterests(data, symbols)
 	return nil
@@ -3987,7 +3987,7 @@ func (this *Pacifica) ParseOpenInterest(interest any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		symbol = GetValue(market, "symbol")
 	}
-	var interestValue any = nil
+	var interestValue *string = nil
 	var markPrice *string = this.SafeString(interest, "mark")
 	var openInterest *string = this.SafeString(interest, "open_interest")
 	if (openInterest != nil) && (markPrice != nil) {
@@ -4304,7 +4304,7 @@ func (this *Pacifica) transferBody(ch chan any, code any, amount any, fromAccoun
 	//   "code": null
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.Extend(this.ParseTransfer(data, currency), map[string]any{
 		"amount":      amount,

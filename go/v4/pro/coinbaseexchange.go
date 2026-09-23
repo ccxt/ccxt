@@ -720,15 +720,15 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var parsed any = this.base.ParseTrade(trade)
-	var feeRate any = nil
+	var feeRate *string = nil
 	var isMaker bool = false
 	if ccxt.InOp(trade, "maker_fee_rate") {
 		isMaker = true
 		ccxt.AddElementToObject(parsed, "takerOrMaker", "maker")
-		feeRate = ccxt.DerefScalar(this.SafeString(trade, "maker_fee_rate"))
+		feeRate = this.SafeString(trade, "maker_fee_rate")
 	} else {
 		ccxt.AddElementToObject(parsed, "takerOrMaker", "taker")
-		feeRate = ccxt.DerefScalar(this.SafeString(trade, "taker_fee_rate"))
+		feeRate = this.SafeString(trade, "taker_fee_rate")
 		// side always represents the maker side of the trade
 		// so if we're taker, we invert it
 		var currentSide any = ccxt.GetValue(parsed, "side")
@@ -746,7 +746,7 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 	ccxt.AddElementToObject(parsed, "order", this.SafeString(trade, idKey))
 	market = this.Market(ccxt.GetValue(parsed, "symbol"))
 	var feeCurrency any = ccxt.GetValue(market, "quote")
-	var feeCost any = nil
+	var feeCost *string = nil
 	if (!ccxt.IsEqual(ccxt.GetValue(parsed, "cost"), nil)) && (!ccxt.IsEqual(feeRate, nil)) {
 		var cost *string = this.SafeString(parsed, "cost")
 		feeCost = ccxt.Precise.StringMul(cost, feeRate)

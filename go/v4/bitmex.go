@@ -1143,7 +1143,7 @@ func (this *Bitmex) ParseMarket(market any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var contract bool = swap || future
-	var contractSize any = nil
+	var contractSize *string = nil
 	var isInverse any = this.SafeValue(market, "isInverse") // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
 	var isQuanto any = this.SafeValue(market, "isQuanto")   // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
 	var linear any = func() any {
@@ -1155,7 +1155,7 @@ func (this *Bitmex) ParseMarket(market any) any {
 	var status *string = this.SafeString(market, "state")
 	var active bool = (status != nil && *status == "Open") // Open, Settled, Unlisted
 	var expiry any = nil
-	var expiryDatetime any = nil
+	var expiryDatetime *string = nil
 	var symbol any = nil
 	if spot {
 		symbol = Add(Add(base, "/"), quote)
@@ -1167,7 +1167,7 @@ func (this *Bitmex) ParseMarket(market any) any {
 		} else {
 			contractSize = Precise.StringAbs(this.SafeString(market, "multiplier"))
 		}
-		expiryDatetime = DerefScalar(this.SafeString2(market, "expiry", "closingTimestamp"))
+		expiryDatetime = this.SafeString2(market, "expiry", "closingTimestamp")
 		expiry = DerefScalar(this.Parse8601(expiryDatetime))
 		if !IsEqual(expiry, nil) && future {
 			symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
@@ -3008,7 +3008,7 @@ func (this *Bitmex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 	response := (<-this.PrivateDeleteOrder(this.Extend(request, params)))
 	PanicOnError(response)
-	var order any = this.SafeDict(response, 0, map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 	var error *string = this.SafeString(order, "error")
 	if error != nil {
 		if func() int {

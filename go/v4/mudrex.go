@@ -307,7 +307,7 @@ func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, head
 	}
 	var success *bool = this.SafeBool(response, "success", true)
 	if success == nil || *success != true {
-		var errors any = this.SafeList(response, "errors", []any{})
+		var errors []any = SafeListTypedDefault(response, "errors", []any{})
 		var first map[string]any = SafeMapTyped(errors, 0)
 		var text *string = this.SafeString(first, "text", this.Json(response))
 		var errCode *string = this.SafeString(first, "code")
@@ -433,7 +433,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 	var assetTicks map[string]any = SafeMapTyped(data, "asset_ticks")
-	var ohlcvs any = this.SafeList(assetTicks, ToLower(assetPair), []any{})
+	var ohlcvs []any = SafeListTypedDefault(assetTicks, ToLower(assetPair), []any{})
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -507,7 +507,7 @@ func (this *Mudrex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 	response := (<-this.PrivateGetFuturesAssetId(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTicker(data, market)
 	return nil
@@ -1540,7 +1540,7 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var positions any = this.ParsePositions(data, symbols)
 
 	ch <- this.FilterBySinceLimit(positions, since, limit)

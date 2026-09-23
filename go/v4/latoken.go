@@ -2073,7 +2073,7 @@ func (this *Latoken) fetchTransactionsBody(ch chan any, optionalArgs ...any) any
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var content any = this.SafeList(response, "content", []any{})
+	var content []any = SafeListTypedDefault(response, "content", []any{})
 
 	ch <- this.ParseTransactions(content, currency, since, limit)
 	return nil
@@ -2228,7 +2228,7 @@ func (this *Latoken) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	//         "hasContent": true
 	//     }
 	//
-	var transfers any = this.SafeList(response, "content", []any{})
+	var transfers []any = SafeListTypedDefault(response, "content", []any{})
 
 	ch <- this.ParseTransfers(transfers, currency, since, limit)
 	return nil

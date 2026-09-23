@@ -794,7 +794,7 @@ func (this *Coinspot) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var ticker any = this.SafeDict(prices, id, map[string]any{})
+	var ticker map[string]any = MapTyped(this.SafeDict(prices, id, map[string]any{}))
 
 	ch <- this.ParseTicker(ticker, market)
 	return nil
@@ -906,7 +906,7 @@ func (this *Coinspot) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//         ],
 	//     }
 	//
-	var trades any = this.SafeList(response, "orders", []any{})
+	var trades []any = SafeListTypedDefault(response, "orders", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -980,12 +980,12 @@ func (this *Coinspot) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//          },
 	//      ]
 	// }
-	var buyTrades any = this.SafeList(response, "buyorders", []any{})
-	for i := 0; i < GetArrayLength(buyTrades); i++ {
+	var buyTrades []any = SafeListTypedDefault(response, "buyorders", []any{})
+	for i := 0; i < len(buyTrades); i++ {
 		AddElementToObject(GetValue(buyTrades, i), "side", "buy")
 	}
-	var sellTrades any = this.SafeList(response, "sellorders", []any{})
-	for i := 0; i < GetArrayLength(sellTrades); i++ {
+	var sellTrades []any = SafeListTypedDefault(response, "sellorders", []any{})
+	for i := 0; i < len(sellTrades); i++ {
 		AddElementToObject(GetValue(sellTrades, i), "side", "sell")
 	}
 	var trades []any = this.ArrayConcat(buyTrades, sellTrades)
@@ -1022,7 +1022,7 @@ func (this *Coinspot) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = nil
-	var priceString any = nil
+	var priceString *string = nil
 	var fee any = nil
 	var audTotal *string = this.SafeString(trade, "audtotal")
 	var costString *string = this.SafeString(trade, "total", audTotal)
@@ -1032,7 +1032,7 @@ func (this *Coinspot) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market, "/")
 	var solddate *int64 = this.SafeInteger(trade, "solddate")
 	if solddate != nil {
-		priceString = DerefScalar(this.SafeString(trade, "rate"))
+		priceString = this.SafeString(trade, "rate")
 		timestamp = solddate
 	} else {
 		priceString = Precise.StringDiv(costString, amountString)

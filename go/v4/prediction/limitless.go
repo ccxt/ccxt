@@ -1297,12 +1297,12 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) an
 		return "yes"
 	}()
 	var isYes bool = (ccxt.ToLower(rawLabel) != "no")
-	var bidStr any = nil
-	var askStr any = nil
-	var bidSizeStr any = nil
-	var askSizeStr any = nil
+	var bidStr *string = nil
+	var askStr *string = nil
+	var bidSizeStr *string = nil
+	var askSizeStr *string = nil
 	var lastStr any = nil
-	var midStr any = nil
+	var midStr *string = nil
 	if !ccxt.IsEqual(book, nil) {
 		// the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
 		var rawBids []any = ccxt.SafeListTyped(book, "bids")
@@ -1373,14 +1373,14 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) an
 	}
 	// volume and book sizes are in USDC micro-units (6 decimals)
 	var rawVolume *string = this.SafeString(raw, "volume")
-	var volumeStr any = nil
+	var volumeStr *string = nil
 	if rawVolume != nil {
 		volumeStr = ccxt.Precise.StringDiv(rawVolume, "1000000")
 	}
-	if !ccxt.IsEqual(bidSizeStr, nil) {
+	if bidSizeStr != nil {
 		bidSizeStr = ccxt.Precise.StringDiv(bidSizeStr, "1000000")
 	}
-	if !ccxt.IsEqual(askSizeStr, nil) {
+	if askSizeStr != nil {
 		askSizeStr = ccxt.Precise.StringDiv(askSizeStr, "1000000")
 	}
 	var outcomeSymbol any = this.SafeOutcomeSymbol(nil, market)
@@ -1862,11 +1862,11 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 			bucketOrder = append(bucketOrder, key)
 		} else {
 			var candle any = candles[key]
-			var pPriceOrZero any = func() any {
+			var pPriceOrZero float64 = func() float64 {
 				if pPrice == nil {
 					return 0
 				}
-				return pPrice
+				return *pPrice
 			}()
 			ccxt.AddElementToObject(candle, 2, ccxt.MathMax(ccxt.GetValue(candle, 2), pPriceOrZero))
 			var candleLow any = func() any {
@@ -3338,7 +3338,7 @@ func (this *Limitless) ParsePredictionTrade(trade any, optionalArgs ...any) any 
 		}
 		var amountStr *string = ccxt.Precise.StringDiv(matchedSize, "1000000")
 		var priceStr *string = this.SafeString(trade, "price")
-		var costStr any = nil
+		var costStr *string = nil
 		if priceStr != nil {
 			costStr = ccxt.Precise.StringMul(priceStr, amountStr)
 		}

@@ -802,7 +802,7 @@ func (this *Blofin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetMarketInstruments(params))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseMarkets(data)
 	return nil
@@ -975,7 +975,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var first any = this.SafeDict(data, 0, map[string]any{})
 	var timestamp *int64 = this.SafeInteger(first, "ts")
 
@@ -1076,7 +1076,7 @@ func (this *Blofin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 	response := (<-this.PublicGetMarketTickers(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var first any = this.SafeDict(data, 0, map[string]any{})
 
 	ch <- this.ParseTicker(first, market)
@@ -1114,7 +1114,7 @@ func (this *Blofin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 
 	response := (<-this.PublicGetMarketMarkPrice(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var first any = this.SafeDict(data, 0, map[string]any{})
 
 	ch <- this.ParseTicker(first, market)
@@ -1150,7 +1150,7 @@ func (this *Blofin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetMarketTickers(params))
 	PanicOnError(response)
-	var tickers any = this.SafeList(response, "data", []any{})
+	var tickers []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(tickers, symbols)
 	return nil
@@ -1324,7 +1324,7 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		response = (<-this.PublicGetMarketTrades(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -1410,7 +1410,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 	response := (<-this.PublicGetMarketCandles(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
 	return nil
@@ -1586,8 +1586,8 @@ func (this *Blofin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	//        "msg": ""
 	//    }
 	//
-	var data any = this.SafeList(response, "data", []any{})
-	var entry any = this.SafeDict(data, 0, map[string]any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var entry map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(entry, market)
 	return nil
@@ -2072,7 +2072,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		ch <- this.ParseOrder(dataDict, market)
 		return nil
 	}
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var first any = this.SafeDict(data, 0)
 	var order any = this.ParseOrder(first, market)
 	AddElementToObject(order, "type", typeVar)
@@ -2216,7 +2216,7 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 	response := (<-this.PrivatePostTradeCancelOrder(this.Extend(request, query)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var order any = this.SafeDict(data, 0)
 
 	ch <- this.ParseOrder(order, market)
@@ -2254,7 +2254,7 @@ func (this *Blofin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
 		ordersRequests = append(ordersRequests, orderRequest)
@@ -2262,7 +2262,7 @@ func (this *Blofin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 
 	response := (<-this.PrivatePostTradeBatchOrders(ordersRequests))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data)
 	return nil
@@ -2344,7 +2344,7 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetTradeOrdersPending(this.Extend(request, query)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -2443,7 +2443,7 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetTradeFillsHistory(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -2511,7 +2511,7 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetAssetDepositHistory(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit, params)
 	return nil
@@ -2579,7 +2579,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetAssetWithdrawalHistory(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit, params)
 	return nil
@@ -2719,7 +2719,7 @@ func (this *Blofin) withdrawBody(ch chan any, code any, amount any, address any,
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	// the response carries only withdrawId + clientId, and this class's
 	// parseTransaction reads every field from the payload - seed the
@@ -2788,7 +2788,7 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetAssetBills(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseLedger(data, currency, since, limit)
 	return nil
@@ -3049,7 +3049,7 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		response = (<-this.PrivatePostTradeCancelBatchOrders(request))
 		PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
 	}
-	var ordersData any = this.SafeList(response, "data", []any{})
+	var ordersData []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(ordersData, market, nil, nil, params)
 	return nil
@@ -3147,7 +3147,7 @@ func (this *Blofin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 
 	response := (<-this.PrivateGetAccountPositions(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var position any = this.SafeDict(data, 0)
 	if IsEqual(position, nil) {
 		panic(NullResponse(this.Id + " fetchPosition() returned empty position"))
@@ -3187,7 +3187,7 @@ func (this *Blofin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetAccountPositions(params))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var result any = this.ParsePositions(data)
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -3276,7 +3276,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	//        ]
 	//    }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var positions any = this.ParsePositions(data, symbols, params)
 
 	ch <- this.FilterBySinceLimit(positions, since, limit)
@@ -3362,18 +3362,18 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	}
 	var notional any = this.ParseNumber(notionalString)
 	var marginMode *string = this.SafeString(position, "marginMode")
-	var initialMarginString any = nil
+	var initialMarginString *string = nil
 	var entryPriceString *string = this.SafeString2(position, "averagePrice", "openAveragePrice")
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedPnl")
 	var leverageString *string = this.SafeString(position, "leverage")
 	var initialMarginPercentage any = nil
-	var collateralString any = nil
+	var collateralString *string = nil
 	if marginMode != nil && *marginMode == "cross" {
-		initialMarginString = DerefScalar(this.SafeString(position, "initialMargin"))
+		initialMarginString = this.SafeString(position, "initialMargin")
 		collateralString = Precise.StringAdd(initialMarginString, unrealizedPnlString)
 	} else if marginMode != nil && *marginMode == "isolated" {
 		initialMarginPercentage = Precise.StringDiv("1", leverageString)
-		collateralString = DerefScalar(this.SafeString(position, "margin"))
+		collateralString = this.SafeString(position, "margin")
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "maintenanceMargin")
 	var maintenanceMargin any = this.ParseNumber(maintenanceMarginString)
@@ -3495,7 +3495,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var leverages any = this.SafeList(response, "data", []any{})
+	var leverages []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseLeverages(leverages, symbols, "instId")
 	return nil
@@ -3756,7 +3756,7 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		response = (<-this.PrivateGetTradeOrdersHistory(this.Extend(request, query)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -3889,7 +3889,7 @@ func (this *Blofin) fetchPositionModeBody(ch chan any, optionalArgs ...any) any 
 
 	response := (<-this.PrivateGetAccountPositionMode(params))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var positionMode *string = this.SafeString(data, "positionMode")
 
 	//
@@ -4012,7 +4012,7 @@ func (this *Blofin) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseADLRanks(data, symbols)
 	return nil
@@ -4081,7 +4081,7 @@ func (this *Blofin) HandleErrors(httpCode any, reason any, url any, method any, 
 	//      code: '103003'
 	//  }
 	//
-	var data any = this.SafeList(response, "data")
+	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = SafeMapTyped(data, 0)
 	var insideMsg *string = this.SafeString(first, "msg")
 	var insideCode *string = this.SafeString(first, "code")

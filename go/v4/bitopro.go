@@ -411,7 +411,7 @@ func (this *Bitopro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var currencies any = this.SafeList(response, "data", []any{})
+	var currencies []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseCurrencies(currencies)
 	return nil
@@ -474,7 +474,7 @@ func (this *Bitopro) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetProvisioningTradingPairs())
 	PanicOnError(response)
-	var markets any = this.SafeList(response, "data", []any{})
+	var markets []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
 	//     {
@@ -634,7 +634,7 @@ func (this *Bitopro) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 	response := (<-this.PublicGetTickersPair(this.Extend(request, params)))
 	PanicOnError(response)
-	var ticker any = this.SafeDict(response, "data", map[string]any{})
+	var ticker map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	//
 	//     {
@@ -681,7 +681,7 @@ func (this *Bitopro) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetTickers())
 	PanicOnError(response)
-	var tickers any = this.SafeList(response, "data", []any{})
+	var tickers []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
 	//     {
@@ -887,7 +887,7 @@ func (this *Bitopro) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 	response := (<-this.PublicGetTradesPair(this.Extend(request, params)))
 	PanicOnError(response)
-	var trades any = this.SafeList(response, "data", []any{})
+	var trades []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
 	//     {
@@ -1076,7 +1076,7 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 
 	response := (<-this.PublicGetTradingHistoryPair(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	//
 	//     {
 	//         "data":[
@@ -1210,7 +1210,7 @@ func (this *Bitopro) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetAccountsBalance(params))
 	PanicOnError(response)
-	var balances any = this.SafeList(response, "data", []any{})
+	var balances []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
 	//     {
@@ -1578,7 +1578,7 @@ func (this *Bitopro) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateDeleteOrdersAll(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	//
 	//     {
@@ -1781,7 +1781,7 @@ func (this *Bitopro) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetOrdersOpen(this.Extend(request, params)))
 	PanicOnError(response)
-	var orders any = this.SafeList(response, "data", []any{})
+	var orders []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -1863,7 +1863,7 @@ func (this *Bitopro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetOrdersTradesPair(this.Extend(request, params)))
 	PanicOnError(response)
-	var trades any = this.SafeList(response, "data", []any{})
+	var trades []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
 	//     {
@@ -2033,7 +2033,7 @@ func (this *Bitopro) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetWalletDepositHistoryCurrency(this.Extend(request, params)))
 	PanicOnError(response)
-	var result any = this.SafeList(response, "data", []any{})
+	var result []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
 	//     {
@@ -2107,7 +2107,7 @@ func (this *Bitopro) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 
 	response := (<-this.PrivateGetWalletWithdrawHistoryCurrency(this.Extend(request, params)))
 	PanicOnError(response)
-	var result any = this.SafeList(response, "data", []any{})
+	var result []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
 	//     {
@@ -2170,7 +2170,7 @@ func (this *Bitopro) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 
 	response := (<-this.PrivateGetWalletWithdrawCurrencySerial(this.Extend(request, params)))
 	PanicOnError(response)
-	var result any = this.SafeDict(response, "data", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	//
 	//     {
@@ -2251,7 +2251,7 @@ func (this *Bitopro) withdrawBody(ch chan any, code any, amount any, address any
 
 	response := (<-this.PrivatePostWalletWithdrawCurrency(this.Extend(request, params)))
 	PanicOnError(response)
-	var result any = this.SafeDict(response, "data", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	//
 	//     {
@@ -2340,7 +2340,7 @@ func (this *Bitopro) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseDepositWithdrawFees(data, codes, "currency")
 	return nil

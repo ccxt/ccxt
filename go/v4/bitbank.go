@@ -375,7 +375,7 @@ func (this *Bitbank) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var pairs any = this.SafeList(data, "pairs", []any{})
+	var pairs []any = SafeListTypedDefault(data, "pairs", []any{})
 
 	ch <- this.ParseMarkets(pairs)
 	return nil
@@ -498,7 +498,7 @@ func (this *Bitbank) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 	response := (<-this.PublicGetPairTicker(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTicker(data, market)
 	return nil
@@ -537,7 +537,7 @@ func (this *Bitbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 	response := (<-this.PublicGetPairDepth(this.Extend(request, params)))
 	PanicOnError(response)
-	var orderbook any = this.SafeDict(response, "data", map[string]any{})
+	var orderbook map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp)
@@ -628,7 +628,7 @@ func (this *Bitbank) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	response := (<-this.PublicGetPairTransactions(this.Extend(request, params)))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades any = this.SafeList(data, "transactions", []any{})
+	var trades []any = SafeListTypedDefault(data, "transactions", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -796,9 +796,9 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var candlestick any = this.SafeList(data, "candlestick", []any{})
+	var candlestick []any = SafeListTypedDefault(data, "candlestick", []any{})
 	var first map[string]any = SafeMapTyped(candlestick, 0)
-	var ohlcv any = this.SafeList(first, "ohlcv", []any{})
+	var ohlcv []any = SafeListTypedDefault(first, "ohlcv", []any{})
 
 	ch <- this.ParseOHLCVs(ohlcv, market, timeframe, since, limit)
 	return nil
@@ -1161,7 +1161,7 @@ func (this *Bitbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGetUserSpotActiveOrders(this.Extend(request, params)))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders any = this.SafeList(data, "orders", []any{})
+	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -1214,7 +1214,7 @@ func (this *Bitbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGetUserSpotTradeHistory(this.Extend(request, params)))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades any = this.SafeList(data, "trades", []any{})
+	var trades []any = SafeListTypedDefault(data, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -1252,7 +1252,7 @@ func (this *Bitbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
 	// Not sure about this if there could be more than one account...
-	var accounts any = this.SafeList(data, "accounts", []any{})
+	var accounts []any = SafeListTypedDefault(data, "accounts", []any{})
 	var firstAccount map[string]any = SafeMapTyped(accounts, 0)
 	var address *string = this.SafeString(firstAccount, "address")
 
@@ -1325,7 +1325,7 @@ func (this *Bitbank) withdrawBody(ch chan any, code any, amount any, address any
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTransaction(data, currency)
 	return nil

@@ -1314,7 +1314,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		//    }
 		//
 		var data map[string]any = SafeMapTyped(responseInner, "data")
-		var list any = this.SafeList(data, "list", []any{})
+		var list []any = SafeListTypedDefault(data, "list", []any{})
 
 		ch <- this.ParseTrades(list, market, since, limit)
 		return nil
@@ -1579,7 +1579,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 	response := (<-this.BinanceGetTicker24hr(this.Extend(request, params)))
 	PanicOnError(response)
 	if IsArray(response) {
-		var firstTicker any = this.SafeDict(response, 0, map[string]any{})
+		var firstTicker map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 		ch <- this.ParseTicker(firstTicker, market)
 		return nil
@@ -2017,7 +2017,7 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) any {
 	} else if IsEqual(side, "1") {
 		side = "sell"
 	}
-	var fills any = this.SafeList(order, "fills", []any{})
+	var fills []any = SafeListTypedDefault(order, "fills", []any{})
 	var clientOrderId *string = this.SafeString2(order, "clientOrderId", "clientId")
 	var timeInForce any = DerefScalar(this.SafeString(order, "timeInForce"))
 	if IsEqual(timeInForce, "GTX") {
@@ -2253,7 +2253,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	//         "timestamp": 1662710994975
 	//     }
 	//
-	var rawOrder any = this.SafeDict(response, "data", map[string]any{})
+	var rawOrder map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(rawOrder, market)
 	return nil
@@ -2318,8 +2318,8 @@ func (this *Tokocrypto) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var list any = this.SafeList(data, "list", []any{})
-	var rawOrder any = this.SafeDict(list, 0, map[string]any{})
+	var list []any = SafeListTypedDefault(data, "list", []any{})
+	var rawOrder map[string]any = MapTyped(this.SafeDict(list, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(rawOrder)
 	return nil
@@ -2406,7 +2406,7 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders any = this.SafeList(data, "list", []any{})
+	var orders []any = SafeListTypedDefault(data, "list", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -2541,7 +2541,7 @@ func (this *Tokocrypto) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	//         "timestamp": 1662710683634
 	//     }
 	//
-	var rawOrder any = this.SafeDict(response, "data", map[string]any{})
+	var rawOrder map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(rawOrder)
 	return nil
@@ -2625,7 +2625,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades any = this.SafeList(data, "list", []any{})
+	var trades []any = SafeListTypedDefault(data, "list", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -2781,7 +2781,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var deposits any = this.SafeList(data, "list", []any{})
+	var deposits []any = SafeListTypedDefault(data, "list", []any{})
 
 	ch <- this.ParseTransactions(deposits, currency, since, limit)
 	return nil
@@ -2861,7 +2861,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var withdrawals any = this.SafeList(data, "list", []any{})
+	var withdrawals []any = SafeListTypedDefault(data, "list", []any{})
 
 	ch <- this.ParseTransactions(withdrawals, currency, since, limit)
 	return nil

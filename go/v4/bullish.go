@@ -999,7 +999,7 @@ func (this *Bullish) ParseMarket(market any) any {
 	var contract bool = true
 	var linear any = nil
 	var inverse any = nil
-	var expiryDatetime any = nil
+	var expiryDatetime *string = nil
 	var contractSize *float64 = nil
 	var optionType *string = nil
 	var strike any = nil
@@ -1016,7 +1016,7 @@ func (this *Bullish) ParseMarket(market any) any {
 		if typeVar != nil && *typeVar == "swap" {
 			swap = true
 		} else {
-			expiryDatetime = DerefScalar(this.SafeString(market, "expiryDatetime"))
+			expiryDatetime = this.SafeString(market, "expiryDatetime")
 			var idParts []string = Split(id, "-")
 			var datePart *string = this.SafeString(idParts, 2)
 			var dateYmd string = func() string {
@@ -2756,7 +2756,7 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	//         "totalCount": 1
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var currency any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -2871,7 +2871,7 @@ func (this *Bullish) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var currencyId *string = this.SafeString(transaction, "symbol")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var status *string = this.SafeString(transaction, "status")
-	var sources any = this.SafeList(transactionDetails, "sources", []any{})
+	var sources []any = SafeListTypedDefault(transactionDetails, "sources", []any{})
 	var source map[string]any = SafeMapTyped(sources, 0)
 	var sourceAddress *string = this.SafeString(source, "address")
 	var fee map[string]any = map[string]any{

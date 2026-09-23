@@ -1070,8 +1070,8 @@ func (this *Weex) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
 	var networks map[string]any = map[string]any{}
-	var chains any = this.SafeList(rawCurrency, "networkList", []any{})
-	for j := 0; j < GetArrayLength(chains); j++ {
+	var chains []any = SafeListTypedDefault(rawCurrency, "networkList", []any{})
+	for j := 0; j < len(chains); j++ {
 		var chain any = this.SafeDict(chains, j)
 		var networkId *string = this.SafeString(chain, "network")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
@@ -1164,8 +1164,8 @@ func (this *Weex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	spotResponsecontractResponseVariable := (<-promiseAll(promises))
 	spotResponse := GetValue(spotResponsecontractResponseVariable, 0)
 	contractResponse := GetValue(spotResponsecontractResponseVariable, 1)
-	var spotArray any = this.SafeList(spotResponse, "symbols", []any{})
-	var contractArray any = this.SafeList(contractResponse, "symbols", []any{})
+	var spotArray []any = SafeListTypedDefault(spotResponse, "symbols", []any{})
+	var contractArray []any = SafeListTypedDefault(contractResponse, "symbols", []any{})
 	var result []any = this.ArrayConcat(spotArray, contractArray)
 
 	ch <- this.ParseMarkets(result)
@@ -3315,7 +3315,7 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		response = (<-this.ContractPrivateDeleteCapiV3BatchOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var ordersResponse any = this.SafeList(response, "orderList", []any{})
+	var ordersResponse []any = SafeListTypedDefault(response, "orderList", []any{})
 	var extendedParams map[string]any = map[string]any{
 		"status": "canceled",
 	}
@@ -4603,7 +4603,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	//         ]
 	//     }
 	//
-	var items any = this.SafeList(response, "items", []any{})
+	var items []any = SafeListTypedDefault(response, "items", []any{})
 
 	ch <- this.ParseIncomes(items, market, since, limit)
 	return nil
@@ -5059,7 +5059,7 @@ func (this *Weex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...a
 	//         }
 	//     ]
 	//
-	var marginMode any = this.SafeDict(response, 0, map[string]any{})
+	var marginMode map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseMarginMode(marginMode, market)
 	return nil
@@ -5199,7 +5199,7 @@ func (this *Weex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 
 	response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params)))
 	PanicOnError(response)
-	var marginMode any = this.SafeDict(response, 0, map[string]any{})
+	var marginMode map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseLeverage(marginMode, market)
 	return nil

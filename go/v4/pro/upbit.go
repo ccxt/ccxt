@@ -296,7 +296,7 @@ func (this *Upbit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	if timeframe != "1s" {
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(this.Id+" watchOHLCV does not support", timeframe), " candle.")))
 	}
-	var timeFrameOHLCV any = ccxt.Add("candle.", timeframe)
+	var timeFrameOHLCV string = "candle." + timeframe
 
 	retRes18715 := (<-this.WatchPublicMultipleAsync([]any{symbol}, timeFrameOHLCV))
 	ccxt.PanicOnError(retRes18715)

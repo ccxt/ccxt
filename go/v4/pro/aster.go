@@ -1087,12 +1087,12 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(trade, "t", "a")
 	var timestamp *int64 = this.SafeInteger(trade, "T")
 	var price *string = this.SafeString2(trade, "L", "p")
-	var amount any = nil
+	var amount *string = nil
 	if isPublicTrade {
-		amount = ccxt.DerefScalar(this.SafeString(trade, "q"))
+		amount = this.SafeString(trade, "q")
 	} else {
 		// private trades, amount is in 'l' field, quantity of the last filled trade
-		amount = ccxt.DerefScalar(this.SafeString(trade, "l"))
+		amount = this.SafeString(trade, "l")
 	}
 	var cost *string = this.SafeString(trade, "Y")
 	if cost == nil {
@@ -1695,7 +1695,7 @@ func (this *Aster) authenticateBody(ch chan any, optionalArgs ...any) any {
 		// client.future () is the atomic check-and-insert and
 		// client.resolve () / client.reject () settle and remove the entry
 		// under the same lock in every port
-		var messageHash any = ccxt.Add("authenticate:", typeVar)
+		var messageHash string = "authenticate:" + typeVar
 		var client ccxt.ClientInterface = this.Client("authenticationFlights")
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 			// a flight is already in progress - wake when the leader

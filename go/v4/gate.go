@@ -2363,7 +2363,7 @@ func (this *Gate) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		response := (<-this.PublicFuturesGetSettleContracts(this.Extend(request, params)))
 		PanicOnError(response)
 		for i := 0; i < GetArrayLength(response); i++ {
-			var contract any = this.SafeDict(response, i, map[string]any{})
+			var contract map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 			var parsedMarket map[string]any = this.ParseContractMarket(contract, settleId)
 			result = append(result, parsedMarket)
 		}
@@ -2398,7 +2398,7 @@ func (this *Gate) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
 		response := (<-this.PublicDeliveryGetSettleContracts(this.Extend(request, params)))
 		PanicOnError(response)
 		for i := 0; i < GetArrayLength(response); i++ {
-			var contract any = this.SafeDict(response, i, map[string]any{})
+			var contract map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 			var parsedMarket map[string]any = this.ParseContractMarket(contract, settleId)
 			result = append(result, parsedMarket)
 		}
@@ -2407,7 +2407,7 @@ func (this *Gate) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
 	ch <- result
 	return nil
 }
-func (this *Gate) ParseContractMarket(market any, settleId any) map[string]any {
+func (this *Gate) ParseContractMarket(market map[string]any, settleId any) map[string]any {
 	//
 	//  Perpetual swap
 	//
@@ -2652,7 +2652,7 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 		//    ]
 		//
 		for j := 0; j < GetArrayLength(response); j++ {
-			var market any = this.SafeDict(response, j, map[string]any{})
+			var market map[string]any = MapTyped(this.SafeDict(response, j, map[string]any{}))
 			var id *string = this.SafeString(market, "name")
 			var parts []string = Split(underlying, "_")
 			var baseId *string = this.SafeString(parts, 0)
@@ -3400,7 +3400,7 @@ func (this *Gate) fetchDepositAddressesByNetworkBody(ch chan any, code any, opti
 
 	response := (<-this.PrivateWalletGetDepositAddress(this.Extend(request, params)))
 	PanicOnError(response)
-	var chains any = this.SafeList(response, "multichain_addresses", []any{})
+	var chains []any = SafeListTypedDefault(response, "multichain_addresses", []any{})
 	var currencyId *string = this.SafeString(response, "currency")
 	currency = this.SafeCurrency(currencyId, currency)
 	var parsed any = this.ParseDepositAddresses(chains, nil, false)
@@ -3675,7 +3675,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 	var withdrawFees any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		withdrawFees = map[string]any{}
-		var entry any = this.SafeDict(response, i, map[string]any{})
+		var entry map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (codes != nil) && !this.InArray(code, codes) {
@@ -4677,8 +4677,8 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		if isolated {
-			var base any = this.SafeDict(entry, "base", map[string]any{})
-			var quote any = this.SafeDict(entry, "quote", map[string]any{})
+			var base map[string]any = MapTyped(this.SafeDict(entry, "base", map[string]any{}))
+			var quote map[string]any = MapTyped(this.SafeDict(entry, "quote", map[string]any{}))
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "currency"))
 			var quoteCode *string = this.SafeCurrencyCode(this.SafeString(quote, "currency"))
 			result = this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base))
@@ -4929,7 +4929,7 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	//
 	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var entry any = this.SafeDict(response, i, map[string]any{})
+		var entry map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 		var timestamp *int64 = this.SafeTimestamp(entry, "t")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -6090,7 +6090,7 @@ func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var triggerValue any = this.SafeValueN(orderParams, []any{"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})
 		if !IsEqual(triggerValue, nil) {
@@ -9320,7 +9320,7 @@ func (this *Gate) Sign(path any, optionalArgs ...any) any {
 		// endpoints like createOrders use an array instead of an object
 		// so we infer the settle from one of the elements
 		// they have to be all the same so relying on the first one is fine
-		var first any = this.SafeDict(params, 0, map[string]any{})
+		var first map[string]any = MapTyped(this.SafeDict(params, 0, map[string]any{}))
 		path = this.ImplodeParams(path, first)
 	} else {
 		path = this.ImplodeParams(path, params)
@@ -9381,7 +9381,7 @@ func (this *Gate) Sign(path any, optionalArgs ...any) any {
 				body = this.Json(query)
 			}
 		} else {
-			var urlQueryParams any = this.SafeDict(query, "query", map[string]any{})
+			var urlQueryParams map[string]any = MapTyped(this.SafeDict(query, "query", map[string]any{}))
 			if len(ObjectKeys(urlQueryParams)) > 0 {
 				queryString = this.Urlencode(urlQueryParams)
 				url = Add(url, "?"+queryString)
@@ -9856,7 +9856,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 		PanicOnError(response)
 	}
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "list", []any{})
+	var data []any = SafeListTypedDefault(result, "list", []any{})
 	var settlements any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
@@ -10650,7 +10650,7 @@ func (this *Gate) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any) 
 	//
 	var marketId any = market["id"]
 	for i := 0; i < GetArrayLength(response); i++ {
-		var entry any = this.SafeDict(response, i, map[string]any{})
+		var entry map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 		var entryMarketId *string = this.SafeString(entry, "name")
 		if IsEqual(entryMarketId, marketId) {
 

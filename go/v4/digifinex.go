@@ -864,8 +864,8 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 	//         ]
 	//     }
 	//
-	var spotData any = this.SafeList(spotMarkets, "symbol_list", []any{})
-	var swapData any = this.SafeList(swapMarkets, "data", []any{})
+	var spotData []any = SafeListTypedDefault(spotMarkets, "symbol_list", []any{})
+	var swapData []any = SafeListTypedDefault(swapMarkets, "data", []any{})
 	var response []any = this.ArrayConcat(spotData, swapData)
 	var result []any = []any{}
 	for i := 0; i < len(response); i++ {
@@ -1214,7 +1214,7 @@ func (this *Digifinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		}
 		return "list"
 	}()
-	var balances any = this.SafeList(response, balanceRequest, []any{})
+	var balances []any = SafeListTypedDefault(response, balanceRequest, []any{})
 
 	ch <- this.ParseBalance(balances)
 	return nil
@@ -1521,9 +1521,9 @@ func (this *Digifinex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
 	//     }
 	//
 	var date *int64 = this.SafeInteger(response, "date")
-	var tickers any = this.SafeList(response, "ticker", []any{})
+	var tickers []any = SafeListTypedDefault(response, "ticker", []any{})
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var firstTicker any = this.SafeDict(tickers, 0, map[string]any{})
+	var firstTicker map[string]any = MapTyped(this.SafeDict(tickers, 0, map[string]any{}))
 	var result any = nil
 	if GetValue(market, "swap") == true {
 		result = data
@@ -1948,7 +1948,7 @@ func (this *Digifinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -2231,7 +2231,7 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
 		var currentMarginMode any = GetValue(marginResult, 0)
 		if !IsEqual(currentMarginMode, nil) {
@@ -2972,7 +2972,7 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -3112,7 +3112,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -3380,7 +3380,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 		return "list"
 	}()
-	var data any = this.SafeList(response, responseRequest, []any{})
+	var data []any = SafeListTypedDefault(response, responseRequest, []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
@@ -3633,7 +3633,7 @@ func (this *Digifinex) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	//         "code":200
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var addresses any = this.ParseDepositAddresses(data, []any{currency["code"]})
 	var address any = this.SafeDict(addresses, code)
 	if IsEqual(address, nil) {
@@ -3702,7 +3702,7 @@ func (this *Digifinex) fetchTransactionsByTypeBody(ch chan any, typeVar any, opt
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit, map[string]any{
 		"type": typeVar,
@@ -4358,7 +4358,7 @@ func (this *Digifinex) fetchFundingRateBody(ch chan any, symbol any, optionalArg
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseFundingRate(data, market)
 	return nil
@@ -4574,12 +4574,12 @@ func (this *Digifinex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTradingFee(data, market)
 	return nil
 }
-func (this *Digifinex) ParseTradingFee(fee any, optionalArgs ...any) any {
+func (this *Digifinex) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "instrument_id": "BTCUSDTPERP",
@@ -5104,7 +5104,7 @@ func (this *Digifinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any 
 	//         ]
 	//     }
 	//
-	var transfers any = this.SafeList(response, "data", []any{})
+	var transfers []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransfers(transfers, currency, since, limit)
 	return nil
@@ -5167,7 +5167,7 @@ func (this *Digifinex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) 
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	symbols = this.MarketSymbols(symbols)
 
 	ch <- this.ParseLeverageTiers(data, symbols, "instrument_id")
@@ -5234,7 +5234,7 @@ func (this *Digifinex) fetchMarketLeverageTiersBody(ch chan any, symbol any, opt
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseMarketLeverageTiers(data, market)
 	return nil
@@ -5567,7 +5567,7 @@ func (this *Digifinex) modifyMarginHelperBody(ch chan any, symbol any, amount an
 		}
 		return "failed"
 	}()
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.Extend(this.ParseMarginModification(data, market), map[string]any{
 		"status": status,
@@ -5669,7 +5669,7 @@ func (this *Digifinex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseIncomes(data, market, since, limit)
 	return nil

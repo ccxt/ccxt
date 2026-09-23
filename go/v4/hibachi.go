@@ -1040,17 +1040,17 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var takerFee *float64 = this.SafeNumber(market, "taker", this.SafeNumber(this.Options, "defaultTakerFee", 0.00045))
 	var makerFee *float64 = this.SafeNumber(market, "maker", this.SafeNumber(this.Options, "defaultMakerFee", 0.00015))
-	var takerFeeValue any = func() any {
+	var takerFeeValue float64 = func() float64 {
 		if takerFee == nil {
 			return 0
 		}
-		return takerFee
+		return *takerFee
 	}()
-	var makerFeeValue any = func() any {
+	var makerFeeValue float64 = func() float64 {
 		if makerFee == nil {
 			return 0
 		}
-		return makerFee
+		return *makerFee
 	}()
 	var feeRate any = mathMax(takerFeeValue, makerFeeValue)
 	var sideInternal string = ""
@@ -1173,7 +1173,7 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var orderRequest any = this.CreateOrderRequest(Add(nonce, i), symbol, typeVar, side, amount, price, orderParams)
 		AddElementToObject(orderRequest, "action", "place")
 		requestOrders = append(requestOrders, orderRequest)
@@ -1223,17 +1223,17 @@ func (this *Hibachi) EditOrderRequest(nonce any, id any, symbol any, typeVar any
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var takerFee *float64 = this.SafeNumber(market, "taker", 0)
 	var makerFee *float64 = this.SafeNumber(market, "maker", 0)
-	var takerFeeValue any = func() any {
+	var takerFeeValue float64 = func() float64 {
 		if takerFee == nil {
 			return 0
 		}
-		return takerFee
+		return *takerFee
 	}()
-	var makerFeeValue any = func() any {
+	var makerFeeValue float64 = func() float64 {
 		if makerFee == nil {
 			return 0
 		}
-		return makerFee
+		return *makerFee
 	}()
 	var feeRate any = mathMax(takerFeeValue, makerFeeValue)
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
@@ -1331,7 +1331,7 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var orderRequest any = this.EditOrderRequest(Add(nonce, i), id, symbol, typeVar, side, amount, price, orderParams)
 		AddElementToObject(orderRequest, "action", "modify")
 		requestOrders = append(requestOrders, orderRequest)
@@ -1986,7 +1986,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 	//         ]
 	//     }
 	//
-	var orders any = this.SafeList(response, "orders", []any{})
+	var orders []any = SafeListTypedDefault(response, "orders", []any{})
 	var parsedOrders any = this.ParseOrders(orders, market)
 
 	ch <- this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit)
@@ -2132,7 +2132,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	//     }
 	//   ]
 	//
-	var klines any = this.SafeList(response, "klines", []any{})
+	var klines []any = SafeListTypedDefault(response, "klines", []any{})
 
 	ch <- this.ParseOHLCVs(klines, market, timeframe, since, limit)
 	return nil
@@ -2212,7 +2212,7 @@ func (this *Hibachi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     ],
 	//   }
 	//
-	var data any = this.SafeList(response, "positions", []any{})
+	var data []any = SafeListTypedDefault(response, "positions", []any{})
 
 	ch <- this.ParsePositions(data, symbols)
 	return nil
@@ -2502,7 +2502,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	// }
 	//
-	var rowsCapitalHistory any = this.SafeList(responseCapitalHistory, "transactions", []any{})
+	var rowsCapitalHistory []any = SafeListTypedDefault(responseCapitalHistory, "transactions", []any{})
 	var responseTradingHistory any = GetValue(promises, 1)
 	//
 	// {
@@ -2530,7 +2530,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	// }
 	//
-	var rowsTradingHistory any = this.SafeList(responseTradingHistory, "tradingHistory", []any{})
+	var rowsTradingHistory []any = SafeListTypedDefault(responseTradingHistory, "tradingHistory", []any{})
 	var rows []any = this.ArrayConcat(rowsCapitalHistory, rowsTradingHistory)
 
 	ch <- this.ParseLedger(rows, currency, since, limit, params)
@@ -2675,7 +2675,7 @@ func (this *Hibachi) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	//         },
 	//     ]
 	// }
-	var transactions any = this.SafeList(response, "transactions", []any{})
+	var transactions []any = SafeListTypedDefault(response, "transactions", []any{})
 
 	ch <- this.ParseTransactions(transactions, currency, since, limit, params)
 	return nil
@@ -2774,12 +2774,17 @@ func (this *Hibachi) ParseSettlement(settlement any, optionalArgs ...any) map[st
 		"datetime":  this.Iso8601(timestamp),
 	}
 }
-func (this *Hibachi) ParseSettlements(settlements any, optionalArgs ...any) any {
+func (this *Hibachi) ParseSettlements(settlements []any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(settlements); i++ {
-		result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
+	for i := 0; i < len(settlements); i++ {
+		result = append(result, this.ParseSettlement(func() any {
+			if i >= 0 && i < len(settlements) {
+				return DerefScalar(settlements[i])
+			}
+			return nil
+		}(), market))
 	}
 	return result
 }
@@ -2854,7 +2859,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "settlements", []any{})
+	var data []any = SafeListTypedDefault(response, "settlements", []any{})
 	var settlements any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
@@ -2981,7 +2986,7 @@ func (this *Hibachi) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 	//     "tradePrice": "2372.746570"
 	// }
 	//
-	var funding any = this.SafeDict(response, "fundingRateEstimation", map[string]any{})
+	var funding map[string]any = MapTyped(this.SafeDict(response, "fundingRateEstimation", map[string]any{}))
 	var timestamp int64 = this.Milliseconds()
 	var nextFundingTimestamp *int64 = this.SafeIntegerProduct(funding, "nextFundingTimestamp", 1000)
 

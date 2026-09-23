@@ -924,7 +924,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		//    }
 		//
 		var trades map[string]any = SafeMapTyped(response, "trades")
-		var symbolTrade any = this.SafeDict(trades, marketId, map[string]any{})
+		var symbolTrade map[string]any = MapTyped(this.SafeDict(trades, marketId, map[string]any{}))
 		symbolTrades = []any{symbolTrade}
 	} else {
 		panic(NotSupported(this.Id + " fetchTrades() does not support " + *method + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported"))
@@ -1136,8 +1136,8 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 				response = (<-this.MarketPublicGetV1beta3CryptoLocBars(this.Extend(request, params)))
 				PanicOnError(response)
 				bars = this.SafeDict(response, "bars", map[string]any{})
-				var page any = this.SafeList(bars, marketId, []any{})
-				var pageLength int = GetArrayLength(page)
+				var page []any = SafeListTypedDefault(bars, marketId, []any{})
+				var pageLength int = len(page)
 				if pageLength == 0 {
 					break
 				}
@@ -1166,7 +1166,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		//     }
 		//
 		var bars map[string]any = SafeMapTyped(response, "bars")
-		var bar any = this.SafeDict(bars, marketId, map[string]any{})
+		var bar map[string]any = MapTyped(this.SafeDict(bars, marketId, map[string]any{}))
 		ohlcvs = []any{bar}
 	} else {
 		panic(NotSupported(this.Id + " fetchOHLCV() does not support " + *method + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported"))
@@ -2597,7 +2597,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var activityType *string = this.SafeString(transaction, "activity_type")
 	var txid *string = nil
 	var timestamp *int64 = nil
-	var datetime any = nil
+	var datetime *string = nil
 	var network *string = nil
 	var address *string = nil
 	var addressTo *string = nil
@@ -2613,7 +2613,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		var netAmount *string = this.SafeString(transaction, "net_amount")
 		var isIncoming bool = (activityType != nil && *activityType == "CSD") || ((activityType != nil && *activityType == "TRANS") && !Precise.StringLt(netAmount, "0"))
 		timestamp = this.Parse8601(Add(this.SafeString(transaction, "date"), "T00:00:00Z"))
-		datetime = DerefScalar(this.Iso8601(timestamp))
+		datetime = this.Iso8601(timestamp)
 		typeVar = func() string {
 			if isIncoming {
 				return "deposit"
@@ -2637,7 +2637,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		internal = (activityType == nil || *activityType != "TRANS")
 	} else {
 		txid = this.SafeString(transaction, "tx_hash")
-		datetime = DerefScalar(this.SafeString(transaction, "created_at"))
+		datetime = this.SafeString(transaction, "created_at")
 		timestamp = this.Parse8601(datetime)
 		network = this.SafeString(transaction, "chain")
 		address = this.SafeString(transaction, "to_address")

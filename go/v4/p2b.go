@@ -393,7 +393,7 @@ func (this *P2b) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//        ]
 	//    }
 	//
-	var markets any = this.SafeList(response, "result", []any{})
+	var markets []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseMarkets(markets)
 	return nil
@@ -511,7 +511,7 @@ func (this *P2b) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//        current_time: '1699252644.487566'
 	//    }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTickers(result, symbols)
 	return nil
@@ -567,7 +567,7 @@ func (this *P2b) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	//        current_time: '1699252958.859391'
 	//    }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 	var timestamp *int64 = this.SafeIntegerProduct(response, "cache_time", 1000)
 
 	ch <- this.Extend(map[string]any{
@@ -703,7 +703,7 @@ func (this *P2b) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	//        "current_time": 1698733470.469274
 	//    }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 	var timestamp *int64 = this.SafeIntegerProduct(response, "current_time", 1000)
 
 	ch <- this.ParseOrderBook(result, market["symbol"], timestamp, "bids", "asks", 0, 1)
@@ -774,7 +774,7 @@ func (this *P2b) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	//        current_time: '1699255571.413828'
 	//    }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseTrades(result, market, since, limit)
 	return nil
@@ -915,7 +915,7 @@ func (this *P2b) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	//        current_time: '1699256375.030494'
 	//    }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOHLCVs(result, market, timeframe, since, limit)
 	return nil
@@ -980,7 +980,7 @@ func (this *P2b) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseBalance(result)
 	return nil
@@ -1224,7 +1224,7 @@ func (this *P2b) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//        ]
 	//    }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOrders(result, market, since, limit)
 	return nil
@@ -1299,7 +1299,7 @@ func (this *P2b) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 	//    }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var records any = this.SafeList(result, "records", []any{})
+	var records []any = SafeListTypedDefault(result, "records", []any{})
 
 	ch <- this.ParseTrades(records, market, since, limit)
 	return nil
@@ -1399,7 +1399,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var deals any = this.SafeList(result, "deals", []any{})
+	var deals []any = SafeListTypedDefault(result, "deals", []any{})
 
 	ch <- this.ParseTrades(deals, market, since, limit)
 	return nil

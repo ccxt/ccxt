@@ -852,8 +852,8 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGetOrderMyOrders(this.Extend(request, params)))
 	PanicOnError(response)
 	var orders map[string]any = SafeMapTyped(response, market["id"])
-	var asks any = this.SafeList(orders, "ask", []any{})
-	var bids any = this.SafeList(orders, "bid", []any{})
+	var asks []any = SafeListTypedDefault(orders, "ask", []any{})
+	var bids []any = SafeListTypedDefault(orders, "bid", []any{})
 
 	ch <- this.ParseOrders(this.ArrayConcat(asks, bids), market, since, limit)
 	return nil

@@ -859,7 +859,7 @@ func (this *Dydx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	//     ]
 	// }
 	//
-	var rows any = this.SafeList(response, "trades", []any{})
+	var rows []any = SafeListTypedDefault(response, "trades", []any{})
 
 	ch <- this.ParseTrades(rows, market, since, limit)
 	return nil
@@ -960,7 +960,7 @@ func (this *Dydx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	//     ]
 	// }
 	//
-	var rows any = this.SafeList(response, "candles", []any{})
+	var rows []any = SafeListTypedDefault(response, "candles", []any{})
 
 	ch <- this.ParseOHLCVs(rows, market, timeframe, since, limit)
 	return nil
@@ -1512,7 +1512,7 @@ func (this *Dydx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	// }
 	//
-	var rows any = this.SafeList(response, "positions", []any{})
+	var rows []any = SafeListTypedDefault(response, "positions", []any{})
 
 	ch <- this.ParsePositions(rows, symbols)
 	return nil
@@ -1790,11 +1790,11 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 		}
 		return subaccountId
 	}()
-	var clientOrderIdValue any = func() any {
+	var clientOrderIdValue int64 = func() int64 {
 		if clientOrderId == nil {
 			return 0
 		}
-		return clientOrderId
+		return *clientOrderId
 	}()
 	var orderFlagValue any = func() any {
 		if IsEqual(orderFlag, nil) {
@@ -1802,11 +1802,11 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 		}
 		return orderFlag
 	}()
-	var clobPairIdValue any = func() any {
+	var clobPairIdValue int64 = func() int64 {
 		if clobPairId == nil {
 			return 0
 		}
-		return clobPairId
+		return *clobPairId
 	}()
 	var orderId any = this.CreateOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
 	return []any{orderId, this.Extend(signingPayload, params)}
@@ -2745,7 +2745,7 @@ func (this *Dydx) withdrawBody(ch chan any, code any, amount any, address any, o
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTransaction(data, currency)
 	return nil

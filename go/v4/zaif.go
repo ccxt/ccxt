@@ -793,7 +793,7 @@ func (this *Zaif) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "return", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "return", map[string]any{}))
 
 	ch <- this.ParseOrder(data)
 	return nil
@@ -901,7 +901,7 @@ func (this *Zaif) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivatePostActiveOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "return", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "return", map[string]any{}))
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -953,7 +953,7 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivatePostTradeHistory(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "return", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "return", map[string]any{}))
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
@@ -1022,7 +1022,7 @@ func (this *Zaif) withdrawBody(ch chan any, code any, amount any, address any, o
 	//         }
 	//     }
 	//
-	var returnData any = this.SafeDict(result, "return", map[string]any{})
+	var returnData map[string]any = MapTyped(this.SafeDict(result, "return", map[string]any{}))
 
 	ch <- this.ParseTransaction(returnData, currency)
 	return nil

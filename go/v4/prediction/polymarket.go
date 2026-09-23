@@ -3306,7 +3306,7 @@ func (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainVe
 	// simple identifier) picks it up instead of leaking a padStart() function call
 	var lenHex string = ccxt.PadStart(ctLenHex, 4, "0")
 	var orderTypeStringHex string = this.BinaryToBase16(this.Encode(orderTypeString))
-	var wrappedSignature any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("0x", innerSig), this.Remove0xPrefix(appDomainSep)), this.Remove0xPrefix(contentsHash)), orderTypeStringHex), lenHex)
+	var wrappedSignature string = "0x" + innerSig + this.Remove0xPrefix(appDomainSep) + this.Remove0xPrefix(contentsHash) + orderTypeStringHex + lenHex
 	// lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
 	// uppercase hex in some targets); the signature is case-insensitive bytes
 	return ccxt.ToLower(wrappedSignature)

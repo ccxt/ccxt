@@ -1409,7 +1409,7 @@ func (this *Hitbtc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var marketId string = GetValue(keys, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = GetValue(market, "symbol")
-		var entry any = this.SafeDict(response, marketId, map[string]any{})
+		var entry map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		AddElementToObject(result, symbol, this.ParseTicker(entry, market))
 	}
 
@@ -1517,7 +1517,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
 		var marketInner map[string]any = MapTyped(this.Market(marketId))
-		var rawTrades any = this.SafeList(response, marketId, []any{})
+		var rawTrades []any = SafeListTypedDefault(response, marketId, []any{})
 		var parsed any = this.ParseTrades(rawTrades, marketInner)
 		trades = this.ArrayConcat(trades, parsed)
 	}
@@ -2028,7 +2028,7 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
-		var orderbook any = this.SafeDict(response, marketId, map[string]any{})
+		var orderbook map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		var symbol *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
 		AddElementToObject(result, symbol, this.ParseOrderBook(orderbook, symbol, timestamp, "bid", "ask"))
@@ -2528,7 +2528,7 @@ func (this *Hitbtc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	//       }
 	//     ]
 	//
-	var order any = this.SafeDict(response, 0, map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -3344,7 +3344,7 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		panic(BadSymbol(this.Id + " fetchMarginModes () supports swap contracts and margin only"))
 	}
-	var config any = this.SafeList(response, "config", []any{})
+	var config []any = SafeListTypedDefault(response, "config", []any{})
 
 	ch <- this.ParseMarginModes(config, symbols, "symbol")
 	return nil
@@ -4115,7 +4115,7 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 	for i := 0; i < len(markets); i++ {
 		var marketId string = GetValue(markets, i).(string)
 		var marketInner any = this.SafeMarket(marketId)
-		var openInterest any = this.SafeDict(response, marketId, map[string]any{})
+		var openInterest map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		results = append(results, this.ParseOpenInterest(openInterest, marketInner))
 	}
 
@@ -4372,7 +4372,7 @@ func (this *Hitbtc) ParseMarginModification(data any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var currencies any = this.SafeList(data, "currencies", []any{})
+	var currencies []any = SafeListTypedDefault(data, "currencies", []any{})
 	var currencyInfo map[string]any = SafeMapTyped(currencies, 0)
 	var datetime *string = this.SafeString(data, "updated_at")
 	return map[string]any{

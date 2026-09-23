@@ -5033,7 +5033,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				this.Options.Store("isolatedMarginPairsData", keysList)
 			}
 		} else {
-			var resultMarkets any = this.SafeList2(res, "symbols", "optionSymbols", []any{})
+			var resultMarkets []any = SafeList2Typed(res, "symbols", "optionSymbols", []any{})
 			markets = this.ArrayConcat(markets, resultMarkets)
 		}
 	}
@@ -5596,8 +5596,8 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) any {
 				}
 				return nil
 			}()
-			var base any = this.SafeDict(asset, "baseAsset", map[string]any{})
-			var quote any = this.SafeDict(asset, "quoteAsset", map[string]any{})
+			var base map[string]any = MapTyped(this.SafeDict(asset, "baseAsset", map[string]any{}))
+			var quote map[string]any = MapTyped(this.SafeDict(asset, "quoteAsset", map[string]any{}))
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "asset"))
 			var quoteCode *string = this.SafeCurrencyCode(this.SafeString(quote, "asset"))
 			if baseCode != nil {
@@ -6257,14 +6257,14 @@ func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) any {
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var wAvg *string = this.SafeString(ticker, "weightedAvgPrice")
 	var isCoinm bool = (InOp(ticker, "baseVolume"))
-	var baseVolume any = nil
+	var baseVolume *string = nil
 	var quoteVolume *string = nil
 	if isCoinm {
-		baseVolume = DerefScalar(this.SafeString(ticker, "baseVolume"))
+		baseVolume = this.SafeString(ticker, "baseVolume")
 		// 'volume' field in inverse markets is not quoteVolume, but traded amount (per contracts)
 		quoteVolume = Precise.StringMul(baseVolume, wAvg)
 	} else {
-		baseVolume = DerefScalar(this.SafeString(ticker, "volume"))
+		baseVolume = this.SafeString(ticker, "volume")
 		quoteVolume = this.SafeString2(ticker, "quoteVolume", "amount")
 	}
 	return this.SafeTicker(map[string]any{
@@ -6402,7 +6402,7 @@ func (this *Binance) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		}
 	}
 	if IsArray(response) {
-		var firstTicker any = this.SafeDict(response, 0, map[string]any{})
+		var firstTicker map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 		ch <- this.ParseTicker(firstTicker, market)
 		return nil
@@ -7703,7 +7703,7 @@ func (this *Binance) editSpotOrderBody(ch chan any, id any, symbol any, typeVar 
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "newOrderResponse", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "newOrderResponse", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -7758,7 +7758,7 @@ func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side 
 		}
 	}
 	request["type"] = uppercaseType
-	var validOrderTypes any = this.SafeList(market["info"], "orderTypes", []any{})
+	var validOrderTypes []any = SafeListTypedDefault(market["info"], "orderTypes", []any{})
 	if !this.InArray(uppercaseType, validOrderTypes) {
 		if initialUppercaseType != uppercaseType {
 			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" triggerPrice parameter is not allowed for ", symbol), " "), typeVar), " orders")))
@@ -8821,7 +8821,7 @@ func (this *Binance) ParseOrder(order any, optionalArgs ...any) any {
 	cost = this.SafeString(order, "cumBase", cost)
 	var typeVar *string = this.SafeStringLower2(order, "type", "orderType")
 	var side *string = this.SafeStringLower(order, "side")
-	var fills any = this.SafeList2(order, "fills", "trades", []any{})
+	var fills []any = SafeList2Typed(order, "fills", "trades", []any{})
 	var timeInForce any = DerefScalar(this.SafeString(order, "timeInForce"))
 	if IsEqual(timeInForce, "GTX") {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -8901,7 +8901,7 @@ func (this *Binance) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -10233,7 +10233,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	if IsEqual(stock, true) {
-		var result any = this.SafeList(response, "rows", []any{})
+		var result []any = SafeListTypedDefault(response, "rows", []any{})
 
 		ch <- this.ParseOrders(result, market, since, limit)
 		return nil
@@ -11813,20 +11813,20 @@ func (this *Binance) ParseDustTrade(trade any, optionalArgs ...any) any {
 	}
 	var symbol any = nil
 	var amountString any = nil
-	var costString any = nil
+	var costString *string = nil
 	var side string
 	if tradedCurrencyIsQuote {
 		symbol = applicantSymbol
 		amountString = DerefScalar(this.SafeString(trade, "transferedAmount"))
-		costString = DerefScalar(this.SafeString(trade, "amount"))
+		costString = this.SafeString(trade, "amount")
 		side = "buy"
 	} else {
 		symbol = Add(Add(tradedCurrency, "/"), earnedCurrency)
 		amountString = DerefScalar(this.SafeString(trade, "amount"))
-		costString = DerefScalar(this.SafeString(trade, "transferedAmount"))
+		costString = this.SafeString(trade, "transferedAmount")
 		side = "sell"
 	}
-	var priceString any = nil
+	var priceString *string = nil
 	if !IsEqual(costString, nil) {
 		if (!IsEqual(amountString, nil)) && (!IsEqual(amountString, "")) {
 			priceString = Precise.StringDiv(costString, amountString)
@@ -12606,7 +12606,7 @@ func (this *Binance) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.SapiGetAssetTransfer(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var rows any = this.SafeList2(response, "rows", "data", []any{})
+	var rows []any = SafeList2Typed(response, "rows", "data", []any{})
 
 	ch <- this.ParseTransfers(rows, currency, since, limit)
 	return nil
@@ -13914,7 +13914,7 @@ func (this *Binance) ParseAccountPosition(position any, optionalArgs ...any) any
 	}()
 	var initialMarginString *string = this.SafeString(position, "initialMargin")
 	var initialMargin any = this.ParseNumber(initialMarginString)
-	var initialMarginPercentageString any = nil
+	var initialMarginPercentageString *string = nil
 	if leverageString != nil {
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
 		if IsEqual(leverage, nil) {
@@ -13971,22 +13971,22 @@ func (this *Binance) ParseAccountPosition(position any, optionalArgs ...any) any
 		isolated = !Precise.StringEq(isolatedMarginRaw, "0")
 	}
 	var marginMode string
-	var collateralString any = nil
-	var walletBalance any = nil
+	var collateralString *string = nil
+	var walletBalance *string = nil
 	if EvalTruthy(isolated) {
 		marginMode = "isolated"
-		walletBalance = DerefScalar(this.SafeString(position, "isolatedWallet"))
+		walletBalance = this.SafeString(position, "isolatedWallet")
 		collateralString = Precise.StringAdd(walletBalance, unrealizedPnlString)
 	} else {
 		marginMode = "cross"
-		walletBalance = DerefScalar(this.SafeString(position, "crossWalletBalance"))
-		collateralString = DerefScalar(this.SafeString(position, "crossMargin"))
+		walletBalance = this.SafeString(position, "crossWalletBalance")
+		collateralString = this.SafeString(position, "crossMargin")
 	}
 	var collateral any = this.ParseNumber(collateralString)
 	var marginRatio any = nil
 	var side any = nil
 	var percentage any = nil
-	var liquidationPriceStringRaw any = nil
+	var liquidationPriceStringRaw *string = nil
 	var liquidationPrice any = nil
 	var contractSize *float64 = this.SafeNumber(market, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
@@ -14009,7 +14009,7 @@ func (this *Binance) ParseAccountPosition(position any, optionalArgs ...any) any
 			// mmp = maintenanceMarginPercentage
 			// where ± is negative for long and positive for short
 			// TODO: calculate liquidation price for coinm contracts
-			var onePlusMaintenanceMarginPercentageString any = nil
+			var onePlusMaintenanceMarginPercentageString *string = nil
 			var entryPriceSignString *string = entryPriceString
 			if IsEqual(side, "short") {
 				onePlusMaintenanceMarginPercentageString = Precise.StringAdd("1", maintenanceMarginPercentageString)
@@ -14025,7 +14025,7 @@ func (this *Binance) ParseAccountPosition(position any, optionalArgs ...any) any
 			//
 			// liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
 			//
-			var onePlusMaintenanceMarginPercentageString any = nil
+			var onePlusMaintenanceMarginPercentageString *string = nil
 			var entryPriceSignString *string = entryPriceString
 			if IsEqual(side, "short") {
 				onePlusMaintenanceMarginPercentageString = Precise.StringSub("1", maintenanceMarginPercentageString)
@@ -14228,7 +14228,7 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 		if !precisionIsUndefined {
 			if linear {
 				// walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-				var onePlusMaintenanceMarginPercentageString any = nil
+				var onePlusMaintenanceMarginPercentageString *string = nil
 				var entryPriceSignString *string = entryPriceString
 				if IsEqual(side, "short") {
 					onePlusMaintenanceMarginPercentageString = Precise.StringAdd("1", maintenanceMarginPercentageString)
@@ -14244,7 +14244,7 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 				}
 			} else {
 				// walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-				var onePlusMaintenanceMarginPercentageString any = nil
+				var onePlusMaintenanceMarginPercentageString *string = nil
 				var entryPriceSignString *string = entryPriceString
 				if IsEqual(side, "short") {
 					onePlusMaintenanceMarginPercentageString = Precise.StringSub("1", maintenanceMarginPercentageString)
@@ -14282,8 +14282,8 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 		maintenanceMarginString = this.SafeString(position, "maintMargin")
 	}
 	var maintenanceMargin any = this.ParseNumber(maintenanceMarginString)
-	var initialMarginString any = nil
-	var initialMarginPercentageString any = nil
+	var initialMarginString *string = nil
+	var initialMarginPercentageString *string = nil
 	var leverageString any = this.OmitZero(this.SafeString(position, "leverage")) // portfolio-margin accounts may return leverage "0", see #29244
 	if leverageString != nil {
 		var leverage int64 = ParseInt(leverageString)
@@ -14295,7 +14295,7 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 		var unrounded *string = Precise.StringMul(notionalStringAbs, initialMarginPercentageString)
 		initialMarginString = Precise.StringDiv(unrounded, "1", 8)
 	} else {
-		initialMarginString = DerefScalar(this.SafeString(position, "initialMargin"))
+		initialMarginString = this.SafeString(position, "initialMargin")
 		var unrounded *string = Precise.StringMul(initialMarginString, "1")
 		initialMarginPercentageString = Precise.StringDiv(unrounded, notionalStringAbs, 8)
 	}
@@ -16970,7 +16970,7 @@ func (this *Binance) ParseIsolatedBorrowRate(info any, optionalArgs ...any) any 
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	market = this.SafeMarket(marketId, market, nil, "spot")
-	var data any = this.SafeList(info, "data")
+	var data []any = SafeListTyped(info, "data")
 	var baseInfo map[string]any = SafeMapTyped(data, 0)
 	var quoteInfo map[string]any = SafeMapTyped(data, 1)
 	return map[string]any{
@@ -18484,7 +18484,7 @@ func (this *Binance) fetchOptionBody(ch chan any, symbol any, optionalArgs ...an
 	//         }
 	//     ]
 	//
-	var chain any = this.SafeDict(response, 0, map[string]any{})
+	var chain map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseOption(chain, nil, market)
 	return nil
@@ -18882,7 +18882,7 @@ func (this *Binance) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...
 	}
 	var data any = response
 	if IsEqual(code, "BUSD") {
-		var rows any = this.SafeList(response, "rows", []any{})
+		var rows []any = SafeListTypedDefault(response, "rows", []any{})
 		data = this.SafeDict(rows, 0, map[string]any{})
 	}
 	var fromCurrencyId *string = this.SafeString2(data, "deductedAsset", "fromAsset")
@@ -18980,7 +18980,7 @@ func (this *Binance) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...a
 		response = (<-this.SapiGetConvertTradeFlow(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var rows any = this.SafeList(response, responseQuery, []any{})
+	var rows []any = SafeListTypedDefault(response, responseQuery, []any{})
 
 	ch <- this.ParseConversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit)
 	return nil

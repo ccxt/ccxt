@@ -981,7 +981,7 @@ func (this *Deribit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//        "testnet": false
 	//    }
 	//
-	var data any = this.SafeList(response, "result", []any{})
+	var data []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseCurrencies(data)
 	return nil
@@ -1137,7 +1137,7 @@ func (this *Deribit) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//         "testnet": false
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseAccounts(result)
 	return nil
@@ -1574,7 +1574,7 @@ func (this *Deribit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         "testnet": false
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseBalance(result)
 	return nil
@@ -1834,7 +1834,7 @@ func (this *Deribit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	//         "testnet": false
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTicker(result, market)
 	return nil
@@ -2234,7 +2234,7 @@ func (this *Deribit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	//      }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var trades any = this.SafeList(result, "trades", []any{})
+	var trades []any = SafeListTypedDefault(result, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -2455,7 +2455,7 @@ func (this *Deribit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         "testnet": false
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(result, "timestamp")
 	var nonce *int64 = this.SafeInteger(result, "change_id")
 	var orderbook map[string]any = this.ParseOrderBook(result, market["symbol"], timestamp)
@@ -2654,7 +2654,7 @@ func (this *Deribit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result, market)
 	return nil
@@ -2941,7 +2941,7 @@ func (this *Deribit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 	response := (<-this.PrivateGetCancel(this.Extend(request, params)))
 	PanicOnError(response)
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result)
 	return nil
@@ -3052,7 +3052,7 @@ func (this *Deribit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetGetOpenOrdersByInstrument(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOrders(result, market, since, limit)
 	return nil
@@ -3112,7 +3112,7 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		response = (<-this.PrivateGetGetOrderHistoryByInstrument(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseOrders(result, market, since, limit)
 	return nil
@@ -3189,7 +3189,7 @@ func (this *Deribit) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseTrades(result, nil, since, limit)
 	return nil
@@ -3299,7 +3299,7 @@ func (this *Deribit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var trades any = this.SafeList(result, "trades", []any{})
+	var trades []any = SafeListTypedDefault(result, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -3370,7 +3370,7 @@ func (this *Deribit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "data", []any{})
+	var data []any = SafeListTypedDefault(result, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit, params)
 	return nil
@@ -3445,7 +3445,7 @@ func (this *Deribit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "data", []any{})
+	var data []any = SafeListTypedDefault(result, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit, params)
 	return nil
@@ -3659,7 +3659,7 @@ func (this *Deribit) fetchPositionBody(ch chan any, symbol any, optionalArgs ...
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParsePosition(result)
 	return nil
@@ -3904,7 +3904,7 @@ func (this *Deribit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var transfers any = this.SafeList(result, "data", []any{})
+	var transfers []any = SafeListTypedDefault(result, "data", []any{})
 
 	ch <- this.ParseTransfers(transfers, currency, since, limit, params)
 	return nil
@@ -3976,7 +3976,7 @@ func (this *Deribit) transferBody(ch chan any, code any, amount any, fromAccount
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTransfer(result, currency)
 	return nil
@@ -4161,7 +4161,7 @@ func (this *Deribit) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	//      "testnet": true
 	//    }
 	//
-	var data any = this.SafeList(response, "result", []any{})
+	var data []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseDepositWithdrawFees(data, codes, "currency")
 	return nil
@@ -4458,7 +4458,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var cursor *string = this.SafeString(result, "continuation")
-	var settlements any = this.SafeList(result, "settlements", []any{})
+	var settlements []any = SafeListTypedDefault(result, "settlements", []any{})
 	var settlementsWithCursor any = this.AddPaginationCursorToResult(cursor, settlements)
 
 	ch <- this.ParseLiquidations(settlementsWithCursor, market, since, limit)
@@ -4555,7 +4555,7 @@ func (this *Deribit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var settlements any = this.SafeList(result, "settlements", []any{})
+	var settlements []any = SafeListTypedDefault(result, "settlements", []any{})
 
 	ch <- this.ParseLiquidations(settlements, market, since, limit)
 	return nil
@@ -4665,7 +4665,7 @@ func (this *Deribit) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...an
 	//         "testnet": false
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseGreeks(result, market)
 	return nil
@@ -4801,8 +4801,8 @@ func (this *Deribit) fetchOptionBody(ch chan any, symbol any, optionalArgs ...an
 	//         "testnet": false
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
-	var chain any = this.SafeDict(result, 0, map[string]any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var chain map[string]any = MapTyped(this.SafeDict(result, 0, map[string]any{}))
 
 	ch <- this.ParseOption(chain, nil, market)
 	return nil
@@ -4995,8 +4995,8 @@ func (this *Deribit) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 	//         "testnet": true
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
-	var data any = this.SafeDict(result, 0, map[string]any{})
+	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var data map[string]any = MapTyped(this.SafeDict(result, 0, map[string]any{}))
 
 	ch <- this.ParseOpenInterest(data, market)
 	return nil

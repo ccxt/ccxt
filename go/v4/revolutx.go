@@ -400,7 +400,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var market any = this.SafeDict(markets, key, map[string]any{})
+		var market map[string]any = MapTyped(this.SafeDict(markets, key, map[string]any{}))
 		var base *string = this.SafeString(market, "base")
 		var quote *string = this.SafeString(market, "quote")
 		var marketId any = Add(Add(base, "-"), quote)
@@ -509,7 +509,7 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var currency any = this.SafeDict(currencies, key, map[string]any{})
+		var currency map[string]any = MapTyped(this.SafeDict(currencies, key, map[string]any{}))
 		var currencyData map[string]any = this.Extend(currency, map[string]any{
 			"id": key,
 		})
@@ -547,7 +547,7 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var priceChange *string = this.SafeString(ticker, "price_change_24h")
 	var baseVolume *string = this.SafeString(ticker, "volume_24h")
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
-	var open any = nil
+	var open *string = nil
 	if (last != nil) && (priceChange != nil) {
 		open = Precise.StringSub(last, priceChange)
 	}
@@ -633,11 +633,11 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         "metadata": { "timestamp": 1785313433816 }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var metadata map[string]any = SafeMapTyped(response, "metadata")
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(data); i++ {
+	for i := 0; i < len(data); i++ {
 		var tickerData any = this.SafeDict(data, i, map[string]any{})
 		AddElementToObject(tickerData, "timestamp", timestamp)
 		var ticker any = this.ParseTicker(tickerData)
@@ -749,7 +749,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//         "metadata": { "region": "UK", "timestamp": 1785313433816 }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var metadata map[string]any = SafeMapTyped(response, "metadata")
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 
@@ -842,7 +842,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	//         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
 	return nil
@@ -956,10 +956,10 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var trade any = this.SafeDict(data, i, map[string]any{})
+	for i := 0; i < len(data); i++ {
+		var trade map[string]any = MapTyped(this.SafeDict(data, i, map[string]any{}))
 		result = append(result, this.ParseTrade(trade, market))
 	}
 
@@ -1096,19 +1096,19 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) any {
 			"currency": feeCurrency,
 		}
 	}
-	var amountValue any = nil
+	var amountValue *string = nil
 	if quantity != nil {
 		amountValue = quantity
 	} else if amount != nil {
 		amountValue = amount
 	}
-	var filledValue any = nil
+	var filledValue *string = nil
 	if filledQuantity != nil {
 		filledValue = filledQuantity
 	} else if filledAmount != nil {
 		filledValue = filledAmount
 	}
-	var remainingValue any = nil
+	var remainingValue *string = nil
 	if leavesQuantity != nil {
 		remainingValue = leavesQuantity
 	}
@@ -1359,7 +1359,7 @@ func (this *Revolutx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1437,10 +1437,10 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	//         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var order any = this.SafeDict(data, i, map[string]any{})
+	for i := 0; i < len(data); i++ {
+		var order map[string]any = MapTyped(this.SafeDict(data, i, map[string]any{}))
 		result = append(result, this.ParseOrder(order))
 	}
 
@@ -1525,10 +1525,10 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"}))))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var order any = this.SafeDict(data, i, map[string]any{})
+	for i := 0; i < len(data); i++ {
+		var order map[string]any = MapTyped(this.SafeDict(data, i, map[string]any{}))
 		result = append(result, this.ParseOrder(order))
 	}
 
@@ -1563,7 +1563,7 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var orderStates any = this.SafeList2(params, "orderStates", "order_states", []any{"filled", "cancelled", "rejected", "replaced"})
+	var orderStates []any = SafeList2Typed(params, "orderStates", "order_states", []any{"filled", "cancelled", "rejected", "replaced"})
 	var requestParams map[string]any = this.Extend(this.Omit(params, []any{"orderStates", "order_states"}), map[string]any{
 		"order_states": orderStates,
 	})
@@ -1583,7 +1583,7 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {object} [market] the market the trade was executed in
  * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Revolutx) ParseMyTrade(trade any, optionalArgs ...any) any {
+func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(trade, "tid")
@@ -1701,10 +1701,10 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var trade any = this.SafeDict(data, i, map[string]any{})
+	for i := 0; i < len(data); i++ {
+		var trade map[string]any = MapTyped(this.SafeDict(data, i, map[string]any{}))
 		result = append(result, this.ParseMyTrade(trade, market))
 	}
 

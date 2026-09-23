@@ -1514,7 +1514,7 @@ func (this *Bitvavo) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//         "maxItems": 0
 	//     }
 	//
-	var accounts any = this.SafeList(response, "items", []any{})
+	var accounts []any = SafeListTypedDefault(response, "items", []any{})
 
 	ch <- this.ParseAccounts(accounts)
 	return nil
@@ -1678,7 +1678,7 @@ func (this *Bitvavo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	//         "limit": 25
 	//     }
 	//
-	var items any = this.SafeList(response, "items", []any{})
+	var items []any = SafeListTypedDefault(response, "items", []any{})
 
 	ch <- this.ParseTransfers(items, currency, since, limit)
 	return nil
@@ -2654,7 +2654,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var rawTrades any = this.SafeList(order, "fills", []any{})
+	var rawTrades []any = SafeListTypedDefault(order, "fills", []any{})
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var postOnly any = this.SafeValue(order, "postOnly")
 	// https://github.com/ccxt/ccxt/issues/8489
@@ -2853,7 +2853,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//         "maxItems": 100
 	//     }
 	//
-	var items any = this.SafeList(response, "items", []any{})
+	var items []any = SafeListTypedDefault(response, "items", []any{})
 
 	ch <- this.ParseLedger(items, currency, since, limit)
 	return nil
@@ -3271,7 +3271,7 @@ func (this *Bitvavo) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		},
 		"networks": map[string]any{},
 	}
-	var networks any = this.SafeList(fee, "networks")
+	var networks []any = SafeListTyped(fee, "networks")
 	var networkId *string = this.SafeString(networks, 0) // Bitvavo currently only supports one network per currency
 	var currencyCode *string = this.SafeString(currency, "code")
 	if networkId != nil && *networkId == "Mainnet" {

@@ -1306,7 +1306,7 @@ func (this *Backpack) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 
 	response := (<-this.PublicGetApiV1MarkPrices(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, 0, map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(data, market)
 	return nil
@@ -1382,7 +1382,7 @@ func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 
 	response := (<-this.PublicGetApiV1OpenInterest(this.Extend(request, params)))
 	PanicOnError(response)
-	var interest any = this.SafeDict(response, 0, map[string]any{})
+	var interest map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseOpenInterest(interest, market)
 	return nil
@@ -2275,7 +2275,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
 		ordersRequests = append(ordersRequests, orderRequest)
@@ -3044,7 +3044,7 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 func (this *Backpack) GenerateBatchPayload(params any, ts any, recvWindow any, instruction any) any {
 	var payload any = ""
 	for i := 0; i < GetArrayLength(params); i++ {
-		var order any = this.SafeDict(params, i, map[string]any{})
+		var order map[string]any = MapTyped(this.SafeDict(params, i, map[string]any{}))
 		var sortedOrder map[string]any = this.Keysort(order)
 		var orderQuery string = this.Urlencode(sortedOrder)
 		payload = Add(payload, Add(Add(Add(Add("instruction=", instruction), "&"), orderQuery), "&"))
