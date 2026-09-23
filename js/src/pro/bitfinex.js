@@ -882,7 +882,7 @@ export default class bitfinex extends bitfinexRest {
         const updateType = this.safeValue(message, 1);
         let data = [];
         if (updateType === 'ws') {
-            data = this.safeList(message, 2);
+            data = this.safeValue(message, 2);
         }
         else {
             data = [this.safeValue(message, 2)];

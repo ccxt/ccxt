@@ -720,7 +720,7 @@ func (this *Extended) ParseMarket(market any) any {
 	var minAmount *float64 = this.SafeNumber(tradingConfig, "minOrderSize")
 	var maxCost *float64 = this.SafeNumber(tradingConfig, "maxLimitOrderValue")
 	var created *int64 = this.SafeInteger(market, "createdAt")
-	var settleId *string = nil
+	var settleId any = nil
 	var settle any = nil
 	var symbol any = Add(Add(base, "/"), quote)
 	var isSpot bool = false
@@ -995,8 +995,8 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var marketIds []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
-			var market map[string]any = this.Market(GetValue(symbols, i))
-			marketIds = append(marketIds, market["id"])
+			var market any = this.Market(GetValue(symbols, i))
+			marketIds = append(marketIds, GetValue(market, "id"))
 		}
 		request["market"] = marketIds
 	}
@@ -1081,7 +1081,7 @@ func (this *Extended) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(nil, market)
 	var last *float64 = this.SafeNumber(ticker, "lastPrice")
 	var percentageRaw *string = this.SafeString(ticker, "dailyPriceChangePercentage")
-	var percentage *string = func() *string {
+	var percentage any = func() any {
 		if percentageRaw != nil {
 			return Precise.StringMul(percentageRaw, "100")
 		}
@@ -1167,10 +1167,10 @@ func (this *Extended) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var timestamp int64 = this.Milliseconds()
-	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "bid", "ask", "price", "qty")
+	var orderbook any = this.ParseOrderBook(data, market["symbol"], timestamp, "bid", "ask", "price", "qty")
 	if limit != nil {
-		orderbook["bids"] = this.ArraySlice(orderbook["bids"], 0, limit)
-		orderbook["asks"] = this.ArraySlice(orderbook["asks"], 0, limit)
+		AddElementToObject(orderbook, "bids", this.ArraySlice(GetValue(orderbook, "bids"), 0, limit))
+		AddElementToObject(orderbook, "asks", this.ArraySlice(GetValue(orderbook, "asks"), 0, limit))
 	}
 
 	ch <- orderbook
@@ -1974,9 +1974,9 @@ func (this *Extended) ParseBalance(response any) any {
 		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "availableToWithdraw")
-		account["total"] = this.SafeString(balance, "balance")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balance, "availableToWithdraw"))
+		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -3482,10 +3482,10 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 
 	retRes26348 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes26348)
-	var market map[string]any = this.Market(symbol)
+	var market any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
 	var uppercaseSide string = ToUpper(side)
-	if (market["spot"] == true) && (uppercaseType != "LIMIT") {
+	if (GetValue(market, "spot") == true) && (uppercaseType != "LIMIT") {
 		panic(BadRequest(this.Id + " createOrder() supports limit orders for spot markets only"))
 	}
 	if !this.InArray(uppercaseType, []any{"LIMIT", "MARKET", "CONDITIONAL", "TPSL"}) {
@@ -3559,7 +3559,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id", this.Uuid())
 	var request map[string]any = map[string]any{
 		"id":                       clientOrderId,
-		"market":                   market["id"],
+		"market":                   GetValue(market, "id"),
 		"type":                     uppercaseType,
 		"side":                     uppercaseSide,
 		"qty":                      amountString,
@@ -4053,7 +4053,7 @@ func (this *Extended) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"cancelAll": true,
 	}
-	var market map[string]any = nil
+	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["markets"] = []any{GetValue(market, "id")}

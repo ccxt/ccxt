@@ -676,9 +676,9 @@ func (this *Bitbns) ParseBalance(response any) any {
 		if numParts > 1 {
 			var currencyId any = DerefScalar(this.SafeString(parts, 1))
 			// note that "Money" stands for INR - the only fiat in bitbns
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(data, key)
-			account["used"] = this.SafeString(data, Add("inorder", currencyId))
+			var account any = this.Account()
+			AddElementToObject(account, "free", this.SafeString(data, key))
+			AddElementToObject(account, "used", this.SafeString(data, Add("inorder", currencyId)))
 			if IsEqual(currencyId, "Money") {
 				currencyId = "INR"
 			}
@@ -1194,12 +1194,12 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var factor *string = this.SafeString(trade, "factor")
-	var costString *string = nil
+	var costString any = nil
 	if factor != nil {
 		amountString = Precise.StringDiv(amountString, factor)
 	} else {
 		amountString = this.SafeString(trade, "base_volume")
-		costString = this.SafeString(trade, "quote_volume")
+		costString = DerefScalar(this.SafeString(trade, "quote_volume"))
 	}
 	var symbol any = GetValue(market, "symbol")
 	var fee any = nil

@@ -1199,7 +1199,7 @@ func (this *Hashkey) ParseMarket(market any) any {
 			subType = "linear"
 		}
 	}
-	var filtersList []any = SafeListTyped(market, "filters")
+	var filtersList any = this.SafeList(market, "filters", []any{})
 	var filters map[string]any = this.IndexBy(filtersList, "filterType")
 	var priceFilter map[string]any = SafeMapTyped(filters, "PRICE_FILTER")
 	var amountFilter map[string]any = SafeMapTyped(filters, "LOT_SIZE")
@@ -1351,15 +1351,10 @@ func (this *Hashkey) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 func (this *Hashkey) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "coinId")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var networks []any = SafeListTyped(rawCurrency, "chainTypes")
+	var networks any = this.SafeList(rawCurrency, "chainTypes")
 	var parsedNetworks map[string]any = map[string]any{}
-	for j := 0; j < len(networks); j++ {
-		var network any = func() any {
-			if j >= 0 && j < len(networks) {
-				return DerefScalar(networks[j])
-			}
-			return nil
-		}()
+	for j := 0; j < GetArrayLength(networks); j++ {
+		var network any = GetValue(networks, j)
 		var networkId *string = this.SafeString(network, "chainType")
 		var networkCode any = this.NetworkCodeToId(networkId, code)
 		if networkCode != nil {
@@ -2160,20 +2155,15 @@ func (this *Hashkey) ParseBalance(balance any) any {
 	var result map[string]any = map[string]any{
 		"info": balance,
 	}
-	var balances []any = SafeListTyped(balance, "balances")
-	for i := 0; i < len(balances); i++ {
-		var balanceEntry any = func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}()
+	var balances any = this.SafeList(balance, "balances", []any{})
+	for i := 0; i < GetArrayLength(balances); i++ {
+		var balanceEntry any = GetValue(balances, i)
 		var currencyId *string = this.SafeString(balanceEntry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString(balanceEntry, "total")
-		account["free"] = this.SafeString(balanceEntry, "free")
-		account["used"] = this.SafeString(balanceEntry, "locked")
+		var account any = this.Account()
+		AddElementToObject(account, "total", this.SafeString(balanceEntry, "total"))
+		AddElementToObject(account, "free", this.SafeString(balanceEntry, "free"))
+		AddElementToObject(account, "used", this.SafeString(balanceEntry, "locked"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -2193,11 +2183,11 @@ func (this *Hashkey) ParseSwapBalance(balance any) any {
 	//
 	var currencyId *string = this.SafeString(balance, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var account map[string]any = this.Account()
-	account["total"] = this.SafeString(balance, "balance")
+	var account any = this.Account()
+	AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 	var positionMargin *string = this.SafeString(balance, "positionMargin")
 	var orderMargin *string = this.SafeString(balance, "orderMargin")
-	account["used"] = Precise.StringAdd(positionMargin, orderMargin)
+	AddElementToObject(account, "used", Precise.StringAdd(positionMargin, orderMargin))
 	var result map[string]any = map[string]any{
 		"info": balance,
 	}
@@ -5030,17 +5020,12 @@ func (this *Hashkey) ParseMarketLeverageTiers(info any, optionalArgs ...any) any
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var riskLimits []any = SafeListTyped(info, "riskLimits")
+	var riskLimits any = this.SafeList(info, "riskLimits", []any{})
 	var marketId *string = this.SafeString(info, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var tiers []any = []any{}
-	for i := 0; i < len(riskLimits); i++ {
-		var tier any = func() any {
-			if i >= 0 && i < len(riskLimits) {
-				return DerefScalar(riskLimits[i])
-			}
-			return nil
-		}()
+	for i := 0; i < GetArrayLength(riskLimits); i++ {
+		var tier any = GetValue(riskLimits, i)
 		var initialMarginRate *string = this.SafeString(tier, "initialMargin")
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),

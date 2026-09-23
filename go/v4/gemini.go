@@ -839,7 +839,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 
 	data := (<-this.FetchWebEndpointAsync("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>"))
 	PanicOnError(data)
-	var error string = this.Id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets."
+	var error any = this.Id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets."
 	var tables []string = Split(data, "tbody>")
 	var numTables int = len(tables)
 	if numTables < 2 {
@@ -853,7 +853,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 	var result []any = []any{}
 	// skip the first element (empty string)
 	for i := 1; i < numRows; i++ {
-		var row string = rows[i]
+		var row any = GetValue(rows, i)
 		var cells []string = Split(row, "</td>\n") // eslint-disable-line quotes
 		var numCells int = len(cells)
 		if numCells < 5 {
@@ -1009,7 +1009,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 	//     ]
 	//
 	var result []any = []any{}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMarketsFromAPI")
+	var options any = this.SafeDict(this.Options, "fetchMarketsFromAPI", map[string]any{})
 	var brokenPairs any = this.SafeList(this.Options, "brokenPairs", []any{})
 	var marketIds []any = []any{}
 	var allMarketIds any = []any{}
@@ -1735,9 +1735,9 @@ func (this *Gemini) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "available")
-		account["total"] = this.SafeString(balance, "amount")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balance, "available"))
+		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

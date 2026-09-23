@@ -66,13 +66,14 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
+        final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object limit = limit3;
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -100,21 +101,6 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name luno#watchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://www.luno.com/en/developers/api#tag/Streaming-API
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of    trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTrades(Client client, Map<String, Object> message, Map<String, Object> subscription)
@@ -160,7 +146,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // watchTrades (public)
@@ -173,6 +159,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -190,10 +177,6 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             put( "fee", null );
         }}), market);
     }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -206,11 +189,13 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
+        final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -234,21 +219,6 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name luno#watchOrderBook
-     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://www.luno.com/en/developers/api#tag/Streaming-API
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
-    {
-        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message, Map<String, Object> subscription)
@@ -310,8 +280,14 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         client.resolve(orderbook, messageHash);
     }
 
-    public Object customParseOrderBook(Map<String, Object> orderbook, String symbol, Long timestamp, String bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
+    public Object customParseOrderBook(Map<String, Object> orderbook, String symbol, Object... optionalArgs)
     {
+        Object timestamp = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object bidsKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "bids";
+        Object asksKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : "asks";
+        Object priceKey = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : "price";
+        Object amountKey = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : "volume";
+        Object countOrIdKey = optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : 2;
         List<Object> bids = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, bidsKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
         List<Object> asks = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, asksKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
         return new HashMap<String, Object>() {{
@@ -323,13 +299,12 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             put( "nonce", null );
         }};
     }
-    public Object customParseOrderBook(Map<String, Object> orderbook, String symbol, Object... optionalArgs)
-    {
-        return this.customParseOrderBook(orderbook, symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, "bids"), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : "asks", optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : "price", optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : "volume", optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : 2);
-    }
 
-    public Object parseOrderBookBidsAsks(Object bidasks, Object priceKey, Object amountKey, Object thirdKey)
+    public Object parseOrderBookBidsAsks(Object bidasks, Object... optionalArgs)
     {
+        Object priceKey = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "price";
+        Object amountKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "volume";
+        Object thirdKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2;
         bidasks = this.toArray(bidasks);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(bidasks); i++)
@@ -338,13 +313,12 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         }
         return result;
     }
-    public Object parseOrderBookBidsAsks(Object bidasks, Object... optionalArgs)
-    {
-        return this.parseOrderBookBidsAsks(bidasks, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "price", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "volume", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2);
-    }
 
-    public Object customParseBidAsk(Object bidask, Object priceKey, Object amountKey, Object thirdKey)
+    public Object customParseBidAsk(Object bidask, Object... optionalArgs)
     {
+        Object priceKey = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "price";
+        Object amountKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "volume";
+        Object thirdKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2;
         Double price = this.safeNumber(bidask, priceKey);
         Double amount = this.safeNumber(bidask, amountKey);
         List<Object> result = new ArrayList<Object>(Arrays.asList(price, amount));
@@ -354,10 +328,6 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             ((List<Object>)result).add(thirdValue);
         }
         return result;
-    }
-    public Object customParseBidAsk(Object bidask, Object... optionalArgs)
-    {
-        return this.customParseBidAsk(bidask, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "price", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "volume", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2);
     }
 
     public void handleDelta(Object orderbook, Object message)

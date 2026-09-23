@@ -46,7 +46,7 @@ public partial class testMainClass : BaseTest
                 bool? withdraw = exchange.safeBool(currency, "withdraw");
                 bool? deposit = exchange.safeBool(currency, "deposit");
                 bool? isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
-                bool skipUsdtForMica = ((isMicaCompliant == true)) && (code == "USDT");
+                bool skipUsdtForMica = ((isMicaCompliant == true)) && ((code == "USDT"));
                 if (isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && ((skipUsdtForMica != true)))
                 {
                     assert(((withdraw == true)) && ((deposit == true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
@@ -71,7 +71,7 @@ public partial class testMainClass : BaseTest
             object code = getValue(currency, "code");
             if (!(inOp(ids, code)))
             {
-                ids[(string)code] = getValue(currency, "id");
+                ((IDictionary<string,object>)ids)[(string)code] = getValue(currency, "id");
             } else
             {
                 bool isDifferent = !isEqual(getValue(ids, code), getValue(currency, "id"));

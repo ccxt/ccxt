@@ -84,11 +84,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
+        final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -110,19 +112,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }).thenApply(OrderBook::new);
 
     }
-    /**
-     * @method
-     * @name bitstamp#watchOrderBook
-     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
-    {
-        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -133,11 +122,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol2, Object parameters)
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -149,23 +139,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             return (this.unWatchChannel(channel, subHash, "orderbook", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
-    }
-    /**
-     * @method
-     * @name bitstamp#unWatchOrderBook
-     * @description unsubscribe from the order book channel
-     * @see https://www.bitstamp.net/websocket/v2/
-     * @param {string} symbol unified symbol of the market to unwatch the order book for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {any} status of the unwatch request
-     */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
-    {
-        return this.unWatchOrderBook(symbol, (Object) (parameters));
     }
 
     /**
@@ -179,11 +152,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchChannel(Object channel, Object subHash, Object topic, Object symbols, Object parameters)
+    public CompletableFuture<Object> unWatchChannel(Object channel, Object subHash, Object topic, Object symbols, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String unsubHash = ("unsubscribe:" + channel);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -200,21 +174,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             return (this.watch(url, unsubHash, this.extend(request, parameters), unsubHash, subscription)).join();
         });
 
-    }
-    /**
-     * @ignore
-     * @method
-     * @description sends an unsubscribe request for a channel and cleans the related caches on confirmation
-     * @param {string} channel the raw channel name to unsubscribe from
-     * @param {string} subHash the subscription hash whose future and cache entry should be cleaned
-     * @param {string} topic the cache topic, one of 'trades', 'orderbook', 'orders' or 'myTrades'
-     * @param {string[]} symbols the symbols to clean from the cache
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {any} status of the unwatch request
-     */
-    public CompletableFuture<Object> unWatchChannel(Object channel, Object subHash, Object topic, Object symbols, Object... optionalArgs)
-    {
-        return this.unWatchChannel(channel, subHash, topic, symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -261,7 +220,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String messageHash = ("orderbook:" + symbol);
         if (java.util.Objects.equals(nonce, null))
         {
-            Integer cacheLength = Helpers.getArrayLength(((List<Object>)Helpers.GetValue(storedOrderBook, "cache")));
+            Object cacheLength = Helpers.getArrayLength(((List<Object>)Helpers.GetValue(storedOrderBook, "cache")));
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 6);
@@ -338,13 +297,14 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
+        final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object limit = limit3;
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -370,20 +330,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitstamp#watchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -394,11 +340,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchTrades(String symbol2, Object parameters)
+    public CompletableFuture<Object> unWatchTrades(String symbol2, Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
+        final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -411,25 +358,8 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         });
 
     }
-    /**
-     * @method
-     * @name bitstamp#unWatchTrades
-     * @description unsubscribe from the trades channel
-     * @see https://www.bitstamp.net/websocket/v2/
-     * @param {string} symbol unified symbol of the market to unwatch the trades for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {any} status of the unwatch request
-     */
-    public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
-    {
-        return this.unWatchTrades(symbol, (Object) (parameters));
-    }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //     {
@@ -445,6 +375,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //         "price": 6294.77
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         String id = this.safeString(trade, "id");
         Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
@@ -452,7 +383,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String amount = this.safeString(trade, "amount");
         if (java.util.Objects.equals(market, null))
         {
-            market = (Map<String, Object>) (this.safeMarket(null, market));
+            market = this.safeMarket(null, market);
         }
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long sideRaw = this.safeInteger(trade, "type");
@@ -472,10 +403,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "cost", null );
             put( "fee", null );
         }}), market);
-    }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
-    {
-        return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public void handleTrade(Client client, Map<String, Object> message)
@@ -532,11 +459,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> watchFundingRate(String symbol2, Object parameters)
+    public CompletableFuture<FundingRate> watchFundingRate(String symbol2, Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
+        final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -556,23 +484,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         }).thenApply(FundingRate::new);
 
-    }
-    /**
-     * @method
-     * @name bitstamp#watchFundingRate
-     * @description watch the current funding rate
-     * @see https://www.bitstamp.net/websocket/v2/
-     * @param {string} symbol unified market symbol of a swap market
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
-     */
-    public CompletableFuture<FundingRate> watchFundingRate(String symbol, Object... optionalArgs)
-    {
-        return this.watchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<FundingRate> watchFundingRate(String symbol, Map<String, Object> parameters)
-    {
-        return this.watchFundingRate(symbol, (Object) (parameters));
     }
 
     public void handleFundingRate(Client client, Map<String, Object> message)
@@ -616,13 +527,15 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object limit = limit3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " watchOrders() requires a symbol argument")) ;
@@ -637,7 +550,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Object messageHash = ((channel + "_") + ((Map<String, Object>)market).get("id"));
             final Object finalSymbol = symbol;
             final Object finalLimit = limit;
-            final String finalChannel = channel;
+            final Object finalChannel = channel;
             Object subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "limit", finalLimit );
@@ -653,20 +566,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitstamp#watchOrders
-     * @description watches information on multiple orders made by the user
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
-    {
-        return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -677,11 +576,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchOrders(String symbol2, Object parameters)
+    public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " unWatchOrders() requires a symbol argument")) ;
@@ -698,23 +599,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         });
 
     }
-    /**
-     * @method
-     * @name bitstamp#unWatchOrders
-     * @description unsubscribe from the orders channel
-     * @see https://www.bitstamp.net/websocket/v2/
-     * @param {string} symbol unified market symbol of the market the orders were made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {any} status of the unwatch request
-     */
-    public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
-    {
-        return this.unWatchOrders(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
-    {
-        return this.unWatchOrders(symbol, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -727,13 +611,15 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> watchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object limit = limit3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() requires a symbol argument")) ;
@@ -748,7 +634,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Object messageHash = ((channel + "_") + ((Map<String, Object>)market).get("id"));
             final Object finalSymbol = symbol;
             final Object finalLimit = limit;
-            final String finalChannel = channel;
+            final Object finalChannel = channel;
             Object subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "limit", finalLimit );
@@ -764,21 +650,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitstamp#watchMyTrades
-     * @description watches information on multiple trades made by the user
-     * @see https://www.bitstamp.net/websocket/v2/
-     * @param {string} symbol unified market symbol of the market trades were made in
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trade structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
-    {
-        return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -789,11 +660,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchMyTrades(String symbol2, Object parameters)
+    public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " unWatchMyTrades() requires a symbol argument")) ;
@@ -809,23 +682,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             return (this.unWatchChannel(channel, channel, "myTrades", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
-    }
-    /**
-     * @method
-     * @name bitstamp#unWatchMyTrades
-     * @description unsubscribe from the myTrades channel
-     * @see https://www.bitstamp.net/websocket/v2/
-     * @param {string} symbol unified market symbol of the market the trades were made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {any} status of the unwatch request
-     */
-    public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
-    {
-        return this.unWatchMyTrades(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
-    {
-        return this.unWatchMyTrades(symbol, (Object) (parameters));
     }
 
     public void handleMyTrades(Client client, Map<String, Object> message)
@@ -870,7 +726,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         client.resolve(stored, channel);
     }
 
-    public Object parseWsMyTrade(Object trade, Map<String, Object> market)
+    public Object parseWsMyTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -888,15 +744,16 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         // position_id, is_liquidation and trade_type, which the live feed
         // omits for plain spot orderbook fills
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
-        market = (Map<String, Object>) (this.safeMarket(null, market));
+        market = this.safeMarket(null, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String feeCost = this.safeString(trade, "fee");
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final String finalFeeCost = feeCost;
+            final Object finalFeeCost = feeCost;
             final Object finalMarket = market;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -919,10 +776,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "cost", null );
             put( "fee", finalFee );
         }}), market);
-    }
-    public Object parseWsMyTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseWsMyTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public void handleOrders(Client client, Map<String, Object> message)
@@ -977,7 +830,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         client.resolve(this.orders, channel);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         // order_deleted after a full fill - amount_str carries the amount
@@ -1000,6 +853,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //        "trade_account_id": 0
         //    }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(order, "id_str");
         String orderTypeRaw = this.safeStringLower(order, "order_type");
         String side = (((java.util.Objects.equals(orderTypeRaw, "1")))) ? "sell" : "buy";
@@ -1050,13 +904,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         String triggerPrice = this.safeString(order, "stop_price");
         Object timestamp = this.safeTimestamp(order, "datetime");
-        market = (Map<String, Object>) (this.safeMarket(null, market));
+        market = this.safeMarket(null, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        final String finalOrderType = orderType;
-        final String finalTimeInForce = timeInForce;
-        final String finalAmount = amount;
-        final String finalRemaining = remaining;
-        final String finalStatus = status;
+        final Object finalOrderType = orderType;
+        final Object finalTimeInForce = timeInForce;
+        final Object finalAmount = amount;
+        final Object finalRemaining = remaining;
+        final Object finalStatus = status;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
@@ -1081,10 +935,6 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "fee", null );
             put( "trades", null );
         }}), market);
-    }
-    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
-    {
-        return this.parseWsOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public void handleOrderBookSubscription(Client client, Map<String, Object> message)
@@ -1325,11 +1175,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
     }
 
-    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
+    public CompletableFuture<Object> authenticate(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             Long time = this.milliseconds();
             Long expiresIn = this.safeInteger(this.options, "expiresIn");
@@ -1392,16 +1243,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         });
 
     }
-    public CompletableFuture<Object> authenticate(Object... optionalArgs)
-    {
-        return this.authenticate(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public CompletableFuture<Object> subscribePrivate(Map<String, Object> subscription, Object messageHash2, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribePrivate(Map<String, Object> subscription, Object messageHash2, Object... optionalArgs)
     {
         final Object messageHash3 = messageHash2;
         return BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             (this.authenticate()).join();
             messageHash = Helpers.add(messageHash, Helpers.add("-", ((Map<String, Object>)this.options).get("userId")));
@@ -1417,9 +1265,5 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
         });
 
-    }
-    public CompletableFuture<Object> subscribePrivate(Map<String, Object> subscription, Object messageHash, Object... optionalArgs)
-    {
-        return this.subscribePrivate(subscription, messageHash, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 }

@@ -642,17 +642,12 @@ func (this *Kraken) HandleTicker(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var ticker any = func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return ccxt.DerefScalar(data[0])
-		}
-		return nil
-	}()
+	var data any = this.SafeList(message, "data", []any{})
+	var ticker any = ccxt.GetValue(data, 0)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	var messageHash any = this.GetMessageHash("ticker", nil, symbol)
 	var vwap *string = this.SafeString(ticker, "vwap")
-	var quoteVolume *string = nil
+	var quoteVolume any = nil
 	var baseVolume *string = this.SafeString(ticker, "volume")
 	if (baseVolume != nil) && (vwap != nil) {
 		quoteVolume = ccxt.Precise.StringMul(baseVolume, vwap)
@@ -741,13 +736,8 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var first any = func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return ccxt.DerefScalar(data[0])
-		}
-		return nil
-	}()
+	var data any = this.SafeList(message, "data", []any{})
+	var first any = ccxt.GetValue(data, 0)
 	var marketId *string = this.SafeString(first, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
@@ -763,14 +753,9 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 	}
-	var ohlcvsLength int = len(data)
+	var ohlcvsLength int = ccxt.GetArrayLength(data)
 	for i := 0; i < ohlcvsLength; i++ {
-		var candle any = func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var candle any = ccxt.GetValue(data, i)
 		var datetime *string = this.SafeString(candle, "interval_begin")
 		var timestamp *int64 = this.Parse8601(datetime)
 		var parsed []any = []any{timestamp, this.SafeNumber(candle, "open"), this.SafeNumber(candle, "high"), this.SafeNumber(candle, "low"), this.SafeNumber(candle, "close"), this.SafeNumber(candle, "volume")}
@@ -960,7 +945,7 @@ func (this *Kraken) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	trades := (<-this.WatchMultiHelperAsync("trade", "trade", symbols, nil, params))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first []any = ccxt.SafeListTyped(trades, 0)
+		var first any = this.SafeList(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -1117,7 +1102,7 @@ func (this *Kraken) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 		if !ccxt.IsEqual(symbols, nil) {
 			for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 				var symbol any = ccxt.GetValue(symbols, i)
-				var market map[string]any = this.Market(symbol)
+				var market any = this.Market(symbol)
 				var info map[string]any = ccxt.SafeMapTyped(market, "info")
 				var wsName *string = this.SafeString(info, "wsname")
 				ccxt.AddElementToObject(marketsByWsName, wsName, market)
@@ -1960,26 +1945,16 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 	//         "sequence": 1
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data any = this.SafeList(message, "data", []any{})
 	var result map[string]any = map[string]any{
 		"info": message,
 	}
-	for i := 0; i < len(data); i++ {
-		var currencyId *string = this.SafeString(func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}(), "asset")
+	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+		var currencyId *string = this.SafeString(ccxt.GetValue(data, i), "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		var eq *string = this.SafeString(func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}(), "balance")
-		account["total"] = eq
+		var account any = this.Account()
+		var eq *string = this.SafeString(ccxt.GetValue(data, i), "balance")
+		ccxt.AddElementToObject(account, "total", eq)
 		ccxt.AddElementToObject(result, code, account)
 	}
 	var typeVar string = "spot"

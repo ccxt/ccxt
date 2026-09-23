@@ -917,8 +917,8 @@ func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) any {
 	var percentage *string = Precise.StringMul(Precise.StringDiv(change, open), "100")
 	var average *string = Precise.StringDiv(Precise.StringAdd(open, last), "2")
 	var volume *string = this.SafeString(ticker, "vol24h")
-	var baseVolume *string = nil
-	var quoteVolume *string = nil
+	var baseVolume any = nil
+	var quoteVolume any = nil
 	var isIndex *bool = this.SafeBool(market, "index", false)
 	if isIndex == nil || *isIndex != true {
 		if GetValue(market, "linear") == true {
@@ -2948,7 +2948,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	if (amount == nil) && (!isPrior) && (remaining != nil) {
 		amount = Precise.StringAdd(filled, remaining)
 	}
-	var cost *string = nil
+	var cost any = nil
 	if (filled != nil) && (market != nil) {
 		var whichPrice any = func() any {
 			if average != nil {
@@ -3621,12 +3621,12 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 	var accountType *string = this.SafeString2(response, "accountType", "type")
 	var isFlex bool = (accountType != nil && *accountType == "multiCollateralMarginAccount")
 	var isCash bool = (accountType != nil && *accountType == "cashAccount")
-	var balances map[string]any = SafeDict2Typed(response, "balances", "currencies")
+	var balances any = this.SafeDict2(response, "balances", "currencies", map[string]any{})
 	var result map[string]any = map[string]any{}
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
-		var balance any = balances[currencyId]
+		var balance any = GetValue(balances, currencyId)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code == nil {
 			continue
@@ -3636,17 +3636,17 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 		if codeLength > 1 {
 			continue
 		}
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		if isFlex {
-			account["total"] = this.SafeString(balance, "quantity")
-			account["free"] = this.SafeString(balance, "available")
+			AddElementToObject(account, "total", this.SafeString(balance, "quantity"))
+			AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		} else if isCash {
-			account["used"] = "0.0"
-			account["total"] = balance
+			AddElementToObject(account, "used", "0.0")
+			AddElementToObject(account, "total", balance)
 		} else {
 			var auxiliary map[string]any = SafeMapTyped(response, "auxiliary")
-			account["free"] = this.SafeString(auxiliary, "af")
-			account["total"] = this.SafeString(auxiliary, "pv")
+			AddElementToObject(account, "free", this.SafeString(auxiliary, "af"))
+			AddElementToObject(account, "total", this.SafeString(auxiliary, "pv"))
 		}
 		if code != nil {
 			AddElementToObject(result, code, account)

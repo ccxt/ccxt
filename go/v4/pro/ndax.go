@@ -461,7 +461,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		var timeframes []string = ccxt.ObjectKeys(updates[marketId])
 		for j := 0; j < len(timeframes); j++ {
 			var timeframe string = ccxt.GetValue(timeframes, j).(string)
-			var messageHash string = name + ":" + timeframe + ":" + marketId
+			var messageHash any = name + ":" + timeframe + ":" + marketId
 			var market any = this.SafeMarket(marketId)
 			var symbol any = ccxt.GetValue(market, "symbol")
 			var stored any = this.SafeList(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})
@@ -670,7 +670,7 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	//     ]
 	//
 	var symbol *string = this.SafeString(subscription, "symbol")
-	var snapshot map[string]any = this.ParseOrderBook(payload, symbol)
+	var snapshot any = this.ParseOrderBook(payload, symbol)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot, limit)
 	if symbol != nil {

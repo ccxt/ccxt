@@ -1223,7 +1223,7 @@ func (this *Toobit) ParseMarket(market any) any {
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var status *string = this.SafeString(market, "status")
 	var active bool = (status != nil && *status == "TRADING")
-	var filters []any = SafeListTyped(market, "filters")
+	var filters any = this.SafeList(market, "filters", []any{})
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var priceFilter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
 	var lotSizeFilter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
@@ -2095,10 +2095,10 @@ func (this *Toobit) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var balance any = GetValue(balances, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString2(balance, "free", "availableBalance")
-		account["total"] = this.SafeString2(balance, "total", "balance")
-		account["used"] = this.SafeString(balance, "locked")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString2(balance, "free", "availableBalance"))
+		AddElementToObject(account, "total", this.SafeString2(balance, "total", "balance"))
+		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -3790,7 +3790,7 @@ func (this *Toobit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes316812)
 	}
 	var request map[string]any = map[string]any{}
-	var market map[string]any = nil
+	var market any = nil
 	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length > 1 {

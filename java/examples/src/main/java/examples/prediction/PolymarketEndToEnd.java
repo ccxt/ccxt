@@ -51,7 +51,7 @@ public class PolymarketEndToEnd {
         eventsParams.put("query", "fed");
         eventsParams.put("sort", "volume");
         eventsParams.put("limit", 15);
-        List<PredictionEvent> events = exchange.fetchEvents(eventsParams).join();
+        List<PredictionEvent> events = exchange.fetchEvents(eventsParams);
         String symbol = null;
         PredictionOrderBook book = null;
         double tick = 0.01;

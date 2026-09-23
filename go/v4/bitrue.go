@@ -1106,7 +1106,7 @@ func (this *Bitrue) ParseMarket(market any) any {
 	if settle != nil {
 		symbol = Add(symbol, Add(":", settle))
 	}
-	var filters []any = SafeListTyped(market, "filters")
+	var filters any = this.SafeList(market, "filters", []any{})
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var status *string = this.SafeString(market, "status")
 	var priceFilter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
@@ -1227,19 +1227,14 @@ func (this *Bitrue) ParseBalance(response any) any {
 		"info": response,
 	}
 	var timestamp *int64 = this.SafeInteger(response, "updateTime")
-	var balances []any = SafeList2Typed(response, "balances", "account")
-	for i := 0; i < len(balances); i++ {
-		var balance any = func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}()
+	var balances any = this.SafeList2(response, "balances", "account", []any{})
+	for i := 0; i < GetArrayLength(balances); i++ {
+		var balance any = GetValue(balances, i)
 		var currencyId *string = this.SafeString2(balance, "asset", "marginCoin")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString2(balance, "free", "accountNormal")
-		account["used"] = this.SafeString2(balance, "locked", "accountLock")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString2(balance, "free", "accountNormal"))
+		AddElementToObject(account, "used", this.SafeString2(balance, "locked", "accountLock"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1401,8 +1396,8 @@ func (this *Bitrue) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger2(response, "time", "lastUpdateId")
-	var orderbook map[string]any = this.ParseOrderBook(response, symbol, timestamp)
-	orderbook["nonce"] = this.SafeInteger(response, "lastUpdateId")
+	var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
+	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
 
 	ch <- orderbook
 	return nil
@@ -1448,11 +1443,11 @@ func (this *Bitrue) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(nil, market)
 	var last *string = this.SafeString2(ticker, "lastPrice", "last")
 	var timestamp *int64 = this.SafeInteger(ticker, "time")
-	var percentage *string = nil
+	var percentage any = nil
 	if IsEqual(this.SafeBool(market, "swap"), true) {
 		percentage = Precise.StringMul(this.SafeString(ticker, "rose"), "100")
 	} else {
-		percentage = this.SafeString(ticker, "priceChangePercent")
+		percentage = DerefScalar(this.SafeString(ticker, "priceChangePercent"))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1845,10 +1840,10 @@ func (this *Bitrue) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	if symbols != nil {
 		var first *string = this.SafeString(symbols, 0)
-		var market map[string]any = this.Market(first)
-		if market["swap"] == true {
+		var market any = this.Market(first)
+		if GetValue(market, "swap") == true {
 			panic(NotSupported(this.Id + " fetchTickers does not support swap markets, please use fetchTicker instead"))
-		} else if market["spot"] == true {
+		} else if GetValue(market, "spot") == true {
 
 			response = (<-this.SpotV1PublicGetTicker24hr(this.Extend(request, params)))
 			PanicOnError(response)
@@ -2350,7 +2345,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
 				var quoteAmount *string = Precise.StringMul(amountString, priceString)
-				var requestAmount *string = func() *string {
+				var requestAmount any = func() any {
 					if cost != nil {
 						return cost
 					}
@@ -3267,18 +3262,18 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var tagType *string = this.SafeString(transaction, "tagType")
 	var addressTo *string = this.SafeString(transaction, "addressTo")
 	var addressFrom *string = this.SafeString(transaction, "addressFrom")
-	var tagTo *string = nil
-	var tagFrom *string = nil
+	var tagTo any = nil
+	var tagFrom any = nil
 	if tagType != nil {
 		if addressTo != nil {
 			var parts []string = Split(addressTo, "_")
 			addressTo = this.SafeString(parts, 0)
-			tagTo = this.SafeString(parts, 1)
+			tagTo = DerefScalar(this.SafeString(parts, 1))
 		}
 		if addressFrom != nil {
 			var parts []string = Split(addressFrom, "_")
 			addressFrom = this.SafeString(parts, 0)
-			tagFrom = this.SafeString(parts, 1)
+			tagFrom = DerefScalar(this.SafeString(parts, 1))
 		}
 	}
 	var txid *string = this.SafeString(transaction, "txid")
@@ -3519,12 +3514,12 @@ func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var transferType *string = this.SafeString(transfer, "transferType")
-	var fromAccount *string = nil
-	var toAccount *string = nil
+	var fromAccount any = nil
+	var toAccount any = nil
 	if transferType != nil {
 		var accountSplit []string = Split(transferType, "_to_")
-		fromAccount = this.SafeString(accountSplit, 0)
-		toAccount = this.SafeString(accountSplit, 1)
+		fromAccount = DerefScalar(this.SafeString(accountSplit, 0))
+		toAccount = DerefScalar(this.SafeString(accountSplit, 1))
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "ctime")
 	return map[string]any{

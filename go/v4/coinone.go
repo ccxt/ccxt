@@ -644,9 +644,9 @@ func (this *Coinone) ParseBalance(response any) any {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var balance any = GetValue(balances, currencyId)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "avail")
-		account["total"] = this.SafeString(balance, "balance")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balance, "avail"))
+		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -783,7 +783,7 @@ func (this *Coinone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"quote_currency": "KRW",
 	}
-	var market map[string]any = nil
+	var market any = nil
 	var response any = nil
 	if symbols != nil {
 		var first *string = this.SafeString(symbols, 0)
@@ -939,8 +939,8 @@ func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	var last *string = this.SafeString(ticker, "last")
-	var asks []any = SafeListTyped(ticker, "best_asks")
-	var bids []any = SafeListTyped(ticker, "best_bids")
+	var asks any = this.SafeList(ticker, "best_asks", []any{})
+	var bids any = this.SafeList(ticker, "best_bids", []any{})
 	var baseId *string = this.SafeString(ticker, "target_currency")
 	var quoteId *string = this.SafeString(ticker, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)

@@ -361,10 +361,10 @@ func (this *Coincheck) ParseBalance(response any) any {
 		var currency map[string]any = MapTyped(this.Currency(code))
 		var currencyId any = currency["id"]
 		if InOp(response, currencyId) {
-			var account map[string]any = this.Account()
+			var account any = this.Account()
 			var reserved any = Add(currencyId, "_reserved")
-			account["free"] = this.SafeString(response, currencyId)
-			account["used"] = this.SafeString(response, reserved)
+			AddElementToObject(account, "free", this.SafeString(response, currencyId))
+			AddElementToObject(account, "used", this.SafeString(response, reserved))
 			result[code] = account
 		}
 	}
@@ -741,11 +741,11 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 	var quoteId any = GetValue(market, "quoteId")
 	var symbol any = GetValue(market, "symbol")
 	var takerOrMaker any = nil
-	var amountString *string = nil
-	var costString *string = nil
-	var side *string = nil
+	var amountString any = nil
+	var costString any = nil
+	var side any = nil
 	var fee any = nil
-	var orderId *string = nil
+	var orderId any = nil
 	if InOp(trade, "liquidity") {
 		if this.SafeString(trade, "liquidity") != nil && *this.SafeString(trade, "liquidity") == "T" {
 			takerOrMaker = "taker"
@@ -753,17 +753,17 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 			takerOrMaker = "maker"
 		}
 		var funds map[string]any = SafeMapTyped(trade, "funds")
-		amountString = this.SafeString(funds, baseId)
-		costString = this.SafeString(funds, quoteId)
+		amountString = DerefScalar(this.SafeString(funds, baseId))
+		costString = DerefScalar(this.SafeString(funds, quoteId))
 		fee = map[string]any{
 			"currency": this.SafeString(trade, "fee_currency"),
 			"cost":     this.SafeString(trade, "fee"),
 		}
-		side = this.SafeString(trade, "side")
-		orderId = this.SafeString(trade, "order_id")
+		side = DerefScalar(this.SafeString(trade, "side"))
+		orderId = DerefScalar(this.SafeString(trade, "order_id"))
 	} else {
-		amountString = this.SafeString(trade, "amount")
-		side = this.SafeString(trade, "order_type")
+		amountString = DerefScalar(this.SafeString(trade, "amount"))
+		side = DerefScalar(this.SafeString(trade, "order_type"))
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,

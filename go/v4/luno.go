@@ -524,7 +524,7 @@ func (this *Luno) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var currenciesData []any = SafeListTyped(response, "data")
+	var currenciesData any = this.SafeList(response, "data", []any{})
 	var grouped map[string]any = this.GroupBy(currenciesData, "native_currency")
 	var values []any = ObjectValues(grouped)
 
@@ -810,9 +810,9 @@ func (this *Luno) ParseBalance(response any) any {
 				return result[*code]
 			}(), "total"), balanceUnconfirmed))
 		} else if code != nil {
-			var account map[string]any = this.Account()
-			account["used"] = reservedUnconfirmed
-			account["total"] = balanceUnconfirmed
+			var account any = this.Account()
+			AddElementToObject(account, "used", reservedUnconfirmed)
+			AddElementToObject(account, "total", balanceUnconfirmed)
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -1241,7 +1241,7 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetTickers(params))
 	PanicOnError(response)
-	var rawTickers []any = SafeListTyped(response, "tickers")
+	var rawTickers any = this.SafeList(response, "tickers", []any{})
 	var tickers map[string]any = this.IndexBy(rawTickers, "pair")
 	var ids []string = ObjectKeys(tickers)
 	var result map[string]any = map[string]any{}
@@ -1364,16 +1364,16 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var feeBaseString *string = this.SafeString(trade, "fee_base")
 	var feeCounterString *string = this.SafeString(trade, "fee_counter")
-	var feeCurrency *string = nil
-	var feeCost *string = nil
+	var feeCurrency any = nil
+	var feeCost any = nil
 	if feeBaseString != nil {
 		if !Precise.StringEquals(feeBaseString, "0.0") {
-			feeCurrency = this.SafeString(market, "base")
+			feeCurrency = DerefScalar(this.SafeString(market, "base"))
 			feeCost = feeBaseString
 		}
 	} else if feeCounterString != nil {
 		if !Precise.StringEquals(feeCounterString, "0.0") {
-			feeCurrency = this.SafeString(market, "quote")
+			feeCurrency = DerefScalar(this.SafeString(market, "quote"))
 			feeCost = feeCounterString
 		}
 	}
@@ -1912,7 +1912,7 @@ func (this *Luno) ParseLedgerComment(comment any) any {
 		"Bought":     "trade",
 		"Failure":    "failed",
 	}
-	var referenceId *string = nil
+	var referenceId any = nil
 	var firstWord *string = this.SafeString(words, 0)
 	var thirdWord *string = this.SafeString(words, 2)
 	var fourthWord *string = this.SafeString(words, 3)
@@ -1921,7 +1921,7 @@ func (this *Luno) ParseLedgerComment(comment any) any {
 		typeVar = "fee"
 	}
 	if (IsEqual(typeVar, "reserved")) && (fourthWord != nil && *fourthWord == "order") {
-		referenceId = this.SafeString(words, 4)
+		referenceId = DerefScalar(this.SafeString(words, 4))
 	}
 	return map[string]any{
 		"type":        typeVar,

@@ -300,8 +300,8 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 		}
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var snapshot map[string]any = this.ParseOrderBook(orderbookData, symbol, timestamp, "bids", "asks")
-	snapshot["nonce"] = this.SafeInteger(data, "seq_no")
+	var snapshot any = this.ParseOrderBook(orderbookData, symbol, timestamp, "bids", "asks")
+	ccxt.AddElementToObject(snapshot, "nonce", this.SafeInteger(data, "seq_no"))
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash *string = this.SafeString(params, "channel")
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

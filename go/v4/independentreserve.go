@@ -532,9 +532,9 @@ func (this *Independentreserve) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "CurrencyCode")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "AvailableBalance")
-		account["total"] = this.SafeString(balance, "TotalBalance")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balance, "AvailableBalance"))
+		AddElementToObject(account, "total", this.SafeString(balance, "TotalBalance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -792,7 +792,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "CreatedTimestampUtc"))
 	var filled *string = this.SafeString(order, "VolumeFilled")
 	var feeRate *string = this.SafeString(order, "FeePercent")
-	var feeCost *string = nil
+	var feeCost any = nil
 	if (feeRate != nil) && (filled != nil) {
 		feeCost = Precise.StringMul(feeRate, filled)
 	}
@@ -1187,7 +1187,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market map[string]any = MapTyped(this.Market(symbol))
-		var fee map[string]any = SafeMapTyped(fees, market["base"])
+		var fee any = this.SafeDict(fees, market["base"], map[string]any{})
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       this.SafeDict(fee, "info"),
 			"symbol":     symbol,

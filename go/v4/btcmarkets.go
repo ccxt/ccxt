@@ -785,9 +785,9 @@ func (this *Btcmarkets) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "assetName")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["used"] = this.SafeString(balance, "locked")
-		account["total"] = this.SafeString(balance, "balance")
+		var account any = this.Account()
+		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
+		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -951,8 +951,8 @@ func (this *Btcmarkets) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	//     }
 	//
 	var timestamp *int64 = this.SafeIntegerProduct(response, "snapshotId", 0.001)
-	var orderbook map[string]any = this.ParseOrderBook(response, symbol, timestamp)
-	orderbook["nonce"] = this.SafeInteger(response, "snapshotId")
+	var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
+	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "snapshotId"))
 
 	ch <- orderbook
 	return nil
@@ -1252,13 +1252,13 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar any, si
 		}(),
 	}
 	var lowercaseType string = ToLower(typeVar)
-	var orderTypes map[string]any = MapTyped(this.SafeDict(this.Options, "orderTypes", map[string]any{
+	var orderTypes any = this.SafeDict(this.Options, "orderTypes", map[string]any{
 		"limit":       "Limit",
 		"market":      "Market",
 		"stop":        "Stop",
 		"stop limit":  "Stop Limit",
 		"take profit": "Take Profit",
-	}))
+	})
 	request["type"] = this.SafeString(orderTypes, lowercaseType, typeVar)
 	var priceIsRequired bool = false
 	var triggerPriceIsRequired bool = false

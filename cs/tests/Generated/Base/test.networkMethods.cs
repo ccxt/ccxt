@@ -126,7 +126,7 @@ public partial class BaseTest
                 for (int j = 0; j < (allCurrencyCodes?.Count ?? 0); j++)
                 {
                     string? randomCurrencyCode = ((string)allCurrencyCodes[j]);
-                    string? result = exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
+                    object result = exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
                     List<object> keys = new List<object>(((IDictionary<string,object>)defaultNetworkCodeReplacements).Keys);
                     for (int k = 0; k < keys.Count; k++)
                     {
@@ -134,7 +134,7 @@ public partial class BaseTest
                         object chainMapping = getValue(defaultNetworkCodeReplacements, chainBaseCoin);
                         object primaryNetworkCode = getValue(chainMapping, "primary");
                         object secondaryNetworkCode = getValue(chainMapping, "secondary");
-                        object msg = (((((("network protocol test failed for networkCode:" + randomNetworkCode) + " & currencyCode: ") + randomCurrencyCode) + ", result: ") + result) + ", expected: ");
+                        object msg = (((((("network protocol test failed for networkCode:" + randomNetworkCode) + " & currencyCode: ") + randomCurrencyCode) + ", result: ") + (result)) + ", expected: ");
                         if (isEqual(randomNetworkCode, primaryNetworkCode))
                         {
                             if ((randomCurrencyCode == chainBaseCoin))

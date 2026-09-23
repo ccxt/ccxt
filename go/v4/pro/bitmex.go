@@ -761,7 +761,7 @@ func (this *Bitmex) HandleTrades(client any, message map[string]any) {
 	//     }
 	//
 	var table string = "trade"
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data any = this.SafeList(message, "data", []any{})
 	var dataByMarketIds map[string]any = this.GroupBy(data, "symbol")
 	var marketIds []string = ccxt.ObjectKeys(dataByMarketIds)
 	for i := 0; i < len(marketIds); i++ {
@@ -832,7 +832,7 @@ func (this *Bitmex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(authenticated, nil) {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
-		var payload string = "GET" + "/realtime" + ccxt.ToString(timestamp)
+		var payload any = "GET" + "/realtime" + ccxt.ToString(timestamp)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256)
 		var request map[string]any = map[string]any{
 			"op":   "authKeyExpires",
@@ -1480,7 +1480,7 @@ func (this *Bitmex) HandleMyTrades(client any, message map[string]any) {
 	//     }
 	//
 	var messageHash *string = this.SafeString(message, "table")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data any = this.SafeList(message, "data", []any{})
 	var dataByExecType map[string]any = this.GroupBy(data, "execType")
 	var rawTrades any = this.SafeList(dataByExecType, "Trade", []any{})
 	var trades any = this.ParseTrades(rawTrades)

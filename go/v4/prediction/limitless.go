@@ -399,7 +399,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(responses)
 		var length int = ccxt.GetArrayLength(responses)
 		for j := 0; j < length; j++ {
-			var response map[string]any = ccxt.SafeMapTyped(responses, j)
+			var response any = this.SafeDict(responses, j)
 			var data any = this.SafeList(response, "data", []any{})
 			allRaw = this.ArrayConcat(allRaw, data)
 		}
@@ -1036,7 +1036,7 @@ func (this *Limitless) ParseEvent(event any) any {
 		return nil
 	}()
 	var hasEndDate bool = (endDate != nil) && (endDate == nil || *endDate != "")
-	var endTimestamp *int64 = func() *int64 {
+	var endTimestamp any = func() any {
 		if hasEndDate {
 			return this.Parse8601(endDate)
 		}
@@ -4102,7 +4102,7 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 			"lmts-timestamp": timestamp,
 			"lmts-signature": signature,
 		})
-		var headerKey string = "lmts-api" + "-key" // concatenating because of the php version
+		var headerKey any = "lmts-api" + "-key" // concatenating because of the php version
 		var headersKey map[string]any = map[string]any{}
 		ccxt.AddElementToObject(headersKey, headerKey, this.ApiKey)
 		headers = this.Extend(headers, headersKey)

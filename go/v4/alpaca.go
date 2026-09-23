@@ -905,7 +905,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		//        }
 		//    }
 		//
-		var trades map[string]any = SafeMapTyped(response, "trades")
+		var trades any = this.SafeDict(response, "trades", map[string]any{})
 		symbolTrades = this.SafeList(trades, marketId, []any{})
 	} else if method != nil && *method == "marketPublicGetV1beta3CryptoLocLatestTrades" {
 
@@ -924,7 +924,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		//        }
 		//    }
 		//
-		var trades map[string]any = SafeMapTyped(response, "trades")
+		var trades any = this.SafeDict(response, "trades", map[string]any{})
 		var symbolTrade any = this.SafeDict(trades, marketId, map[string]any{})
 		symbolTrades = []any{symbolTrade}
 	} else {
@@ -1168,7 +1168,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		//        }
 		//     }
 		//
-		var bars map[string]any = SafeMapTyped(response, "bars")
+		var bars any = this.SafeDict(response, "bars", map[string]any{})
 		var bar any = this.SafeDict(bars, marketId, map[string]any{})
 		ohlcvs = []any{bar}
 	} else {
@@ -2613,18 +2613,18 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var activityType *string = this.SafeString(transaction, "activity_type")
-	var txid *string = nil
+	var txid any = nil
 	var timestamp *int64 = nil
 	var datetime any = nil
-	var network *string = nil
-	var address *string = nil
-	var addressTo *string = nil
-	var addressFrom *string = nil
+	var network any = nil
+	var address any = nil
+	var addressTo any = nil
+	var addressFrom any = nil
 	var typeVar any = nil
 	var amount any = nil
 	var code any = nil
-	var status *string = nil
-	var comment *string = nil
+	var status any = nil
+	var comment any = nil
 	var internal any = nil
 	var fee any = nil
 	if activityType != nil {
@@ -2654,13 +2654,13 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		comment = activityType
 		internal = (activityType == nil || *activityType != "TRANS")
 	} else {
-		txid = this.SafeString(transaction, "tx_hash")
+		txid = DerefScalar(this.SafeString(transaction, "tx_hash"))
 		datetime = DerefScalar(this.SafeString(transaction, "created_at"))
 		timestamp = this.Parse8601(datetime)
-		network = this.SafeString(transaction, "chain")
-		address = this.SafeString(transaction, "to_address")
-		addressTo = this.SafeString(transaction, "to_address")
-		addressFrom = this.SafeString(transaction, "from_address")
+		network = DerefScalar(this.SafeString(transaction, "chain"))
+		address = DerefScalar(this.SafeString(transaction, "to_address"))
+		addressTo = DerefScalar(this.SafeString(transaction, "to_address"))
+		addressFrom = DerefScalar(this.SafeString(transaction, "from_address"))
 		typeVar = this.ParseTransactionType(this.SafeString(transaction, "direction"))
 		amount = DerefScalar(this.SafeNumber(transaction, "amount"))
 		var currencyId *string = this.SafeString(transaction, "asset")
@@ -2829,7 +2829,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 	//         }
 	//     ]
 	//
-	var account map[string]any = SafeMapTyped(response, "account")
+	var account any = this.SafeDict(response, "account", map[string]any{})
 	var positions []any = SafeListTyped(response, "positions")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -2837,11 +2837,11 @@ func (this *Alpaca) ParseBalance(response any) any {
 	var currencyId *string = this.SafeString(account, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	if code != nil {
-		var cashAccount map[string]any = this.Account()
-		cashAccount["free"] = this.SafeString(account, "cash") // cash already excludes the amounts held for open orders, verified live 2026-09-16
+		var cashAccount any = this.Account()
+		AddElementToObject(cashAccount, "free", this.SafeString(account, "cash")) // cash already excludes the amounts held for open orders, verified live 2026-09-16
 		var equity *string = this.SafeString(account, "equity")
 		var positionsValue *string = this.SafeString(account, "position_market_value")
-		cashAccount["total"] = Precise.StringSub(equity, positionsValue) // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+		AddElementToObject(cashAccount, "total", Precise.StringSub(equity, positionsValue)) // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
 		AddElementToObject(result, code, cashAccount)
 	}
 	for i := 0; i < len(positions); i++ {
@@ -2882,9 +2882,9 @@ func (this *Alpaca) ParseBalance(response any) any {
 			_, ok := result[*positionCode]
 			return ok
 		}()) {
-			var positionAccount map[string]any = this.Account()
-			positionAccount["free"] = this.SafeString(position, "qty_available")
-			positionAccount["total"] = this.SafeString(position, "qty")
+			var positionAccount any = this.Account()
+			AddElementToObject(positionAccount, "free", this.SafeString(position, "qty_available"))
+			AddElementToObject(positionAccount, "total", this.SafeString(position, "qty"))
 			AddElementToObject(result, positionCode, positionAccount)
 		}
 	}

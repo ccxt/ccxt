@@ -18,9 +18,9 @@ public partial class testMainClass : BaseTest
         // keep arriving quickly and stop once the book goes quiet.
         int maxIdleTime = 5000;
         Int64 now = exchange.milliseconds();
-        Int64 ends = (now + 15000);
+        object ends = (now + 15000);
         bool idle = false;
-        while ((now < ends) && !idle)
+        while ((isLessThan(now, ends)) && !idle)
         {
             object response = null;
             bool success = true;

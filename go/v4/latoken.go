@@ -800,9 +800,9 @@ func (this *Latoken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "available")
-		account["used"] = this.SafeString(balance, "blocked")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balance, "available"))
+		AddElementToObject(account, "used", this.SafeString(balance, "blocked"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1246,7 +1246,7 @@ func (this *Latoken) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options map[string]any = SafeMapTyped(this.Options, "fetchTradingFee")
+	var options any = this.SafeDict(this.Options, "fetchTradingFee", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateTradingFee")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	params = this.Omit(params, "method")
@@ -1507,7 +1507,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var orderSide *string = this.SafeString(order, "side")
-	var side *string = nil
+	var side any = nil
 	if orderSide != nil {
 		var parts []string = Split(orderSide, "_")
 		var partsLength int = len(parts)
@@ -1981,7 +1981,7 @@ func (this *Latoken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes152512)
 	}
 	var request map[string]any = map[string]any{}
-	var market map[string]any = nil
+	var market any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var response any = nil

@@ -702,7 +702,7 @@ func (this *Digifinex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	//         "code":200
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data any = this.SafeList(response, "data", []any{})
 	var groupedById map[string]any = this.GroupBy(data, "currency")
 	var values []any = ObjectValues(groupedById)
 
@@ -771,7 +771,7 @@ func (this *Digifinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var options any = this.SafeDict(this.Options, "fetchMarkets", map[string]any{})
 	var method *string = this.SafeString(options, "method", "fetch_markets_v2")
 	if method != nil && *method == "fetch_markets_v2" {
 
@@ -1111,12 +1111,12 @@ func (this *Digifinex) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		var free *string = this.SafeString2(balance, "free", "avail_balance")
 		var total *string = this.SafeString2(balance, "total", "equity")
-		account["free"] = free
-		account["used"] = Precise.StringSub(total, free)
-		account["total"] = total
+		AddElementToObject(account, "free", free)
+		AddElementToObject(account, "used", Precise.StringSub(total, free))
+		AddElementToObject(account, "total", total)
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1418,17 +1418,12 @@ func (this *Digifinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = map[string]any{}
-	var tickers []any = SafeList2Typed(response, "ticker", "data")
+	var tickers any = this.SafeList2(response, "ticker", "data", []any{})
 	var date *int64 = this.SafeInteger(response, "date")
-	for i := 0; i < len(tickers); i++ {
+	for i := 0; i < GetArrayLength(tickers); i++ {
 		var rawTicker map[string]any = this.Extend(map[string]any{
 			"date": date,
-		}, func() any {
-			if i >= 0 && i < len(tickers) {
-				return DerefScalar(tickers[i])
-			}
-			return nil
-		}())
+		}, GetValue(tickers, i))
 		var ticker any = this.ParseTicker(rawTicker)
 		var symbol any = GetValue(ticker, "symbol")
 		if symbol != nil {
@@ -1756,9 +1751,9 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
-		var feeCurrencyCode *string = nil
+		var feeCurrencyCode any = nil
 		if feeCurrencyId != nil {
-			feeCurrencyCode = this.SafeCurrencyCode(feeCurrencyId)
+			feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
 		}
 		fee = map[string]any{
 			"cost":     feeCostString,
@@ -4283,7 +4278,7 @@ func (this *Digifinex) fetchCrossBorrowRatesBody(ch chan any, optionalArgs ...an
 	//         "equity": 45.133305540922
 	//     }
 	//
-	var result []any = SafeListTyped(response, "list")
+	var result any = this.SafeList(response, "list", []any{})
 
 	ch <- this.ParseBorrowRates(result, "currency")
 	return nil
@@ -4309,7 +4304,7 @@ func (this *Digifinex) ParseBorrowRate(info any, optionalArgs ...any) any {
 		"info":      info,
 	}
 }
-func (this *Digifinex) ParseBorrowRates(info []any, codeKey any) map[string]any {
+func (this *Digifinex) ParseBorrowRates(info any, codeKey any) map[string]any {
 	//
 	//     {
 	//         "valuation_rate": 1,
@@ -4319,13 +4314,8 @@ func (this *Digifinex) ParseBorrowRates(info []any, codeKey any) map[string]any 
 	//     },
 	//
 	var result map[string]any = map[string]any{}
-	for i := 0; i < len(info); i++ {
-		var item any = func() any {
-			if i >= 0 && i < len(info) {
-				return DerefScalar(info[i])
-			}
-			return nil
-		}()
+	for i := 0; i < GetArrayLength(info); i++ {
+		var item any = GetValue(info, i)
 		var currency *string = this.SafeString(item, codeKey)
 		var code *string = this.SafeCurrencyCode(currency)
 		var borrowRate any = this.ParseBorrowRate(item)

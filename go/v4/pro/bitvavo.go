@@ -237,15 +237,10 @@ func (this *Bitvavo) HandleTicker(client any, message map[string]any) {
 	//
 	this.HandleBidAsk(client, message)
 	var event *string = this.SafeString(message, "event")
-	var tickers []any = ccxt.SafeListTyped(message, "data")
+	var tickers any = this.SafeList(message, "data", []any{})
 	var result []any = []any{}
-	for i := 0; i < len(tickers); i++ {
-		var data any = func() any {
-			if i >= 0 && i < len(tickers) {
-				return ccxt.DerefScalar(tickers[i])
-			}
-			return nil
-		}()
+	for i := 0; i < ccxt.GetArrayLength(tickers); i++ {
+		var data any = ccxt.GetValue(tickers, i)
 		var marketId *string = this.SafeString(data, "market")
 		var market any = this.SafeMarket(marketId, nil, "-")
 		var messageHash any = ccxt.Add(ccxt.Add(event, "@"), marketId)
@@ -1095,7 +1090,7 @@ func (this *Bitvavo) HandleOrderBook(client any, message map[string]any) {
 		if watchingOrderBookSnapshot == nil {
 			ccxt.AddElementToObject(subscription, flagKey, true)
 			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, subscription)
-			var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBookSnapshot")
+			var options any = this.SafeDict(this.Options, "watchOrderBookSnapshot", map[string]any{})
 			var delay *int64 = this.SafeInteger(options, "delay", this.RateLimit)
 			// fetch the snapshot in a separate async call after a warmup delay
 			this.Delay(delay, this.WatchOrderBookSnapshotAsync, client, message, subscription)
@@ -1172,8 +1167,8 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any)
 		// the market was unsubscribed while this snapshot request was in flight
 		return
 	}
-	var snapshot map[string]any = this.ParseOrderBook(response, symbol)
-	snapshot["nonce"] = this.SafeInteger(response, "nonce")
+	var snapshot any = this.ParseOrderBook(response, symbol)
+	ccxt.AddElementToObject(snapshot, "nonce", this.SafeInteger(response, "nonce"))
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	// unroll the accumulated deltas
 	var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
@@ -1578,7 +1573,7 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	} else {
 		panic(ccxt.ArgumentsRequired(this.Id + " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
-	var market map[string]any = nil
+	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = ccxt.GetValue(market, "id")
@@ -1762,7 +1757,7 @@ func (this *Bitvavo) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any
 	retRes12598 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes12598)
 	var request map[string]any = map[string]any{}
-	var market map[string]any = nil
+	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = ccxt.GetValue(market, "id")
@@ -2470,7 +2465,7 @@ func (this *Bitvavo) authenticateBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(future, nil) {
 		var timestamp int64 = this.Milliseconds()
 		var stringTimestamp string = ccxt.ToString(timestamp)
-		var auth string = stringTimestamp + "GET/" + this.Version + "/websocket"
+		var auth any = stringTimestamp + "GET/" + this.Version + "/websocket"
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 		var action string = "authenticate"
 		var request map[string]any = map[string]any{

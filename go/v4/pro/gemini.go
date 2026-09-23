@@ -133,7 +133,7 @@ func (this *Gemini) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	trades := (<-this.HelperForWatchMultipleConstructAsync("trades", symbols, params))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first []any = ccxt.SafeListTyped(trades, 0)
+		var first any = this.SafeList(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -305,7 +305,7 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp a
 		for i := 0; i < len(symbols); i++ {
 			var symbol string = ccxt.GetValue(symbols, i).(string)
 			var stored any = storesForSymbols[symbol]
-			var messageHash string = "trades:" + symbol
+			var messageHash any = "trades:" + symbol
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		}
 	}

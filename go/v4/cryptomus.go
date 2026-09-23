@@ -409,7 +409,7 @@ func (this *Cryptomus) ParseMarket(market any) any {
 	var quoteId any = GetValue(parts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var fees map[string]any = SafeMapTyped(this.Fees, "trading")
+	var fees any = this.SafeDict(this.Fees, "trading")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         Add(Add(base, "/"), quote),
@@ -506,7 +506,7 @@ func (this *Cryptomus) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	//         ]
 	//     }
 	//
-	var coins []any = SafeListTyped(response, "result")
+	var coins any = this.SafeList(response, "result")
 	var groupedById map[string]any = this.GroupBy(coins, "currency_code")
 	var groupedArray []any = ObjectValues(groupedById)
 
@@ -862,9 +862,9 @@ func (this *Cryptomus) ParseBalance(balance any) any {
 		var balanceEntry any = GetValue(balance, i)
 		var currencyId *string = this.SafeString(balanceEntry, "ticker")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balanceEntry, "available")
-		account["used"] = this.SafeString(balanceEntry, "held")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balanceEntry, "available"))
+		AddElementToObject(account, "used", this.SafeString(balanceEntry, "held"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

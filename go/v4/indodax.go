@@ -521,9 +521,9 @@ func (this *Indodax) ParseBalance(response any) any {
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(free, currencyId)
-		account["used"] = this.SafeString(used, currencyId)
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(free, currencyId))
+		AddElementToObject(account, "used", this.SafeString(used, currencyId))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -992,11 +992,11 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status", "open"))
 	var symbol any = nil
-	var cost *string = nil
+	var cost any = nil
 	var price *string = this.SafeString(order, "price")
-	var amount *string = nil
-	var remaining *string = nil
-	var filled *string = nil
+	var amount any = nil
+	var remaining any = nil
+	var filled any = nil
 	var marketId *string = this.SafeString(order, "pair")
 	market = this.SafeMarket(marketId, market)
 	if market != nil {
@@ -1009,12 +1009,12 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
 		if (IsEqual(GetValue(market, "baseId"), "idr")) && (InOp(order, "remain_rp")) {
 			baseId = "rp"
 		}
-		cost = this.SafeString(order, Add("order_", quoteId))
-		amount = this.SafeString(order, Add("order_", baseId))
-		remaining = this.SafeString(order, Add("remain_", baseId))
+		cost = DerefScalar(this.SafeString(order, Add("order_", quoteId)))
+		amount = DerefScalar(this.SafeString(order, Add("order_", baseId)))
+		remaining = DerefScalar(this.SafeString(order, Add("remain_", baseId)))
 		// filled buy orders on idr-quoted markets carry the executed base amount
 		// only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-		filled = this.SafeString(order, Add("receive_", baseId))
+		filled = DerefScalar(this.SafeString(order, Add("receive_", baseId)))
 	}
 	var timestamp *int64 = this.SafeInteger(order, "submit_time")
 	var fee any = nil

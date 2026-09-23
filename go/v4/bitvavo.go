@@ -1306,8 +1306,8 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"])
-	orderbook["nonce"] = this.SafeInteger(response, "nonce")
+	var orderbook any = this.ParseOrderBook(response, market["symbol"])
+	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "nonce"))
 
 	ch <- orderbook
 	return nil
@@ -1433,9 +1433,9 @@ func (this *Bitvavo) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "symbol")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "available")
-		account["used"] = this.SafeString(balance, "inOrder")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balance, "available"))
+		AddElementToObject(account, "used", this.SafeString(balance, "inOrder"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

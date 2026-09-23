@@ -1362,7 +1362,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var makerOrderId *string = this.SafeString(trade, "maker_order_id")
 	var takerOrderId *string = this.SafeString(trade, "taker_order_id")
-	var orderId *string = nil
+	var orderId any = nil
 	if makerOrderId != nil {
 		orderId = makerOrderId
 	} else if takerOrderId != nil {
@@ -1639,9 +1639,9 @@ func (this *Bigone) ParseBalance(response any) any {
 		}()
 		var symbol *string = this.SafeString(balance, "asset_symbol")
 		var code *string = this.SafeCurrencyCode(symbol)
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString(balance, "balance")
-		account["used"] = this.SafeString(balance, "locked_balance")
+		var account any = this.Account()
+		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
+		AddElementToObject(account, "used", this.SafeString(balance, "locked_balance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1751,14 +1751,14 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var typeVar *string = this.ParseType(this.SafeString(order, "type"))
 	var price *string = this.SafeString(order, "price")
-	var amount *string = nil
-	var filled *string = nil
-	var cost *string = nil
+	var amount any = nil
+	var filled any = nil
+	var cost any = nil
 	if (typeVar != nil && *typeVar == "market") && IsEqual(side, "buy") {
-		cost = this.SafeString(order, "filled_amount")
+		cost = DerefScalar(this.SafeString(order, "filled_amount"))
 	} else {
-		amount = this.SafeString(order, "amount")
-		filled = this.SafeString(order, "filled_amount")
+		amount = DerefScalar(this.SafeString(order, "amount"))
+		filled = DerefScalar(this.SafeString(order, "filled_amount"))
 	}
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -2475,8 +2475,8 @@ func (this *Bigone) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
-	var dataLength int = len(data)
+	var data any = this.SafeList(response, "data", []any{})
+	var dataLength int = GetArrayLength(data)
 	if dataLength < 1 {
 		panic(ExchangeError(this.Id + " fetchDepositAddress() returned empty address response"))
 	}

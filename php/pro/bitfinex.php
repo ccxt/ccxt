@@ -919,7 +919,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $updateType = $this->safe_value($message, 1);
         $data = array();
         if ($updateType === 'ws') {
-            $data = $this->safe_list($message, 2);
+            $data = $this->safe_value($message, 2);
         } else {
             $data = array( $this->safe_value($message, 2) );
         }

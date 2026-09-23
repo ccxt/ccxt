@@ -1021,8 +1021,8 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		if code == nil {
 			continue
 		}
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "available")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		var reserved *string = this.SafeString(balance, "reserved")
 		var staked *string = this.SafeString(balance, "staked")
 		var used any = reserved
@@ -1034,8 +1034,8 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 				return Precise.StringAdd(reserved, staked)
 			}()
 		}
-		account["used"] = used
-		account["total"] = this.SafeString(balance, "total")
+		AddElementToObject(account, "used", used)
+		AddElementToObject(account, "total", this.SafeString(balance, "total"))
 		AddElementToObject(result, code, account)
 	}
 

@@ -2209,7 +2209,7 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 	var length int = len(keys)
 	if length != 0 {
 		for i := 0; i < length; i++ {
-			var key string = keys[i]
+			var key any = GetValue(keys, i)
 			var network any = GetValue(networks, key)
 			var deposit *bool = this.SafeBool(network, "deposit")
 			var currencyDeposit *bool = this.SafeBool(currency, "deposit")
@@ -2990,7 +2990,7 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 	if typeVar == "market" {
 		takerOrMaker = "taker"
 	}
-	var rate *string = func() *string {
+	var rate any = func() any {
 		if feeRate != nil {
 			return this.NumberToString(feeRate)
 		}
@@ -4198,7 +4198,7 @@ func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, network
 	}
 	return chosenNetworkId
 }
-func (this *BaseExchange) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) map[string]any {
+func (this *BaseExchange) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
 	timestamp := GetArg(optionalArgs, 0, nil)
 	_ = timestamp
 	bidsKey := GetArg(optionalArgs, 1, "bids")
@@ -4266,7 +4266,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 	if IsArray(response) {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var item any = GetValue(response, i)
-			var id *string = func() *string {
+			var id any = func() any {
 				if marketIdKey == nil {
 					return nil
 				}
@@ -5010,7 +5010,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	var i_count int = 6
 	var tradesLength int = GetArrayLength(trades)
 	var oldest any = mathMin(tradesLength, limit)
-	var options map[string]any = SafeMapTyped(this.Options, "buildOHLCVC")
+	var options any = this.SafeDict(this.Options, "buildOHLCVC", map[string]any{})
 	var skipZeroPrices *bool = this.SafeBool(options, "skipZeroPrices", true)
 	for i := 0; IsLessThan(i, oldest); i++ {
 		var trade any = GetValue(trades, i)
@@ -5551,7 +5551,7 @@ func (this *BaseExchange) HandleOptionAndParams(params any, methodName any, opti
 	// This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
-	var defaultOptionName string = "default" + this.Capitalize(optionName) // we also need to check the 'defaultXyzWhatever'
+	var defaultOptionName any = "default" + this.Capitalize(optionName) // we also need to check the 'defaultXyzWhatever'
 	// check if params contain the key
 	var value any = this.SafeValue2(params, optionName, defaultOptionName)
 	if !IsEqual(value, nil) {
@@ -6390,7 +6390,7 @@ func (this *BaseExchange) fetchContractDepositAddressBody(ch chan any, code any,
 	_ = params
 	panic(NotSupported(this.Id + " fetchContractDepositAddress() is not supported yet"))
 }
-func (this *BaseExchange) Account() map[string]any {
+func (this *BaseExchange) Account() any {
 	return map[string]any{
 		"free":  nil,
 		"used":  nil,
@@ -6456,7 +6456,7 @@ func (this *BaseExchange) Currency(code any) any {
 	}
 	panic(ExchangeError(Add(this.Id+" does not have currency code ", code)))
 }
-func (this *BaseExchange) Market(symbol any) map[string]any {
+func (this *BaseExchange) Market(symbol any) any {
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " market() requires a symbol argument"))
 	}
@@ -6466,19 +6466,19 @@ func (this *BaseExchange) Market(symbol any) map[string]any {
 	}
 	var marketsById any = this.Markets_by_id
 	if InOp(markets, symbol) {
-		return MapTyped(GetValue(markets, symbol))
+		return GetValue(markets, symbol)
 	} else if (!IsEqual(marketsById, nil)) && (InOp(marketsById, symbol)) {
 		var marketsList any = GetValue(marketsById, symbol)
 		var defaultType *string = this.SafeString2(this.Options, "defaultType", "defaultSubType", "spot")
 		for i := 0; i < GetArrayLength(marketsList); i++ {
 			var market any = GetValue(marketsList, i)
 			if IsEqual(GetValue(market, defaultType), true) {
-				return MapTyped(market)
+				return market
 			}
 		}
-		return MapTyped(GetValue(marketsList, 0))
+		return GetValue(marketsList, 0)
 	} else if (EndsWith(symbol, "-C")) || (EndsWith(symbol, "-P")) || (StartsWith(symbol, "C-")) || (StartsWith(symbol, "P-")) {
-		return MapTyped(this.DerivedExchange.CreateExpiredOptionMarket(symbol))
+		return this.DerivedExchange.CreateExpiredOptionMarket(symbol)
 	}
 	panic(BadSymbol(Add(this.Id+" does not have market symbol ", symbol)))
 }
@@ -7584,7 +7584,7 @@ func (this *BaseExchange) AssignDefaultDepositWithdrawFees(fee any, optionalArgs
 	}
 	var currencyCode *string = this.SafeString(currency, "code")
 	for i := 0; i < numNetworks; i++ {
-		var network string = networkKeys[i]
+		var network any = GetValue(networkKeys, i)
 		if IsEqual(network, currencyCode) {
 			AddElementToObject(fee, "withdraw", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, i)), "withdraw"))
 			AddElementToObject(fee, "deposit", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, i)), "deposit"))
@@ -8505,14 +8505,14 @@ func (this *BaseExchange) ParseOptionChain(response any, optionalArgs ...any) an
 	var optionStructures map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var info any = GetValue(response, i)
-		var currencyId *string = func() *string {
+		var currencyId any = func() any {
 			if currencyKey == nil {
 				return nil
 			}
 			return this.SafeString(info, currencyKey)
 		}()
 		var currency map[string]any = this.SafeCurrency(currencyId).(map[string]any)
-		var marketId *string = func() *string {
+		var marketId any = func() any {
 			if symbolKey == nil {
 				return nil
 			}
@@ -8538,7 +8538,7 @@ func (this *BaseExchange) ParseMarginModes(response any, optionalArgs ...any) an
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var info any = GetValue(response, i)
-		var marketId *string = func() *string {
+		var marketId any = func() any {
 			if symbolKey == nil {
 				return nil
 			}
@@ -8571,7 +8571,7 @@ func (this *BaseExchange) ParseLeverages(response any, optionalArgs ...any) any 
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var info any = GetValue(response, i)
-		var marketId *string = func() *string {
+		var marketId any = func() any {
 			if symbolKey == nil {
 				return nil
 			}
@@ -8673,7 +8673,7 @@ func (this *BaseExchange) ConvertExpireDate(date any) any {
 	var day string = Slice(date, 4, 6)
 	// the milliseconds are spelled out because every caller writes the result into
 	// expiryDatetime, which types.ts documents in the ISO 8601 form with them
-	var reconstructedDate string = "20" + year + "-" + month + "-" + day + "T00:00:00.000Z"
+	var reconstructedDate any = "20" + year + "-" + month + "-" + day + "T00:00:00.000Z"
 	return reconstructedDate
 }
 func (this *BaseExchange) ConvertExpireDateToMarketIdDate(date any) any {
@@ -8777,7 +8777,7 @@ func (this *BaseExchange) ParseMarginModifications(response any, optionalArgs ..
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var info any = GetValue(response, i)
-		var marketId *string = func() *string {
+		var marketId any = func() any {
 			if symbolKey == nil {
 				return nil
 			}

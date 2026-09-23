@@ -1636,7 +1636,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var matches []any = SafeListTyped(response, "matches")
-	var txs []any = SafeListTyped(response, "txs")
+	var txs any = this.SafeList(response, "txs", []any{})
 	var txsBySubmission map[string]any = this.IndexBy(txs, "submission_idx")
 	var trades []any = []any{}
 	for i := 0; i < len(matches); i++ {
@@ -2214,7 +2214,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteAsset map[string]any = SafeMapTyped(assetsByCode, quote)
 		var baseId *string = this.SafeString(baseAsset, "product_id", rawBaseId)
 		var quoteId *string = this.SafeString(quoteAsset, "product_id", rawQuoteId)
-		var settleId *string = func() *string {
+		var settleId any = func() any {
 			if contract {
 				return quoteId
 			}
@@ -3328,10 +3328,10 @@ func (this *Nado) ParseBalance(response any) any {
 		}
 		var balance map[string]any = SafeMapTyped(rawBalance, "balance")
 		var amount *string = Precise.StringDiv(this.SafeString(balance, "amount"), "1000000000000000000")
-		var account map[string]any = this.Account()
-		account["total"] = amount
+		var account any = this.Account()
+		AddElementToObject(account, "total", amount)
 		// the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
-		account["free"] = amount
+		AddElementToObject(account, "free", amount)
 		if !IsEqual(code, nil) {
 			AddElementToObject(result, code, account)
 		}
@@ -3554,9 +3554,9 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id *string = nil
+	var id any = nil
 	var timestamp *int64 = nil
-	var timeInForce *string = nil
+	var timeInForce any = nil
 	var postOnly any = nil
 	var side any = nil
 	var price any = nil
@@ -3564,7 +3564,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 	var filled any = nil
 	var remaining any = nil
 	var cost any = nil
-	var average *string = nil
+	var average any = nil
 	var fee any = nil
 	var lastTradeTimestamp *int64 = nil
 	var lastUpdateTimestamp *int64 = nil
@@ -3640,14 +3640,14 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		price = this.ParseX18(this.SafeString(order, "price_x18"))
 		status = DerefScalar(this.SafeString(order, "status", "open"))
 	} else {
-		var placeOrder map[string]any = SafeDict2Typed(order, "place_order", "order")
+		var placeOrder any = this.SafeDict2(order, "place_order", "order", map[string]any{})
 		var rawOrder map[string]any = SafeMapTyped(placeOrder, "order")
 		var marketId *string = this.SafeString(placeOrder, "product_id")
 		market = this.SafeMarket(marketId, market)
 		var data map[string]any = SafeMapTyped(order, "data")
-		id = this.SafeString(data, "digest")
+		id = DerefScalar(this.SafeString(data, "digest"))
 		if IsEqual(id, nil) {
-			id = this.SafeString(placeOrder, "digest")
+			id = DerefScalar(this.SafeString(placeOrder, "digest"))
 			timestamp = this.SafeTimestamp(order, "placed_at")
 			lastUpdateTimestamp = this.SafeTimestamp(order, "updated_at")
 		}

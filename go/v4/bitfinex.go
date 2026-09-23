@@ -956,7 +956,7 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		// baseId = 'f' + baseId;
 		// quoteId = 'f' + quoteId;
 		var settle any = nil
-		var settleId *string = nil
+		var settleId any = nil
 		if swap {
 			settle = quote
 			settleId = quote
@@ -1322,10 +1322,10 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		var interest *string = this.SafeString(balance, 3)
 		if interest == nil || *interest != "0" {
-			account["debt"] = interest
+			AddElementToObject(account, "debt", interest)
 		}
 		var typeVar *string = this.SafeString(balance, 0)
 		var currencyId *string = this.SafeStringLower(balance, 1, "")
@@ -1335,8 +1335,8 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var derivativeCondition bool = (!isDerivative || isDerivativeCode)
 		if (accountType == typeVar || (accountType != nil && typeVar != nil && *accountType == *typeVar)) && derivativeCondition {
 			var code *string = this.SafeCurrencyCode(currencyId)
-			account["total"] = this.SafeString(balance, 2)
-			account["free"] = this.SafeString(balance, 4)
+			AddElementToObject(account, "total", this.SafeString(balance, 2))
+			AddElementToObject(account, "free", this.SafeString(balance, 4))
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -1646,7 +1646,7 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var firstValue *string = this.SafeString(ticker, 0)
 	var hasMarketId bool = (firstValue != nil) && (StartsWith(firstValue, "t") || StartsWith(firstValue, "f"))
 	var isFetchTicker bool = !hasMarketId
-	var symbol *string = nil
+	var symbol any = nil
 	var minusIndex int = 0
 	if isFetchTicker {
 		minusIndex = 1
@@ -1655,38 +1655,38 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 	}
 	var isFundingCurrency bool = (length >= 17)
-	symbol = this.SafeSymbol(nil, market)
-	var last *string = nil
-	var bid *string = nil
-	var ask *string = nil
-	var change *string = nil
+	symbol = DerefScalar(this.SafeSymbol(nil, market))
+	var last any = nil
+	var bid any = nil
+	var ask any = nil
+	var change any = nil
 	var percentage any = nil
-	var volume *string = nil
-	var high *string = nil
-	var low *string = nil
+	var volume any = nil
+	var high any = nil
+	var low any = nil
 	if isFundingCurrency {
 		// per api docs, they are different array type
-		last = this.SafeString(ticker, 10-minusIndex)
-		bid = this.SafeString(ticker, 2-minusIndex)
-		ask = this.SafeString(ticker, 5-minusIndex)
-		change = this.SafeString(ticker, 8-minusIndex)
+		last = DerefScalar(this.SafeString(ticker, 10-minusIndex))
+		bid = DerefScalar(this.SafeString(ticker, 2-minusIndex))
+		ask = DerefScalar(this.SafeString(ticker, 5-minusIndex))
+		change = DerefScalar(this.SafeString(ticker, 8-minusIndex))
 		// DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
 		// branch reads at index 6 and scales
 		percentage = Precise.StringMul(this.SafeString(ticker, 9-minusIndex), "100")
-		volume = this.SafeString(ticker, 11-minusIndex)
-		high = this.SafeString(ticker, 12-minusIndex)
-		low = this.SafeString(ticker, 13-minusIndex)
+		volume = DerefScalar(this.SafeString(ticker, 11-minusIndex))
+		high = DerefScalar(this.SafeString(ticker, 12-minusIndex))
+		low = DerefScalar(this.SafeString(ticker, 13-minusIndex))
 	} else {
 		// on trading pairs (ex. tBTCUSD or tHMSTR:USD)
-		last = this.SafeString(ticker, 7-minusIndex)
-		bid = this.SafeString(ticker, 1-minusIndex)
-		ask = this.SafeString(ticker, 3-minusIndex)
-		change = this.SafeString(ticker, 5-minusIndex)
+		last = DerefScalar(this.SafeString(ticker, 7-minusIndex))
+		bid = DerefScalar(this.SafeString(ticker, 1-minusIndex))
+		ask = DerefScalar(this.SafeString(ticker, 3-minusIndex))
+		change = DerefScalar(this.SafeString(ticker, 5-minusIndex))
 		percentage = DerefScalar(this.SafeString(ticker, 6-minusIndex))
 		percentage = Precise.StringMul(percentage, "100")
-		volume = this.SafeString(ticker, 8-minusIndex)
-		high = this.SafeString(ticker, 9-minusIndex)
-		low = this.SafeString(ticker, 10-minusIndex)
+		volume = DerefScalar(this.SafeString(ticker, 8-minusIndex))
+		high = DerefScalar(this.SafeString(ticker, 9-minusIndex))
+		low = DerefScalar(this.SafeString(ticker, 10-minusIndex))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1883,9 +1883,9 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		side = "buy"
 	}
-	var orderId *string = nil
+	var orderId any = nil
 	var takerOrMaker any = nil
-	var typeVar *string = nil
+	var typeVar any = nil
 	var fee any = nil
 	var symbol *string = this.SafeSymbol(nil, market)
 	var timestampIndex int = func() int {
@@ -1898,7 +1898,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	if isPrivate {
 		var marketId any = GetValue(tradeList, 1)
 		symbol = this.SafeSymbol(marketId)
-		orderId = this.SafeString(tradeList, 3)
+		orderId = DerefScalar(this.SafeString(tradeList, 3))
 		var maker *int64 = this.SafeInteger(tradeList, 8)
 		takerOrMaker = func() string {
 			if maker != nil && *maker == 1 {
@@ -1915,7 +1915,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": feeCurrency,
 		}
 		var orderType any = GetValue(tradeList, 6)
-		typeVar = this.SafeString(GetValue(this.Options, "exchangeTypes"), orderType)
+		typeVar = DerefScalar(this.SafeString(GetValue(this.Options, "exchangeTypes"), orderType))
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -2188,15 +2188,15 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var price any = DerefScalar(this.SafeString(orderList, 16))
-	var triggerPrice *string = nil
+	var triggerPrice any = nil
 	if (orderType != nil && *orderType == "EXCHANGE STOP") || (orderType != nil && *orderType == "EXCHANGE STOP LIMIT") {
 		price = nil
-		triggerPrice = this.SafeString(orderList, 16)
+		triggerPrice = DerefScalar(this.SafeString(orderList, 16))
 		if orderType != nil && *orderType == "EXCHANGE STOP LIMIT" {
 			price = DerefScalar(this.SafeString(orderList, 19))
 		}
 	}
-	var status *string = nil
+	var status any = nil
 	var statusString *string = this.SafeString(orderList, 13)
 	if statusString != nil {
 		var parts []string = Split(statusString, " @ ")
@@ -3266,13 +3266,13 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	//
 	var result any = this.SafeList(response, 4, []any{})
 	var poolAddress *string = this.SafeString(result, 5)
-	var address *string = func() *string {
+	var address any = func() any {
 		if poolAddress == nil {
 			return this.SafeString(result, 4)
 		}
 		return poolAddress
 	}()
-	var tag *string = func() *string {
+	var tag any = func() any {
 		if poolAddress == nil {
 			return nil
 		}
@@ -3366,13 +3366,13 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 	var amount any = nil
 	var id any = nil
 	var status any = nil
-	var tag *string = nil
+	var tag any = nil
 	var typeVar any = nil
 	var feeCost any = nil
-	var txid *string = nil
-	var addressTo *string = nil
+	var txid any = nil
+	var addressTo any = nil
 	var network any = nil
-	var comment *string = nil
+	var comment any = nil
 	if transactionLength == 8 {
 		var data any = this.SafeList(transaction, 4, []any{})
 		timestamp = this.SafeInteger(transaction, 0)
@@ -3390,7 +3390,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 			id = nil
 			status = "failed"
 		}
-		tag = this.SafeString(data, 3)
+		tag = DerefScalar(this.SafeString(data, 3))
 		typeVar = "withdrawal"
 		var networkId *string = this.SafeString(data, 2)
 		network = this.NetworkIdToCode(ToUpper(networkId), code) // withdraw returns in lowercase
@@ -3416,9 +3416,9 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 		if !IsEqual(feeCost, nil) {
 			feeCost = Precise.StringAbs(feeCost)
 		}
-		addressTo = this.SafeString(transaction, 16)
-		txid = this.SafeString(transaction, 20)
-		comment = this.SafeString(transaction, 21)
+		addressTo = DerefScalar(this.SafeString(transaction, 16))
+		txid = DerefScalar(this.SafeString(transaction, 20))
+		comment = DerefScalar(this.SafeString(transaction, 21))
 	}
 	return map[string]any{
 		"info":        transaction,
@@ -3554,17 +3554,17 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var takerFeeDeriv *float64 = this.SafeNumber(takerData, 5)
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
-		var market map[string]any = this.Market(symbol)
+		var market any = this.Market(symbol)
 		var fee map[string]any = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"percentage": true,
 			"tierBased":  true,
 		}
-		if InOp(fiat, market["quote"]) {
+		if InOp(fiat, GetValue(market, "quote")) {
 			fee["maker"] = makerFeeFiat
 			fee["taker"] = takerFeeFiat
-		} else if market["contract"] == true {
+		} else if GetValue(market, "contract") == true {
 			fee["maker"] = makerFeeDeriv
 			fee["taker"] = takerFeeDeriv
 		} else {

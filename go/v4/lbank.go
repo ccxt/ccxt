@@ -587,7 +587,7 @@ func (this *Lbank) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//        "ts": "1747973911431"
 	//    }
 	//
-	var currenciesData []any = SafeListTyped(response, "data")
+	var currenciesData any = this.SafeList(response, "data", []any{})
 	var grouped map[string]any = this.GroupBy(currenciesData, "assetCode")
 	var values []any = ObjectValues(grouped)
 
@@ -1328,7 +1328,7 @@ func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee any = nil
 	var feeCost *string = this.SafeString(trade, "tradeFee")
 	if feeCost != nil {
-		var feeCurr *string = func() *string {
+		var feeCurr any = func() any {
 			if side != nil && *side == "buy" {
 				return this.SafeString(market, "base")
 			}
@@ -1400,7 +1400,7 @@ func (this *Lbank) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	} else {
 		request["size"] = 600 // max
 	}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchTrades")
+	var options any = this.SafeDict(this.Options, "fetchTrades", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "spotPublicGetTrades")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	params = this.Omit(params, "method")
@@ -1626,9 +1626,9 @@ func (this *Lbank) ParseBalance(response any) any {
 		for i := 0; i < len(currencies); i++ {
 			var currencyId string = GetValue(currencies, i).(string)
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["used"] = this.SafeString(used, currencyId)
-			account["free"] = this.SafeString(free, currencyId)
+			var account any = this.Account()
+			AddElementToObject(account, "used", this.SafeString(used, currencyId))
+			AddElementToObject(account, "free", this.SafeString(free, currencyId))
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -1642,9 +1642,9 @@ func (this *Lbank) ParseBalance(response any) any {
 			var item any = GetValue(balances, i)
 			var currencyId *string = this.SafeString(item, "asset")
 			var codeInner *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(item, "free")
-			account["used"] = this.SafeString(item, "locked")
+			var account any = this.Account()
+			AddElementToObject(account, "free", this.SafeString(item, "free"))
+			AddElementToObject(account, "used", this.SafeString(item, "locked"))
 			if codeInner != nil {
 				AddElementToObject(result, codeInner, account)
 			}
@@ -1658,9 +1658,9 @@ func (this *Lbank) ParseBalance(response any) any {
 			var item any = GetValue(data, i)
 			var currencyId *string = this.SafeString(item, "coin")
 			var codeInner *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(item, "usableAmt")
-			account["used"] = this.SafeString(item, "freezeAmt")
+			var account any = this.Account()
+			AddElementToObject(account, "free", this.SafeString(item, "usableAmt"))
+			AddElementToObject(account, "used", this.SafeString(item, "freezeAmt"))
 			if codeInner != nil {
 				AddElementToObject(result, codeInner, account)
 			}
@@ -1839,7 +1839,7 @@ func (this *Lbank) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		retRes151912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes151912)
 	}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchBalance")
+	var options any = this.SafeDict(this.Options, "fetchBalance", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "spotPrivatePostSupplementUserInfo")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	var response any = nil
@@ -2124,7 +2124,7 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	if clientOrderId != nil {
 		request["custom_id"] = clientOrderId
 	}
-	var options map[string]any = SafeMapTyped(this.Options, "createOrder")
+	var options any = this.SafeDict(this.Options, "createOrder", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "spotPrivatePostSupplementCreateOrder")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	params = this.Omit(params, "method")
@@ -2286,9 +2286,9 @@ func (this *Lbank) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var price *string = this.SafeString(order, "price")
 	var costString *string = this.SafeString(order, "cummulativeQuoteQty")
-	var amountString *string = nil
+	var amountString any = nil
 	if rawType == nil || *rawType != "buy_market" {
-		amountString = this.SafeString2(order, "origQty", "amount")
+		amountString = DerefScalar(this.SafeString2(order, "origQty", "amount"))
 	}
 	var filledString *string = this.SafeString2(order, "executedQty", "deal_amount")
 	return this.SafeOrder(map[string]any{
@@ -2346,7 +2346,7 @@ func (this *Lbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	var method *string = this.SafeString(params, "method")
 	if method == nil {
-		var options map[string]any = SafeMapTyped(this.Options, "fetchOrder")
+		var options any = this.SafeDict(this.Options, "fetchOrder", map[string]any{})
 		method = this.SafeString(options, "method", "fetchOrderSupplement")
 	}
 	if method != nil && *method == "fetchOrderSupplement" {
@@ -2876,7 +2876,7 @@ func (this *Lbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes231912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes231912)
 	}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchDepositAddress")
+	var options any = this.SafeDict(this.Options, "fetchDepositAddress", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "fetchDepositAddressDefault")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	params = this.Omit(params, "method")
@@ -3139,8 +3139,8 @@ func (this *Lbank) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var txid *string = this.SafeString(transaction, "txId")
 	var timestamp *int64 = this.SafeInteger2(transaction, "insertTime", "applyTime")
 	var address *string = this.SafeString(transaction, "address")
-	var addressFrom *string = nil
-	var addressTo *string = nil
+	var addressFrom any = nil
+	var addressTo any = nil
 	if typeVar == "deposit" {
 		addressFrom = address
 	} else {
@@ -3363,7 +3363,7 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 	var isAuthorized bool = this.CheckRequiredCredentials(false)
 	var result any = nil
 	if isAuthorized == true {
-		var options map[string]any = SafeMapTyped(this.Options, "fetchTransactionFees")
+		var options any = this.SafeDict(this.Options, "fetchTransactionFees", map[string]any{})
 		var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateTransactionFees")
 		var method *string = this.SafeString(params, "method", defaultMethod)
 		params = this.Omit(params, "method")
@@ -3591,7 +3591,7 @@ func (this *Lbank) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
 	var isAuthorized bool = this.CheckRequiredCredentials(false)
 	var response any = nil
 	if isAuthorized == true {
-		var options map[string]any = SafeMapTyped(this.Options, "fetchDepositWithdrawFees")
+		var options any = this.SafeDict(this.Options, "fetchDepositWithdrawFees", map[string]any{})
 		var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateDepositWithdrawFees")
 		var method *string = this.SafeString(params, "method", defaultMethod)
 		params = this.Omit(params, "method")
@@ -3875,7 +3875,7 @@ func (this *Lbank) Sign(path any, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Milliseconds())
-		var echostr string = this.Uuid22() + this.Uuid16()
+		var echostr any = this.Uuid22() + this.Uuid16()
 		query = this.Extend(map[string]any{
 			"api_key": this.ApiKey,
 		}, query)

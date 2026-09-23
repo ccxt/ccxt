@@ -1128,7 +1128,7 @@ func (this *Coinsph) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["symbols"] = ids
 	}
 	var defaultMethod string = "publicGetOpenapiQuoteV1Ticker24hr"
-	var options map[string]any = SafeMapTyped(this.Options, "fetchTickers")
+	var options any = this.SafeDict(this.Options, "fetchTickers", map[string]any{})
 	var method *string = this.SafeString(options, "method", defaultMethod)
 	var tickers any = []any{}
 	if method != nil && *method == "publicGetOpenapiQuoteV1TickerPrice" {
@@ -1180,7 +1180,7 @@ func (this *Coinsph) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 	var defaultMethod string = "publicGetOpenapiQuoteV1Ticker24hr"
-	var options map[string]any = SafeMapTyped(this.Options, "fetchTicker")
+	var options any = this.SafeDict(this.Options, "fetchTicker", map[string]any{})
 	var method *string = this.SafeString(options, "method", defaultMethod)
 	var ticker any = map[string]any{}
 	if method != nil && *method == "publicGetOpenapiQuoteV1TickerPrice" {
@@ -1331,8 +1331,8 @@ func (this *Coinsph) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	var orderbook map[string]any = this.ParseOrderBook(response, symbol)
-	orderbook["nonce"] = this.SafeInteger(response, "lastUpdateId")
+	var orderbook any = this.ParseOrderBook(response, symbol)
+	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
 
 	ch <- orderbook
 	return nil
@@ -1667,9 +1667,9 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	}
-	var costString *string = nil
+	var costString any = nil
 	if orderId != nil {
-		costString = this.SafeString(trade, "quoteQty")
+		costString = DerefScalar(this.SafeString(trade, "quoteQty"))
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -1755,9 +1755,9 @@ func (this *Coinsph) ParseBalance(response any) any {
 		}()
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "free")
-		account["used"] = this.SafeString(balance, "locked")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balance, "free"))
+		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1810,7 +1810,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"type":   orderType,
 		"side":   orderSide,
 	}
-	var options map[string]any = SafeMapTyped(this.Options, "createOrder")
+	var options any = this.SafeDict(this.Options, "createOrder", map[string]any{})
 	var newOrderRespType any = this.SafeValue(options, "newOrderRespType", map[string]any{})
 	// if limit order
 	if IsEqual(orderType, "LIMIT") || IsEqual(orderType, "STOP_LOSS_LIMIT") || IsEqual(orderType, "TAKE_PROFIT_LIMIT") || IsEqual(orderType, "LIMIT_MAKER") {
@@ -2462,7 +2462,7 @@ func (this *Coinsph) withdrawBody(ch chan any, code any, amount any, address any
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var options map[string]any = SafeMapTyped(this.Options, "withdraw")
+	var options any = this.SafeDict(this.Options, "withdraw")
 	var warning *bool = this.SafeBool(options, "warning", true)
 	if warning != nil && *warning == true {
 		panic(InvalidAddress(this.Id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account"))

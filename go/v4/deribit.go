@@ -1021,7 +1021,7 @@ func (this *Deribit) CodeFromOptions(methodName any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var defaultCode *string = this.SafeString(this.Options, "code", "BTC")
-	var options map[string]any = SafeMapTyped(this.Options, methodName)
+	var options any = this.SafeDict(this.Options, methodName, map[string]any{})
 	var code *string = this.SafeString(options, "code", defaultCode)
 	return this.SafeString(params, "code", code)
 }
@@ -1482,10 +1482,10 @@ func (this *Deribit) ParseBalance(balance any) any {
 		var data any = GetValue(summaries, i)
 		var currencyId *string = this.SafeString(data, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(data, "available_funds")
-		account["used"] = this.SafeString(data, "maintenance_margin")
-		account["total"] = this.SafeString(data, "equity")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(data, "available_funds"))
+		AddElementToObject(account, "used", this.SafeString(data, "maintenance_margin"))
+		AddElementToObject(account, "total", this.SafeString(data, "equity"))
 		if currencyCode != nil {
 			AddElementToObject(result, currencyCode, account)
 		}
@@ -2366,20 +2366,20 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
-		var market map[string]any = this.Market(symbol)
+		var market any = this.Market(symbol)
 		var fee map[string]any = map[string]any{
 			"info":       market,
 			"symbol":     symbol,
 			"percentage": true,
 			"tierBased":  true,
-			"maker":      market["maker"],
-			"taker":      market["taker"],
+			"maker":      GetValue(market, "maker"),
+			"taker":      GetValue(market, "taker"),
 		}
-		if market["swap"] == true {
+		if GetValue(market, "swap") == true {
 			fee = this.Extend(fee, perpetualFee)
-		} else if market["future"] == true {
+		} else if GetValue(market, "future") == true {
 			fee = this.Extend(fee, futureFee)
-		} else if market["option"] == true {
+		} else if GetValue(market, "option") == true {
 			fee = this.Extend(fee, optionFee)
 		}
 		AddElementToObject(parsedFees, symbol, fee)
@@ -2468,8 +2468,8 @@ func (this *Deribit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(result, "timestamp")
 	var nonce *int64 = this.SafeInteger(result, "change_id")
-	var orderbook map[string]any = this.ParseOrderBook(result, market["symbol"], timestamp)
-	orderbook["nonce"] = nonce
+	var orderbook any = this.ParseOrderBook(result, market["symbol"], timestamp)
+	AddElementToObject(orderbook, "nonce", nonce)
 
 	ch <- orderbook
 	return nil
@@ -4907,7 +4907,7 @@ func (this *Deribit) fetchOptionChainBody(ch chan any, code any, optionalArgs ..
 	//         "testnet": false
 	//     }
 	//
-	var result []any = SafeListTyped(response, "result")
+	var result any = this.SafeList(response, "result", []any{})
 
 	ch <- this.ParseOptionChain(result, "base_currency", "instrument_name")
 	return nil

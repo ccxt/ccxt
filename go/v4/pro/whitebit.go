@@ -209,7 +209,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var messageHash any = ccxt.Add("orderbook"+":", market["symbol"])
 	var method string = "depth_subscribe"
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var defaultPriceInterval *string = this.SafeString(options, "priceInterval", "0")
 	var priceInterval *string = this.SafeString(params, "priceInterval", defaultPriceInterval)
 	params = this.Omit(params, "priceInterval")
@@ -274,7 +274,7 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	if isSnapshot == true {
-		var snapshot map[string]any = this.ParseOrderBook(data, symbol)
+		var snapshot any = this.ParseOrderBook(data, symbol)
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
 		var asks any = this.SafeList(data, "asks", []any{})
@@ -810,14 +810,14 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 	var stopPrice *string = this.SafeString(order, "activation_price")
 	var rawType *string = this.SafeString(order, "type")
 	var typeVar *string = this.ParseWsOrderType(rawType)
-	var amount *string = nil
+	var amount any = nil
 	var remaining any = nil
 	if typeVar != nil && *typeVar == "market" {
-		amount = this.SafeString(order, "deal_stock")
+		amount = ccxt.DerefScalar(this.SafeString(order, "deal_stock"))
 		remaining = "0"
 	} else {
 		remaining = ccxt.DerefScalar(this.SafeString(order, "left"))
-		amount = this.SafeString(order, "amount")
+		amount = ccxt.DerefScalar(this.SafeString(order, "amount"))
 	}
 	var timestamp *int64 = this.SafeTimestamp(order, "ctime")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "mtime")
@@ -1040,10 +1040,10 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 		if isMargin {
 			var currencyId *string = this.SafeString(balanceDict, "a")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(balanceDict, "av")
-			account["total"] = this.SafeString(balanceDict, "B")
-			account["debt"] = this.SafeString(balanceDict, "b")
+			var account any = this.Account()
+			ccxt.AddElementToObject(account, "free", this.SafeString(balanceDict, "av"))
+			ccxt.AddElementToObject(account, "total", this.SafeString(balanceDict, "B"))
+			ccxt.AddElementToObject(account, "debt", this.SafeString(balanceDict, "b"))
 			if code != nil {
 				ccxt.AddElementToObject(this.Balance, code, account)
 			}
@@ -1053,9 +1053,9 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 				var currencyId string = ccxt.GetValue(keys, j).(string)
 				var rawBalance map[string]any = ccxt.SafeMapTyped(balanceDict, currencyId)
 				var code *string = this.SafeCurrencyCode(currencyId)
-				var account map[string]any = this.Account()
-				account["free"] = this.SafeString(rawBalance, "available")
-				account["used"] = this.SafeString(rawBalance, "freeze")
+				var account any = this.Account()
+				ccxt.AddElementToObject(account, "free", this.SafeString(rawBalance, "available"))
+				ccxt.AddElementToObject(account, "used", this.SafeString(rawBalance, "freeze"))
 				if code != nil {
 					ccxt.AddElementToObject(this.Balance, code, account)
 				}
@@ -1126,8 +1126,8 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 	var marketIds []any = []any{}
 	if ccxt.IsEqual(client, nil) {
 		var subscription map[string]any = map[string]any{}
-		var market map[string]any = this.Market(symbol)
-		var marketId any = market["id"]
+		var market any = this.Market(symbol)
+		var marketId any = ccxt.GetValue(market, "id")
 		if marketId != nil {
 			ccxt.AddElementToObject(subscription, marketId, true)
 		}
@@ -1149,8 +1149,8 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 	} else {
 		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), method, map[string]any{})
 		var hasSymbolSubscription bool = true
-		var market map[string]any = this.Market(symbol)
-		var marketId any = market["id"]
+		var market any = this.Market(symbol)
+		var marketId any = ccxt.GetValue(market, "id")
 		var isSubscribed *bool = this.SafeBool(subscription, marketId, false)
 		if isSubscribed == nil || *isSubscribed != true {
 			if marketId != nil {

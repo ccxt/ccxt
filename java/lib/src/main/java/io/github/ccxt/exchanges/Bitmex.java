@@ -738,11 +738,12 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> response = (this.publicGetWalletAssets(parameters)).join();
             //
             //    {
@@ -781,18 +782,6 @@ public class Bitmex extends BitmexApi
         });
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
-    {
-        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseCurrency(Object currency)
     {
@@ -806,14 +795,14 @@ public class Bitmex extends BitmexApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String scale = this.safeString(currency, "scale");
         Object precisionString = this.parsePrecision(scale);
-        Double precision = this.parseNumber(precisionString);
+        Object precision = this.parseNumber(precisionString);
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "asset");
             Object network = this.networkIdToCode(networkId, code);
             String withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
-            Double withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
+            Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
             Boolean isDepositEnabled = (Boolean) this.safeBool(chain, "depositEnabled", false);
             Boolean isWithdrawEnabled = (Boolean) this.safeBool(chain, "withdrawalEnabled", false);
             Boolean active = ((java.util.Objects.equals(isDepositEnabled, true)) && (java.util.Objects.equals(isWithdrawEnabled, true)));
@@ -828,8 +817,8 @@ public class Bitmex extends BitmexApi
             if (!java.util.Objects.equals(network, null))
             {
                 final Object finalNetwork = network;
-                final Boolean finalIsDepositEnabled = isDepositEnabled;
-                final Boolean finalIsWithdrawEnabled = isWithdrawEnabled;
+                final Object finalIsDepositEnabled = isDepositEnabled;
+                final Object finalIsWithdrawEnabled = isWithdrawEnabled;
                 ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
@@ -855,14 +844,14 @@ public class Bitmex extends BitmexApi
         Boolean currencyEnabled = (Boolean) this.safeBool(currency, "enabled");
         Boolean currencyActive = (java.util.Objects.equals(currencyEnabled, true)) || (Boolean.TRUE.equals(depositEnabled) || Boolean.TRUE.equals(withdrawEnabled));
         String minWithdrawalString = this.safeString(currency, "minWithdrawalAmount");
-        Double minWithdrawal = this.parseNumber(Precise.stringMul(minWithdrawalString, precisionString));
+        Object minWithdrawal = this.parseNumber(Precise.stringMul(minWithdrawalString, precisionString));
         String maxWithdrawalString = this.safeString(currency, "maxWithdrawalAmount");
-        Double maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
+        Object maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
         String minDepositString = this.safeString(currency, "minDepositAmount");
-        Double minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
+        Object minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
         Boolean isCrypto = java.util.Objects.equals(this.safeString(currency, "currencyType"), "Crypto");
-        final Boolean finalDepositEnabled = depositEnabled;
-        final Boolean finalWithdrawEnabled = withdrawEnabled;
+        final Object finalDepositEnabled = depositEnabled;
+        final Object finalWithdrawEnabled = withdrawEnabled;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
@@ -896,7 +885,7 @@ public class Bitmex extends BitmexApi
     {
         Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
         String precision = this.safeString(currency, "precision");
-        String amountString = this.numberToString(amount);
+        Object amountString = this.numberToString(amount);
         String finalAmount = Precise.stringDiv(amountString, precision);
         return this.parseNumber(finalAmount);
     }
@@ -927,8 +916,9 @@ public class Bitmex extends BitmexApi
         return super.amountToPrecision(symbol, amount);
     }
 
-    public Object convertFromRawQuantity(String symbol, String rawQuantity, String currencySide)
+    public Object convertFromRawQuantity(String symbol, String rawQuantity, Object... optionalArgs)
     {
+        Object currencySide = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "base";
         if (java.util.Objects.equals(this.safeBool(this.options, "oldPrecision"), true))
         {
             return this.parseNumber(rawQuantity);
@@ -946,10 +936,6 @@ public class Bitmex extends BitmexApi
         }
         return this.parseNumber(rawQuantity);
     }
-    public Object convertFromRawQuantity(String symbol, String rawQuantity, Object... optionalArgs)
-    {
-        return this.convertFromRawQuantity(symbol, rawQuantity, Helpers.getArgString(optionalArgs, 0, "base"));
-    }
 
     public Object convertFromRawCost(String symbol, String rawQuantity)
     {
@@ -964,11 +950,12 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> response = (this.publicGetInstrumentActive(parameters)).join();
             //
             //  [
@@ -1153,18 +1140,6 @@ public class Bitmex extends BitmexApi
         });
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchMarkets
-     * @description retrieves data on all markets for bitmex
-     * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActive
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseMarket(Object market)
     {
@@ -1213,9 +1188,9 @@ public class Bitmex extends BitmexApi
         Object linear = ((Boolean.TRUE.equals(contract))) ? ((!java.util.Objects.equals(isInverse, true)) && (!java.util.Objects.equals(isQuanto, true))) : null;
         String status = this.safeString(market, "state");
         Boolean active = java.util.Objects.equals(status, "Open"); // Open, Settled, Unlisted
-        Long expiry = null;
+        Object expiry = null;
         String expiryDatetime = null;
-        String symbol = null;
+        Object symbol = null;
         if (Boolean.TRUE.equals(spot))
         {
             symbol = ((base + "/") + quote);
@@ -1244,9 +1219,9 @@ public class Bitmex extends BitmexApi
         String positionId = this.safeString2(market, "positionCurrency", "underlying");
         String position = this.safeCurrencyCode(positionId);
         Boolean positionIsQuote = (java.util.Objects.equals(position, quote));
-        Double maxOrderQty = this.safeNumber(market, "maxOrderQty");
+        Object maxOrderQty = this.safeNumber(market, "maxOrderQty");
         String initMargin = this.safeString(market, "initMargin", "1");
-        Double maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
+        Object maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
         // subtype should be undefined for spot markets
         if (Boolean.TRUE.equals(spot))
         {
@@ -1258,20 +1233,20 @@ public class Bitmex extends BitmexApi
         {
             throw new ArgumentsRequired((this.id + " parseMarket() requires a symbol")) ;
         }
-        final String finalSymbol = symbol;
-        final String finalBase = base;
-        final String finalBaseId = baseId;
-        final String finalQuoteId = quoteId;
-        final String finalType = type;
-        final Boolean finalSpot = spot;
-        final Boolean finalSwap = swap;
-        final Boolean finalFuture = future;
+        final Object finalSymbol = symbol;
+        final Object finalBase = base;
+        final Object finalBaseId = baseId;
+        final Object finalQuoteId = quoteId;
+        final Object finalType = type;
+        final Object finalSpot = spot;
+        final Object finalSwap = swap;
+        final Object finalFuture = future;
         final Object finalLinear = linear;
         final Object finalIsInverse = isInverse;
         final Object finalIsQuanto = isQuanto;
         final Object finalContractSize = contractSize;
-        final Long finalExpiry = expiry;
-        final String finalExpiryDatetime = expiryDatetime;
+        final Object finalExpiry = expiry;
+        final Object finalExpiryDatetime = expiryDatetime;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
@@ -1383,7 +1358,7 @@ public class Bitmex extends BitmexApi
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Object account = this.account();
             String free = this.safeString(balance, "availableMargin");
             String total = this.safeString(balance, "marginBalance");
             ((Map<String, Object>)account).put("free", this.convertToRealAmount(code, free));
@@ -1404,11 +1379,12 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1468,18 +1444,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(Balances::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://www.bitmex.com/api/explorer/#!/User/User_getMargin
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -1491,11 +1455,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object limit = limit3;
+
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1538,20 +1504,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(OrderBook::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -1563,11 +1515,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> filter = new HashMap<String, Object>() {{
                 put( "filter", new HashMap<String, Object>() {{
                     put( "orderID", id );
@@ -1583,20 +1537,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(Order::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchOrder
-     * @description fetches information on an order made by the user
-     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
-     * @param {string} id the order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
-    {
-        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -1611,17 +1551,15 @@ public class Bitmex extends BitmexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1668,49 +1606,7 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchOrders
-     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
-     * @description fetches information on multiple orders made by the user
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the earliest time in ms to fetch orders for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
-    {
-        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
-    /**
-     * @method
-     * @name bitmex#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
-     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
-     * @param {int} [limit] the maximum number of  open orders structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "filter", new HashMap<String, Object>() {{
-                    put( "open", true );
-                }} );
-            }};
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.deepExtend(request, parameters)))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
-
-    }
     /**
      * @method
      * @name bitmex#fetchOpenOrders
@@ -1724,31 +1620,23 @@ public class Bitmex extends BitmexApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
-
-    /**
-     * @method
-     * @name bitmex#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user
-     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
 
         return BaseExchange.supplyAsync(() -> {
 
-            // Bitmex barfs if you set 'open': false in the filter...
-            Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-            return this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("closed", "canceled")), false);
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "filter", new HashMap<String, Object>() {{
+                    put( "open", true );
+                }} );
+            }};
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.deepExtend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+
     /**
      * @method
      * @name bitmex#fetchClosedOrders
@@ -1762,7 +1650,18 @@ public class Bitmex extends BitmexApi
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
     {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+
+        return BaseExchange.supplyAsync(() -> {
+
+            // Bitmex barfs if you set 'open': false in the filter...
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("closed", "canceled")), false);
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
     }
 
     /**
@@ -1777,17 +1676,15 @@ public class Bitmex extends BitmexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1887,22 +1784,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://www.bitmex.com/api/explorer/#!/Execution/Execution_getTradeHistory
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     public String parseLedgerEntryType(String type)
     {
@@ -1918,7 +1799,7 @@ public class Bitmex extends BitmexApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         //     {
@@ -1961,6 +1842,7 @@ public class Bitmex extends BitmexApi
         //         "timestamp":null  # ←---------------------------- null
         //     }
         //
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(item, "transactID");
         String account = this.safeString(item, "account");
         String referenceId = this.safeString(item, "tx");
@@ -1968,7 +1850,7 @@ public class Bitmex extends BitmexApi
         String type = this.parseLedgerEntryType(this.safeString(item, "transactType"));
         String currencyId = this.safeString(item, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
+        currency = this.safeCurrency(currencyId, currency);
         String amountString = this.safeString(item, "amount");
         Object amount = this.convertToRealAmount(code, amountString);
         Object timestamp = this.parse8601(this.safeString(item, "transactTime"));
@@ -1995,7 +1877,7 @@ public class Bitmex extends BitmexApi
         {
             after = this.convertToRealAmount(code, (String) (after));
         }
-        Double before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
+        Object before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
         String direction = null;
         if (Precise.stringLt(amountString, "0"))
         {
@@ -2007,7 +1889,7 @@ public class Bitmex extends BitmexApi
         }
         String status = this.parseTransactionStatus(this.safeString(item, "transactStatus"));
         final Object finalTimestamp = timestamp;
-        final String finalDirection = direction;
+        final Object finalDirection = direction;
         final Object finalAmount = amount;
         final Object finalAfter = after;
         final Object finalFee = fee;
@@ -2029,10 +1911,6 @@ public class Bitmex extends BitmexApi
             put( "fee", finalFee );
         }}, currency);
     }
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
-    {
-        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -2045,13 +1923,15 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object code = code3;
-            Object limit = limit3;
+
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2097,21 +1977,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchLedger
-     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-     * @param {string} [code] unified currency code, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-     * @param {int} [limit] max number of ledger entries to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
-     */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
-    {
-        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -2124,13 +1989,15 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object code = code3;
-            Object limit = limit3;
+
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2159,21 +2026,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchDepositsWithdrawals
-     * @description fetch history of deposits and withdrawals
-     * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
-    {
-        return this.fetchDepositsWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     public String parseTransactionStatus(String status)
     {
@@ -2186,7 +2038,7 @@ public class Bitmex extends BitmexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         //    {
@@ -2207,8 +2059,9 @@ public class Bitmex extends BitmexApi
         //        "timestamp": "2019-01-02T13:00:00.000Z"
         //    }
         //
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(transaction, "currency");
-        currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
+        currency = this.safeCurrency(currencyId, currency);
         // For deposits, transactTime == timestamp
         // For withdrawals, transactTime is submission, timestamp is processed
         Long transactTime = this.parse8601(this.safeString(transaction, "transactTime"));
@@ -2239,11 +2092,11 @@ public class Bitmex extends BitmexApi
             status = this.parseTransactionStatus(status);
         }
         Object code = ((Map<String, Object>)currency).get("code");
-        final String finalType = type;
-        final String finalStatus = status;
-        final String finalAddress = address;
-        final String finalAddressFrom = addressFrom;
-        final String finalAddressTo = addressTo;
+        final Object finalType = type;
+        final Object finalStatus = status;
+        final Object finalAddress = address;
+        final Object finalAddressFrom = addressFrom;
+        final Object finalAddressTo = addressTo;
         final Object finalCurrency = currency;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -2272,10 +2125,6 @@ public class Bitmex extends BitmexApi
             }} );
         }};
     }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -2286,11 +2135,12 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2309,19 +2159,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(Ticker::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -2332,11 +2169,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        final Object symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2359,23 +2198,11 @@ public class Bitmex extends BitmexApi
         }).thenApply(Tickers::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
-    {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         // see response sample under "fetchMarkets" because same endpoint is being used here
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "symbol");
         String symbol = this.safeSymbol(marketId, market);
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
@@ -2405,12 +2232,8 @@ public class Bitmex extends BitmexApi
             put( "info", ticker );
         }}, market);
     }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
     {
         //
         //     {
@@ -2429,14 +2252,11 @@ public class Bitmex extends BitmexApi
         //         "foreignNotional":0
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ohlcv, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        market = this.safeMarket(marketId, market);
         Object volume = this.convertFromRawQuantity((String) (((Map<String, Object>)market).get("symbol")), this.safeString(ohlcv, "volume"));
         return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "timestamp")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), volume));
-    }
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2452,15 +2272,15 @@ public class Bitmex extends BitmexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2537,25 +2357,8 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -2625,22 +2428,23 @@ public class Bitmex extends BitmexApi
         //         "timestamp": "2019-03-05T12:47:02.762Z"
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "symbol");
         String symbol = this.safeSymbol(marketId, market);
         Long timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         String priceString = this.safeString2(trade, "avgPx", "price");
         Object amountString = this.convertFromRawQuantity(symbol, this.safeString2(trade, "size", "lastQty"));
-        String execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
+        Object execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
         String id = this.safeString(trade, "trdMatchID");
         String order = this.safeString(trade, "orderID");
         String side = this.safeStringLower(trade, "side");
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         Object fee = null;
-        String feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
+        Object feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String currencyId = this.safeString2(trade, "settlCurrency", "currency");
-            final String finalFeeCostString = feeCostString;
+            final Object finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", Bitmex.this.safeCurrencyCode(currencyId) );
@@ -2655,7 +2459,7 @@ public class Bitmex extends BitmexApi
             takerOrMaker = ((Precise.stringLt(feeCostString, "0"))) ? "maker" : "taker";
         }
         String type = this.safeStringLower(trade, "ordType");
-        final String finalTakerOrMaker = takerOrMaker;
+        final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -2672,10 +2476,6 @@ public class Bitmex extends BitmexApi
             put( "amount", amountString );
             put( "fee", finalFee );
         }}), market);
-    }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseOrderStatus(String status)
@@ -2708,7 +2508,7 @@ public class Bitmex extends BitmexApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -2747,8 +2547,9 @@ public class Bitmex extends BitmexApi
         //         "timestamp":"2021-01-02T21:38:49.246Z"
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(order, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        market = this.safeMarket(marketId, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String qty = this.safeString(order, "orderQty");
         Object cost = null;
@@ -2770,8 +2571,8 @@ public class Bitmex extends BitmexApi
             amount = this.convertFromRawQuantity((String) (symbol), qty);
         }
         String average = this.safeString(order, "avgPx");
-        String filled = null;
-        String cumQty = this.numberToString(this.convertFromRawQuantity((String) (symbol), this.safeString(order, "cumQty")));
+        Object filled = null;
+        Object cumQty = this.numberToString(this.convertFromRawQuantity((String) (symbol), this.safeString(order, "cumQty")));
         if (Helpers.isTrue(isInverse))
         {
             filled = Precise.stringDiv(cumQty, average);
@@ -2794,7 +2595,7 @@ public class Bitmex extends BitmexApi
         final Object finalReduceOnly = reduceOnly;
         final Object finalAmount = amount;
         final Object finalCost = cost;
-        final String finalFilled = filled;
+        final Object finalFilled = filled;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bitmex.this.safeString(order, "orderID") );
@@ -2820,10 +2621,6 @@ public class Bitmex extends BitmexApi
             put( "trades", null );
         }}), market);
     }
-    public Object parseOrder(Object order, Object... optionalArgs)
-    {
-        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -2837,15 +2634,14 @@ public class Bitmex extends BitmexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2913,22 +2709,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_get
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -2946,22 +2726,22 @@ public class Bitmex extends BitmexApi
      * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object parameters = parameters3;
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String orderType = this.capitalize(type);
-            String capitalizeOrderType = orderType;
+            Object orderType = this.capitalize(type);
+            Object capitalizeOrderType = orderType;
             Object reduceOnly = this.safeValue(parameters, "reduceOnly");
             if (!java.util.Objects.equals(reduceOnly, null))
             {
@@ -3064,40 +2844,17 @@ public class Bitmex extends BitmexApi
         }).thenApply(Order::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#createOrder
-     * @description create a trade order
-     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_new
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
-     * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
-     * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-     */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type2, Object side2, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type2, Object side2, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        final Object amount3 = amount2;
-        final Object price3 = price2;
-        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object amount = amount3;
-            Object price = price3;
-            Object parameters = parameters3;
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3172,10 +2929,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
-    {
-        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3187,11 +2940,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters2)
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3221,20 +2976,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(Order::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#cancelOrder
-     * @description cancels an open order
-     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
-     * @param {string} id order id
-     * @param {string} symbol not used by cancelOrder ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3246,12 +2987,14 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
             // return await this.cancelOrder (ids, symbol, params);
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3272,20 +3015,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#cancelOrders
-     * @description cancel multiple orders
-     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
-     * @param {string[]} ids order ids
-     * @param {string} symbol not used by cancelOrders ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
-    {
-        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3296,11 +3025,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3356,19 +3087,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#cancelAllOrders
-     * @description cancel all open orders
-     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
-     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
-    {
-        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3379,11 +3097,12 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout2, Map<String, Object> parameters)
+    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout2, Object... optionalArgs)
     {
         final Object timeout3 = timeout2;
         return BaseExchange.supplyAsync(() -> {
             Object timeout = timeout3;
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3407,43 +3126,7 @@ public class Bitmex extends BitmexApi
         });
 
     }
-    /**
-     * @method
-     * @name bitmex#cancelAllOrdersAfter
-     * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
-     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} the api result
-     */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
-    {
-        return this.cancelAllOrdersAfter(timeout, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    /**
-     * @method
-     * @name bitmex#fetchLeverages
-     * @description fetch the set leverage for all contract markets
-     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
-     * @param {string[]} [symbols] a list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
-     */
-    public CompletableFuture<Leverages> fetchLeverages(Object symbols, Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            Object leverages = (this.fetchPositions((Object)(symbols), (Object)(parameters))).join();
-            return this.parseLeverages(leverages, symbols, "symbol");
-        }).thenApply(Leverages::new);
-
-    }
     /**
      * @method
      * @name bitmex#fetchLeverages
@@ -3455,11 +3138,24 @@ public class Bitmex extends BitmexApi
      */
     public CompletableFuture<Leverages> fetchLeverages(Object... optionalArgs)
     {
-        return this.fetchLeverages(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object leverages = (this.fetchPositions((Object)(symbols), (Object)(parameters))).join();
+            return this.parseLeverages(leverages, symbols, "symbol");
+        }).thenApply(Leverages::new);
+
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
     {
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(leverage, "symbol");
         return new HashMap<String, Object>() {{
             put( "info", leverage );
@@ -3468,10 +3164,6 @@ public class Bitmex extends BitmexApi
             put( "longLeverage", Bitmex.this.safeInteger(leverage, "leverage") );
             put( "shortLeverage", Bitmex.this.safeInteger(leverage, "leverage") );
         }};
-    }
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
-    {
-        return this.parseLeverage(leverage, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3483,11 +3175,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3595,21 +3289,8 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchPositions
-     * @description fetch all open positions
-     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
-    {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -3706,7 +3387,8 @@ public class Bitmex extends BitmexApi
         //         "lastValue": 39283900
         //     }
         //
-        market = (Map<String, Object>) (this.safeMarket(this.safeString(position, "symbol"), market));
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        market = this.safeMarket(this.safeString(position, "symbol"), market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String datetime = this.safeString(position, "timestamp");
         Boolean crossMargin = (Boolean) this.safeBool(position, "crossMargin");
@@ -3715,7 +3397,7 @@ public class Bitmex extends BitmexApi
         String settleCurrencyCode = this.safeString(market, "settle");
         Object maintenanceMargin = this.convertToRealAmount(settleCurrencyCode, this.safeString(position, "maintMargin"));
         Object unrealisedPnl = this.convertToRealAmount(settleCurrencyCode, this.safeString(position, "unrealisedPnl"));
-        Double contracts = this.parseNumber(Precise.stringAbs(this.safeString(position, "currentQty")));
+        Object contracts = this.parseNumber(Precise.stringAbs(this.safeString(position, "currentQty")));
         Double contractSize = this.safeNumber(market, "contractSize");
         String side = null;
         String homeNotional = this.safeString(position, "homeNotional");
@@ -3729,7 +3411,7 @@ public class Bitmex extends BitmexApi
                 side = "long";
             }
         }
-        final String finalSide = side;
+        final Object finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Bitmex.this.safeString(position, "account") );
@@ -3760,10 +3442,6 @@ public class Bitmex extends BitmexApi
             put( "takeProfitPrice", null );
         }}));
     }
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -3777,13 +3455,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, String tag2, Map<String, Object> parameters2)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
-        final String tag3 = tag2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+
+            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
@@ -3831,22 +3509,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(Transaction::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#withdraw
-     * @description make a withdrawal
-     * @see https://www.bitmex.com/api/explorer/#!/User/User_requestWithdrawal
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} tag
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
-    {
-        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3857,11 +3519,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        final Object symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3887,23 +3551,11 @@ public class Bitmex extends BitmexApi
         }).thenApply(FundingRates::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchFundingRates
-     * @description fetch the funding rate for multiple markets
-     * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
-     */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
-    {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseFundingRate(Object contract, Map<String, Object> market)
+    public Object parseFundingRate(Object contract, Object... optionalArgs)
     {
         // see response sample under "fetchMarkets" because same endpoint is being used here
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String datetime = this.safeString(contract, "timestamp");
         String marketId = this.safeString(contract, "symbol");
         String fundingDatetime = this.safeString(contract, "fundingTimestamp");
@@ -3928,10 +3580,6 @@ public class Bitmex extends BitmexApi
             put( "interval", null );
         }};
     }
-    public Object parseFundingRate(Object contract, Object... optionalArgs)
-    {
-        return this.parseFundingRate(contract, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -3949,17 +3597,15 @@ public class Bitmex extends BitmexApi
      * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4024,28 +3670,8 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchFundingRateHistory
-     * @description Fetches the history of funding rates
-     * @see https://www.bitmex.com/api/explorer/#!/Funding/Funding_get
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms for ending date filter
-     * @param {bool} [params.reverse] if true, will sort results newest first
-     * @param {int} [params.start] starting point for results
-     * @param {string} [params.columns] array of column names to fetch in info, if omitted, will return all columns
-     * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
-     */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
-    {
-        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseFundingRateHistory(Object info, Map<String, Object> market)
+    public Object parseFundingRateHistory(Object info, Object... optionalArgs)
     {
         //
         //    {
@@ -4056,6 +3682,7 @@ public class Bitmex extends BitmexApi
         //        "fundingRateDaily": 0.0010890000000000001
         //    }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(info, "symbol");
         String datetime = this.safeString(info, "timestamp");
         return new HashMap<String, Object>() {{
@@ -4065,10 +3692,6 @@ public class Bitmex extends BitmexApi
             put( "timestamp", Bitmex.this.parse8601(datetime) );
             put( "datetime", datetime );
         }};
-    }
-    public Object parseFundingRateHistory(Object info, Object... optionalArgs)
-    {
-        return this.parseFundingRateHistory(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -4081,13 +3704,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage2, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Object> setLeverage(Object leverage2, Object... optionalArgs)
     {
         final Object leverage3 = leverage2;
-        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object leverage = leverage3;
-            Object symbol = symbol3;
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -4114,20 +3737,6 @@ public class Bitmex extends BitmexApi
         });
 
     }
-    /**
-     * @method
-     * @name bitmex#setLeverage
-     * @description set the level of leverage for a market
-     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_updateLeverage
-     * @param {float} leverage the rate of leverage
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
-    {
-        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -4139,13 +3748,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(Object marginMode2, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
     {
         final Object marginMode3 = marginMode2;
-        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object marginMode = marginMode3;
-            Object symbol = symbol3;
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol argument")) ;
@@ -4173,20 +3782,6 @@ public class Bitmex extends BitmexApi
         });
 
     }
-    /**
-     * @method
-     * @name bitmex#setMarginMode
-     * @description set margin mode to 'cross' or 'isolated'
-     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_isolateMargin
-     * @param {string} marginMode 'cross' or 'isolated'
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setMarginMode(Object marginMode, Object... optionalArgs)
-    {
-        return this.setMarginMode(marginMode, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -4198,11 +3793,12 @@ public class Bitmex extends BitmexApi
      * @param {string} [params.network] deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters2)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4226,7 +3822,7 @@ public class Bitmex extends BitmexApi
             //
             //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
             //
-            final String finalNetworkCode = networkCode;
+            final Object finalNetworkCode = networkCode;
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
@@ -4237,22 +3833,8 @@ public class Bitmex extends BitmexApi
         }).thenApply(DepositAddress::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchDepositAddress
-     * @description fetch the deposit address for a currency associated with this account
-     * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
-    {
-        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
     {
         //
         //    {
@@ -4280,6 +3862,7 @@ public class Bitmex extends BitmexApi
         //        ]
         //    }
         //
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> networks = (List<Object>) this.safeList(fee, "networks", new ArrayList<Object>(Arrays.asList()));
         Object networksLength = ((List<?>)networks).size();
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -4305,7 +3888,7 @@ public class Bitmex extends BitmexApi
                 String currencyCode = this.safeString(currency, "code");
                 Object networkCode = this.networkIdToCode(networkId, currencyCode);
                 String withdrawalFeeId = this.safeString(network, "withdrawalFee");
-                Double withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeId, precision));
+                Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeId, precision));
                 if (!java.util.Objects.equals(networkCode, null))
                 {
                     Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
@@ -4328,10 +3911,6 @@ public class Bitmex extends BitmexApi
         }
         return result;
     }
-    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
-    {
-        return this.parseDepositWithdrawFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -4342,11 +3921,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4385,19 +3966,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(DepositWithdrawFees::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchDepositWithdrawFees
-     * @description fetch deposit and withdraw fees
-     * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
-     * @param {string[]|undefined} codes list of unified currency codes
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
-     */
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
-    {
-        return this.fetchDepositWithdrawFees(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -4408,11 +3976,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public CompletableFuture<OpenInterests> fetchOpenInterests(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
-        final Object symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4438,21 +4008,8 @@ public class Bitmex extends BitmexApi
         }).thenApply(OpenInterests::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchOpenInterests
-     * @description Retrieves the open interest for a list of symbols
-     * @see https://docs.bitmex.com/api-explorer/get-stats
-     * @param {string[]} [symbols] a list of unified CCXT market symbols
-     * @param {object} [params] exchange specific parameters
-     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
-     */
-    public CompletableFuture<OpenInterests> fetchOpenInterests(Object... optionalArgs)
-    {
-        return this.fetchOpenInterests(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    public Object parseOpenInterest(Object interest, Object... optionalArgs)
     {
         //
         // fetchOpenInterest
@@ -4466,18 +4023,19 @@ public class Bitmex extends BitmexApi
         //        volume24h: '0'
         //    }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String quoteId = this.safeString(interest, "currency");
         String baseId = this.safeString(interest, "rootSymbol");
         String quoteSymbol = this.safeCurrencyCode(quoteId);
         String baseSymbol = this.safeCurrencyCode(baseId);
-        String symbol = baseSymbol;
+        Object symbol = baseSymbol;
         if (!java.util.Objects.equals(quoteSymbol, null))
         {
             symbol = ((((baseSymbol + "/") + quoteSymbol) + ":") + quoteSymbol);
         }
         Double openInterest = this.safeNumber(interest, "openInterest");
         Double openValue = this.safeNumber(interest, "openValue");
-        final String finalSymbol = symbol;
+        final Object finalSymbol = symbol;
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "info", interest );
             put( "symbol", finalSymbol );
@@ -4489,13 +4047,10 @@ public class Bitmex extends BitmexApi
             put( "datetime", null );
         }}, market);
     }
-    public Object parseOpenInterest(Object interest, Object... optionalArgs)
-    {
-        return this.parseOpenInterest(interest, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
     {
+        Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         boolean isAuthenticated = Helpers.isTrue(this.checkRequiredCredentials(false));
         Object cost = this.safeValue(config, "cost", 1);
         if (!Helpers.isEqual(cost, 1))
@@ -4509,10 +4064,6 @@ public class Bitmex extends BitmexApi
             }
         }
         return cost;
-    }
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
-    {
-        return this.calculateRateLimiterCost(api, method, path, parameters, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -4528,15 +4079,14 @@ public class Bitmex extends BitmexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public CompletableFuture<List<Liquidation>> fetchLiquidations(String symbol, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Liquidation>> fetchLiquidations(String symbol, Object... optionalArgs)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4580,25 +4130,8 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchLiquidations
-     * @description retrieves the public liquidations of a trading pair
-     * @see https://www.bitmex.com/api/explorer/#!/Liquidation/Liquidation_get
-     * @param {string} symbol unified CCXT market symbol
-     * @param {int} [since] the earliest time in ms to fetch liquidations for
-     * @param {int} [limit] the maximum number of liquidation structures to retrieve
-     * @param {object} [params] exchange specific parameters for the bitmex api endpoint
-     * @param {int} [params.until] timestamp in ms of the latest liquidation
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
-     */
-    public CompletableFuture<List<Liquidation>> fetchLiquidations(String symbol, Object... optionalArgs)
-    {
-        return this.fetchLiquidations(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseLiquidation(Object liquidation, Map<String, Object> market)
+    public Object parseLiquidation(Object liquidation, Object... optionalArgs)
     {
         //
         //     {
@@ -4609,6 +4142,7 @@ public class Bitmex extends BitmexApi
         //         "leavesQty": 0
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(liquidation, "symbol");
         return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", liquidation );
@@ -4623,10 +4157,6 @@ public class Bitmex extends BitmexApi
             put( "datetime", null );
         }}));
     }
-    public Object parseLiquidation(Object liquidation, Object... optionalArgs)
-    {
-        return this.parseLiquidation(liquidation, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -4637,11 +4167,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    public CompletableFuture<List<ADL>> fetchPositionsADLRank(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<ADL>> fetchPositionsADLRank(Object... optionalArgs)
     {
-        final Object symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4768,21 +4300,8 @@ public class Bitmex extends BitmexApi
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchPositionsADLRank
-     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
-     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
-     */
-    public CompletableFuture<List<ADL>> fetchPositionsADLRank(Object... optionalArgs)
-    {
-        return this.fetchPositionsADLRank(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseADLRank(Map<String, Object> info, Map<String, Object> market)
+    public Object parseADLRank(Map<String, Object> info, Object... optionalArgs)
     {
         //
         // fetchPositionsADLRank
@@ -4900,6 +4419,7 @@ public class Bitmex extends BitmexApi
         //         }
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(info, "symbol");
         String datetime = this.safeString(info, "timestamp");
         return new HashMap<String, Object>() {{
@@ -4911,10 +4431,6 @@ public class Bitmex extends BitmexApi
             put( "timestamp", Bitmex.this.parse8601(datetime) );
             put( "datetime", datetime );
         }};
-    }
-    public Object parseADLRank(Map<String, Object> info, Object... optionalArgs)
-    {
-        return this.parseADLRank(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -4935,17 +4451,15 @@ public class Bitmex extends BitmexApi
      * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public CompletableFuture<Object> fetchSettlementHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchSettlementHistory(Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4986,31 +4500,12 @@ public class Bitmex extends BitmexApi
         });
 
     }
-    /**
-     * @method
-     * @name bitmex#fetchSettlementHistory
-     * @description fetches historical settlement records
-     * @see https://docs.bitmex.com/api-explorer/get-settlements
-     * @param {string} symbol unified market symbol of the settlement history
-     * @param {int} [since] timestamp in ms
-     * @param {int} [limit] number of records
-     * @param {object} [params] exchange specific params
-     * @param {int} [params.until] timestamp in ms
-     *
-     * EXCHANGE SPECIFIC PARAMETERS
-     * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the timestamp docs for more details, default value = {}
-     * @param {string} [params.columns] array of column names to fetch, if omitted, will return all columns, note that this method will always return item keys, even when not specified, so you may receive more columns that you expect
-     * @param {int} [params.start] possible values are >= 0 starting point for results, default value = 0
-     * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
-     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
-     */
-    public CompletableFuture<Object> fetchSettlementHistory(Object... optionalArgs)
-    {
-        return this.fetchSettlementHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseSettlements(Object settlements, Map<String, Object> market, Long since, Long limit)
+    public Object parseSettlements(Object settlements, Object... optionalArgs)
     {
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
@@ -5020,12 +4515,8 @@ public class Bitmex extends BitmexApi
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-    public Object parseSettlements(Object settlements, Object... optionalArgs)
-    {
-        return this.parseSettlements(settlements, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null));
-    }
 
-    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Map<String, Object> market)
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
     {
         //
         //    {
@@ -5035,6 +4526,7 @@ public class Bitmex extends BitmexApi
         //        settledPrice: '1897.53'
         //    }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String datetime = this.safeString(settlement, "timestamp");
         String marketId = this.safeString(settlement, "symbol");
         return new HashMap<String, Object>() {{
@@ -5044,10 +4536,6 @@ public class Bitmex extends BitmexApi
             put( "timestamp", Bitmex.this.parse8601(datetime) );
             put( "datetime", datetime );
         }};
-    }
-    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
-    {
-        return this.parseSettlement(settlement, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -5061,11 +4549,13 @@ public class Bitmex extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<String, Object> parameters)
+    public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object side = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5105,21 +4595,6 @@ public class Bitmex extends BitmexApi
         }).thenApply(Order::new);
 
     }
-    /**
-     * @method
-     * @name bitmex#closePosition
-     * @description closes open positions for a market
-     * @see https://docs.bitmex.com/api-explorer/order-new
-     * @see https://docs.bitmex.com/api-explorer/order-close-position
-     * @param {string} symbol Unified CCXT market symbol
-     * @param {string} side the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
-    {
-        return this.closePosition(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
@@ -5152,9 +4627,14 @@ public class Bitmex extends BitmexApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object... optionalArgs)
     {
-        String query = Helpers.add((("/api/" + this.version) + "/"), path);
+        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
+        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
+        Object query = Helpers.add((("/api/" + this.version) + "/"), path);
         if (java.util.Objects.equals(method, "GET"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
@@ -5189,14 +4669,14 @@ public class Bitmex extends BitmexApi
             {
                 throw new ExchangeError((this.id + " sign() missing expires")) ;
             }
-            String stringExpires = String.valueOf(expires);
-            auth = (auth + stringExpires);
+            Object stringExpires = String.valueOf(expires);
+            auth = Helpers.add(auth, stringExpires);
             ((Map<String, Object>)headers).put("api-expires", stringExpires);
             if (java.util.Objects.equals(method, "POST") || java.util.Objects.equals(method, "PUT") || java.util.Objects.equals(method, "DELETE"))
             {
                 if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
                 {
-                    body = (String) (this.json(parameters));
+                    body = this.json(parameters);
                     auth = Helpers.add(auth, body);
                 }
             }
@@ -5211,9 +4691,5 @@ public class Bitmex extends BitmexApi
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 }

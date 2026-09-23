@@ -759,7 +759,7 @@ func (this *Bittrade) ParseTradingLimits(limits any, optionalArgs ...any) any {
 	}
 }
 func (this *Bittrade) CostToPrecision(symbol any, cost any) any {
-	return this.DecimalToPrecision(cost, TRUNCATE, GetValue(this.Market(symbol)["precision"], "cost"), this.PrecisionMode)
+	return this.DecimalToPrecision(cost, TRUNCATE, GetValue(GetValue(this.Market(symbol), "precision"), "cost"), this.PrecisionMode)
 }
 
 /**
@@ -944,26 +944,26 @@ func (this *Bittrade) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
-	var bid *string = nil
-	var bidVolume *string = nil
-	var ask *string = nil
-	var askVolume *string = nil
+	var bid any = nil
+	var bidVolume any = nil
+	var ask any = nil
+	var askVolume any = nil
 	if InOp(ticker, "bid") {
 		if IsArray(GetValue(ticker, "bid")) {
-			bid = this.SafeString(GetValue(ticker, "bid"), 0)
-			bidVolume = this.SafeString(GetValue(ticker, "bid"), 1)
+			bid = DerefScalar(this.SafeString(GetValue(ticker, "bid"), 0))
+			bidVolume = DerefScalar(this.SafeString(GetValue(ticker, "bid"), 1))
 		} else {
-			bid = this.SafeString(ticker, "bid")
-			bidVolume = this.SafeString(ticker, "bidSize")
+			bid = DerefScalar(this.SafeString(ticker, "bid"))
+			bidVolume = DerefScalar(this.SafeString(ticker, "bidSize"))
 		}
 	}
 	if InOp(ticker, "ask") {
 		if IsArray(GetValue(ticker, "ask")) {
-			ask = this.SafeString(GetValue(ticker, "ask"), 0)
-			askVolume = this.SafeString(GetValue(ticker, "ask"), 1)
+			ask = DerefScalar(this.SafeString(GetValue(ticker, "ask"), 0))
+			askVolume = DerefScalar(this.SafeString(GetValue(ticker, "ask"), 1))
 		} else {
-			ask = this.SafeString(ticker, "ask")
-			askVolume = this.SafeString(ticker, "askSize")
+			ask = DerefScalar(this.SafeString(ticker, "ask"))
+			askVolume = DerefScalar(this.SafeString(ticker, "askSize"))
 		}
 	}
 	var open *string = this.SafeString(ticker, "open")
@@ -1055,8 +1055,8 @@ func (this *Bittrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		}
 		var tick any = this.SafeDict(response, "tick")
 		var timestamp *int64 = this.SafeInteger(tick, "ts", this.SafeInteger(response, "ts"))
-		var result map[string]any = this.ParseOrderBook(tick, symbol, timestamp)
-		result["nonce"] = this.SafeInteger(tick, "version")
+		var result any = this.ParseOrderBook(tick, symbol, timestamp)
+		AddElementToObject(result, "nonce", this.SafeInteger(tick, "version"))
 
 		ch <- result
 		return nil
@@ -2109,7 +2109,7 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString(order, "id")
 	var side any = nil
 	var typeVar any = nil
-	var status *string = nil
+	var status any = nil
 	if InOp(order, "type") {
 		var orderType []string = Split(GetValue(order, "type"), "-")
 		side = GetValue(orderType, 0)
@@ -2463,7 +2463,7 @@ func (this *Bittrade) ParseCancelOrders(orders any) any {
 	} else {
 		success = this.SafeList(orders, "success", []any{})
 	}
-	var failed []any = SafeList2Typed(orders, "errors", "failed")
+	var failed any = this.SafeList2(orders, "errors", "failed", []any{})
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(success); i++ {
 		var order any = GetValue(success, i)
@@ -2473,13 +2473,8 @@ func (this *Bittrade) ParseCancelOrders(orders any) any {
 			"status": "canceled",
 		}))
 	}
-	for i := 0; i < len(failed); i++ {
-		var order any = func() any {
-			if i >= 0 && i < len(failed) {
-				return DerefScalar(failed[i])
-			}
-			return nil
-		}()
+	for i := 0; i < GetArrayLength(failed); i++ {
+		var order any = GetValue(failed, i)
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString2(order, "order-id", "order_id"),
@@ -2516,7 +2511,7 @@ func (this *Bittrade) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes181212)
 	}
 	var request map[string]any = map[string]any{}
-	var market map[string]any = nil
+	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")

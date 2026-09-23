@@ -1303,7 +1303,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	v2Productsv1ProductsVariable := (<-promiseAll([]any{v2ProductsPromise, v1ProductsPromise}))
 	v2Products := GetValue(v2Productsv1ProductsVariable, 0)
 	v1Products := GetValue(v2Productsv1ProductsVariable, 1)
-	var v1ProductsData []any = SafeListTyped(v1Products, "data")
+	var v1ProductsData any = this.SafeList(v1Products, "data", []any{})
 	//
 	//     {
 	//         "code":0,
@@ -1346,7 +1346,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var riskLimits any = this.SafeList(v2ProductsData, "riskLimits", []any{})
 	var riskLimitsV2 any = this.SafeList(v2ProductsData, "riskLimitsV2", []any{})
 	riskLimits = this.ArrayConcat(riskLimits, riskLimitsV2)
-	var currencies []any = SafeListTyped(v2ProductsData, "currencies")
+	var currencies any = this.SafeList(v2ProductsData, "currencies", []any{})
 	var riskLimitsById map[string]any = this.IndexBy(riskLimits, "symbol")
 	var v1ProductsById map[string]any = this.IndexBy(v1ProductsData, "symbol")
 	var currenciesByCode map[string]any = this.IndexBy(currencies, "currency")
@@ -2297,7 +2297,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString any = nil
 	var amountString any = nil
 	var timestamp *int64 = nil
-	var id *string = nil
+	var id any = nil
 	var side any = nil
 	var costString any = nil
 	var typeVar any = nil
@@ -2308,13 +2308,13 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var orderId *string = nil
+	var orderId any = nil
 	var takerOrMaker any = nil
 	if IsArray(trade) {
 		var tradeLength int = GetArrayLength(trade)
 		timestamp = this.SafeIntegerProduct(trade, 0, 0.000001)
 		if tradeLength > 4 {
-			id = this.SafeString(trade, tradeLength-4)
+			id = DerefScalar(this.SafeString(trade, tradeLength-4))
 		}
 		side = this.SafeStringLower(trade, tradeLength-3)
 		priceString = DerefScalar(this.SafeString(trade, tradeLength-2))
@@ -2328,8 +2328,8 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 		if IsEqual(timestamp, nil) {
 			timestamp = this.SafeInteger(trade, "createdAt")
 		}
-		id = this.SafeString2(trade, "execId", "execID")
-		orderId = this.SafeString(trade, "orderID")
+		id = DerefScalar(this.SafeString2(trade, "execId", "execID"))
+		orderId = DerefScalar(this.SafeString(trade, "orderID"))
 		if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
 			var sideId *string = this.SafeStringLower(trade, "side")
 			if (sideId != nil && *sideId == "buy") || (sideId != nil && *sideId == "sell") {
@@ -2456,7 +2456,7 @@ func (this *Phemex) ParseSpotBalance(response any) any {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var currency map[string]any = SafeMapTyped(this.Currencies, code)
 		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		var balanceEv *string = this.SafeString(balance, "balanceEv")
 		var lockedTradingBalanceEv *string = this.SafeString(balance, "lockedTradingBalanceEv")
 		var lockedWithdrawEv *string = this.SafeString(balance, "lockedWithdrawEv")
@@ -2471,8 +2471,8 @@ func (this *Phemex) ParseSpotBalance(response any) any {
 			}
 			return mathMax(timestamp, lastUpdateTimeNs)
 		}()
-		account["total"] = total
-		account["used"] = used
+		AddElementToObject(account, "total", total)
+		AddElementToObject(account, "used", used)
 		AddElementToObject(result, code, account)
 	}
 	result["timestamp"] = timestamp
@@ -2519,22 +2519,22 @@ func (this *Phemex) ParseSwapBalance(response any) any {
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var valueScale *int64 = this.SafeInteger(currency, "valueScale", 8)
-	var account map[string]any = this.Account()
+	var account any = this.Account()
 	var accountBalanceEv *string = this.SafeString2(balance, "accountBalanceEv", "accountBalanceRv")
 	var totalUsedBalanceEv *string = this.SafeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv")
 	var needsConversion bool = (code == nil || *code != "USDT")
-	account["total"] = func() any {
+	AddElementToObject(account, "total", func() any {
 		if needsConversion {
 			return this.FromEn(accountBalanceEv, valueScale)
 		}
 		return accountBalanceEv
-	}()
-	account["used"] = func() any {
+	}())
+	AddElementToObject(account, "used", func() any {
 		if needsConversion {
 			return this.FromEn(totalUsedBalanceEv, valueScale)
 		}
 		return totalUsedBalanceEv
-	}()
+	}())
 	AddElementToObject(result, code, account)
 	return this.SafeBalance(result)
 }

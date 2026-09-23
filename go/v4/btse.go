@@ -1347,10 +1347,10 @@ func (this *Btse) ParseBalance(response any) any {
 	var codes []string = ObjectKeys(totals)
 	for i := 0; i < len(codes); i++ {
 		var code string = GetValue(codes, i).(string)
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString(totals, code)
-		account["free"] = this.SafeString(frees, code)
-		account["used"] = this.SafeString(useds, code)
+		var account any = this.Account()
+		AddElementToObject(account, "total", this.SafeString(totals, code))
+		AddElementToObject(account, "free", this.SafeString(frees, code))
+		AddElementToObject(account, "used", this.SafeString(useds, code))
 		result[code] = account
 	}
 	return this.SafeBalance(result)
@@ -1386,8 +1386,8 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 		var length int = GetArrayLength(symbols)
 		if length == 1 {
 			var requestedSymbol *string = this.SafeString(symbols, 0)
-			var market map[string]any = this.Market(requestedSymbol)
-			request["symbol"] = market["id"]
+			var market any = this.Market(requestedSymbol)
+			request["symbol"] = GetValue(market, "id")
 		}
 	}
 

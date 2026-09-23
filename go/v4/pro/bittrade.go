@@ -447,10 +447,10 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var data any = this.SafeDict(message, "data")
-	var snapshot map[string]any = this.ParseOrderBook(data, symbol)
-	snapshot["nonce"] = this.SafeInteger(data, "seqNum")
-	snapshot["timestamp"] = timestamp
-	snapshot["datetime"] = this.Iso8601(timestamp)
+	var snapshot any = this.ParseOrderBook(data, symbol)
+	ccxt.AddElementToObject(snapshot, "nonce", this.SafeInteger(data, "seqNum"))
+	ccxt.AddElementToObject(snapshot, "timestamp", timestamp)
+	ccxt.AddElementToObject(snapshot, "datetime", this.Iso8601(timestamp))
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	// unroll the accumulated deltas
 	var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()

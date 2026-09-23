@@ -1293,7 +1293,7 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) any {
 	var turnoverSymbol *string = this.SafeStringUpper(ticker, "turnover_symbol")
 	var quoteId *string = this.SafeStringUpper(market, "quoteId")
 	var baseDenominated bool = (turnoverSymbol != nil) && (quoteId != nil) && (turnoverSymbol != quoteId && (turnoverSymbol == nil || quoteId == nil || *turnoverSymbol != *quoteId))
-	var quoteVolume *float64 = func() *float64 {
+	var quoteVolume any = func() any {
 		if baseDenominated {
 			return this.SafeNumber(ticker, "turnover_usd")
 		}
@@ -2015,9 +2015,9 @@ func (this *Delta) ParseBalance(response any) any {
 			}
 			return GetValue(currency, "code")
 		}()
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString(balance, "balance")
-		account["free"] = this.SafeString(balance, "available_balance")
+		var account any = this.Account()
+		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
+		AddElementToObject(account, "free", this.SafeString(balance, "available_balance"))
 		AddElementToObject(result, code, account)
 	}
 	return this.SafeBalance(result)
@@ -2349,11 +2349,11 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
 	var fee any = nil
 	var feeCostString *string = this.SafeString(order, "paid_commission")
 	if feeCostString != nil {
-		var feeCurrencyCode *string = nil
+		var feeCurrencyCode any = nil
 		if market != nil {
 			var settlingAsset map[string]any = SafeMapTyped(GetValue(market, "info"), "settling_asset")
 			var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
-			feeCurrencyCode = this.SafeCurrencyCode(feeCurrencyId)
+			feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
 		}
 		fee = map[string]any{
 			"cost":     feeCostString,
@@ -4969,7 +4969,7 @@ func (this *Delta) Sign(path any, optionalArgs ...any) any {
 		var auth any = Add(Add(method, timestamp), requestPath)
 		if IsEqual(method, "GET") {
 			if len(ObjectKeys(query)) > 0 {
-				var queryString string = "?" + this.Urlencode(query)
+				var queryString any = "?" + this.Urlencode(query)
 				auth = Add(auth, queryString)
 				url = Add(url, queryString)
 			}

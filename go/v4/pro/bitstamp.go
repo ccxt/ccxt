@@ -921,7 +921,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 	// amount_at_create is the original order amount - older messages
 	// do not carry amount_at_create, so fall back to the old behaviour
 	var amount *string = amountLeft
-	var remaining *string = nil
+	var remaining any = nil
 	if amountAtCreate != nil {
 		amount = amountAtCreate
 		remaining = amountLeft

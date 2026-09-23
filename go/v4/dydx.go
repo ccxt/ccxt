@@ -762,7 +762,7 @@ func (this *Dydx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "markets")
+	var data any = this.SafeDict(response, "markets", map[string]any{})
 	var markets []any = ObjectValues(data)
 
 	ch <- this.ParseMarkets(markets)
@@ -3176,8 +3176,8 @@ func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Dydx) ParseBalance(response any) any {
-	var account map[string]any = this.Account()
-	account["free"] = this.SafeString(response, "freeCollateral")
+	var account any = this.Account()
+	AddElementToObject(account, "free", this.SafeString(response, "freeCollateral"))
 	var result map[string]any = map[string]any{
 		"info": response,
 		"USDC": account,

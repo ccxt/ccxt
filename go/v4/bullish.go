@@ -1002,7 +1002,7 @@ func (this *Bullish) ParseMarket(market any) any {
 	var inverse any = nil
 	var expiryDatetime any = nil
 	var contractSize *float64 = nil
-	var optionType *string = nil
+	var optionType any = nil
 	var strike any = nil
 	var margin any = false
 	if typeVar != nil && *typeVar == "spot" {
@@ -3258,9 +3258,9 @@ func (this *Bullish) ParseBalanceForSingleCurrency(response any, code *string) a
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var account map[string]any = this.Account()
-	account["free"] = this.SafeString(response, "availableQuantity")
-	account["used"] = this.SafeString(response, "lockedQuantity")
+	var account any = this.Account()
+	AddElementToObject(account, "free", this.SafeString(response, "availableQuantity"))
+	AddElementToObject(account, "used", this.SafeString(response, "lockedQuantity"))
 	AddElementToObject(result, code, account)
 	return this.SafeBalance(result)
 }
@@ -3272,9 +3272,9 @@ func (this *Bullish) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var symbol *string = this.SafeString(balance, "assetSymbol")
 		var code *string = this.SafeCurrencyCode(symbol)
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString(balance, "availableQuantity")
-		account["used"] = this.SafeString(balance, "lockedQuantity")
+		var account any = this.Account()
+		AddElementToObject(account, "total", this.SafeString(balance, "availableQuantity"))
+		AddElementToObject(account, "used", this.SafeString(balance, "lockedQuantity"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

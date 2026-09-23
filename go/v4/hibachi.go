@@ -506,9 +506,9 @@ func (this *Hibachi) ParseBalance(response any) any {
 	}
 	// Hibachi only supports USDT on Arbitrum at this time
 	var code *string = this.SafeCurrencyCode("USDT")
-	var account map[string]any = this.Account()
-	account["total"] = this.SafeString(response, "balance")
-	account["free"] = this.SafeString(response, "maximalWithdraw")
+	var account any = this.Account()
+	AddElementToObject(account, "total", this.SafeString(response, "balance"))
+	AddElementToObject(account, "free", this.SafeString(response, "maximalWithdraw"))
 	if code != nil {
 		AddElementToObject(result, code, account)
 	}
@@ -630,8 +630,8 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 	var cost *string = Precise.StringMul(price, amount)
 	var side any = nil
 	var fee any = nil
-	var orderType *string = nil
-	var orderId *string = nil
+	var orderType any = nil
+	var orderId any = nil
 	var takerOrMaker any = nil
 	if id == nil {
 		// public trades
@@ -646,9 +646,9 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 		orderType = this.SafeStringLower(trade, "orderType")
 		if IsEqual(side, "buy") {
-			orderId = this.SafeString(trade, "bidOrderId")
+			orderId = DerefScalar(this.SafeString(trade, "bidOrderId"))
 		} else {
-			orderId = this.SafeString(trade, "askOrderId")
+			orderId = DerefScalar(this.SafeString(trade, "askOrderId"))
 		}
 	}
 	return this.SafeTrade(map[string]any{
@@ -2370,8 +2370,8 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var direction string
 	var amount any = nil
 	var fee any = nil
-	var referenceId *string = nil
-	var referenceAccount *string = nil
+	var referenceId any = nil
+	var referenceAccount any = nil
 	var status any = nil
 	if transactionType == nil {
 		// response from TradeAccountTradingHistory
@@ -2403,11 +2403,11 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		typeVar = this.ParseTransactionType(transactionType)
 		status = this.ParseTransactionStatus(this.SafeString(item, "status"))
 		if transactionType != nil && *transactionType == "transfer-in" {
-			referenceAccount = this.SafeString(item, "srcAccountId")
+			referenceAccount = DerefScalar(this.SafeString(item, "srcAccountId"))
 		} else if transactionType != nil && *transactionType == "transfer-out" {
-			referenceAccount = this.SafeString(item, "receivingAccountId")
+			referenceAccount = DerefScalar(this.SafeString(item, "receivingAccountId"))
 		}
-		referenceId = this.SafeString(item, "transactionHash")
+		referenceId = DerefScalar(this.SafeString(item, "transactionHash"))
 	}
 	return this.SafeLedgerEntry(map[string]any{
 		"id":               this.SafeString(item, "id"),

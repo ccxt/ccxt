@@ -10,7 +10,6 @@ import io.github.ccxt.BaseExchange;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class Binancecoinm extends BinancecoinmApi
@@ -51,33 +50,27 @@ public class Binancecoinm extends BinancecoinmApi
         }});
     }
 
-    public CompletableFuture<Object> transferIn(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferIn(String code, Object amount, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // transfer from spot wallet to coinm futures wallet
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.futuresTransfer(code, amount, 3, parameters)).join();
         });
 
     }
-    public CompletableFuture<Object> transferIn(String code, Object amount, Object... optionalArgs)
-    {
-        return this.transferIn(code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public CompletableFuture<Object> transferOut(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // transfer from coinm futures wallet to spot wallet
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.futuresTransfer(code, amount, 4, parameters)).join();
         });
 
-    }
-    public CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
-    {
-        return this.transferOut(code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 }

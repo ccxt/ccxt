@@ -135,8 +135,8 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if typeVar != nil && *typeVar == "SNAPSHOT" {
-		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", "p", "q")
-		snapshot["nonce"] = nonce
+		var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", "p", "q")
+		ccxt.AddElementToObject(snapshot, "nonce", nonce)
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 		return
@@ -322,9 +322,9 @@ func (this *Extended) HandleBalance(client any, message any) {
 		var currencyId *string = this.SafeString(balance, "collateralName")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(balance, "availableForWithdrawal")
-			account["total"] = this.SafeString(balance, "balance")
+			var account any = this.Account()
+			ccxt.AddElementToObject(account, "free", this.SafeString(balance, "availableForWithdrawal"))
+			ccxt.AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 			ccxt.AddElementToObject(result, code, account)
 		}
 	}
@@ -334,9 +334,9 @@ func (this *Extended) HandleBalance(client any, message any) {
 		var currencyId *string = this.SafeString(spotBalance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(spotBalance, "availableToWithdraw")
-			account["total"] = this.SafeString(spotBalance, "balance")
+			var account any = this.Account()
+			ccxt.AddElementToObject(account, "free", this.SafeString(spotBalance, "availableToWithdraw"))
+			ccxt.AddElementToObject(account, "total", this.SafeString(spotBalance, "balance"))
 			ccxt.AddElementToObject(result, code, account)
 		}
 	}

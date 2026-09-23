@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchOHLCVForSymbols";
         Int64 now = exchange.milliseconds();
-        Int64 ends = (now + 15000);
+        object ends = (now + 15000);
         List<object> timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
         assert(timeframeKeys.Count > 0, add(add(add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
@@ -26,7 +26,7 @@ public partial class testMainClass : BaseTest
         Int64 since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
         int maxIdleTime = 5000;
         bool idle = false;
-        while ((now < ends) && !idle)
+        while ((isLessThan(now, ends)) && !idle)
         {
             object response = null;
             bool success = true;
@@ -36,7 +36,7 @@ public partial class testMainClass : BaseTest
                 response = detypeForComparison(await exchange.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit));
                 if ((response == null))
                 {
-                    throw new Exception (add(exchange.id, " watch returned undefined response")) ;
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {

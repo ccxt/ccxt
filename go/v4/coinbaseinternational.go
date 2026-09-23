@@ -2267,9 +2267,9 @@ func (this *Coinbaseinternational) ParseBalance(response any) any {
 		var rawBalance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(rawBalance, "asset_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString(rawBalance, "quantity")
-		account["used"] = this.SafeString(rawBalance, "hold")
+		var account any = this.Account()
+		AddElementToObject(account, "total", this.SafeString(rawBalance, "quantity"))
+		AddElementToObject(account, "used", this.SafeString(rawBalance, "hold"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

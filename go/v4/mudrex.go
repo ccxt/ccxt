@@ -377,11 +377,11 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes28512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes28512)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market any = this.Market(symbol)
 	var priceType *string = this.SafeString(params, "price")
 	params = this.Omit(params, "price")
 	// the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-	var assetPair any = Add(Add(market["baseId"], "/"), market["quoteId"])
+	var assetPair any = Add(Add(GetValue(market, "baseId"), "/"), GetValue(market, "quoteId"))
 	var request map[string]any = map[string]any{
 		"assets":      assetPair,
 		"aggregation": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -811,16 +811,16 @@ func (this *Mudrex) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var account map[string]any = this.Account()
+	var account any = this.Account()
 	var futuresBalance *string = this.SafeString(data, "balance")
 	if futuresBalance != nil {
 		// futures wallet: balance is the free/available margin, locked_amount is used, safeBalance derives total
-		account["free"] = futuresBalance
-		account["used"] = this.SafeString(data, "locked_amount")
+		AddElementToObject(account, "free", futuresBalance)
+		AddElementToObject(account, "used", this.SafeString(data, "locked_amount"))
 	} else {
 		// spot wallet: total is the total, withdrawable is free, safeBalance derives used
-		account["total"] = this.SafeString(data, "total")
-		account["free"] = this.SafeString(data, "withdrawable")
+		AddElementToObject(account, "total", this.SafeString(data, "total"))
+		AddElementToObject(account, "free", this.SafeString(data, "withdrawable"))
 	}
 	AddElementToObject(result, currency, account)
 	return this.SafeBalance(result)
@@ -1127,9 +1127,9 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) any {
 	var isRiskOrder bool = (rawSide != nil && *rawSide == "STOPLOSS") || (rawSide != nil && *rawSide == "TAKEPROFIT")
 	var priceString *string = this.SafeString2(order, "price", "order_price")
 	var orderPrice any = priceString
-	var triggerPrice *string = nil
-	var stopLossPrice *string = nil
-	var takeProfitPrice *string = nil
+	var triggerPrice any = nil
+	var stopLossPrice any = nil
+	var takeProfitPrice any = nil
 	if isRiskOrder {
 		triggerPrice = priceString
 		orderPrice = nil

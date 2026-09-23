@@ -56,7 +56,7 @@ func (this *Coinbaseexchange) Authenticate() any {
 	this.CheckRequiredCredentials()
 	var path string = "/users/self/verify"
 	var nonce any = this.Nonce()
-	var payload string = ccxt.ToString(nonce) + "GET" + path
+	var payload any = ccxt.ToString(nonce) + "GET" + path
 	var signature string = this.Hmac(this.Encode(payload), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 	return map[string]any{
 		"timestamp":  nonce,
@@ -84,7 +84,7 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name any, optionalArgs 
 		retRes6412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes6412)
 	}
-	var market map[string]any = nil
+	var market any = nil
 	var messageHash any = messageHashStart
 	var productIds []any = []any{}
 	if symbol != nil {
@@ -128,7 +128,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name any, optio
 		retRes9212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes9212)
 	}
-	var market map[string]any = nil
+	var market any = nil
 	symbols = this.MarketSymbols(symbols)
 	var messageHashes []any = []any{}
 	var productIds []any = []any{}

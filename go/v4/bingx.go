@@ -1345,15 +1345,10 @@ func (this *Bingx) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
-	var networkList []any = SafeListTyped(rawCurrency, "networkList")
+	var networkList any = this.SafeList(rawCurrency, "networkList")
 	var networks map[string]any = map[string]any{}
-	for j := 0; j < len(networkList); j++ {
-		var rawNetwork any = func() any {
-			if j >= 0 && j < len(networkList) {
-				return DerefScalar(networkList[j])
-			}
-			return nil
-		}()
+	for j := 0; j < GetArrayLength(networkList); j++ {
+		var rawNetwork any = GetValue(networkList, j)
 		var network *string = this.SafeString(rawNetwork, "network")
 		var networkCode any = this.NetworkIdToCode(network, code)
 		var limits map[string]any = map[string]any{
@@ -1559,7 +1554,7 @@ func (this *Bingx) ParseMarket(market any) any {
 	if settle != nil {
 		symbol = Add(symbol, ":"+*settle)
 	}
-	var fees map[string]any = SafeMapTyped(this.Fees, typeVar)
+	var fees any = this.SafeDict(this.Fees, typeVar, map[string]any{})
 	var contractSize any = nil
 	if swap {
 		contractSize = func() any {
@@ -2324,8 +2319,8 @@ func (this *Bingx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var orderbook any = this.SafeDict(response, "data", map[string]any{})
 	var nonce *int64 = this.SafeInteger(orderbook, "lastUpdateId")
 	var timestamp *int64 = this.SafeInteger2(orderbook, "T", "ts")
-	var result map[string]any = this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", 0, 1)
-	result["nonce"] = nonce
+	var result any = this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", 0, 1)
+	AddElementToObject(result, "nonce", nonce)
 
 	ch <- result
 	return nil
@@ -2832,13 +2827,13 @@ func (this *Bingx) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	var openInterest *float64 = this.SafeNumber(interest, "openInterest")
 	var inverse *bool = this.SafeBool(market, "inverse", false)
 	var isInverse bool = (inverse != nil && *inverse == true)
-	var openInterestAmount *float64 = func() *float64 {
+	var openInterestAmount any = func() any {
 		if isInverse {
 			return openInterest
 		}
 		return nil
 	}()
-	var openInterestValue *float64 = func() *float64 {
+	var openInterestValue any = func() any {
 		if isInverse {
 			return nil
 		}
@@ -3437,7 +3432,7 @@ func (this *Bingx) ParseBalance(response any) any {
 	var firstContractBalances any = this.SafeDict(contractBalances, 0)
 	var isContract bool = !IsEqual(firstContractBalances, nil)
 	var spotData map[string]any = SafeMapTyped(response, "data")
-	var spotBalances []any = SafeList2Typed(spotData, "balances", "assets")
+	var spotBalances any = this.SafeList2(spotData, "balances", "assets", []any{})
 	if isContract {
 		for i := 0; i < GetArrayLength(contractBalances); i++ {
 			var balance any = GetValue(contractBalances, i)
@@ -3446,27 +3441,22 @@ func (this *Bingx) ParseBalance(response any) any {
 				break
 			}
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString2(balance, "availableMargin", "availableBalance")
-			account["used"] = this.SafeString(balance, "usedMargin")
-			account["total"] = this.SafeString(balance, "maxWithdrawAmount")
+			var account any = this.Account()
+			AddElementToObject(account, "free", this.SafeString2(balance, "availableMargin", "availableBalance"))
+			AddElementToObject(account, "used", this.SafeString(balance, "usedMargin"))
+			AddElementToObject(account, "total", this.SafeString(balance, "maxWithdrawAmount"))
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
 		}
 	} else {
-		for i := 0; i < len(spotBalances); i++ {
-			var balance any = func() any {
-				if i >= 0 && i < len(spotBalances) {
-					return DerefScalar(spotBalances[i])
-				}
-				return nil
-			}()
+		for i := 0; i < GetArrayLength(spotBalances); i++ {
+			var balance any = GetValue(spotBalances, i)
 			var currencyId *string = this.SafeString(balance, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(balance, "free")
-			account["used"] = this.SafeString(balance, "locked")
+			var account any = this.Account()
+			AddElementToObject(account, "free", this.SafeString(balance, "free"))
+			AddElementToObject(account, "used", this.SafeString(balance, "locked"))
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -3990,7 +3980,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				request["type"] = "TRIGGER_MARKET"
 			}
 		} else if (stopLossPrice != nil) || (takeProfitPrice != nil) {
-			var stopTakePrice *string = func() *string {
+			var stopTakePrice any = func() any {
 				if stopLossPrice != nil {
 					return stopLossPrice
 				}
@@ -6270,7 +6260,7 @@ func (this *Bingx) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		ch <- this.SafeDict(addressStructures, network)
 		return nil
 	} else {
-		var options map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
+		var options any = this.SafeDict(this.Options, "defaultNetworks")
 		var defaultNetworkForCurrency *string = this.SafeString(options, code)
 		if defaultNetworkForCurrency != nil {
 
@@ -6521,7 +6511,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var data any = this.SafeDict(transaction, "data")
-	var dataId *string = func() *string {
+	var dataId any = func() any {
 		if IsEqual(data, nil) {
 			return nil
 		}
@@ -7017,7 +7007,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 			response = (<-this.SpotV1PrivateGetTradeMyTrades(this.Extend(request, params)))
 			PanicOnError(response)
-			var data map[string]any = SafeMapTyped(response, "data")
+			var data any = this.SafeDict(response, "data", map[string]any{})
 			fills = this.SafeList(data, "fills", []any{})
 		} else {
 			var tradingUnit *string = this.SafeStringUpper(params, "tradingUnit", "CONT")
@@ -7026,7 +7016,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 			response = (<-this.SwapV2PrivateGetTradeAllFillOrders(this.Extend(request, params)))
 			PanicOnError(response)
-			var data map[string]any = SafeMapTyped(response, "data")
+			var data any = this.SafeDict(response, "data", map[string]any{})
 			fills = this.SafeList(data, "fill_orders", []any{})
 		}
 	}
@@ -7057,7 +7047,7 @@ func (this *Bingx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	if networksLength != 0 {
 		for i := 0; i < networksLength; i++ {
-			var networkCode string = networkCodes[i]
+			var networkCode any = GetValue(networkCodes, i)
 			var network any = GetValue(networks, networkCode)
 			AddElementToObject(result["networks"], networkCode, map[string]any{
 				"deposit": map[string]any{
@@ -7186,7 +7176,7 @@ func (this *Bingx) withdrawBody(ch chan any, code any, amount any, address any, 
 
 	response := (<-this.WalletsV1PrivatePostCapitalWithdrawApply(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data")
+	var data any = this.SafeValue(response, "data")
 
 	//    {
 	//        "code":0,
@@ -7511,16 +7501,11 @@ func (this *Bingx) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var success []any = SafeListTyped(data, "success")
+	var success any = this.SafeList(data, "success", []any{})
 	var positions []any = []any{}
-	for i := 0; i < len(success); i++ {
+	for i := 0; i < GetArrayLength(success); i++ {
 		var position any = this.ParsePosition(map[string]any{
-			"positionId": func() any {
-				if i >= 0 && i < len(success) {
-					return DerefScalar(success[i])
-				}
-				return nil
-			}(),
+			"positionId": GetValue(success, i),
 		})
 		positions = append(positions, position)
 	}

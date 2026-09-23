@@ -463,10 +463,10 @@ func (this *Btcturk) ParseBalance(response any) any {
 		}()
 		var currencyId *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString(entry, "balance")
-		account["free"] = this.SafeString(entry, "free")
-		account["used"] = this.SafeString(entry, "locked")
+		var account any = this.Account()
+		AddElementToObject(account, "total", this.SafeString(entry, "balance"))
+		AddElementToObject(account, "free", this.SafeString(entry, "free"))
+		AddElementToObject(account, "used", this.SafeString(entry, "locked"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

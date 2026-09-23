@@ -107,7 +107,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 		// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
 		// concurrent callers each minted their own token, last write won, and the losers
 		// carried an orphaned token into name + '@' + listenKey so their streams went dead
-		var messageHash string = "authenticate:" + tradeType
+		var messageHash any = "authenticate:" + tradeType
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 			// a flight is already in progress - wake when the leader
 			// settles it: the token is then in the bucket
@@ -453,7 +453,7 @@ func (this *Xt) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) an
 		ccxt.PanicOnError(retRes31412)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
+	var options any = this.SafeDict(this.Options, "watchTicker")
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	var name any = ccxt.Add(*method+"@", market["id"])
@@ -491,7 +491,7 @@ func (this *Xt) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		ccxt.PanicOnError(retRes33712)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "unWatchTicker")
+	var options any = this.SafeDict(this.Options, "unWatchTicker")
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	var name any = ccxt.Add(*method+"@", market["id"])
@@ -531,7 +531,7 @@ func (this *Xt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes36112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes36112)
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
+	var options any = this.SafeDict(this.Options, "watchTickers")
 	var defaultMethod *string = this.SafeString(options, "method", "tickers")
 	var name *string = this.SafeString(params, "method", defaultMethod)
 	var market any = nil
@@ -579,7 +579,7 @@ func (this *Xt) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes39012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes39012)
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "unWatchTickers")
+	var options any = this.SafeDict(this.Options, "unWatchTickers")
 	var defaultMethod *string = this.SafeString(options, "method", "tickers")
 	var name *string = this.SafeString(params, "method", defaultMethod)
 	if symbols != nil {
@@ -1916,10 +1916,10 @@ func (this *Xt) HandleBalance(client any, message map[string]any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var currencyId *string = this.SafeString2(data, "c", "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var account map[string]any = this.Account()
-	account["free"] = this.SafeString(data, "availableBalance")
-	account["used"] = this.SafeString(data, "f")
-	account["total"] = this.SafeString2(data, "b", "walletBalance")
+	var account any = this.Account()
+	ccxt.AddElementToObject(account, "free", this.SafeString(data, "availableBalance"))
+	ccxt.AddElementToObject(account, "used", this.SafeString(data, "f"))
+	ccxt.AddElementToObject(account, "total", this.SafeString2(data, "b", "walletBalance"))
 	if code != nil {
 		ccxt.AddElementToObject(this.Balance, code, account)
 	}

@@ -816,10 +816,10 @@ func (this *Bitso) ParseBalance(response any) any {
 		}()
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "available")
-		account["used"] = this.SafeString(balance, "locked")
-		account["total"] = this.SafeString(balance, "total")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balance, "available"))
+		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
+		AddElementToObject(account, "total", this.SafeString(balance, "total"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -2008,11 +2008,11 @@ func (this *Bitso) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 	PanicOnError(response)
 	var payload map[string]any = SafeMapTyped(response, "payload")
 	var address *string = this.SafeString(payload, "account_identifier")
-	var tag *string = nil
+	var tag any = nil
 	if GetIndexOf(address, "?dt=") >= 0 {
 		var parts []string = Split(address, "?dt=")
 		address = this.SafeString(parts, 0)
-		tag = this.SafeString(parts, 1)
+		tag = DerefScalar(this.SafeString(parts, 1))
 	}
 	this.CheckAddress(address)
 

@@ -1721,7 +1721,7 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(amountObject, "amount", v3Amount)
 	var costString *string = this.SafeString(subtotalObject, "amount", v3Cost)
 	var priceString any = nil
-	var cost *string = nil
+	var cost any = nil
 	if (costString != nil) && (amountString != nil) {
 		priceString = Precise.StringDiv(costString, amountString)
 	} else {
@@ -1826,7 +1826,7 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 	PanicOnError(response)
 	var currencies map[string]any = SafeMapTyped(response, "currencies")
 	var exchangeRates map[string]any = SafeMapTyped(response, "exchangeRates")
-	var data []any = SafeListTyped(currencies, "data")
+	var data any = this.SafeList(currencies, "data", []any{})
 	var dataById map[string]any = this.IndexBy(data, "id")
 	var rates map[string]any = SafeMapTyped(this.SafeDict(exchangeRates, "data", map[string]any{}), "rates")
 	var baseIds []string = ObjectKeys(rates)
@@ -1842,13 +1842,8 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 		}()
 		// https://github.com/ccxt/ccxt/issues/6066
 		if typeVar == "crypto" {
-			for j := 0; j < len(data); j++ {
-				var quoteCurrency any = func() any {
-					if j >= 0 && j < len(data) {
-						return DerefScalar(data[j])
-					}
-					return nil
-				}()
+			for j := 0; j < GetArrayLength(data); j++ {
+				var quoteCurrency any = GetValue(data, j)
 				var quoteId *string = this.SafeString(quoteCurrency, "id")
 				var quote *string = this.SafeCurrencyCode(quoteId)
 				result = append(result, this.SafeMarketStructure(map[string]any{
@@ -3126,19 +3121,14 @@ func (this *Coinbase) ParseTicker(ticker any, optionalArgs ...any) any {
 func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var balances []any = SafeList2Typed(response, "data", "accounts")
+	var balances any = this.SafeList2(response, "data", "accounts", []any{})
 	var accounts any = this.SafeList(params, "type", GetValue(this.Options, "accounts"))
 	var v3Accounts any = this.SafeList(params, "type", GetValue(this.Options, "v3Accounts"))
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for b := 0; b < len(balances); b++ {
-		var balance any = func() any {
-			if b >= 0 && b < len(balances) {
-				return DerefScalar(balances[b])
-			}
-			return nil
-		}()
+	for b := 0; b < GetArrayLength(balances); b++ {
+		var balance any = GetValue(balances, b)
 		var typeVar *string = this.SafeString(balance, "type")
 		if this.InArray(typeVar, accounts) {
 			var value any = this.SafeDict(balance, "balance")
@@ -4220,10 +4210,10 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 	var marketIOC map[string]any = SafeMapTyped(orderConfiguration, "market_market_ioc")
 	var isLimit bool = ((!IsEqual(limitGTC, nil)) || (!IsEqual(limitGTD, nil)) || (!IsEqual(limitIOC, nil)))
 	var isStop bool = ((!IsEqual(stopLimitGTC, nil)) || (!IsEqual(stopLimitGTD, nil)))
-	var price *string = nil
-	var amount *string = nil
+	var price any = nil
+	var amount any = nil
 	var postOnly *bool = nil
-	var triggerPrice *string = nil
+	var triggerPrice any = nil
 	if isLimit {
 		var target any = nil
 		if !IsEqual(limitGTC, nil) {
@@ -4233,8 +4223,8 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 		} else {
 			target = limitIOC
 		}
-		price = this.SafeString(target, "limit_price")
-		amount = this.SafeString(target, "base_size")
+		price = DerefScalar(this.SafeString(target, "limit_price"))
+		amount = DerefScalar(this.SafeString(target, "base_size"))
 		postOnly = this.SafeBool(target, "post_only")
 	} else if isStop {
 		var stopTarget any = func() any {
@@ -4243,12 +4233,12 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 			}
 			return stopLimitGTD
 		}()
-		price = this.SafeString(stopTarget, "limit_price")
-		amount = this.SafeString(stopTarget, "base_size")
+		price = DerefScalar(this.SafeString(stopTarget, "limit_price"))
+		amount = DerefScalar(this.SafeString(stopTarget, "base_size"))
 		postOnly = this.SafeBool(stopTarget, "post_only")
-		triggerPrice = this.SafeString(stopTarget, "stop_price")
+		triggerPrice = DerefScalar(this.SafeString(stopTarget, "stop_price"))
 	} else {
-		amount = this.SafeString(marketIOC, "base_size")
+		amount = DerefScalar(this.SafeString(marketIOC, "base_size"))
 	}
 	var datetime *string = this.SafeString(order, "created_time")
 	var totalFees *string = this.SafeString(order, "total_fees")

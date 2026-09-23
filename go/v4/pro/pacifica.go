@@ -714,10 +714,10 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 		"asks": this.SafeList(levels, 1, []any{}),
 	}
 	var timestamp *int64 = this.SafeInteger(entry, "t")
-	var snapshot map[string]any = this.ParseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a")
+	var snapshot any = this.ParseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a")
 	var nonce *int64 = this.SafeInteger(entry, "li")
 	if (nonce != nil) && (nonce == nil || *nonce != 0) {
-		snapshot["nonce"] = nonce
+		ccxt.AddElementToObject(snapshot, "nonce", nonce)
 	}
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
@@ -840,7 +840,7 @@ func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true)
 	var subMessageHash string = "tickers"
-	var messageHash string = "unsubscribe:" + subMessageHash
+	var messageHash any = "unsubscribe:" + subMessageHash
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
 		if isTestnet == true {
@@ -1529,7 +1529,7 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("watchOrders", params)
 	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
 	params = ccxt.GetValue(userAddressparamsVariable, 1)
-	var market map[string]any = nil
+	var market any = nil
 	var messageHash any = "order"
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1677,7 +1677,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 	var keys []string = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; i < len(keys); i++ {
 		var symbol string = ccxt.GetValue(keys, i).(string)
-		var innerMessageHash string = messageHash + ":" + symbol
+		var innerMessageHash any = messageHash + ":" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, innerMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1742,7 +1742,7 @@ func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
 }
 func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) {
 	var subMessageHash string = "tickers"
-	var messageHash string = "unsubscribe:" + subMessageHash
+	var messageHash any = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	var symbols []string = ccxt.ObjectKeys(this.Tickers)
 	for i := 0; i < len(symbols); i++ {
@@ -1769,7 +1769,7 @@ func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
 }
 func (this *Pacifica) HandleOrderUnsubscription(client any, subscription any) {
 	var subHash string = "order"
-	var unSubHash string = "unsubscribe:" + subHash
+	var unSubHash any = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
 	var topicStructure map[string]any = map[string]any{
 		"topic": "orders",
@@ -1778,7 +1778,7 @@ func (this *Pacifica) HandleOrderUnsubscription(client any, subscription any) {
 }
 func (this *Pacifica) HandleMyTradesUnsubscription(client any, subscription any) {
 	var subHash string = "myTrades"
-	var unSubHash string = "unsubscribe:" + subHash
+	var unSubHash any = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
 	var topicStructure map[string]any = map[string]any{
 		"topic": "myTrades",

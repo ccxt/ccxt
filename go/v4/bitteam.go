@@ -978,7 +978,7 @@ func (this *Bitteam) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
-	var orderbook map[string]any = this.ParseOrderBook(response, symbol, timestamp)
+	var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
 
 	ch <- orderbook
 	return nil
@@ -2053,22 +2053,22 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeStringLower(ticker, "trading_pairs")
 	market = this.SafeMarket(marketId, market)
-	var bestBidPrice *string = nil
-	var bestAskPrice *string = nil
-	var bestBidVolume *string = nil
-	var bestAskVolume *string = nil
+	var bestBidPrice any = nil
+	var bestAskPrice any = nil
+	var bestBidVolume any = nil
+	var bestAskVolume any = nil
 	var bids any = this.SafeList(ticker, "bids")
 	var asks any = this.SafeList(ticker, "asks")
 	if (!IsEqual(bids, nil)) && (IsArray(bids)) && (!IsEqual(asks, nil)) && (IsArray(asks)) {
 		var bestBid map[string]any = SafeMapTyped(bids, 0)
-		bestBidPrice = this.SafeString(bestBid, "price")
-		bestBidVolume = this.SafeString(bestBid, "quantity")
+		bestBidPrice = DerefScalar(this.SafeString(bestBid, "price"))
+		bestBidVolume = DerefScalar(this.SafeString(bestBid, "quantity"))
 		var bestAsk map[string]any = SafeMapTyped(asks, 0)
-		bestAskPrice = this.SafeString(bestAsk, "price")
-		bestAskVolume = this.SafeString(bestAsk, "quantity")
+		bestAskPrice = DerefScalar(this.SafeString(bestAsk, "price"))
+		bestAskVolume = DerefScalar(this.SafeString(bestAsk, "quantity"))
 	} else {
-		bestBidPrice = this.SafeString(ticker, "highest_bid")
-		bestAskPrice = this.SafeString(ticker, "lowest_ask")
+		bestBidPrice = DerefScalar(this.SafeString(ticker, "highest_bid"))
+		bestAskPrice = DerefScalar(this.SafeString(ticker, "lowest_ask"))
 	}
 	var baseVolume *string = this.SafeString2(ticker, "volume24", "base_volume")
 	var quoteVolume *string = this.SafeString2(ticker, "quoteVolume24", "quote_volume")
@@ -2417,17 +2417,17 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 	// the exchange returns the side of the taker
 	var side any = DerefScalar(this.SafeString2(trade, "side", "type"))
 	var feeInfo any = nil
-	var order *string = nil
+	var order any = nil
 	if takerOrMaker != nil && *takerOrMaker == "maker" {
 		if IsEqual(side, "sell") {
 			side = "buy"
 		} else if IsEqual(side, "buy") {
 			side = "sell"
 		}
-		order = this.SafeString(trade, "makerOrderId")
+		order = DerefScalar(this.SafeString(trade, "makerOrderId"))
 		feeInfo = this.SafeDict(trade, "feeMaker", map[string]any{})
 	} else if takerOrMaker != nil && *takerOrMaker == "taker" {
-		order = this.SafeString(trade, "takerOrderId")
+		order = DerefScalar(this.SafeString(trade, "takerOrderId"))
 		feeInfo = this.SafeDict(trade, "feeTaker", map[string]any{})
 	}
 	var feeCurrencyId *string = this.SafeString(feeInfo, "symbol")
@@ -2820,7 +2820,7 @@ func (this *Bitteam) Sign(path any, optionalArgs ...any) any {
 		}
 		var auth any = Add(Add(this.ApiKey, ":"), this.Secret)
 		var auth64 string = this.StringToBase64(auth)
-		var signature string = "Basic " + auth64
+		var signature any = "Basic " + auth64
 		headers = map[string]any{
 			"Authorization": signature,
 			"Content-Type":  "application/json",

@@ -12,7 +12,7 @@ public partial class bybiteu : bybit
         // eslint-disable-next-line new-cap
         var restInstance = new ccxt.bybiteu();
         Dictionary<string, object> restDescribe = restInstance.describe();
-        Dictionary<string, object> parentWsDescribe = base.describeData();
+        object parentWsDescribe = base.describeData();
         Dictionary<string, object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "bybiteu" },

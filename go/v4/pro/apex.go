@@ -137,8 +137,8 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market map[string]any = this.Market(symbol)
-		var topic any = ccxt.Add("recentlyTrade.H.", market["id2"])
+		var market any = this.Market(symbol)
+		var topic any = ccxt.Add("recentlyTrade.H.", ccxt.GetValue(market, "id2"))
 		topics = append(topics, topic)
 		var messageHash any = ccxt.Add("trade:", symbol)
 		messageHashes = append(messageHashes, messageHash)
@@ -305,11 +305,11 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market map[string]any = this.Market(symbol)
+		var market any = this.Market(symbol)
 		if limit == nil {
 			limit = 25
 		}
-		var topic any = ccxt.Add("orderBook"+ccxt.ToString(limit)+".H.", market["id2"])
+		var topic any = ccxt.Add("orderBook"+ccxt.ToString(limit)+".H.", ccxt.GetValue(market, "id2"))
 		topics = append(topics, topic)
 		var messageHash any = ccxt.Add("orderbook:", symbol)
 		messageHashes = append(messageHashes, messageHash)
@@ -427,7 +427,7 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if isSnapshot {
-		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
+		var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
 		var asks any = this.SafeList(data, "a", []any{})
@@ -475,11 +475,11 @@ func (this *Apex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes37912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes37912)
 	}
-	var market map[string]any = this.Market(symbol)
-	symbol = market["symbol"]
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
 	var url any = this.GetWsPublicUrl()
 	var messageHash any = ccxt.Add("ticker:", symbol)
-	var topic any = ccxt.Add("instrumentInfo"+".H.", market["id2"])
+	var topic any = ccxt.Add("instrumentInfo"+".H.", ccxt.GetValue(market, "id2"))
 	var topics []any = []any{topic}
 
 	retRes38715 := (<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params))
@@ -520,8 +520,8 @@ func (this *Apex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market map[string]any = this.Market(symbol)
-		var topic any = ccxt.Add("instrumentInfo"+".H.", market["id2"])
+		var market any = this.Market(symbol)
+		var topic any = ccxt.Add("instrumentInfo"+".H.", ccxt.GetValue(market, "id2"))
 		topics = append(topics, topic)
 		var messageHash any = ccxt.Add("ticker:", symbol)
 		messageHashes = append(messageHashes, messageHash)
@@ -662,12 +662,12 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
-		var market map[string]any = this.Market(symbolString)
-		symbolString = market["id2"]
+		var market any = this.Market(symbolString)
+		symbolString = ccxt.GetValue(market, "id2")
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1")
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		rawHashes = append(rawHashes, ccxt.Add("candle."+*timeframeId+".", symbolString))
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", market["symbol"]), "::"), unfiedTimeframe))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), unfiedTimeframe))
 	}
 	symboltimeframestoredVariable := (<-this.WatchTopicsAsync(url, messageHashes, rawHashes, params))
 	symbol := ccxt.GetValue(symboltimeframestoredVariable, 0)

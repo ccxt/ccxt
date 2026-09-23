@@ -585,14 +585,9 @@ func (this *Okx) HandleFundingRate(client any, message map[string]any) {
 	//     }
 	// ]
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
-	for i := 0; i < len(data); i++ {
-		var rawfr any = func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}()
+	var data any = this.SafeList(message, "data", []any{})
+	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+		var rawfr any = ccxt.GetValue(data, i)
 		var fundingRate any = this.ParseFundingRate(rawfr)
 		var symbol any = ccxt.GetValue(fundingRate, "symbol")
 		if symbol != nil {
@@ -1152,14 +1147,9 @@ func (this *Okx) HandleLiquidation(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var rawLiquidations []any = ccxt.SafeListTyped(message, "data")
-	for i := 0; i < len(rawLiquidations); i++ {
-		var rawLiquidation any = func() any {
-			if i >= 0 && i < len(rawLiquidations) {
-				return ccxt.DerefScalar(rawLiquidations[i])
-			}
-			return nil
-		}()
+	var rawLiquidations any = this.SafeList(message, "data", []any{})
+	for i := 0; i < ccxt.GetArrayLength(rawLiquidations); i++ {
+		var rawLiquidation any = ccxt.GetValue(rawLiquidations, i)
 		var liquidation any = this.ParseWsLiquidation(rawLiquidation)
 		var symbol *string = this.SafeString(liquidation, "symbol")
 		if ccxt.IsEqual(this.Liquidations, nil) {
@@ -1282,14 +1272,9 @@ func (this *Okx) HandleMyLiquidation(client any, message map[string]any) {
 	//        }]
 	//    }
 	//
-	var rawLiquidations []any = ccxt.SafeListTyped(message, "data")
-	for i := 0; i < len(rawLiquidations); i++ {
-		var rawLiquidation any = func() any {
-			if i >= 0 && i < len(rawLiquidations) {
-				return ccxt.DerefScalar(rawLiquidations[i])
-			}
-			return nil
-		}()
+	var rawLiquidations any = this.SafeList(message, "data", []any{})
+	for i := 0; i < ccxt.GetArrayLength(rawLiquidations); i++ {
+		var rawLiquidation any = ccxt.GetValue(rawLiquidations, i)
 		var eventType *string = this.SafeString(rawLiquidation, "eventType")
 		if eventType == nil || *eventType != "liquidation" {
 			return
@@ -2018,7 +2003,7 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel")
 	var action *string = this.SafeString(message, "action")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data any = this.SafeList(message, "data", []any{})
 	var marketId *string = this.SafeString(arg, "instId")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -2033,13 +2018,8 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 	var limit *int64 = this.SafeInteger(depths, channel)
 	var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
 	if action != nil && *action == "snapshot" {
-		for i := 0; i < len(data); i++ {
-			var update any = func() any {
-				if i >= 0 && i < len(data) {
-					return ccxt.DerefScalar(data[i])
-				}
-				return nil
-			}()
+		for i := 0; i < ccxt.GetArrayLength(data); i++ {
+			var update any = ccxt.GetValue(data, i)
 			var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{}, limit)
 			ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 			ccxt.AddElementToObject(orderbook, "symbol", symbol)
@@ -2052,13 +2032,8 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 	} else if action != nil && *action == "update" {
 		if ccxt.InOp(this.Orderbooks, symbol) {
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-			for i := 0; i < len(data); i++ {
-				var update any = func() any {
-					if i >= 0 && i < len(data) {
-						return ccxt.DerefScalar(data[i])
-					}
-					return nil
-				}()
+			for i := 0; i < ccxt.GetArrayLength(data); i++ {
+				var update any = ccxt.GetValue(data, i)
 				this.HandleOrderBookMessage(client, update, orderbook, messageHash, market)
 				if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 					// a nonce gap rejected the future and always cleared the subscription entry, while the book
@@ -2077,15 +2052,10 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 				ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 			}
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-			for i := 0; i < len(data); i++ {
-				var update any = func() any {
-					if i >= 0 && i < len(data) {
-						return ccxt.DerefScalar(data[i])
-					}
-					return nil
-				}()
+			for i := 0; i < ccxt.GetArrayLength(data); i++ {
+				var update any = ccxt.GetValue(data, i)
 				var timestamp *int64 = this.SafeInteger(update, "ts")
-				var snapshot map[string]any = this.ParseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1)
+				var snapshot any = this.ParseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1)
 				orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 				client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 			}
@@ -2118,7 +2088,7 @@ func (this *Okx) authenticateBody(ch chan any, optionalArgs ...any) any {
 		var timestamp string = ccxt.ToString(this.Seconds())
 		var method string = "GET"
 		var path string = "/users/self/verify"
-		var auth string = timestamp + method + path
+		var auth any = timestamp + method + path
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256, "base64")
 		var operation string = "login"
 		var request map[string]any = map[string]any{
@@ -2367,7 +2337,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return "orders"
 	}()
 	var messageHash any = channel + "::myTrades"
-	var market map[string]any = nil
+	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -2634,7 +2604,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"access": accessType,
 	}))
 	ccxt.PanicOnError(retRes20058)
-	var market map[string]any = nil
+	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -3307,14 +3277,9 @@ func (this *Okx) HandleErrorMessage(client any, message any) any {
 				if messageString != nil {
 					this.ThrowBroadlyMatchedException(this.Exceptions["broad"], messageString, feedback)
 				} else {
-					var data []any = ccxt.SafeListTyped(message, "data")
-					for i := 0; i < len(data); i++ {
-						var d any = func() any {
-							if i >= 0 && i < len(data) {
-								return ccxt.DerefScalar(data[i])
-							}
-							return nil
-						}()
+					var data any = this.SafeList(message, "data", []any{})
+					for i := 0; i < ccxt.GetArrayLength(data); i++ {
+						var d any = ccxt.GetValue(data, i)
 						errorCode = this.SafeString(d, "sCode")
 						if errorCode != nil {
 							this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

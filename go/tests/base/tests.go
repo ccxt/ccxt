@@ -2186,7 +2186,7 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 			}
 			return "undefined"
 		}()
-		var messageError string = "output value mismatch:" + newOutputString + " != " + storedOutputString
+		var messageError any = "output value mismatch:" + newOutputString + " != " + storedOutputString
 		if (strictTypeCheck == true) && (this.Lang != "C#") {
 			// upon building the request we want strict type check to make sure all the types are correct
 			// when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file

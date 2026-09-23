@@ -2194,7 +2194,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeStringN(order, []any{"orderNumber", "id", "orderId", "ordId"})
 	var fee any = nil
 	var feeCurrency *string = this.SafeString2(order, "tokenFeeCurrency", "feeCcy")
-	var feeCost *string = nil
+	var feeCost any = nil
 	var feeCurrencyCode any = nil
 	var rate *string = this.SafeString(order, "fee")
 	if feeCurrency == nil {
@@ -2207,7 +2207,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 	} else {
 		// poloniex accepts a 30% discount to pay fees in TRX
 		feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrency))
-		feeCost = this.SafeString2(order, "tokenFee", "feeAmt")
+		feeCost = DerefScalar(this.SafeString2(order, "tokenFee", "feeAmt"))
 	}
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
@@ -3145,9 +3145,9 @@ func (this *Poloniex) ParseBalance(response any) any {
 			}()
 			var currencyId *string = this.SafeString(balance, "ccy")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["total"] = this.SafeString(balance, "avail")
-			account["used"] = this.SafeString(balance, "im")
+			var account any = this.Account()
+			AddElementToObject(account, "total", this.SafeString(balance, "avail"))
+			AddElementToObject(account, "used", this.SafeString(balance, "im"))
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -3156,15 +3156,15 @@ func (this *Poloniex) ParseBalance(response any) any {
 	}
 	// for spot
 	for i := 0; i < GetArrayLength(response); i++ {
-		var account map[string]any = SafeMapTyped(response, i)
+		var account any = this.SafeDict(response, i, map[string]any{})
 		var balances any = this.SafeValue(account, "balances")
 		for j := 0; j < GetArrayLength(balances); j++ {
-			var balance map[string]any = SafeMapTyped(balances, j)
+			var balance any = this.SafeDict(balances, j)
 			var currencyId *string = this.SafeString(balance, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var newAccount map[string]any = this.Account()
-			newAccount["free"] = this.SafeString(balance, "available")
-			newAccount["used"] = this.SafeString(balance, "hold")
+			var newAccount any = this.Account()
+			AddElementToObject(newAccount, "free", this.SafeString(balance, "available"))
+			AddElementToObject(newAccount, "used", this.SafeString(balance, "hold"))
 			if code != nil {
 				AddElementToObject(result, code, newAccount)
 			}
@@ -3546,7 +3546,7 @@ func (this *Poloniex) ParseDepositAddressSpecial(response any, currency any, net
 	if address == nil {
 		address = this.SafeString(response, GetValue(networkEntry, "id"))
 	}
-	var tag *string = nil
+	var tag any = nil
 	this.CheckAddress(address)
 	if !IsEqual(networkEntry, nil) {
 		var depositAddress *string = this.SafeString(GetValue(networkEntry, "info"), "depositAddress")
@@ -4350,7 +4350,7 @@ func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var shortLeverage *int64 = nil
 	var longLeverage *int64 = nil
 	var marketId any = nil
-	var marginMode *string = nil
+	var marginMode any = nil
 	var data []any = SafeListTyped(leverage, "data")
 	for i := 0; i < len(data); i++ {
 		var entry any = func() any {

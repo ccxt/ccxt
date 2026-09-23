@@ -12,8 +12,8 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchPosition";
         Int64 now = exchange.milliseconds();
-        Int64 ends = (now + 15000);
-        while (now < ends)
+        object ends = (now + 15000);
+        while (isLessThan(now, ends))
         {
             object response = null;
             bool success = true;

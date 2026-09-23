@@ -1004,10 +1004,10 @@ func (this *Coinbaseexchange) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "available")
-		account["used"] = this.SafeString(balance, "hold")
-		account["total"] = this.SafeString(balance, "balance")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balance, "available"))
+		AddElementToObject(account, "used", this.SafeString(balance, "hold"))
+		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1098,8 +1098,8 @@ func (this *Coinbaseexchange) fetchOrderBookBody(ch chan any, symbol any, option
 	//         ]
 	//     }
 	//
-	var orderbook map[string]any = this.ParseOrderBook(response, symbol)
-	orderbook["nonce"] = this.SafeInteger(response, "sequence")
+	var orderbook any = this.ParseOrderBook(response, symbol)
+	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "sequence"))
 
 	ch <- orderbook
 	return nil
@@ -1142,13 +1142,13 @@ func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = nil
-	var bid *string = nil
-	var ask *string = nil
-	var last *string = nil
-	var high *string = nil
-	var low *string = nil
-	var open *string = nil
-	var volume *string = nil
+	var bid any = nil
+	var ask any = nil
+	var last any = nil
+	var high any = nil
+	var low any = nil
+	var open any = nil
+	var volume any = nil
 	var symbol any = func() any {
 		if market == nil {
 			return nil
@@ -1156,16 +1156,16 @@ func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) any {
 		return GetValue(market, "symbol")
 	}()
 	if IsArray(ticker) {
-		last = this.SafeString(ticker, 4)
+		last = DerefScalar(this.SafeString(ticker, 4))
 	} else {
 		timestamp = this.Parse8601(this.SafeString(ticker, "time"))
-		bid = this.SafeString(ticker, "bid")
-		ask = this.SafeString(ticker, "ask")
-		high = this.SafeString(ticker, "high")
-		low = this.SafeString(ticker, "low")
-		open = this.SafeString(ticker, "open")
-		last = this.SafeString2(ticker, "price", "last")
-		volume = this.SafeString(ticker, "volume")
+		bid = DerefScalar(this.SafeString(ticker, "bid"))
+		ask = DerefScalar(this.SafeString(ticker, "ask"))
+		high = DerefScalar(this.SafeString(ticker, "high"))
+		low = DerefScalar(this.SafeString(ticker, "low"))
+		open = DerefScalar(this.SafeString(ticker, "open"))
+		last = DerefScalar(this.SafeString2(ticker, "price", "last"))
+		volume = DerefScalar(this.SafeString(ticker, "volume"))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1352,13 +1352,13 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString2(trade, "time", "created_at"))
 	var marketId *string = this.SafeString(trade, "product_id")
 	market = this.SafeMarket(marketId, market, "-")
-	var feeRate *string = nil
+	var feeRate any = nil
 	var takerOrMaker any = nil
-	var cost *string = nil
+	var cost any = nil
 	var feeCurrencyId *string = this.SafeStringLower(market, "quoteId")
 	if feeCurrencyId != nil {
 		var costField any = *feeCurrencyId + "_value"
-		cost = this.SafeString(trade, costField)
+		cost = DerefScalar(this.SafeString(trade, costField))
 		var liquidity *string = this.SafeString(trade, "liquidity")
 		if liquidity != nil {
 			takerOrMaker = func() string {
@@ -1367,7 +1367,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 				}
 				return "maker"
 			}()
-			feeRate = this.SafeString(market, takerOrMaker)
+			feeRate = DerefScalar(this.SafeString(market, takerOrMaker))
 		}
 	}
 	var feeCost *string = this.SafeString2(trade, "fill_fees", "fee")
@@ -2192,7 +2192,7 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan any, id any, optionalArgs 
 		request["client_oid"] = clientOrderId
 		params = this.Omit(params, []any{"clientOrderId", "client_oid"})
 	}
-	var market map[string]any = nil
+	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["product_id"] = GetValue(market, "symbol") // the request will be more performant if you include it
@@ -2241,7 +2241,7 @@ func (this *Coinbaseexchange) cancelAllOrdersBody(ch chan any, optionalArgs ...a
 		PanicOnError(retRes170412)
 	}
 	var request map[string]any = map[string]any{}
-	var market map[string]any = nil
+	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["product_id"] = GetValue(market, "symbol") // the request will be more performant if you include it
@@ -2391,15 +2391,15 @@ func (this *Coinbaseexchange) ParseLedgerEntry(item any, optionalArgs ...any) an
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	var code *string = this.SafeCurrencyCode(nil, currency)
 	var details map[string]any = SafeMapTyped(item, "details")
-	var account *string = nil
-	var referenceAccount *string = nil
-	var referenceId *string = nil
+	var account any = nil
+	var referenceAccount any = nil
+	var referenceId any = nil
 	if typeVar != nil && *typeVar == "transfer" {
-		account = this.SafeString(details, "from")
-		referenceAccount = this.SafeString(details, "to")
-		referenceId = this.SafeString(details, "profile_transfer_id")
+		account = DerefScalar(this.SafeString(details, "from"))
+		referenceAccount = DerefScalar(this.SafeString(details, "to"))
+		referenceId = DerefScalar(this.SafeString(details, "profile_transfer_id"))
 	} else {
-		referenceId = this.SafeString(details, "order_id")
+		referenceId = DerefScalar(this.SafeString(details, "order_id"))
 	}
 	var status string = "ok"
 	return this.SafeLedgerEntry(map[string]any{
@@ -2586,7 +2586,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 		response = this.ToArray(transfers)
 		for i := 0; i < GetArrayLength(response); i++ {
 			var account_id *string = this.SafeString(GetValue(response, i), "account_id")
-			var account map[string]any = SafeMapTyped(this.AccountsById, account_id)
+			var account any = this.SafeDict(this.AccountsById, account_id)
 			var codeInner *string = this.SafeString(account, "code")
 			AddElementToObject(GetValue(response, i), "currency", codeInner)
 		}

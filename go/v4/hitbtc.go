@@ -1235,9 +1235,9 @@ func (this *Hitbtc) ParseBalance(response any) any {
 		var entry any = GetValue(response, i)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(entry, "available")
-		account["used"] = this.SafeString(entry, "reserved")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(entry, "available"))
+		AddElementToObject(account, "used", this.SafeString(entry, "reserved"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1496,7 +1496,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes130612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes130612)
 	}
-	var market map[string]any = nil
+	var market any = nil
 	var request map[string]any = map[string]any{}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3699,7 +3699,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		ch <- retRes296519
 		return nil
 	}
-	var market map[string]any = nil
+	var market any = nil
 	var request any = map[string]any{}
 	requestparamsVariable := this.HandleUntilOption("until", request, params)
 	request = GetValue(requestparamsVariable, 0)

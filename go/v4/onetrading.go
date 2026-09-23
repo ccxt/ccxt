@@ -738,7 +738,7 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	var method *string = this.SafeString(params, "method")
 	params = this.Omit(params, "method")
 	if method == nil {
-		var options map[string]any = SafeMapTyped(this.Options, "fetchTradingFees")
+		var options any = this.SafeDict(this.Options, "fetchTradingFees", map[string]any{})
 		method = this.SafeString(options, "method", "fetchPrivateTradingFees")
 	}
 	if method != nil && *method == "fetchPrivateTradingFees" {
@@ -917,13 +917,13 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market map[string]any = MapTyped(this.Market(symbol))
-		var makerFee *string = func() *string {
+		var makerFee any = func() any {
 			if GetValue(market, "spot") == true {
 				return spotMakerFee
 			}
 			return futuresMakerFee
 		}()
-		var takerFee *string = func() *string {
+		var takerFee any = func() any {
 			if GetValue(market, "spot") == true {
 				return spotTakerFee
 			}
@@ -1277,7 +1277,7 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " parseOHLCV() missing timestamp"))
 	}
 	var alignedTimestamp any = Multiply(duration, this.ParseToInt(Divide(timestamp, duration)))
-	var options map[string]any = SafeMapTyped(this.Options, "fetchOHLCV")
+	var options any = this.SafeDict(this.Options, "fetchOHLCV", map[string]any{})
 	var volumeField *string = this.SafeString(options, "volume", "total_amount")
 	return []any{alignedTimestamp, this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, volumeField)}
 }
@@ -1410,7 +1410,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "instrument_code")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var feeCostString *string = this.SafeString(feeInfo, "fee_amount")
-	var takerOrMaker *string = nil
+	var takerOrMaker any = nil
 	var fee any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(feeInfo, "fee_currency")
@@ -1453,9 +1453,9 @@ func (this *Onetrading) ParseBalance(response any) any {
 		}()
 		var currencyId *string = this.SafeString(balance, "currency_code")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "available")
-		account["used"] = this.SafeString(balance, "locked")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(balance, "available"))
+		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

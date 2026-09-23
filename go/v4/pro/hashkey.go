@@ -462,7 +462,7 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 	var data any = this.SafeList(message, "data", []any{})
 	var dataEntry any = this.SafeDict(data, 0)
 	var timestamp *int64 = this.SafeInteger(dataEntry, "t")
-	var snapshot map[string]any = this.ParseOrderBook(dataEntry, symbol, timestamp, "b", "a")
+	var snapshot any = this.ParseOrderBook(dataEntry, symbol, timestamp, "b", "a")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(message, "id"))
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
@@ -959,7 +959,7 @@ func (this *Hashkey) SetBalanceCache(client any, typeVar any, subscribeHash any)
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash) {
 		return
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var options any = this.SafeDict(this.Options, "watchBalance")
 	var snapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", true)
 	if snapshot != nil && *snapshot == true {
 		var messageHash any = ccxt.Add(ccxt.Add(typeVar, ":"), "fetchBalanceSnapshot")
@@ -1027,14 +1027,14 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "info", message)
 	var currencyId *string = this.SafeString(balanceUpdate, "a")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var account map[string]any = this.Account()
-	account["free"] = this.SafeString(balanceUpdate, "f")
-	account["used"] = this.SafeString(balanceUpdate, "l")
+	var account any = this.Account()
+	ccxt.AddElementToObject(account, "free", this.SafeString(balanceUpdate, "f"))
+	ccxt.AddElementToObject(account, "used", this.SafeString(balanceUpdate, "l"))
 	if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
-	var messageHash string = "balance:" + typeVar
+	var messageHash any = "balance:" + typeVar
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
 }
 func (this *Hashkey) AuthenticateAsync(optionalArgs ...any) <-chan any {

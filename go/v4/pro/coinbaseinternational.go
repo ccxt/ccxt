@@ -108,7 +108,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 		ccxt.PanicOnError(retRes8312)
 	}
 	this.CheckRequiredCredentials()
-	var market map[string]any = nil
+	var market any = nil
 	var messageHash any = name
 	var productIds any = nil
 	if symbols == nil {
@@ -607,7 +607,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan any, symbol any, optio
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
+	var options any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var interval *string = this.SafeString(options, timeframe, timeframe)
 
 	ohlcv := (<-this.SubscribeAsync(interval, []any{symbol}, params))
@@ -904,7 +904,7 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if typeVar != nil && *typeVar == "SNAPSHOT" {
-		var parsedSnapshot map[string]any = this.ParseOrderBook(message, symbol, nil, "bids", "asks")
+		var parsedSnapshot any = this.ParseOrderBook(message, symbol, nil, "bids", "asks")
 		orderbook.(ccxt.OrderBookInterface).Reset(parsedSnapshot)
 		ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	} else {

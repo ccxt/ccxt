@@ -373,13 +373,13 @@ func (this *Dydx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		ccxt.PanicOnError(retRes28212)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var market map[string]any = this.Market(symbol)
-	var messageHash any = ccxt.Add("ohlcv:", market["symbol"])
+	var market any = this.Market(symbol)
+	var messageHash any = ccxt.Add("ohlcv:", ccxt.GetValue(market, "symbol"))
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": "v4_candles",
-		"id":      ccxt.Add(ccxt.Add(market["id"], "/"), resolution),
+		"id":      ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "/"), resolution),
 	}
 
 	ohlcv := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
@@ -421,13 +421,13 @@ func (this *Dydx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		ccxt.PanicOnError(retRes31312)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var market map[string]any = this.Market(symbol)
-	var messageHash any = ccxt.Add("ohlcv:", market["symbol"])
+	var market any = this.Market(symbol)
+	var messageHash any = ccxt.Add("ohlcv:", ccxt.GetValue(market, "symbol"))
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"type":    "unsubscribe",
 		"channel": "v4_candles",
-		"id":      ccxt.Add(ccxt.Add(market["id"], "/"), resolution),
+		"id":      ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "/"), resolution),
 	}
 
 	retRes32415 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))

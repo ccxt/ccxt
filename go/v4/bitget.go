@@ -4728,7 +4728,7 @@ func (this *Bitget) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 		}
 		var maxNotional *float64 = this.SafeNumberN(item, []any{"endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount", "maxTierValue"})
 		var marginCurrency *string = this.SafeString2(item, "coin", "baseCoin")
-		var currencyId *string = func() *string {
+		var currencyId any = func() any {
 			if marginCurrency != nil {
 				return marginCurrency
 			}
@@ -6276,7 +6276,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 			AddElementToObject(request, "limit", limit)
 		}
 	}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchTrades")
+	var options any = this.SafeDict(this.Options, "fetchTrades", map[string]any{})
 	var response any = nil
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
@@ -7218,13 +7218,13 @@ func (this *Bitget) ParseUtaBalance(balance any) any {
 	//
 	for i := 0; i < GetArrayLength(balance); i++ {
 		var entry any = GetValue(balance, i)
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		account["debt"] = this.SafeString(entry, "debt")
-		account["used"] = this.SafeString2(entry, "locked", "frozen")
-		account["free"] = this.SafeString(entry, "available")
-		account["total"] = this.SafeString2(entry, "equity", "balance")
+		AddElementToObject(account, "debt", this.SafeString(entry, "debt"))
+		AddElementToObject(account, "used", this.SafeString2(entry, "locked", "frozen"))
+		AddElementToObject(account, "free", this.SafeString(entry, "available"))
+		AddElementToObject(account, "total", this.SafeString2(entry, "equity", "balance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -7284,27 +7284,27 @@ func (this *Bitget) ParseBalance(balance any) any {
 	//
 	for i := 0; i < GetArrayLength(balance); i++ {
 		var entry any = GetValue(balance, i)
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		var currencyId *string = this.SafeString2(entry, "marginCoin", "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var borrow *string = this.SafeString(entry, "borrow")
 		if borrow != nil {
 			var interest *string = this.SafeString(entry, "interest")
-			account["free"] = this.SafeString(entry, "transferable")
-			account["total"] = this.SafeString(entry, "totalAmount")
-			account["debt"] = Precise.StringAdd(borrow, interest)
+			AddElementToObject(account, "free", this.SafeString(entry, "transferable"))
+			AddElementToObject(account, "total", this.SafeString(entry, "totalAmount"))
+			AddElementToObject(account, "debt", Precise.StringAdd(borrow, interest))
 		} else {
 			// Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
 			var spotAccountFree *string = this.SafeString(entry, "available")
 			var contractAccountFree *string = this.SafeString(entry, "maxTransferOut")
 			if contractAccountFree != nil {
-				account["free"] = contractAccountFree
-				account["total"] = this.SafeString(entry, "accountEquity")
+				AddElementToObject(account, "free", contractAccountFree)
+				AddElementToObject(account, "total", this.SafeString(entry, "accountEquity"))
 			} else {
-				account["free"] = spotAccountFree
+				AddElementToObject(account, "free", spotAccountFree)
 				var frozen *string = this.SafeString(entry, "frozen")
 				var locked *string = this.SafeString(entry, "locked")
-				account["used"] = Precise.StringAdd(frozen, locked)
+				AddElementToObject(account, "used", Precise.StringAdd(frozen, locked))
 			}
 		}
 		if code != nil {
@@ -7631,27 +7631,27 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 			return true
 		}()
 	}
-	var price *string = nil
-	var average *string = nil
+	var price any = nil
+	var average any = nil
 	var basePrice *string = this.SafeString(order, "basePrice")
 	if basePrice != nil {
 		// for spot fetchOpenOrders, the price is priceAvg and the filled price is basePrice
-		price = this.SafeString(order, "priceAvg")
-		average = this.SafeString(order, "basePrice")
+		price = DerefScalar(this.SafeString(order, "priceAvg"))
+		average = DerefScalar(this.SafeString(order, "basePrice"))
 	} else {
-		price = this.SafeStringN(order, []any{"price", "executePrice", "slLimitPrice", "tpLimitPrice"})
-		average = this.SafeString(order, "priceAvg")
+		price = DerefScalar(this.SafeStringN(order, []any{"price", "executePrice", "slLimitPrice", "tpLimitPrice"}))
+		average = DerefScalar(this.SafeString(order, "priceAvg"))
 	}
-	var size *string = nil
-	var filled *string = nil
+	var size any = nil
+	var filled any = nil
 	var baseSize *string = this.SafeString(order, "baseSize")
 	if baseSize != nil {
 		// for spot margin fetchOpenOrders, the order size is baseSize and the filled amount is size
 		size = baseSize
-		filled = this.SafeString(order, "size")
+		filled = DerefScalar(this.SafeString(order, "size"))
 	} else {
-		size = this.SafeString2(order, "size", "qty")
-		filled = this.SafeString2(order, "baseVolume", "cumExecQty")
+		size = DerefScalar(this.SafeString2(order, "size", "qty"))
+		filled = DerefScalar(this.SafeString2(order, "baseVolume", "cumExecQty"))
 	}
 	var side any = DerefScalar(this.SafeString(order, "side"))
 	var posMode *string = this.SafeString(order, "posMode")
@@ -7667,7 +7667,7 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 	var isBuyMarket bool = (IsEqual(side, "buy")) && (orderType != nil && *orderType == "market")
 	if (GetValue(market, "spot") == true) && isBuyMarket {
 		// as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
-		size = this.SafeString(order, "baseVolume")
+		size = DerefScalar(this.SafeString(order, "baseVolume"))
 	}
 	return this.SafeOrder(map[string]any{
 		"info":                order,
@@ -13151,26 +13151,16 @@ func (this *Bitget) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var data []any = SafeList2Typed(interest, "openInterestList", "list")
+	var data any = this.SafeList2(interest, "openInterestList", "list", []any{})
 	var timestamp *int64 = this.SafeInteger(interest, "ts")
-	var marketId *string = this.SafeString(func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return DerefScalar(data[0])
-		}
-		return nil
-	}(), "symbol")
+	var marketId *string = this.SafeString(GetValue(data, 0), "symbol")
 	return this.SafeOpenInterest(map[string]any{
-		"symbol": this.SafeSymbol(marketId, market, nil, "contract"),
-		"openInterestAmount": this.SafeNumber2(func() any {
-			if 0 >= 0 && 0 < len(data) {
-				return DerefScalar(data[0])
-			}
-			return nil
-		}(), "size", "openInterest"),
-		"openInterestValue": nil,
-		"timestamp":         timestamp,
-		"datetime":          this.Iso8601(timestamp),
-		"info":              interest,
+		"symbol":             this.SafeSymbol(marketId, market, nil, "contract"),
+		"openInterestAmount": this.SafeNumber2(GetValue(data, 0), "size", "openInterest"),
+		"openInterestValue":  nil,
+		"timestamp":          timestamp,
+		"datetime":           this.Iso8601(timestamp),
+		"info":               interest,
 	}, market)
 }
 
@@ -13309,7 +13299,7 @@ func (this *Bitget) transferBody(ch chan any, code any, amount any, fromAccount 
 	}
 	var symbol *string = this.SafeString(params, "symbol")
 	params = this.Omit(params, "symbol")
-	var market map[string]any = nil
+	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -13784,9 +13774,9 @@ func (this *Bitget) ParseMarginLoan(info any, optionalArgs ...any) any {
 	_ = market
 	var currencyId *string = this.SafeString(info, "coin")
 	var marketId *string = this.SafeString(info, "symbol")
-	var symbol *string = nil
+	var symbol any = nil
 	if marketId != nil {
-		symbol = this.SafeSymbol(marketId, market, nil, "spot")
+		symbol = DerefScalar(this.SafeSymbol(marketId, market, nil, "spot"))
 	}
 	return map[string]any{
 		"id":        this.SafeString2(info, "loanId", "repayId"),
@@ -14521,14 +14511,9 @@ func (this *Bitget) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var order []any = SafeList2Typed(data, "successList", "list")
+	var order any = this.SafeList2(data, "successList", "list", []any{})
 
-	ch <- this.ParseOrder(func() any {
-		if 0 >= 0 && 0 < len(order) {
-			return DerefScalar(order[0])
-		}
-		return nil
-	}(), market)
+	ch <- this.ParseOrder(GetValue(order, 0), market)
 	return nil
 }
 

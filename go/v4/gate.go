@@ -2173,14 +2173,9 @@ func (this *Gate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var rawPromises []any = []any{}
 	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
-	var types []any = SafeListTypedDefault(fetchMarketsOptions, "types", []any{"spot", "swap", "future", "option"})
-	for i := 0; i < len(types); i++ {
-		var marketType any = func() any {
-			if i >= 0 && i < len(types) {
-				return DerefScalar(types[i])
-			}
-			return nil
-		}()
+	var types any = this.SafeList(fetchMarketsOptions, "types", []any{"spot", "swap", "future", "option"})
+	for i := 0; i < GetArrayLength(types); i++ {
+		var marketType any = GetValue(types, i)
 		if IsEqual(marketType, "spot") {
 			// if (!sandboxMode) {
 			// gate doesn't have a sandbox for spot markets
@@ -2273,7 +2268,7 @@ func (this *Gate) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var leverage *float64 = this.SafeNumber(market, "leverage")
 		var margin bool = (leverage != nil)
 		var buyStart *int64 = this.SafeIntegerProduct(spotMarket, "buy_start", 1000) // buy_start is the trading start time, while sell_start is offline orders start time
-		var createdTs *int64 = func() *int64 {
+		var createdTs any = func() any {
 			if buyStart == nil || *buyStart != 0 {
 				return buyStart
 			}
@@ -2925,7 +2920,7 @@ func (this *Gate) GetMarginMode(trigger any, params any) any {
 	return []any{marginMode, params}
 }
 func (this *Gate) GetSettlementCurrencies(typeVar any, method any) any {
-	var options map[string]any = SafeMapTyped(this.Options, typeVar) // [ 'BTC', 'USDT' ] unified codes
+	var options any = this.SafeDict(this.Options, typeVar, map[string]any{}) // [ 'BTC', 'USDT' ] unified codes
 	var fetchMarketsContractOptions map[string]any = SafeMapTyped(options, method)
 	var defaultSettle any = func() any {
 		if IsEqual(typeVar, "swap") {
@@ -3981,7 +3976,7 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//         'with_id': true, // return order book ID
 	//     };
 	//
-	requestqueryVariable := this.PrepareRequest(market, market["type"], params)
+	requestqueryVariable := this.PrepareRequest(market, GetValue(market, "type"), params)
 	request := GetValue(requestqueryVariable, 0)
 	query := GetValue(requestqueryVariable, 1)
 	if limit != nil {
@@ -4099,8 +4094,8 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		return "s"
 	}()
 	var nonce *int64 = this.SafeInteger(response, "id")
-	var result map[string]any = this.ParseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey)
-	result["nonce"] = nonce
+	var result any = this.ParseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey)
+	AddElementToObject(result, "nonce", nonce)
 
 	ch <- result
 	return nil
@@ -4372,12 +4367,12 @@ func (this *Gate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Gate) ParseBalanceHelper(entry any) any {
-	var account map[string]any = this.Account()
-	account["used"] = this.SafeString2(entry, "freeze", "locked")
-	account["free"] = this.SafeString(entry, "available")
-	account["total"] = this.SafeString(entry, "total")
+	var account any = this.Account()
+	AddElementToObject(account, "used", this.SafeString2(entry, "freeze", "locked"))
+	AddElementToObject(account, "free", this.SafeString(entry, "available"))
+	AddElementToObject(account, "total", this.SafeString(entry, "total"))
 	if InOp(entry, "borrowed") {
-		account["debt"] = this.SafeString(entry, "borrowed")
+		AddElementToObject(account, "debt", this.SafeString(entry, "borrowed"))
 	}
 	return account
 }
@@ -6416,7 +6411,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			}
 		} else {
 			// spot conditional order
-			var options map[string]any = SafeMapTyped(this.Options, "createOrder")
+			var options any = this.SafeDict(this.Options, "createOrder", map[string]any{})
 			var marginMode any = nil
 			marginModeparamsVariable := this.GetMarginMode(true, params)
 			marginMode = GetValue(marginModeparamsVariable, 0)
@@ -6877,7 +6872,7 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) any {
 			"id":            this.SafeString(order, "id"),
 		})
 	}
-	var put map[string]any = SafeDict2Typed(order, "put", "initial")
+	var put any = this.SafeDict2(order, "put", "initial", map[string]any{})
 	var trigger map[string]any = SafeMapTyped(order, "trigger")
 	var contract *string = this.SafeString(put, "contract")
 	var typeVar any = DerefScalar(this.SafeString(put, "type"))
@@ -8460,7 +8455,7 @@ func (this *Gate) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
 		panic(BadRequest(this.Id + " fetchPosition() supports contract markets only"))
 	}
 	var request any = map[string]any{}
-	requestparamsVariable := this.PrepareRequest(market, market["type"], params)
+	requestparamsVariable := this.PrepareRequest(market, GetValue(market, "type"), params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var extendedRequest map[string]any = this.Extend(request, params)

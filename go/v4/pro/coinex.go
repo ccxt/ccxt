@@ -433,11 +433,11 @@ func (this *Coinex) ParseWsBalance(balance any, optionalArgs ...any) {
 	//
 	accountType := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = accountType
-	var account map[string]any = this.Account()
+	var account any = this.Account()
 	var currencyId *string = this.SafeString(balance, "ccy")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	account["free"] = this.SafeString(balance, "available")
-	account["used"] = this.SafeString(balance, "frozen")
+	ccxt.AddElementToObject(account, "free", this.SafeString(balance, "available"))
+	ccxt.AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
 	if accountType != nil {
 		if ccxt.IsEqual(this.SafeDict(this.Balance, accountType), nil) {
 			ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
@@ -614,7 +614,7 @@ func (this *Coinex) HandleTrades(client any, message map[string]any) {
 	//     }
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var trades []any = ccxt.SafeListTyped(data, "deal_list")
+	var trades any = this.SafeList(data, "deal_list", []any{})
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
 	var defaultType string = func() string {
@@ -632,13 +632,8 @@ func (this *Coinex) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	for i := 0; i < len(trades); i++ {
-		var trade any = func() any {
-			if i >= 0 && i < len(trades) {
-				return ccxt.DerefScalar(trades[i])
-			}
-			return nil
-		}()
+	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
+		var trade any = ccxt.GetValue(trades, i)
 		var parsed any = this.ParseWsTrade(trade, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
@@ -967,7 +962,7 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var callerMethodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
 	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var limits any = this.SafeList(options, "limits", []any{})
 	if ccxt.IsEqual(limit, nil) {
 		limit = ccxt.DerefScalar(this.SafeInteger(options, "defaultLimit", 50))
@@ -1103,7 +1098,7 @@ func (this *Coinex) HandleOrderBook(client any, message map[string]any) {
 	var currentOrderBook any = this.SafeValue(this.Orderbooks, symbol)
 	var fullOrderBook *bool = this.SafeBool(data, "is_full", false)
 	if fullOrderBook != nil && *fullOrderBook == true {
-		var snapshot map[string]any = this.ParseOrderBook(depth, symbol, timestamp)
+		var snapshot any = this.ParseOrderBook(depth, symbol, timestamp)
 		if ccxt.IsEqual(currentOrderBook, nil) {
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(snapshot))
 		} else {

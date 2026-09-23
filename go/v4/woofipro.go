@@ -1074,7 +1074,7 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var tokenData map[string]any = SafeMapTyped(tokenResponse, "data")
 	var tokenRows []any = SafeListTyped(tokenData, "rows")
 	var chainData map[string]any = SafeMapTyped(chainResponse, "data")
-	var chainRows []any = SafeListTyped(chainData, "rows")
+	var chainRows any = this.SafeList(chainData, "rows", []any{})
 	var indexedChains map[string]any = this.IndexBy(chainRows, "chain_id")
 	for i := 0; i < len(tokenRows); i++ {
 		var token any = func() any {
@@ -3580,9 +3580,9 @@ func (this *Woofipro) ParseBalance(response any) any {
 			return nil
 		}()
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString(balance, "holding")
-		account["used"] = this.SafeString(balance, "frozen")
+		var account any = this.Account()
+		AddElementToObject(account, "total", this.SafeString(balance, "holding"))
+		AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

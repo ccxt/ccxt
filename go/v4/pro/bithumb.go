@@ -117,13 +117,13 @@ func (this *Bithumb) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		}
 		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	}()
-	var market map[string]any = this.Market(symbol)
-	var messageHash any = ccxt.Add("ticker:", market["symbol"])
+	var market any = this.Market(symbol)
+	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
 	var tickTypes *string = this.SafeString(params, "tickTypes", "24H")
 	params = this.Omit(params, "tickTypes")
 	var request any = map[string]any{
 		"type":      "ticker",
-		"symbols":   []any{ccxt.Add(ccxt.Add(market["base"], "_"), market["quote"])},
+		"symbols":   []any{ccxt.Add(ccxt.Add(ccxt.GetValue(market, "base"), "_"), ccxt.GetValue(market, "quote"))},
 		"tickTypes": []any{tickTypes},
 	}
 	if isGenerationTwo {
@@ -205,15 +205,15 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLengthDefined; i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market map[string]any = this.Market(symbol)
+		var market any = this.Market(symbol)
 		var streamMarketId any = nil
 		if isGenerationTwo {
 			streamMarketId = this.GetGen2MarketId(market)
 		} else {
-			streamMarketId = (ccxt.Add(ccxt.Add(market["base"], "_"), market["quote"]))
+			streamMarketId = (ccxt.Add(ccxt.Add(ccxt.GetValue(market, "base"), "_"), ccxt.GetValue(market, "quote")))
 		}
 		streamMarketIds = append(streamMarketIds, streamMarketId)
-		messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
+		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
 	}
 	var tickTypes *string = this.SafeString(params, "tickTypes", "24H")
 	params = this.Omit(params, "tickTypes")
@@ -511,12 +511,12 @@ func (this *Bithumb) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		}
 		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	}()
-	var market map[string]any = this.Market(symbol)
-	symbol = market["symbol"]
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("orderbook"+":", symbol)
 	var request any = map[string]any{
 		"type":    "orderbookdepth",
-		"symbols": []any{ccxt.Add(ccxt.Add(market["base"], "_"), market["quote"])},
+		"symbols": []any{ccxt.Add(ccxt.Add(ccxt.GetValue(market, "base"), "_"), ccxt.GetValue(market, "quote"))},
 	}
 	if isGenerationTwo {
 		var marketIdRequest any = this.GetGen2MarketId(market)
@@ -621,7 +621,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 		return
 	}
 	var streamType *string = this.SafeString(message, "stream_type")
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var obLimit *int64 = this.SafeInteger(options, "limit", 1000)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) || (streamType != nil && *streamType == "SNAPSHOT") {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, obLimit))
@@ -739,12 +739,12 @@ func (this *Bithumb) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		}
 		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	}()
-	var market map[string]any = this.Market(symbol)
-	symbol = market["symbol"]
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trade:", symbol)
 	var request any = map[string]any{
 		"type":    "transaction",
-		"symbols": []any{ccxt.Add(ccxt.Add(market["base"], "_"), market["quote"])},
+		"symbols": []any{ccxt.Add(ccxt.Add(ccxt.GetValue(market, "base"), "_"), ccxt.GetValue(market, "quote"))},
 	}
 	if isGenerationTwo {
 		var marketIdRequest any = this.GetGen2MarketId(market)
@@ -1043,9 +1043,9 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 		}()
 		var currencyId *string = this.SafeString(asset, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(asset, "balance")
-		account["used"] = this.SafeString(asset, "locked")
+		var account any = this.Account()
+		ccxt.AddElementToObject(account, "free", this.SafeString(asset, "balance"))
+		ccxt.AddElementToObject(account, "used", this.SafeString(asset, "locked"))
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}

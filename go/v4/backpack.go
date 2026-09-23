@@ -1086,7 +1086,7 @@ func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) any {
 	var low *string = this.SafeString(ticker, "low")
 	var baseVolume *string = this.SafeString(ticker, "volume")
 	var quoteVolume *string = this.SafeString(ticker, "quoteVolume")
-	var percentage *string = nil
+	var percentage any = nil
 	var percentageNumber *float64 = this.SafeFloat(ticker, "priceChangePercent")
 	// in some cases priceChangePercent is a non-numeric string like "N/A"
 	if percentageNumber != nil {
@@ -1173,8 +1173,8 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		panic(ExchangeError(this.Id + " fetchOrderBook() missing microseconds"))
 	}
 	var timestamp int64 = this.ParseToInt(Divide(microseconds, 1000))
-	var orderbook map[string]any = this.ParseOrderBook(response, symbol, timestamp)
-	orderbook["nonce"] = this.SafeInteger(response, "lastUpdateId")
+	var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
+	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
 
 	ch <- orderbook
 	return nil
@@ -1822,12 +1822,12 @@ func (this *Backpack) ParseBalance(response any) any {
 		var id string = GetValue(balanceKeys, i).(string)
 		var code *string = this.SafeCurrencyCode(id)
 		var balance any = GetValue(response, id)
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		var locked *string = this.SafeString(balance, "locked")
 		var staked *string = this.SafeString(balance, "staked")
 		var used *string = Precise.StringAdd(locked, staked)
-		account["free"] = this.SafeString(balance, "available")
-		account["used"] = used
+		AddElementToObject(account, "free", this.SafeString(balance, "available"))
+		AddElementToObject(account, "used", used)
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

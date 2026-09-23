@@ -605,9 +605,9 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 	var messageLength int = len(message)
 	if messageLength == 2 {
 		// initial snapshot
-		var trades []any = ccxt.SafeListTyped(message, 1)
+		var trades any = this.SafeList(message, 1, []any{})
 		// needs to be reversed to make chronological order
-		var length int = len(trades)
+		var length int = ccxt.GetArrayLength(trades)
 		for i := 0; i < length; i++ {
 			var index any = ccxt.Subtract(ccxt.Subtract(length, i), 1)
 			var parsed any = this.ParseWsTrade(ccxt.GetValue(trades, index), market)
@@ -708,7 +708,7 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 			typeVar = "market"
 		}
 	}
-	var orderId *string = func() *string {
+	var orderId any = func() any {
 		if !isPublic {
 			return this.SafeString(trade, 3)
 		}
@@ -864,7 +864,7 @@ func (this *Bitfinex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 			panic(ccxt.ExchangeError(this.Id + " watchOrderBook limit argument must be undefined, 25 or 100"))
 		}
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var prec *string = this.SafeString(options, "prec", "P0")
 	var freq *string = this.SafeString(options, "freq", "F0")
 	var request map[string]any = map[string]any{
@@ -1191,7 +1191,7 @@ func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[
 	var updateType any = this.SafeValue(message, 1)
 	var data any = []any{}
 	if ccxt.IsEqual(updateType, "ws") {
-		data = this.SafeList(message, 2)
+		data = this.SafeValue(message, 2)
 	} else {
 		data = []any{this.SafeValue(message, 2)}
 	}
@@ -1213,7 +1213,7 @@ func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[
 	var updatesKeys []string = ccxt.ObjectKeys(updatedTypes)
 	for i := 0; i < len(updatesKeys); i++ {
 		var typeVar string = ccxt.GetValue(updatesKeys, i).(string)
-		var messageHash string = "balance:" + typeVar
+		var messageHash any = "balance:" + typeVar
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
 	}
 }
@@ -1231,11 +1231,11 @@ func (this *Bitfinex) ParseWsBalance(balance any) any {
 	//
 	var totalBalance *string = this.SafeString(balance, 2)
 	var availableBalance *string = this.SafeString(balance, 4)
-	var account map[string]any = this.Account()
+	var account any = this.Account()
 	if availableBalance != nil {
-		account["free"] = availableBalance
+		ccxt.AddElementToObject(account, "free", availableBalance)
 	}
-	account["total"] = totalBalance
+	ccxt.AddElementToObject(account, "total", totalBalance)
 	return account
 }
 func (this *Bitfinex) HandleSystemStatus(client any, message map[string]any) any {
@@ -1344,7 +1344,7 @@ func (this *Bitfinex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
 		var nonce int64 = this.Milliseconds()
-		var payload string = "AUTH" + ccxt.ToString(nonce)
+		var payload any = "AUTH" + ccxt.ToString(nonce)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha384, "hex")
 		var event string = "auth"
 		var request map[string]any = map[string]any{

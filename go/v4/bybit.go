@@ -2632,7 +2632,7 @@ func (this *Bybit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var list []any = SafeListTyped(result, "list")
 	var status string = "ok"
 	var eta *int64 = nil
-	var url *string = nil
+	var url any = nil
 	for i := 0; i < len(list); i++ {
 		var event any = func() any {
 			if i >= 0 && i < len(list) {
@@ -2644,11 +2644,11 @@ func (this *Bybit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		if state != nil && *state == "ongoing" {
 			status = "maintenance"
 			eta = this.SafeInteger(event, "end")
-			url = this.SafeString(event, "href")
+			url = DerefScalar(this.SafeString(event, "href"))
 			break
 		} else if state != nil && *state == "scheduled" {
 			eta = this.SafeInteger(event, "begin")
-			url = this.SafeString(event, "href")
+			url = DerefScalar(this.SafeString(event, "href"))
 		}
 	}
 
@@ -2880,14 +2880,9 @@ func (this *Bybit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				"category": "inverse",
 			}))
 		} else if IsEqual(marketType, "option") {
-			var optionsCurrencies []any = SafeListTypedDefault(fetchMarketsOptions, "options", []any{"BTC", "ETH", "SOL"})
-			for j := 0; j < len(optionsCurrencies); j++ {
-				var currency any = func() any {
-					if j >= 0 && j < len(optionsCurrencies) {
-						return DerefScalar(optionsCurrencies[j])
-					}
-					return nil
-				}()
+			var optionsCurrencies any = this.SafeList(fetchMarketsOptions, "options", []any{"BTC", "ETH", "SOL"})
+			for j := 0; j < GetArrayLength(optionsCurrencies); j++ {
+				var currency any = GetValue(optionsCurrencies, j)
 				promisesUnresolved = append(promisesUnresolved, this.FetchOptionMarketsAsync(map[string]any{
 					"baseCoin": currency,
 				}))
@@ -3173,7 +3168,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quoteId *string = this.SafeString(market, "quoteCoin")
-		var defaultSettledId *string = func() *string {
+		var defaultSettledId any = func() any {
 			if linear {
 				return quoteId
 			}
@@ -4857,9 +4852,9 @@ func (this *Bybit) ParseBalance(response any) any {
 	if IsEqual(currencyList, nil) {
 		// usdc wallet
 		var code string = "USDC"
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(responseResult, "availableBalance")
-		account["total"] = this.SafeString(responseResult, "walletBalance")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(responseResult, "availableBalance"))
+		AddElementToObject(account, "total", this.SafeString(responseResult, "walletBalance"))
 		result[code] = account
 	} else {
 		for i := 0; i < GetArrayLength(currencyList); i++ {
@@ -4868,7 +4863,7 @@ func (this *Bybit) ParseBalance(response any) any {
 			if (accountType != nil && *accountType == "UNIFIED") || (accountType != nil && *accountType == "CONTRACT") || (accountType != nil && *accountType == "SPOT") {
 				var coins []any = SafeListTyped(entry, "coin")
 				for j := 0; j < len(coins); j++ {
-					var account map[string]any = this.Account()
+					var account any = this.Account()
 					var coinEntry any = func() any {
 						if j >= 0 && j < len(coins) {
 							return DerefScalar(coins[j])
@@ -4878,19 +4873,19 @@ func (this *Bybit) ParseBalance(response any) any {
 					var loan *string = this.SafeString(coinEntry, "borrowAmount")
 					var interest *string = this.SafeString(coinEntry, "accruedInterest")
 					if (loan != nil) && (interest != nil) {
-						account["debt"] = Precise.StringAdd(loan, interest)
+						AddElementToObject(account, "debt", Precise.StringAdd(loan, interest))
 					}
-					account["total"] = this.SafeString(coinEntry, "walletBalance")
+					AddElementToObject(account, "total", this.SafeString(coinEntry, "walletBalance"))
 					var free *string = this.SafeString2(coinEntry, "availableToWithdraw", "free")
 					if free != nil {
-						account["free"] = free
+						AddElementToObject(account, "free", free)
 					} else {
 						var locked *string = this.SafeString(coinEntry, "locked", "0")
 						var totalPositionIm *string = this.SafeString(coinEntry, "totalPositionIM", "0")
 						var totalOrderIm *string = this.SafeString(coinEntry, "totalOrderIM", "0")
 						var totalUsed *string = Precise.StringAdd(locked, totalPositionIm)
 						totalUsed = Precise.StringAdd(totalUsed, totalOrderIm)
-						account["used"] = totalUsed
+						AddElementToObject(account, "used", totalUsed)
 					}
 					// account['used'] = this.safeString (coinEntry, 'locked');
 					var currencyId *string = this.SafeString(coinEntry, "coin")
@@ -4900,15 +4895,15 @@ func (this *Bybit) ParseBalance(response any) any {
 					}
 				}
 			} else {
-				var account map[string]any = this.Account()
+				var account any = this.Account()
 				var loan *string = this.SafeString(entry, "loan")
 				var interest *string = this.SafeString(entry, "interest")
 				if (loan != nil) && (interest != nil) {
-					account["debt"] = Precise.StringAdd(loan, interest)
+					AddElementToObject(account, "debt", Precise.StringAdd(loan, interest))
 				}
-				account["total"] = this.SafeString2(entry, "total", "walletBalance")
-				account["free"] = this.SafeStringN(entry, []any{"free", "availableBalanceWithoutConvert", "availableBalance", "transferBalance"})
-				account["used"] = this.SafeString(entry, "locked")
+				AddElementToObject(account, "total", this.SafeString2(entry, "total", "walletBalance"))
+				AddElementToObject(account, "free", this.SafeStringN(entry, []any{"free", "availableBalanceWithoutConvert", "availableBalance", "transferBalance"}))
+				AddElementToObject(account, "used", this.SafeString(entry, "locked"))
 				var currencyId *string = this.SafeStringN(entry, []any{"tokenId", "coin", "currencyCoin"})
 				var code *string = this.SafeCurrencyCode(currencyId)
 				if code != nil {
@@ -5300,15 +5295,15 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeStringLower(order, "orderType")
 	var price *string = this.SafeString(order, "price")
 	var side *string = this.SafeStringLower(order, "side")
-	var amount *string = nil
-	var cost *string = nil
+	var amount any = nil
+	var cost any = nil
 	var qtyIsQuote bool = (GetValue(market, "spot") == true) && (typeVar != nil && *typeVar == "market") && ((marketUnit != nil && *marketUnit == "quoteCoin") || ((marketUnit == nil) && (side != nil && *side == "buy")))
 	if qtyIsQuote == true {
 		// qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
-		cost = this.SafeString(order, "cumExecValue")
+		cost = DerefScalar(this.SafeString(order, "cumExecValue"))
 	} else {
-		amount = this.SafeString(order, "qty")
-		cost = this.SafeString(order, "cumExecValue")
+		amount = DerefScalar(this.SafeString(order, "qty"))
+		cost = DerefScalar(this.SafeString(order, "cumExecValue"))
 	}
 	var filled *string = this.SafeString(order, "cumExecQty")
 	var remaining *string = this.SafeString(order, "leavesQty")
@@ -5770,7 +5765,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
 				var quoteAmount *string = Precise.StringMul(this.NumberToString(amount), priceString)
-				var costRequest *string = func() *string {
+				var costRequest any = func() any {
 					if cost != nil {
 						return cost
 					}
@@ -8478,7 +8473,7 @@ func (this *Bybit) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var after any = nil
 	var amount any = nil
 	if (afterString != nil) && (amountString != nil) {
-		var difference *string = func() *string {
+		var difference any = func() any {
 			if direction == "out" {
 				return amountString
 			}
@@ -9204,7 +9199,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
-	var market map[string]any = nil
+	var market any = nil
 	var response any = nil
 	if isUnifiedAccount {
 		if IsEqual(marginMode, "isolated") {
@@ -9686,13 +9681,13 @@ func (this *Bybit) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	// the openInterest is in the base asset for linear and quote asset for inverse
 	var isLinear bool = (IsEqual(this.SafeBool(market, "linear"), true))
 	var isInverse bool = (IsEqual(this.SafeBool(market, "inverse"), true))
-	var amount *float64 = func() *float64 {
+	var amount any = func() any {
 		if isLinear {
 			return openInterest
 		}
 		return nil
 	}()
-	var value *float64 = func() *float64 {
+	var value any = func() any {
 		if isInverse {
 			return openInterest
 		}
@@ -10415,7 +10410,7 @@ func (this *Bybit) fetchMarketLeverageTiersBody(ch chan any, symbol any, optiona
 		PanicOnError(retRes805812)
 	}
 	var request map[string]any = map[string]any{}
-	var market map[string]any = nil
+	var market any = nil
 	market = this.Market(symbol)
 	if (GetValue(market, "spot") == true) || (GetValue(market, "option") == true) {
 		panic(BadRequest(Add(this.Id+" fetchMarketLeverageTiers() symbol does not support market ", symbol)))
@@ -11148,7 +11143,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		"category": "option",
 		"baseCoin": baseCoin,
 	}
-	var market map[string]any = nil
+	var market any = nil
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
@@ -11513,7 +11508,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any 
 		retRes891912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes891912)
 	}
-	var market map[string]any = nil
+	var market any = nil
 	var symbol any = nil
 	if symbols != nil {
 		market = this.Market(GetValue(symbols, 0))

@@ -577,7 +577,7 @@ func (this *Hollaex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         "network":"https://api.hollaex.network"
 	//     }
 	//
-	var coins map[string]any = SafeMapTyped(response, "coins")
+	var coins any = this.SafeDict(response, "coins", map[string]any{})
 	var values []any = ObjectValues(coins)
 
 	ch <- this.ParseCurrencies(values)
@@ -1231,9 +1231,9 @@ func (this *Hollaex) ParseBalance(response any) any {
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(response, currencyId+"_available")
-		account["total"] = this.SafeString(response, currencyId+"_balance")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(response, currencyId+"_available"))
+		AddElementToObject(account, "total", this.SafeString(response, currencyId+"_balance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1810,7 +1810,7 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes145012)
 	}
 	var request map[string]any = map[string]any{}
-	var market map[string]any = nil
+	var market any = nil
 	market = this.Market(symbol)
 	request["symbol"] = GetValue(market, "id")
 
@@ -1917,11 +1917,11 @@ func (this *Hollaex) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
-	var tag *string = nil
+	var tag any = nil
 	if address != nil {
 		var parts []string = Split(address, ":")
 		address = this.SafeString(parts, 0)
-		tag = this.SafeString(parts, 1)
+		tag = DerefScalar(this.SafeString(parts, 1))
 	}
 	this.CheckAddress(address)
 	var currencyId *string = this.SafeString(depositAddress, "currency")
@@ -2284,7 +2284,7 @@ func (this *Hollaex) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var typeVar *string = this.SafeString(transaction, "type")
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var address *string = this.SafeString(transaction, "address")
-	var addressTo *string = nil
+	var addressTo any = nil
 	var addressFrom any = nil
 	var tag any = nil
 	var tagTo any = nil
@@ -2466,7 +2466,7 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		var keys []string = ObjectKeys(withdrawalFees)
 		var keysLength int = len(keys)
 		for i := 0; i < keysLength; i++ {
-			var key string = keys[i]
+			var key any = GetValue(keys, i)
 			var value any = GetValue(withdrawalFees, key)
 			var currencyId *string = this.SafeString(value, "symbol")
 			var currencyCode *string = this.SafeCurrencyCode(currencyId)

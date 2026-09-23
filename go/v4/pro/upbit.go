@@ -372,7 +372,7 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "code")
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var typeVar *string = this.SafeString(message, "stream_type")
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var limit *int64 = this.SafeInteger(options, "limit", 15)
 	if typeVar != nil && *typeVar == "SNAPSHOT" {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
@@ -899,9 +899,9 @@ func (this *Upbit) HandleBalance(client any, message map[string]any) {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var available *string = this.SafeString(balance, "balance")
 		var frozen *string = this.SafeString(balance, "locked")
-		var account map[string]any = this.Account()
-		account["free"] = available
-		account["used"] = frozen
+		var account any = this.Account()
+		ccxt.AddElementToObject(account, "free", available)
+		ccxt.AddElementToObject(account, "used", frozen)
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}

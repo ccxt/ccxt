@@ -1096,7 +1096,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var option bool = (inst_type != nil && *inst_type == "WARRANT")
 		var baseId *string = this.SafeString(market, "base_ccy")
 		var quoteId *string = this.SafeString(market, "quote_ccy")
-		var settleId *string = func() *string {
+		var settleId any = func() any {
 			if spot {
 				return nil
 			}
@@ -1104,7 +1104,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var settle *string = func() *string {
+		var settle any = func() any {
 			if spot {
 				return nil
 			}
@@ -1240,7 +1240,7 @@ func (this *Cryptocom) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes88712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes88712)
 	}
-	var market map[string]any = nil
+	var market any = nil
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
 		var symbol any = nil
@@ -1708,9 +1708,9 @@ func (this *Cryptocom) ParseBalance(response any) any {
 		}()
 		var currencyId *string = this.SafeString(balance, "instrument_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString(balance, "quantity")
-		account["used"] = this.SafeString(balance, "reserved_qty")
+		var account any = this.Account()
+		AddElementToObject(account, "total", this.SafeString(balance, "quantity"))
+		AddElementToObject(account, "used", this.SafeString(balance, "reserved_qty"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -2356,7 +2356,7 @@ func (this *Cryptocom) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 		retRes176212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes176212)
 	}
-	var market map[string]any = nil
+	var market any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3420,7 +3420,7 @@ func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) an
 	_ = currency
 	var typeVar string
 	var rawStatus *string = this.SafeString(transaction, "status")
-	var status *string = nil
+	var status any = nil
 	if InOp(transaction, "client_wid") {
 		typeVar = "withdrawal"
 		status = this.ParseWithdrawalStatus(rawStatus)
@@ -4271,7 +4271,7 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	var market map[string]any = nil
+	var market any = nil
 	if symbols != nil {
 		var symbol any = nil
 		if IsArray(symbols) {

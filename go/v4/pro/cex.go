@@ -132,9 +132,9 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 	var currencyIds []string = ccxt.ObjectKeys(freeBalance)
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = ccxt.GetValue(currencyIds, i).(string)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(freeBalance, currencyId)
-		account["used"] = this.SafeString(usedBalance, currencyId)
+		var account any = this.Account()
+		ccxt.AddElementToObject(account, "free", this.SafeString(freeBalance, currencyId))
+		ccxt.AddElementToObject(account, "used", this.SafeString(usedBalance, currencyId))
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
 			ccxt.AddElementToObject(result, code, account)
@@ -1198,8 +1198,8 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger2(data, "timestamp_ms", "timestamp")
 	var incrementalId *int64 = this.SafeInteger(data, "id")
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
-	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
-	snapshot["nonce"] = incrementalId
+	var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
+	ccxt.AddElementToObject(snapshot, "nonce", incrementalId)
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "orderbook"), symbol, map[string]any{
 		"incrementalId": incrementalId,

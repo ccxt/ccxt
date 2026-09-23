@@ -423,7 +423,7 @@ func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var currency map[string]any = ccxt.SafeMapTyped(this.Currencies, code)
 		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		var used any = ccxt.DerefScalar(this.SafeString(balance, "totalUsedBalanceRv"))
 		if ccxt.IsEqual(used, nil) {
 			var usedEv *string = this.SafeString(balance, "totalUsedBalanceEv")
@@ -439,8 +439,8 @@ func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
 			var totalEv *string = this.SafeString2(balance, "accountBalanceEv", "balanceEv")
 			total = this.FromEn(totalEv, scale)
 		}
-		account["used"] = used
-		account["total"] = total
+		ccxt.AddElementToObject(account, "used", used)
+		ccxt.AddElementToObject(account, "total", total)
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
@@ -592,7 +592,7 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
-	var subscriptionHash string = name + ".subscribe"
+	var subscriptionHash any = name + ".subscribe"
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var subscribe map[string]any = map[string]any{
 		"method": subscriptionHash,
@@ -652,7 +652,7 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
-	var subscriptionHash string = name + ".subscribe"
+	var subscriptionHash any = name + ".subscribe"
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(symbols, i)))
@@ -724,7 +724,7 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		return "trade"
 	}()
 	var messageHash any = ccxt.Add("trade:", symbol)
-	var method string = name + ".subscribe"
+	var method any = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -786,7 +786,7 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		return "orderbook"
 	}()
 	var messageHash any = ccxt.Add("orderbook:", symbol)
-	var method string = name + ".subscribe"
+	var method any = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -850,7 +850,7 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		return "kline"
 	}()
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("kline:", timeframe), ":"), symbol)
-	var method string = name + ".subscribe"
+	var method any = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -943,7 +943,7 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 	} else {
 		if ccxt.InOp(this.Orderbooks, symbol) {
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-			var changes map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p")
+			var changes any = this.SafeDict2(message, "book", "orderbook_p", map[string]any{})
 			var asks any = this.SafeList(changes, "asks", []any{})
 			var bids any = this.SafeList(changes, "bids", []any{})
 			this.CustomHandleDeltas(ccxt.GetValue(orderbook, "asks"), asks, market)
@@ -1150,7 +1150,7 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
 		var market string = ccxt.GetValue(keys, i).(string)
-		var hash string = channel + ":" + market
+		var hash any = channel + ":" + market
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
 	// generic subscription

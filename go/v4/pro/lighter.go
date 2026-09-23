@@ -238,8 +238,8 @@ func (this *Lighter) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var typeVar *string = this.SafeString(message, "type", "")
 	if typeVar != nil && *typeVar == "subscribed/order_book" {
-		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
-		parsed["nonce"] = this.SafeInteger(data, "offset")
+		var parsed any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
+		ccxt.AddElementToObject(parsed, "nonce", this.SafeInteger(data, "offset"))
 		orderbook.(ccxt.OrderBookInterface).Reset(parsed)
 	} else if typeVar != nil && *typeVar == "update/order_book" {
 		this.HandleOrderBookMessage(client, message, orderbook)
@@ -936,13 +936,13 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	var bidAccountId *int64 = this.SafeInteger(trade, "bid_account_id")
 	var askAccountId *int64 = this.SafeInteger(trade, "ask_account_id")
 	var side any = nil
-	var order *string = nil
+	var order any = nil
 	var takerOrMaker any = nil
 	if accountIndex != nil {
 		if bidAccountId == accountIndex || (bidAccountId != nil && accountIndex != nil && *bidAccountId == *accountIndex) {
 			// Own trades should use the account's order side
 			side = "buy"
-			order = this.SafeString(trade, "bid_id")
+			order = ccxt.DerefScalar(this.SafeString(trade, "bid_id"))
 			takerOrMaker = func() string {
 				if isMakerAsk != nil && *isMakerAsk == true {
 					return "taker"
@@ -951,7 +951,7 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			}()
 		} else if askAccountId == accountIndex || (askAccountId != nil && accountIndex != nil && *askAccountId == *accountIndex) {
 			side = "sell"
-			order = this.SafeString(trade, "ask_id")
+			order = ccxt.DerefScalar(this.SafeString(trade, "ask_id"))
 			takerOrMaker = func() string {
 				if isMakerAsk != nil && *isMakerAsk == true {
 					return "maker"
@@ -1460,19 +1460,19 @@ func (this *Lighter) HandleBalance(client any, message any) any {
 			var asset any = assets[assetId]
 			var codeId *string = this.SafeString(asset, "symbol")
 			var code *string = this.SafeCurrencyCode(codeId)
-			var account map[string]any = this.Account()
-			account["used"] = this.SafeString(asset, "locked_balance")
-			account["total"] = this.SafeString(asset, "balance")
+			var account any = this.Account()
+			ccxt.AddElementToObject(account, "used", this.SafeString(asset, "locked_balance"))
+			ccxt.AddElementToObject(account, "total", this.SafeString(asset, "balance"))
 			if code != nil {
 				ccxt.AddElementToObject(balance, code, account)
 			}
 		}
 	} else {
 		var stats any = this.SafeDict(message, "stats", map[string]any{})
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(stats, "available_balance")
-		account["total"] = this.SafeString(stats, "collateral")
-		account["info"] = stats
+		var account any = this.Account()
+		ccxt.AddElementToObject(account, "free", this.SafeString(stats, "available_balance"))
+		ccxt.AddElementToObject(account, "total", this.SafeString(stats, "collateral"))
+		ccxt.AddElementToObject(account, "info", stats)
 		ccxt.AddElementToObject(balance, "USDC", account)
 	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
@@ -1797,14 +1797,9 @@ func (this *Lighter) HandleOrders(client any, message any) any {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
-		var orders []any = ccxt.SafeListTyped(data, marketId)
-		for j := 0; j < len(orders); j++ {
-			var order any = this.ParseOrder(func() any {
-				if j >= 0 && j < len(orders) {
-					return ccxt.DerefScalar(orders[j])
-				}
-				return nil
-			}(), market)
+		var orders any = this.SafeList(data, marketId, []any{})
+		for j := 0; j < ccxt.GetArrayLength(orders); j++ {
+			var order any = this.ParseOrder(ccxt.GetValue(orders, j), market)
 			stored.(ccxt.Appender).Append(order)
 			var symbol any = ccxt.GetValue(order, "symbol")
 			if symbol != nil {

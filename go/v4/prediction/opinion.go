@@ -988,7 +988,7 @@ func (this *Opinion) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
 	//
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(result, "timestamp")
-	var orderbook map[string]any = this.ParseOrderBook(result, this.SafeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size")
+	var orderbook any = this.ParseOrderBook(result, this.SafeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size")
 
 	ch <- this.SafePredictionOrderBook(orderbook, outcomeObj)
 	return nil
@@ -1255,8 +1255,8 @@ func (this *Opinion) OpinionOrderRawAmounts(isMarket any, side any, amount any, 
 		makerRaw = ccxt.Precise.StringMul(amountStr, priceStr)
 	}
 	var makerAmountWei string = this.DecimalToPrecision(ccxt.Precise.StringMul(makerRaw, decimalsStr), ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
-	var makerAmount *string = nil
-	var takerAmount *string = nil
+	var makerAmount any = nil
+	var takerAmount any = nil
 	if ccxt.IsEqual(side, "BUY") {
 		var k *string = ccxt.Precise.StringDiv(makerAmountWei, priceNum, 0)
 		makerAmount = ccxt.Precise.StringMul(k, priceNum)
@@ -1756,7 +1756,7 @@ func (this *Opinion) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		outcomeObj = (<-this.LoadOutcomeAsync(outcome))
 		ccxt.PanicOnError(outcomeObj)
-		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+		var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
 		request["marketId"] = this.SafeInteger(info, "marketId")
 	}
 
@@ -1773,7 +1773,7 @@ func (this *Opinion) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 			tradeMarket := (<-this.LoadTradeMarketAsync(marketId))
 			ccxt.PanicOnError(tradeMarket)
-			var info map[string]any = ccxt.SafeMapTyped(tradeMarket, "info")
+			var info any = this.SafeDict(tradeMarket, "info", map[string]any{})
 			var isYes bool = (this.SafeStringLower(trade, "outcomeSideEnum") != nil && *this.SafeStringLower(trade, "outcomeSideEnum") == "yes")
 			ccxt.AddElementToObject(trade, "tokenId", func() any {
 				if isYes {

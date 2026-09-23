@@ -223,10 +223,10 @@ func (this *Paymium) ParseBalance(response any) any {
 		var currencyId any = currency["id"]
 		var free any = Add("balance_", currencyId)
 		if InOp(response, free) {
-			var account map[string]any = this.Account()
+			var account any = this.Account()
 			var used any = Add("locked_", currencyId)
-			account["free"] = this.SafeString(response, free)
-			account["used"] = this.SafeString(response, used)
+			AddElementToObject(account, "free", this.SafeString(response, free))
+			AddElementToObject(account, "used", this.SafeString(response, used))
 			result[code] = account
 		}
 	}
@@ -414,7 +414,7 @@ func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(nil, market)
 	var side *string = this.SafeString(trade, "side")
 	var price *string = this.SafeString(trade, "price")
-	var amountField string = "traded_" + ToLower(GetValue(market, "base"))
+	var amountField any = "traded_" + ToLower(GetValue(market, "base"))
 	var amount *string = this.SafeString(trade, amountField)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,

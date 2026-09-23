@@ -829,7 +829,7 @@ func (this *Blofin) ParseMarket(market any) any {
 	var strikePrice any = nil
 	var optionType any = nil
 	var tickSize *string = this.SafeString(market, "tickSize")
-	var fees map[string]any = SafeDict2Typed(this.Fees, typeVar, "trading")
+	var fees any = this.SafeDict2(this.Fees, typeVar, "trading", map[string]any{})
 	var taker *float64 = this.SafeNumber(fees, "taker")
 	var maker *float64 = this.SafeNumber(fees, "maker")
 	var maxLeverage *string = this.SafeString(market, "maxLeverage", "100")
@@ -1012,7 +1012,7 @@ func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) any {
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
 	var spot *bool = this.SafeBool(market, "spot", false)
-	var quoteVolume *string = func() *string {
+	var quoteVolume any = func() any {
 		if spot != nil && *spot == true {
 			return this.SafeString(ticker, "volCurrency24h")
 		}
@@ -1490,14 +1490,9 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	response := (<-this.PublicGetMarketFundingRateHistory(this.Extend(request, params)))
 	PanicOnError(response)
 	var rates []any = []any{}
-	var data []any = SafeListTyped(response, "data")
-	for i := 0; i < len(data); i++ {
-		var rate any = func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}()
+	var data any = this.SafeList(response, "data", []any{})
+	for i := 0; i < GetArrayLength(data); i++ {
+		var rate any = GetValue(data, i)
 		var timestamp *int64 = this.SafeInteger(rate, "fundingTime")
 		rates = append(rates, map[string]any{
 			"info":        rate,
@@ -1645,26 +1640,21 @@ func (this *Blofin) ParseBalance(response any) any {
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var timestamp *int64 = this.SafeInteger(data, "ts")
-	var details []any = SafeListTyped(data, "details")
-	for i := 0; i < len(details); i++ {
-		var balance any = func() any {
-			if i >= 0 && i < len(details) {
-				return DerefScalar(details[i])
-			}
-			return nil
-		}()
+	var details any = this.SafeList(data, "details", []any{})
+	for i := 0; i < GetArrayLength(details); i++ {
+		var balance any = GetValue(details, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		// it may be incorrect to use total, free and used for swap accounts
 		var eq *string = this.SafeString(balance, "equity")
 		var availEq *string = this.SafeString(balance, "available")
 		if (eq == nil) || (availEq == nil) {
-			account["free"] = this.SafeString(balance, "availableEquity")
-			account["used"] = this.SafeString(balance, "frozen")
+			AddElementToObject(account, "free", this.SafeString(balance, "availableEquity"))
+			AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
 		} else {
-			account["total"] = eq
-			account["free"] = availEq
+			AddElementToObject(account, "total", eq)
+			AddElementToObject(account, "free", availEq)
 		}
 		AddElementToObject(result, code, account)
 	}
@@ -1691,21 +1681,16 @@ func (this *Blofin) ParseFundingBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var data []any = SafeListTyped(response, "data")
-	for i := 0; i < len(data); i++ {
-		var balance any = func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}()
+	var data any = this.SafeList(response, "data", []any{})
+	for i := 0; i < GetArrayLength(data); i++ {
+		var balance any = GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		// it may be incorrect to use total, free and used for swap accounts
-		account["total"] = this.SafeString(balance, "balance")
-		account["free"] = this.SafeString(balance, "available")
-		account["used"] = this.SafeString(balance, "frozen")
+		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
+		AddElementToObject(account, "free", this.SafeString(balance, "available"))
+		AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
 		AddElementToObject(result, code, account)
 	}
 	return this.SafeBalance(result)
@@ -1755,7 +1740,7 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if (accountType != nil) && (!IsEqual(accountType, "swap")) {
-		var options map[string]any = SafeMapTyped(this.Options, "accountsByType")
+		var options any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 		var parsedAccountType *string = this.SafeString(options, accountType, accountType)
 		request["accountType"] = parsedAccountType
 
@@ -1939,7 +1924,7 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "size")
 	var contractSize *string = this.SafeString(market, "contractSize")
 	var baseAmount *string = Precise.StringMul(contractSize, filled)
-	var cost *string = nil
+	var cost any = nil
 	if average != nil {
 		cost = Precise.StringMul(average, baseAmount)
 	}
@@ -2855,8 +2840,8 @@ func (this *Blofin) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var typeVar string
-	var id *string = nil
-	var status *string = nil
+	var id any = nil
+	var status any = nil
 	var withdrawalId *string = this.SafeString(transaction, "withdrawId")
 	var depositId *string = this.SafeString(transaction, "depositId")
 	var addressTo *string = this.SafeString(transaction, "address")
@@ -3257,7 +3242,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes249912)
 	}
 	var request any = map[string]any{}
-	var market map[string]any = nil
+	var market any = nil
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 0 {
@@ -4160,7 +4145,7 @@ func (this *Blofin) Sign(path any, optionalArgs ...any) any {
 		var sign_body any = ""
 		if IsEqual(method, "GET") {
 			if !this.IsEmpty(query) {
-				var urlencodedQuery string = "?" + this.Urlencode(query)
+				var urlencodedQuery any = "?" + this.Urlencode(query)
 				url = Add(url, urlencodedQuery)
 				request = Add(request, urlencodedQuery)
 			}

@@ -103,7 +103,7 @@ public partial class BaseTest
             Assert(isEqual(((IDictionary<string,object>)simpleOrig)["x"], 1), "clone A: mutating clone must not change original x");
             Assert(((((IDictionary<string,object>)simpleOrig)["y"] as string) == "hello"), "clone A: mutating clone must not change original y");
             // mutating the original must not affect an already-taken clone
-            simpleOrig["x"] = 42;
+            ((IDictionary<string,object>)simpleOrig)["x"] = 42;
             Assert(isEqual(getValue(simpleClone, "x"), 999), "clone A: mutating original must not change clone x");
             // -------------------------------------------------------------------------
             // --- test B: nested object – verify clone is a shallow copy (top-level keys independent) ---
@@ -119,7 +119,7 @@ public partial class BaseTest
             ((IDictionary<string,object>)nestedClone)["top"] = "cloned";
             Assert(((((IDictionary<string,object>)nestedOrig)["top"] as string) == "original"), "clone B: top-level scalar independence – original unchanged");
             Assert(isEqual(getValue(nestedClone, "top"), "cloned"), "clone B: top-level scalar independence – clone updated");
-            nestedOrig["top"] = "changed_orig";
+            ((IDictionary<string,object>)nestedOrig)["top"] = "changed_orig";
             Assert(isEqual(getValue(nestedClone, "top"), "cloned"), "clone B: changing original top must not affect clone");
             // -------------------------------------------------------------------------
             // --- test C: cloning an empty object ---

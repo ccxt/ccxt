@@ -847,7 +847,7 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message any, channel any) {
 		}
 		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 		var timestamp *int64 = this.SafeInteger(entry, "t")
-		var snapshot map[string]any = this.ParseOrderBook(entry, symbol, timestamp, "b", "a")
+		var snapshot any = this.ParseOrderBook(entry, symbol, timestamp, "b", "a")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
@@ -934,7 +934,7 @@ func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...
 		}
 		return "contract"
 	}()
-	var messageHash string = typeVar + ":fetchBalanceSnapshot"
+	var messageHash any = typeVar + ":fetchBalanceSnapshot"
 	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 		client.(ccxt.ClientInterface).Future(messageHash)
 		this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, marketType)
@@ -993,10 +993,10 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 		var balance any = ccxt.GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["info"] = balance
-		account["used"] = this.SafeString(balance, "l")
-		account["free"] = this.SafeString(balance, "f")
+		var account any = this.Account()
+		ccxt.AddElementToObject(account, "info", balance)
+		ccxt.AddElementToObject(account, "used", this.SafeString(balance, "l"))
+		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "f"))
 		if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 		}
@@ -1595,7 +1595,7 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
+	var options any = this.SafeDict(this.Options, "ws", map[string]any{})
 	var listenKey *string = this.SafeString(options, "listenKey")
 	if listenKey == nil {
 

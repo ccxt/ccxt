@@ -142,9 +142,9 @@ func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
 		}()
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(entry, "available")
-		account["total"] = this.SafeString(entry, "balance")
+		var account any = this.Account()
+		ccxt.AddElementToObject(account, "free", this.SafeString(entry, "available"))
+		ccxt.AddElementToObject(account, "total", this.SafeString(entry, "balance"))
 		if code != nil {
 			ccxt.AddElementToObject(result, code, account)
 		}
@@ -648,14 +648,9 @@ func (this *Blockchaincom) HandleOrders(client any, message map[string]any) {
 	} else if event != nil && *event == "rejected" {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(message))))
 	} else if event != nil && *event == "snapshot" {
-		var orders []any = ccxt.SafeListTyped(message, "orders")
-		for i := 0; i < len(orders); i++ {
-			var order any = func() any {
-				if i >= 0 && i < len(orders) {
-					return ccxt.DerefScalar(orders[i])
-				}
-				return nil
-			}()
+		var orders any = this.SafeList(message, "orders", []any{})
+		for i := 0; i < ccxt.GetArrayLength(orders); i++ {
+			var order any = ccxt.GetValue(orders, i)
 			var parsedOrder any = this.ParseWsOrder(order)
 			cachedOrders.(ccxt.Appender).Append(parsedOrder)
 		}
@@ -848,7 +843,7 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if event != nil && *event == "snapshot" {
-		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num")
+		var snapshot any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else if event != nil && *event == "updated" {
 		var asks any = this.SafeList(message, "asks", []any{})

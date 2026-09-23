@@ -1194,7 +1194,7 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 		var marketId any = ccxt.GetValue(parts, 1)
 		market = this.SafeMarket(marketId, market)
 		var symbol *string = this.SafeString(market, "symbol")
-		var data map[string]any = ccxt.SafeMapTyped(ticker, "data")
+		var data any = this.SafeDict(ticker, "data", map[string]any{})
 		var ask any = this.SafeList(data, "asks", []any{})
 		var bid any = this.SafeList(data, "bids", []any{})
 		var timestamp *int64 = this.SafeInteger(data, "timestamp")
@@ -1210,7 +1210,7 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 		}, market)
 	} else {
 		// futures
-		var data map[string]any = ccxt.SafeMapTyped(ticker, "data")
+		var data any = this.SafeDict(ticker, "data", map[string]any{})
 		var marketId *string = this.SafeString(data, "symbol")
 		market = this.SafeMarket(marketId, market)
 		var symbol *string = this.SafeString(market, "symbol")
@@ -1602,7 +1602,7 @@ func (this *Kucoin) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	if isFuturesMethod {
 		channelName = "/contractMarket/execution:"
 	}
-	var topic string = channelName + ccxt.Join(marketIds, ",")
+	var topic any = channelName + ccxt.Join(marketIds, ",")
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		messageHashes = append(messageHashes, ccxt.Add("trades:", symbol))
@@ -1660,7 +1660,7 @@ func (this *Kucoin) unWatchTradesForSymbolsBody(ch chan any, symbols any, option
 	if isFuturesMethod {
 		channelName = "/contractMarket/execution:"
 	}
-	var topic string = channelName + ccxt.Join(marketIds, ",")
+	var topic any = channelName + ccxt.Join(marketIds, ",")
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trades:", symbol))
@@ -2311,8 +2311,8 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 	var depth *string = this.SafeString(message, "dp")
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("uta:orderbook:", symbol), ":depth:"), depth)
 	if typeVar != nil && *typeVar == "snapshot" {
-		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", 0, 1)
-		parsed["nonce"] = this.SafeInteger(data, "O")
+		var parsed any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", 0, 1)
+		ccxt.AddElementToObject(parsed, "nonce", this.SafeInteger(data, "O"))
 		orderbook.(ccxt.OrderBookInterface).Reset(parsed)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	} else {
@@ -2875,7 +2875,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 		}
 		return this.Orders
 	}()
-	var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
+	var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
 	var order any = this.SafeDict(orders, orderId)
 	if !ccxt.IsEqual(order, nil) {
 		if ccxt.IsEqual(ccxt.GetValue(order, "status"), "closed") {
@@ -3322,7 +3322,7 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, uniformType)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var options any = this.SafeDict(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
 	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot == true) {
@@ -3365,7 +3365,7 @@ func (this *Kucoin) SetBalanceCache(client any, typeVar any) {
 	if (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
 		return
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var options any = this.SafeDict(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
@@ -3492,15 +3492,15 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), "timestamp", timestamp)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), "datetime", this.Iso8601(timestamp))
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var account map[string]any = this.Account()
+	var account any = this.Account()
 	var used *string = this.SafeString2(data, "hold", "holdBalance")
 	var isolatedPosMargin any = this.OmitZero(this.SafeString(data, "isolatedPosMargin"))
 	if isolatedPosMargin != nil {
 		used = ccxt.Precise.StringAdd(used, isolatedPosMargin)
 	}
-	account["free"] = this.SafeString2(data, "available", "availableBalance")
-	account["used"] = used
-	account["total"] = this.SafeString(data, "total")
+	ccxt.AddElementToObject(account, "free", this.SafeString2(data, "available", "availableBalance"))
+	ccxt.AddElementToObject(account, "used", used)
+	ccxt.AddElementToObject(account, "total", this.SafeString(data, "total"))
 	if (uniformType != nil) && (code != nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), code, account)
 	}
@@ -3535,15 +3535,15 @@ func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeIntegerProduct(data, "U", 0.000001)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "timestamp", timestamp)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "datetime", this.Iso8601(timestamp))
-	var account map[string]any = this.Account()
-	account["free"] = this.SafeString(data, "a")
-	account["used"] = this.SafeString(data, "h")
-	account["total"] = this.SafeString(data, "b")
+	var account any = this.Account()
+	ccxt.AddElementToObject(account, "free", this.SafeString(data, "a"))
+	ccxt.AddElementToObject(account, "used", this.SafeString(data, "h"))
+	ccxt.AddElementToObject(account, "total", this.SafeString(data, "b"))
 	if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
-	var messageHash string = typeVar + ":balance"
+	var messageHash any = typeVar + ":balance"
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
 }
 
@@ -3698,7 +3698,7 @@ func (this *Kucoin) GetCurrentPosition(symbol any) any {
 		return nil
 	}
 	var cache any = this.Positions.(*ccxt.ArrayCache).Hashmap
-	var symbolCache map[string]any = ccxt.SafeMapTyped(cache, symbol)
+	var symbolCache any = this.SafeDict(cache, symbol, map[string]any{})
 	var values []any = ccxt.ObjectValues(symbolCache)
 	return this.SafeDict(values, 0)
 }

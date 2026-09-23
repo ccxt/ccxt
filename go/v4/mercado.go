@@ -669,9 +669,9 @@ func (this *Mercado) ParseBalance(response any) any {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if func() bool { _, ok := balances[currencyId]; return ok }() {
 			var balance map[string]any = SafeMapTyped(balances, currencyId)
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(balance, "available")
-			account["total"] = this.SafeString(balance, "total")
+			var account any = this.Account()
+			AddElementToObject(account, "free", this.SafeString(balance, "available"))
+			AddElementToObject(account, "total", this.SafeString(balance, "total"))
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -1146,10 +1146,10 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes91612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes91612)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
-		"symbol":     Add(Add(market["base"], "-"), market["quote"]),
+		"symbol":     Add(Add(GetValue(market, "base"), "-"), GetValue(market, "quote")),
 	}
 	if limit == nil {
 		limit = 100 // set some default limit, as it's required if user doesn't provide it

@@ -1379,9 +1379,9 @@ func (this *Aster) ParseMarket(market any) any {
 		symbol = Add(Add(base, "/"), quote)
 	}
 	// filters
-	var filters []any = SafeListTyped(market, "filters")
+	var filters any = this.SafeList(market, "filters", []any{})
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
-	var filterNotional map[string]any = SafeDict2Typed(filtersByType, "MIN_NOTIONAL", "NOTIONAL")
+	var filterNotional any = this.SafeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL")
 	var filterPrice map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
 	var filterLotSize any = this.SafeDict(filtersByType, "LOT_SIZE")
 	var filterMarketLotSize map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
@@ -2720,10 +2720,10 @@ func (this *Aster) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString2(balance, "free", "availableBalance")
-		account["used"] = this.SafeString(balance, "locked")
-		account["total"] = this.SafeString(balance, "balance")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString2(balance, "free", "availableBalance"))
+		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
+		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

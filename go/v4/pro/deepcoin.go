@@ -1026,7 +1026,7 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message any) {
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(message, "mt", 0)
-	var snapshot map[string]any = this.ParseOrderBook(orderedEntries, symbol, timestamp)
+	var snapshot any = this.ParseOrderBook(orderedEntries, symbol, timestamp)
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var cachedMessages any = orderbook.(ccxt.OrderBookInterface).GetCache()
 	for j := 0; j < ccxt.GetArrayLength(cachedMessages); j++ {

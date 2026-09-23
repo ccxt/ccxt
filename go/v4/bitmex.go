@@ -1319,11 +1319,11 @@ func (this *Bitmex) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		var free *string = this.SafeString(balance, "availableMargin")
 		var total *string = this.SafeString(balance, "marginBalance")
-		account["free"] = this.ConvertToRealAmount(code, free)
-		account["total"] = this.ConvertToRealAmount(code, total)
+		AddElementToObject(account, "free", this.ConvertToRealAmount(code, free))
+		AddElementToObject(account, "total", this.ConvertToRealAmount(code, total))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -2091,15 +2091,15 @@ func (this *Bitmex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeStringLower(transaction, "transactType")
 	// Deposits have no from address or to address, withdrawals have both
 	var address any = nil
-	var addressFrom *string = nil
+	var addressFrom any = nil
 	var addressTo any = nil
 	if typeVar != nil && *typeVar == "withdrawal" {
 		address = DerefScalar(this.SafeString(transaction, "address"))
-		addressFrom = this.SafeString(transaction, "tx")
+		addressFrom = DerefScalar(this.SafeString(transaction, "tx"))
 		addressTo = address
 	} else if typeVar != nil && *typeVar == "deposit" {
 		addressTo = DerefScalar(this.SafeString(transaction, "address"))
-		addressFrom = this.SafeString(transaction, "tx")
+		addressFrom = DerefScalar(this.SafeString(transaction, "tx"))
 	}
 	var amountString *string = this.SafeString(transaction, "amount")
 	var amountStringAbs *string = Precise.StringAbs(amountString)
@@ -2595,7 +2595,7 @@ func (this *Bitmex) ParseOrder(order any, optionalArgs ...any) any {
 		amount = this.ConvertFromRawQuantity(symbol, qty)
 	}
 	var average *string = this.SafeString(order, "avgPx")
-	var filled *string = nil
+	var filled any = nil
 	var cumQty *string = this.NumberToString(this.ConvertFromRawQuantity(symbol, this.SafeString(order, "cumQty")))
 	if EvalTruthy(isInverse) {
 		filled = Precise.StringDiv(cumQty, average)

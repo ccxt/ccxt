@@ -1620,7 +1620,7 @@ func (this *Coinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	// on inverse contracts 'value' is denominated in the settle currency, not
 	// the quote, so it is the quote volume only for spot and linear markets
-	var quoteVolume *string = func() *string {
+	var quoteVolume any = func() any {
 		if GetValue(market, "inverse") == true {
 			return nil
 		}
@@ -2355,14 +2355,14 @@ func (this *Coinex) fetchMarginBalanceBody(ch chan any, optionalArgs ...any) any
 		var used map[string]any = SafeMapTyped(entry, "frozen")
 		var loan map[string]any = SafeMapTyped(entry, "repaid")
 		var interest map[string]any = SafeMapTyped(entry, "interest")
-		var baseAccount map[string]any = this.Account()
+		var baseAccount any = this.Account()
 		var baseCurrencyId *string = this.SafeString(entry, "base_ccy")
 		var baseCurrencyCode *string = this.SafeCurrencyCode(baseCurrencyId)
-		baseAccount["free"] = this.SafeString(free, "base_ccy")
-		baseAccount["used"] = this.SafeString(used, "base_ccy")
+		AddElementToObject(baseAccount, "free", this.SafeString(free, "base_ccy"))
+		AddElementToObject(baseAccount, "used", this.SafeString(used, "base_ccy"))
 		var baseDebt *string = this.SafeString(loan, "base_ccy")
 		var baseInterest *string = this.SafeString(interest, "base_ccy")
-		baseAccount["debt"] = Precise.StringAdd(baseDebt, baseInterest)
+		AddElementToObject(baseAccount, "debt", Precise.StringAdd(baseDebt, baseInterest))
 		if baseCurrencyCode != nil {
 			AddElementToObject(result, baseCurrencyCode, baseAccount)
 		}
@@ -2415,9 +2415,9 @@ func (this *Coinex) fetchSpotBalanceBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var currencyId *string = this.SafeString(entry, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(entry, "available")
-		account["used"] = this.SafeString(entry, "frozen")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(entry, "available"))
+		AddElementToObject(account, "used", this.SafeString(entry, "frozen"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -2473,9 +2473,9 @@ func (this *Coinex) fetchSwapBalanceBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var currencyId *string = this.SafeString(entry, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(entry, "available")
-		account["used"] = this.SafeString(entry, "frozen")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(entry, "available"))
+		AddElementToObject(account, "used", this.SafeString(entry, "frozen"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -2528,9 +2528,9 @@ func (this *Coinex) fetchFinancialBalanceBody(ch chan any, optionalArgs ...any) 
 		}()
 		var currencyId *string = this.SafeString(entry, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(entry, "available")
-		account["used"] = this.SafeString(entry, "frozen")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(entry, "available"))
+		AddElementToObject(account, "used", this.SafeString(entry, "frozen"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -4396,14 +4396,9 @@ func (this *Coinex) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data any = this.SafeList(response, "data", []any{})
 
-	ch <- this.ParsePosition(func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return DerefScalar(data[0])
-		}
-		return nil
-	}(), market)
+	ch <- this.ParsePosition(GetValue(data, 0), market)
 	return nil
 }
 func (this *Coinex) ParsePosition(position any, optionalArgs ...any) any {
@@ -5173,7 +5168,7 @@ func (this *Coinex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	var market map[string]any = nil
+	var market any = nil
 	if symbols != nil {
 		var symbol *string = this.SafeString(symbols, 0)
 		market = this.Market(symbol)

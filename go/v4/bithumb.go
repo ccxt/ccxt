@@ -683,7 +683,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		results := (<-promiseAll(promises))
 		PanicOnError(results)
 		for i := 0; i < len(quotes); i++ {
-			var quote string = quotes[i]
+			var quote any = GetValue(quotes, i)
 			var quoteId any = quote
 			var response any = GetValue(results, i)
 			var data map[string]any = SafeMapTyped(response, "data")
@@ -791,25 +791,25 @@ func (this *Bithumb) ParseBalance(response any) any {
 		var codes []string = ObjectKeys(this.Currencies)
 		for i := 0; i < len(codes); i++ {
 			var code string = GetValue(codes, i).(string)
-			var account map[string]any = this.Account()
+			var account any = this.Account()
 			var currency map[string]any = MapTyped(this.Currency(code))
 			var lowerCurrencyId *string = this.SafeStringLower(currency, "id")
-			account["total"] = this.SafeString(balances, Add("total_", lowerCurrencyId))
-			account["used"] = this.SafeString(balances, Add("in_use_", lowerCurrencyId))
-			account["free"] = this.SafeString(balances, Add("available_", lowerCurrencyId))
+			AddElementToObject(account, "total", this.SafeString(balances, Add("total_", lowerCurrencyId)))
+			AddElementToObject(account, "used", this.SafeString(balances, Add("in_use_", lowerCurrencyId)))
+			AddElementToObject(account, "free", this.SafeString(balances, Add("available_", lowerCurrencyId)))
 			result[code] = account
 		}
 	} else {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var entry any = GetValue(response, i)
-			var account map[string]any = this.Account()
+			var account any = this.Account()
 			var currencyId *string = this.SafeString(entry, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			if code == nil {
 				continue
 			}
-			account["free"] = this.SafeString(entry, "balance")
-			account["used"] = this.SafeString(entry, "locked")
+			AddElementToObject(account, "free", this.SafeString(entry, "balance"))
+			AddElementToObject(account, "used", this.SafeString(entry, "locked"))
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -1170,7 +1170,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var symbolsForMarketIdsLength int = GetArrayLength(symbolsForMarketIds)
 		for i := 0; i < symbolsForMarketIdsLength; i++ {
-			var market map[string]any = this.Market(GetValue(symbolsForMarketIds, i))
+			var market any = this.Market(GetValue(symbolsForMarketIds, i))
 			marketIds = append(marketIds, this.GetGen2MarketId(market))
 		}
 		var marketIdsLength int = len(marketIds)
@@ -1294,7 +1294,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			var requiredQuotes map[string]any = map[string]any{}
 			for i := 0; i < GetArrayLength(symbols); i++ {
 				var symbol any = GetValue(symbols, i)
-				var market map[string]any = this.Market(symbol)
+				var market any = this.Market(symbol)
 				var quoteId *string = this.SafeString(market, "quoteId")
 				if (quoteId != nil) && (func() bool {
 					if quoteId == nil {
@@ -3922,7 +3922,7 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 		var key string = GetValue(keys, i).(string)
 		var value any = GetValue(query, key)
 		if IsArray(value) {
-			var encodedKey string = this.EncodeURIComponent(key) + "[]"
+			var encodedKey any = this.EncodeURIComponent(key) + "[]"
 			for j := 0; j < GetArrayLength(value); j++ {
 				var item any = GetValue(value, j)
 				var valueString any = DerefScalar(this.SafeString(value, j))

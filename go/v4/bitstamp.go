@@ -1229,7 +1229,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		var isSpot bool = (IsEqual(typeVar, "spot"))
-		var settle *string = func() *string {
+		var settle any = func() any {
 			if (settleId != nil) && (!IsEqual(settleId, "")) {
 				return this.SafeCurrencyCode(settleId)
 			}
@@ -1536,8 +1536,8 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		panic(ExchangeError(this.Id + " fetchOrderBook() missing microtimestamp"))
 	}
 	var timestamp int64 = this.ParseToInt(Divide(microtimestamp, 1000))
-	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"], timestamp)
-	orderbook["nonce"] = microtimestamp
+	var orderbook any = this.ParseOrderBook(response, market["symbol"], timestamp)
+	AddElementToObject(orderbook, "nonce", microtimestamp)
 
 	ch <- orderbook
 	return nil
@@ -1785,7 +1785,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(trade, "id", "tid")
-	var symbol *string = nil
+	var symbol any = nil
 	var side any = nil
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
@@ -1832,7 +1832,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	if costString == nil {
 		costString = this.SafeString(trade, quoteIdLower)
 	}
-	symbol = this.SafeString(market, "symbol")
+	symbol = DerefScalar(this.SafeString(market, "symbol"))
 	var datetimeString *string = this.SafeString2(trade, "date", "datetime")
 	var timestamp any = nil
 	if datetimeString != nil {
@@ -2087,10 +2087,10 @@ func (this *Bitstamp) ParseBalance(response any) any {
 		var currencyBalance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(currencyBalance, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(currencyBalance, "available")
-		account["used"] = this.SafeString(currencyBalance, "reserved")
-		account["total"] = this.SafeString(currencyBalance, "total")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(currencyBalance, "available"))
+		AddElementToObject(account, "used", this.SafeString(currencyBalance, "reserved"))
+		AddElementToObject(account, "total", this.SafeString(currencyBalance, "total"))
 		if currencyCode != nil {
 			AddElementToObject(result, currencyCode, account)
 		}
@@ -2633,7 +2633,7 @@ func (this *Bitstamp) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		retRes179812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes179812)
 	}
-	var market map[string]any = nil
+	var market any = nil
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if symbol != nil {

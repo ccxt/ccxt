@@ -420,11 +420,11 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 		"bids": bids,
 		"asks": asks,
 	}
-	var parsed map[string]any = this.ParseOrderBook(snapshot, symbol, timestamp)
+	var parsed any = this.ParseOrderBook(snapshot, symbol, timestamp)
 	var sequenceNumberRange any = this.SafeList(data, "sequenceNumberRange", []any{})
 	if ccxt.GetArrayLength(sequenceNumberRange) > 0 {
 		var lastIndex int64 = ccxt.Subtract(ccxt.GetArrayLength(sequenceNumberRange), 1).(int64)
-		parsed["nonce"] = this.SafeInteger(sequenceNumberRange, lastIndex)
+		ccxt.AddElementToObject(parsed, "nonce", this.SafeInteger(sequenceNumberRange, lastIndex))
 	}
 	orderbook.(ccxt.OrderBookInterface).Reset(parsed)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
@@ -578,7 +578,7 @@ func (this *Bullish) HandleOrders(client any, message any) {
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
 			var hashSymbol string = ccxt.GetValue(keys, i).(string)
-			var symbolMessageHash string = messageHash + "::" + hashSymbol
+			var symbolMessageHash any = messageHash + "::" + hashSymbol
 			client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 		}
 	}
@@ -709,7 +709,7 @@ func (this *Bullish) HandleMyTrades(client any, message any) {
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
 			var hashSymbol string = ccxt.GetValue(keys, i).(string)
-			var symbolMessageHash string = messageHash + "::" + hashSymbol
+			var symbolMessageHash any = messageHash + "::" + hashSymbol
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
 		}
 	}
@@ -809,11 +809,11 @@ func (this *Bullish) HandleBalance(client any, message any) {
 		var data any = this.SafeList(message, "data", []any{})
 		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.ParseBalance(data))
 	} else {
-		var data map[string]any = ccxt.SafeMapTyped(message, "data")
+		var data any = this.SafeDict(message, "data", map[string]any{})
 		var assetId *string = this.SafeString(data, "assetSymbol")
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString(data, "availableQuantity")
-		account["used"] = this.SafeString(data, "lockedQuantity")
+		var account any = this.Account()
+		ccxt.AddElementToObject(account, "total", this.SafeString(data, "availableQuantity"))
+		ccxt.AddElementToObject(account, "used", this.SafeString(data, "lockedQuantity"))
 		var code *string = this.SafeCurrencyCode(assetId)
 		if (tradingAccountId != nil) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), code, account)

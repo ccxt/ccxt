@@ -22,7 +22,7 @@ public partial class BaseTest
                 { "defaultType", "valueFromParam" },
             };
             Dictionary<string, object> market = exchange.safeMarket("TEST1/TEST2");
-            market["type"] = "spot";
+            ((IDictionary<string,object>)market)["type"] = "spot";
             //
             // ########### test different variations ###########
             //

@@ -2748,9 +2748,9 @@ func (this *Myriad) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			"networkId":  networkId,
 		},
 	}
-	var account map[string]any = this.Account()
-	account["free"] = balanceString
-	account["total"] = balanceString
+	var account any = this.Account()
+	ccxt.AddElementToObject(account, "free", balanceString)
+	ccxt.AddElementToObject(account, "total", balanceString)
 	ccxt.AddElementToObject(result, currency, account)
 
 	ch <- this.SafeBalance(result)
@@ -3287,22 +3287,17 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var outcomeId *string = func() *string {
+	var outcomeId any = func() any {
 		if market != nil {
 			return this.SafeString(ccxt.GetValue(market, "info"), "outcomeId")
 		}
 		return nil
 	}()
-	var outcomes []any = ccxt.SafeListTyped(raw, "outcomes")
+	var outcomes any = this.SafeList(raw, "outcomes", []any{})
 	var price any = nil
 	var change any = nil
-	for i := 0; i < len(outcomes); i++ {
-		var o any = func() any {
-			if i >= 0 && i < len(outcomes) {
-				return ccxt.DerefScalar(outcomes[i])
-			}
-			return nil
-		}()
+	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+		var o any = ccxt.GetValue(outcomes, i)
 		if ccxt.IsEqual(this.SafeString(o, "outcomeId", this.SafeString(o, "id")), outcomeId) {
 			price = ccxt.DerefScalar(this.SafeNumber(o, "price"))
 			change = ccxt.DerefScalar(this.SafeNumber(o, "priceChange24h"))
@@ -3477,15 +3472,10 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 	//         "externalSources": []
 	//     }
 	//
-	var outcomes []any = ccxt.SafeListTyped(response, "outcomes")
+	var outcomes any = this.SafeList(response, "outcomes", []any{})
 	var price any = nil
-	for i := 0; i < len(outcomes); i++ {
-		var o any = func() any {
-			if i >= 0 && i < len(outcomes) {
-				return ccxt.DerefScalar(outcomes[i])
-			}
-			return nil
-		}()
+	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+		var o any = ccxt.GetValue(outcomes, i)
 		if ccxt.IsEqual(this.SafeString(o, "outcomeId", this.SafeString(o, "id")), outcomeId) {
 			price = ccxt.DerefScalar(this.SafeNumber(o, "price"))
 			break
@@ -3535,28 +3525,18 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
 func (this *Myriad) ParseWeiOrderBook(response any, outcome any) any {
-	var rawBids []any = ccxt.SafeListTyped(response, "bids")
-	var rawAsks []any = ccxt.SafeListTyped(response, "asks")
+	var rawBids any = this.SafeList(response, "bids", []any{})
+	var rawAsks any = this.SafeList(response, "asks", []any{})
 	var bids []any = []any{}
-	for i := 0; i < len(rawBids); i++ {
-		var row any = func() any {
-			if i >= 0 && i < len(rawBids) {
-				return ccxt.DerefScalar(rawBids[i])
-			}
-			return nil
-		}()
+	for i := 0; i < ccxt.GetArrayLength(rawBids); i++ {
+		var row any = ccxt.GetValue(rawBids, i)
 		var rowPrice *string = ccxt.Precise.StringDiv(this.SafeString(row, 0), "1000000000000000000")
 		var rowAmount *string = ccxt.Precise.StringDiv(this.SafeString(row, 1), "1000000000000000000")
 		bids = append(bids, []any{this.ParseNumber(rowPrice), this.ParseNumber(rowAmount)})
 	}
 	var asks []any = []any{}
-	for i := 0; i < len(rawAsks); i++ {
-		var row any = func() any {
-			if i >= 0 && i < len(rawAsks) {
-				return ccxt.DerefScalar(rawAsks[i])
-			}
-			return nil
-		}()
+	for i := 0; i < ccxt.GetArrayLength(rawAsks); i++ {
+		var row any = ccxt.GetValue(rawAsks, i)
 		var rowPrice *string = ccxt.Precise.StringDiv(this.SafeString(row, 0), "1000000000000000000")
 		var rowAmount *string = ccxt.Precise.StringDiv(this.SafeString(row, 1), "1000000000000000000")
 		asks = append(asks, []any{this.ParseNumber(rowPrice), this.ParseNumber(rowAmount)})
@@ -3651,15 +3631,10 @@ func (this *Myriad) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	//         }
 	//     }
 	//
-	var outcomes []any = ccxt.SafeListTyped(response, "outcomes")
+	var outcomes any = this.SafeList(response, "outcomes", []any{})
 	var selectedOutcome any = nil
-	for i := 0; i < len(outcomes); i++ {
-		var oc any = func() any {
-			if i >= 0 && i < len(outcomes) {
-				return ccxt.DerefScalar(outcomes[i])
-			}
-			return nil
-		}()
+	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+		var oc any = ccxt.GetValue(outcomes, i)
 		var currentId *string = this.SafeString(oc, "id", this.SafeString(oc, "outcomeId"))
 		var currentTitle *string = this.SafeString(oc, "title", this.SafeString(oc, "label"))
 		if (outcomeId != nil) && (currentId == outcomeId || (currentId != nil && outcomeId != nil && *currentId == *outcomeId)) {
@@ -3797,7 +3772,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var marketKeys []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
-		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+		var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
 		var networkId *string = this.SafeString(info, "networkId")
 		var marketId *string = this.SafeString(info, "marketId")
 		var key any = ccxt.Add(ccxt.Add(networkId, ":"), marketId)
@@ -3820,7 +3795,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var grouped any = ccxt.GetValue(outcomesByMarket, key)
 		var firstOutcome any = ccxt.GetValue(grouped, 0)
-		var info map[string]any = ccxt.SafeMapTyped(firstOutcome, "info")
+		var info any = this.SafeDict(firstOutcome, "info", map[string]any{})
 		promises = append(promises, this.MyriadPublicGetMarketsId(this.Extend(map[string]any{
 			"id":         this.SafeString(info, "marketId"),
 			"network_id": this.SafeString(info, "networkId"),
@@ -4162,15 +4137,10 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
  */
 func (this *Myriad) ParseEvent(rawEvent any) any {
 	var questionSlug *string = this.SafeString(rawEvent, "slug", this.SafeString(rawEvent, "id"))
-	var rawMarkets []any = ccxt.SafeListTyped(rawEvent, "markets")
+	var rawMarkets any = this.SafeList(rawEvent, "markets", []any{})
 	var marketsList []any = []any{}
-	for i := 0; i < len(rawMarkets); i++ {
-		var rawMarket any = func() any {
-			if i >= 0 && i < len(rawMarkets) {
-				return ccxt.DerefScalar(rawMarkets[i])
-			}
-			return nil
-		}()
+	for i := 0; i < ccxt.GetArrayLength(rawMarkets); i++ {
+		var rawMarket any = ccxt.GetValue(rawMarkets, i)
 		marketsList = append(marketsList, this.ParseMyriadMarket(rawMarket, questionSlug))
 	}
 	var endDate *string = this.SafeString(rawEvent, "expiresAt", this.SafeString(rawEvent, "endDate"))
@@ -4329,7 +4299,7 @@ func (this *Myriad) HandleMessage(client any, message any) {
 		var lines []string = ccxt.Split(message, "\n")
 		var linesLength int = len(lines)
 		for i := 0; i < linesLength; i++ {
-			var line string = lines[i]
+			var line any = ccxt.GetValue(lines, i)
 			if ccxt.GetLength(line) > 0 {
 				var parsed any = ccxt.JsonParse(line)
 				this.HandleCentrifugoFrame(client, parsed)
@@ -4501,7 +4471,7 @@ func (this *Myriad) HandleOrderBook(client any, data any) {
 	var updatedSymbols []string = ccxt.ObjectKeys(updated)
 	var updatedLength int = len(updatedSymbols)
 	for k := 0; k < updatedLength; k++ {
-		var sym string = updatedSymbols[k]
+		var sym any = ccxt.GetValue(updatedSymbols, k)
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, sym), ccxt.Add("orderbook::", sym))
 	}
 }
@@ -5255,7 +5225,7 @@ func (this *Myriad) Sign(path any, optionalArgs ...any) any {
 		// corrupted header name in php only - every other language stays green, so the
 		// regression would ship silently. pinned by the fixture in
 		// ts/src/test/static/request/prediction/myriad.json
-		var headerKey string = "x-api" + "-key"
+		var headerKey any = "x-api" + "-key"
 		var headersKey map[string]any = map[string]any{}
 		ccxt.AddElementToObject(headersKey, headerKey, this.ApiKey)
 		headers = this.Extend(headers, headersKey)

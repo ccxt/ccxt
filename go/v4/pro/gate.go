@@ -846,9 +846,9 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if full != nil && *full == true {
-		var snapshopt map[string]any = this.ParseOrderBook(result, symbol, nil, "b", "a")
-		snapshopt["nonce"] = this.SafeInteger(result, "u")
-		snapshopt["timestamp"] = this.SafeInteger(result, "t")
+		var snapshopt any = this.ParseOrderBook(result, symbol, nil, "b", "a")
+		ccxt.AddElementToObject(snapshopt, "nonce", this.SafeInteger(result, "u"))
+		ccxt.AddElementToObject(snapshopt, "timestamp", this.SafeInteger(result, "t"))
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshopt)
 	} else {
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
@@ -1698,7 +1698,7 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
 		var market string = ccxt.GetValue(keys, i).(string)
-		var hash string = "myTrades:" + market
+		var hash any = "myTrades:" + market
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
 	client.(ccxt.ClientInterface).Resolve(cachedTrades, "myTrades")
@@ -1826,15 +1826,15 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "info", result)
 	for i := 0; i < ccxt.GetArrayLength(result); i++ {
 		var rawBalance any = ccxt.GetValue(result, i)
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		var currencyId *string = this.SafeString(rawBalance, "currency", "USDT") // when not present it is USDT
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var timestamp *int64 = this.SafeInteger2(rawBalance, "time_ms", "timestamp_ms")
 		ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 		ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
-		account["used"] = this.SafeString(rawBalance, "freeze")
-		account["free"] = this.SafeString(rawBalance, "available")
-		account["total"] = this.SafeString2(rawBalance, "total", "balance")
+		ccxt.AddElementToObject(account, "used", this.SafeString(rawBalance, "freeze"))
+		ccxt.AddElementToObject(account, "free", this.SafeString(rawBalance, "available"))
+		ccxt.AddElementToObject(account, "total", this.SafeString2(rawBalance, "total", "balance"))
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
@@ -2118,7 +2118,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	if symbol != nil {
-		var marketResolved map[string]any = this.Market(symbol)
+		var marketResolved any = this.Market(symbol)
 		market = marketResolved
 		symbol = ccxt.GetValue(market, "symbol")
 	}

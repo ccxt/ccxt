@@ -707,11 +707,12 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters2)
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String defaultMethod = this.safeString(this.options, "fetchTime", "v2PublicGetTime");
             String method = this.safeString(parameters, "method", defaultMethod);
             parameters = this.omit(parameters, "method");
@@ -736,45 +737,7 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchTime
-     * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/time
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-server-time
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
-     * @returns {int} the current integer timestamp in milliseconds from the exchange server
-     */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
-    {
-        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    /**
-     * @method
-     * @name coinbase#fetchAccounts
-     * @description fetch all the accounts associated with a profile
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
-     */
-    public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            String method = this.safeString(this.options, "fetchAccounts", "fetchAccountsV3");
-            if (java.util.Objects.equals(method, "fetchAccountsV3"))
-            {
-                return (this.fetchAccountsV3(parameters)).join();
-            }
-            return (this.fetchAccountsV2(parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
-
-    }
     /**
      * @method
      * @name coinbase#fetchAccounts
@@ -787,14 +750,26 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
     {
-        return this.fetchAccounts(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            String method = this.safeString(this.options, "fetchAccounts", "fetchAccountsV3");
+            if (java.util.Objects.equals(method, "fetchAccountsV3"))
+            {
+                return (this.fetchAccountsV3(parameters)).join();
+            }
+            return (this.fetchAccountsV2(parameters)).join();
+        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+
     }
 
-    public CompletableFuture<Object> fetchAccountsV2(Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchAccountsV2(Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -871,16 +846,13 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    public CompletableFuture<Object> fetchAccountsV2(Object... optionalArgs)
-    {
-        return this.fetchAccountsV2(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public CompletableFuture<Object> fetchAccountsV3(Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchAccountsV3(Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -941,10 +913,6 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    public CompletableFuture<Object> fetchAccountsV3(Object... optionalArgs)
-    {
-        return this.fetchAccountsV3(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -954,11 +922,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public CompletableFuture<Object> fetchPortfolios(Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchPortfolios(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.v3PrivateGetBrokeragePortfolios(parameters)).join();
             List<Object> portfolios = (List<Object>) this.safeList(response, "portfolios", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -975,18 +944,6 @@ public class Coinbase extends CoinbaseApi
             return result;
         });
 
-    }
-    /**
-     * @method
-     * @name coinbase#fetchPortfolios
-     * @description fetch all the portfolios
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/list-portfolios
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
-     */
-    public CompletableFuture<Object> fetchPortfolios(Object... optionalArgs)
-    {
-        return this.fetchPortfolios(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseAccount(Object account)
@@ -1071,11 +1028,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> parameters2)
+    public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object accountId = this.safeString(parameters, "account_id");
             parameters = this.omit(parameters, "account_id");
             if (java.util.Objects.equals(accountId, null))
@@ -1149,50 +1107,7 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(DepositAddress::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#createDepositAddress
-     * @description create a currency deposit address
-     * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
-     * @param {string} code unified currency code of the currency for the deposit address
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
-    {
-        return this.createDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    /**
-     * @method
-     * @name coinbase#fetchMySells
-     * @ignore
-     * @description fetch sells
-     * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by fetchMySells ()
-     * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
-     * @param {int} [limit] max number of sells to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [list of order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Object> fetchMySells(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            // v2 did't have an endpoint for all historical trades
-            Object request = this.prepareAccountRequest(limit, parameters);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
-            Map<String, Object> sells = (this.v2PrivateGetAccountsAccountIdSells(this.extend(request, query))).join();
-            List<Object> sellsData = (List<Object>) this.safeList(sells, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(sellsData, null, since, limit);
-        });
-
-    }
     /**
      * @method
      * @name coinbase#fetchMySells
@@ -1207,39 +1122,27 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<Object> fetchMySells(Object... optionalArgs)
     {
-        return this.fetchMySells(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
-
-    /**
-     * @method
-     * @name coinbase#fetchMyBuys
-     * @ignore
-     * @description fetch buys
-     * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by fetchMyBuys ()
-     * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
-     * @param {int} [limit] max number of buys to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of  [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Object> fetchMyBuys(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
 
         return BaseExchange.supplyAsync(() -> {
 
             // v2 did't have an endpoint for all historical trades
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Object request = this.prepareAccountRequest(limit, parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
-            Map<String, Object> buys = (this.v2PrivateGetAccountsAccountIdBuys(this.extend(request, query))).join();
-            List<Object> buysData = (List<Object>) this.safeList(buys, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(buysData, null, since, limit);
+            Map<String, Object> sells = (this.v2PrivateGetAccountsAccountIdSells(this.extend(request, query))).join();
+            List<Object> sellsData = (List<Object>) this.safeList(sells, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTrades(sellsData, null, since, limit);
         });
 
     }
+
     /**
      * @method
      * @name coinbase#fetchMyBuys
@@ -1254,16 +1157,36 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<Object> fetchMyBuys(Object... optionalArgs)
     {
-        return this.fetchMyBuys(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+
+        return BaseExchange.supplyAsync(() -> {
+
+            // v2 did't have an endpoint for all historical trades
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object request = this.prepareAccountRequest(limit, parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
+            Map<String, Object> buys = (this.v2PrivateGetAccountsAccountIdBuys(this.extend(request, query))).join();
+            List<Object> buysData = (List<Object>) this.safeList(buys, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTrades(buysData, null, since, limit);
+        });
+
     }
 
-    public CompletableFuture<Object> fetchTransactionsWithMethod(Object method2, String code, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchTransactionsWithMethod(Object method2, Object... optionalArgs)
     {
         final Object method3 = method2;
-        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object method = method3;
-            Object parameters = parameters3;
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Object request = null;
             var requestparametersVariable = (this.prepareAccountRequestWithCurrencyCode(code, limit, parameters)).join();
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -1287,42 +1210,7 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    public CompletableFuture<Object> fetchTransactionsWithMethod(Object method, Object... optionalArgs)
-    {
-        return this.fetchTransactionsWithMethod(method, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
-    /**
-     * @method
-     * @name coinbase#fetchWithdrawals
-     * @description Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
-     * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/withdraw-fiat
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.currencyType] "fiat" or "crypto"
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters2)
-    {
-        final Map<String, Object> parameters3 = parameters2;
-        return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
-            Object currencyType = null;
-            List<Object> currencyTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "currencyType");
-            currencyType = ((List<Object>) currencyTypeparametersVariable).get(0);
-            parameters = ((List<Object>) currencyTypeparametersVariable).get(1);
-            if (java.util.Objects.equals(currencyType, "crypto"))
-            {
-                Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, parameters)).join();
-                return this.filterByArray(results, "type", "withdrawal", false);
-            }
-            return (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
-
-    }
     /**
      * @method
      * @name coinbase#fetchWithdrawals
@@ -1338,40 +1226,27 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
-        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
-    /**
-     * @method
-     * @name coinbase#fetchDeposits
-     * @description Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
-     * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.currencyType] "fiat" or "crypto"
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters2)
-    {
-        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Object currencyType = null;
-            List<Object> currencyTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "currencyType");
+            List<Object> currencyTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "currencyType");
             currencyType = ((List<Object>) currencyTypeparametersVariable).get(0);
             parameters = ((List<Object>) currencyTypeparametersVariable).get(1);
             if (java.util.Objects.equals(currencyType, "crypto"))
             {
                 Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, parameters)).join();
-                return this.filterByArray(results, "type", "deposit", false);
+                return this.filterByArray(results, "type", "withdrawal", false);
             }
-            return (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, parameters)).join();
+            return (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+
     /**
      * @method
      * @name coinbase#fetchDeposits
@@ -1387,34 +1262,27 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
     {
-        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
-
-    /**
-     * @method
-     * @name coinbase#fetchDepositsWithdrawals
-     * @description fetch history of deposits and withdrawals
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
-     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-     * @param {int} [limit] max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
-    {
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.markets, null))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object currencyType = null;
+            List<Object> currencyTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "currencyType");
+            currencyType = ((List<Object>) currencyTypeparametersVariable).get(0);
+            parameters = ((List<Object>) currencyTypeparametersVariable).get(1);
+            if (java.util.Objects.equals(currencyType, "crypto"))
             {
-                (this.loadMarkets()).join();
+                Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, parameters)).join();
+                return this.filterByArray(results, "type", "deposit", false);
             }
-            Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, parameters)).join();
-            return this.filterByArray(results, "type", new ArrayList<Object>(Arrays.asList("deposit", "withdrawal")), false);
+            return (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+
     /**
      * @method
      * @name coinbase#fetchDepositsWithdrawals
@@ -1428,7 +1296,21 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
-        return this.fetchDepositsWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, parameters)).join();
+            return this.filterByArray(results, "type", new ArrayList<Object>(Arrays.asList("deposit", "withdrawal")), false);
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+
     }
 
     public String parseTransactionStatus(String status)
@@ -1441,7 +1323,7 @@ public class Coinbase extends CoinbaseApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
         // fiat deposit
@@ -1596,6 +1478,7 @@ public class Coinbase extends CoinbaseApi
         //        "description": "C3 - One Time BTC Credit . Reference Case # 123.", //  in some cases, field might be present for deposit
         //    }
         //
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String transactionType = this.safeString(transaction, "type");
         Object amountAndCurrencyObject = null;
         Object feeObject = null;
@@ -1641,8 +1524,8 @@ public class Coinbase extends CoinbaseApi
         String addressTo = this.safeString(toObject, "address");
         String networkId = this.safeString(network, "network_name");
         String code = this.safeCurrencyCode(currencyId, currency);
-        final String finalType = type;
-        final String finalStatus = status;
+        final Object finalType = type;
+        final Object finalStatus = status;
         final Object finalFeeObject = feeObject;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -1668,12 +1551,8 @@ public class Coinbase extends CoinbaseApi
             }} );
         }};
     }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
-    public Object parseTrade(Object trade, Map<String, Object> market)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchMyBuys, fetchMySells
@@ -1736,13 +1615,14 @@ public class Coinbase extends CoinbaseApi
         //         "side": "BUY"
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = null;
         Map<String, Object> totalObject = (Map<String, Object>) this.safeDict(trade, "total", new HashMap<String, Object>() {{}});
         Map<String, Object> amountObject = (Map<String, Object>) this.safeDict(trade, "amount", new HashMap<String, Object>() {{}});
         Map<String, Object> subtotalObject = (Map<String, Object>) this.safeDict(trade, "subtotal", new HashMap<String, Object>() {{}});
         Map<String, Object> feeObject = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(trade, "product_id");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, "-"));
+        market = this.safeMarket(marketId, market, "-");
         if (!java.util.Objects.equals(market, null))
         {
             symbol = ((Map<String, Object>)market).get("symbol");
@@ -1798,10 +1678,10 @@ public class Coinbase extends CoinbaseApi
         final Object finalSymbol = symbol;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        final String finalPriceString = priceString;
-        final String finalAmountString = amountString;
-        final String finalCost = cost;
-        final Double finalFeeCost = feeCost;
+        final Object finalPriceString = priceString;
+        final Object finalAmountString = amountString;
+        final Object finalCost = cost;
+        final Object finalFeeCost = feeCost;
         final Object finalFeeCurrencyId = feeCurrencyId;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1822,41 +1702,7 @@ public class Coinbase extends CoinbaseApi
             }} );
         }}));
     }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
-    /**
-     * @method
-     * @name coinbase#fetchMarkets
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
-     * @description retrieves data on all markets for coinbase
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.usePrivate] use private endpoint for fetching markets
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
-            {
-                (this.loadTimeDifference()).join();
-            }
-            String method = this.safeString(this.options, "fetchMarkets", "fetchMarketsV3");
-            if (java.util.Objects.equals(method, "fetchMarketsV3"))
-            {
-                return (this.fetchMarketsV3(parameters)).join();
-            }
-            return (this.fetchMarketsV2(parameters)).join();
-        });
-
-    }
     /**
      * @method
      * @name coinbase#fetchMarkets
@@ -1871,14 +1717,30 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            {
+                (this.loadTimeDifference()).join();
+            }
+            String method = this.safeString(this.options, "fetchMarkets", "fetchMarketsV3");
+            if (java.util.Objects.equals(method, "fetchMarketsV3"))
+            {
+                return (this.fetchMarketsV3(parameters)).join();
+            }
+            return (this.fetchMarketsV2(parameters)).join();
+        });
+
     }
 
-    public CompletableFuture<Object> fetchMarketsV2(Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchMarketsV2(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object response = (this.fetchCurrenciesFromCache(parameters)).join();
             Map<String, Object> currencies = (Map<String, Object>) this.safeDict(response, "currencies", new HashMap<String, Object>() {{}});
             Map<String, Object> exchangeRates = (Map<String, Object>) this.safeDict(response, "exchangeRates", new HashMap<String, Object>() {{}});
@@ -1957,16 +1819,13 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    public CompletableFuture<Object> fetchMarketsV2(Object... optionalArgs)
-    {
-        return this.fetchMarketsV2(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public CompletableFuture<Object> fetchMarketsV3(Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchMarketsV3(Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object usePrivate = false;
             List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "usePrivate", false);
             usePrivate = ((List<Object>) usePrivateparametersVariable).get(0);
@@ -2136,10 +1995,6 @@ public class Coinbase extends CoinbaseApi
             return newMarkets;
         });
 
-    }
-    public CompletableFuture<Object> fetchMarketsV3(Object... optionalArgs)
-    {
-        return this.fetchMarketsV3(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseSpotMarket(Map<String, Object> market, Map<String, Object> feeTier)
@@ -2375,7 +2230,7 @@ public class Coinbase extends CoinbaseApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Boolean tradingDisabled = (Boolean) this.safeBool(market, "is_disabled");
-        String symbol = ((base + "/") + quote);
+        Object symbol = ((base + "/") + quote);
         String type = null;
         if (Boolean.TRUE.equals(isSwap))
         {
@@ -2386,13 +2241,13 @@ public class Coinbase extends CoinbaseApi
             type = "future";
             symbol = ((((symbol + ":") + quote) + "-") + this.yymmdd(expireTimestamp));
         }
-        Double takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
-        Double makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
-        Object taker = (((!java.util.Objects.equals(takerFeeRate, null) && !java.util.Objects.equals(takerFeeRate, null) && (takerFeeRate == null || takerFeeRate != 0)))) ? takerFeeRate : this.parseNumber("0.06");
-        Object maker = (((!java.util.Objects.equals(makerFeeRate, null) && !java.util.Objects.equals(makerFeeRate, null) && (makerFeeRate == null || makerFeeRate != 0)))) ? makerFeeRate : this.parseNumber("0.04");
-        final String finalSymbol = symbol;
-        final String finalBase = base;
-        final String finalType = type;
+        Object takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
+        Object makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
+        Object taker = (((!java.util.Objects.equals(takerFeeRate, null) && !java.util.Objects.equals(takerFeeRate, null) && !Helpers.isEqual(takerFeeRate, 0)))) ? takerFeeRate : this.parseNumber("0.06");
+        Object maker = (((!java.util.Objects.equals(makerFeeRate, null) && !java.util.Objects.equals(makerFeeRate, null) && !Helpers.isEqual(makerFeeRate, 0)))) ? makerFeeRate : this.parseNumber("0.04");
+        final Object finalSymbol = symbol;
+        final Object finalBase = base;
+        final Object finalType = type;
         final Object finalTradingDisabled = tradingDisabled;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
@@ -2447,11 +2302,12 @@ public class Coinbase extends CoinbaseApi
         }});
     }
 
-    public CompletableFuture<Object> fetchCurrenciesFromCache(Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchCurrenciesFromCache(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchCurrencies", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(options, "timestamp");
             Long expires = this.safeInteger(options, "expires", 1000);
@@ -2487,7 +2343,7 @@ public class Coinbase extends CoinbaseApi
                 List<Object> fiatData = (List<Object>) this.safeList(fiatResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 List<Object> cryptoData = (List<Object>) this.safeList(cryptoResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> exchangeRates = (this.v2PublicGetExchangeRates(parameters)).join();
-                final Long finalNow = now;
+                final Object finalNow = now;
                 Helpers.addElementToObject(this.options, "fetchCurrencies", this.extend(options, new HashMap<String, Object>() {{
         put( "currencies", Coinbase.this.arrayConcat(fiatData, cryptoData) );
         put( "exchangeRates", exchangeRates );
@@ -2497,10 +2353,6 @@ public class Coinbase extends CoinbaseApi
             return this.safeDict(this.options, "fetchCurrencies", new HashMap<String, Object>() {{}});
         });
 
-    }
-    public CompletableFuture<Object> fetchCurrenciesFromCache(Object... optionalArgs)
-    {
-        return this.fetchCurrenciesFromCache(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2512,11 +2364,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters), this.v2PublicGetExchangeRates(parameters)));
             Object promisesResult = (Helpers.promiseAll(promises)).join();
             Map<String, Object> fiatResponse = (Map<String, Object>) this.safeDict(promisesResult, 0, new HashMap<String, Object>() {{}});
@@ -2618,7 +2471,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     if (!java.util.Objects.equals(code, null))
                     {
-                        final String finalCode = code;
+                        final Object finalCode = code;
                         ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", new HashMap<String, Object>() {{}} );
         put( "id", currencyId );
@@ -2635,46 +2488,7 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
-    {
-        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    /**
-     * @method
-     * @name coinbase#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.usePrivate] use private endpoint for fetching tickers
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols, Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            String method = this.safeString(this.options, "fetchTickers", "fetchTickersV3");
-            if (java.util.Objects.equals(method, "fetchTickersV3"))
-            {
-                return (this.fetchTickersV3(symbols, parameters)).join();
-            }
-            return (this.fetchTickersV2(symbols, parameters)).join();
-        }).thenApply(Tickers::new);
-
-    }
     /**
      * @method
      * @name coinbase#fetchTickers
@@ -2689,14 +2503,28 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            String method = this.safeString(this.options, "fetchTickers", "fetchTickersV3");
+            if (java.util.Objects.equals(method, "fetchTickersV3"))
+            {
+                return (this.fetchTickersV3(symbols, parameters)).join();
+            }
+            return (this.fetchTickersV2(symbols, parameters)).join();
+        }).thenApply(Tickers::new);
+
     }
 
-    public CompletableFuture<Object> fetchTickersV2(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchTickersV2(Object... optionalArgs)
     {
-        final Object symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2725,7 +2553,7 @@ public class Coinbase extends CoinbaseApi
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {
                 Object baseId = (baseIds == null || i < 0 || i >= baseIds.size() ? null : baseIds.get(i));
-                String marketId = ((baseId + delimiter) + quoteId);
+                Object marketId = ((baseId + delimiter) + quoteId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, delimiter);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 ((Map<String, Object>)result).put((String)symbol, this.parseTicker((rates == null || baseId == null ? null : rates.get(baseId)), market));
@@ -2734,18 +2562,14 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    public CompletableFuture<Object> fetchTickersV2(Object... optionalArgs)
-    {
-        return this.fetchTickersV2(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    public CompletableFuture<Object> fetchTickersV3(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchTickersV3(Object... optionalArgs)
     {
-        final Object symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
-            Object parameters = parameters3;
+
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2827,37 +2651,7 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    public CompletableFuture<Object> fetchTickersV3(Object... optionalArgs)
-    {
-        return this.fetchTickersV3(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    /**
-     * @method
-     * @name coinbase#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/prices
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.usePrivate] whether to use the private endpoint for fetching the ticker
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            String method = this.safeString(this.options, "fetchTicker", "fetchTickerV3");
-            if (java.util.Objects.equals(method, "fetchTickerV3"))
-            {
-                return (this.fetchTickerV3(symbol, parameters)).join();
-            }
-            return (this.fetchTickerV2(symbol, parameters)).join();
-        }).thenApply(Ticker::new);
-
-    }
     /**
      * @method
      * @name coinbase#fetchTicker
@@ -2872,14 +2666,26 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            String method = this.safeString(this.options, "fetchTicker", "fetchTickerV3");
+            if (java.util.Objects.equals(method, "fetchTickerV3"))
+            {
+                return (this.fetchTickerV3(symbol, parameters)).join();
+            }
+            return (this.fetchTickerV2(symbol, parameters)).join();
+        }).thenApply(Ticker::new);
+
     }
 
-    public CompletableFuture<Object> fetchTickerV2(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchTickerV2(String symbol, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2912,16 +2718,13 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    public CompletableFuture<Object> fetchTickerV2(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTickerV2(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public CompletableFuture<Object> fetchTickerV3(String symbol, Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchTickerV3(String symbol, Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2970,12 +2773,8 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    public CompletableFuture<Object> fetchTickerV3(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTickerV3(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseTicker(Object ticker, Map<String, Object> market)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTickerV2
@@ -3067,10 +2866,11 @@ public class Coinbase extends CoinbaseApi
         //         "time": "2023-06-30T07:15:24.656044Z"
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Double bid = this.safeNumber(ticker, "bid");
         Double ask = this.safeNumber(ticker, "ask");
-        Double bidVolume = null;
-        Double askVolume = null;
+        Object bidVolume = null;
+        Object askVolume = null;
         if ((((Map<?, ?>)ticker).containsKey("bids")))
         {
             List<Object> bids = (List<Object>) this.safeList(ticker, "bids", new ArrayList<Object>(Arrays.asList()));
@@ -3083,14 +2883,14 @@ public class Coinbase extends CoinbaseApi
             askVolume = this.safeNumber(firstAsk, "size");
         }
         String marketId = this.safeString(ticker, "product_id");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        market = this.safeMarket(marketId, market);
         Double last = this.safeNumber(ticker, "price");
         String datetime = this.safeString(ticker, "time");
         final Object finalMarket = market;
-        final Double finalBid = bid;
-        final Double finalAsk = ask;
-        final Double finalBidVolume = bidVolume;
-        final Double finalAskVolume = askVolume;
+        final Object finalBid = bid;
+        final Object finalAsk = ask;
+        final Object finalBidVolume = bidVolume;
+        final Object finalAskVolume = askVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", Coinbase.this.parse8601(datetime) );
@@ -3114,13 +2914,10 @@ public class Coinbase extends CoinbaseApi
             put( "info", ticker );
         }}, market);
     }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
-    public Object parseCustomBalance(Map<String, Object> response, Map<String, Object> parameters)
+    public Object parseCustomBalance(Map<String, Object> response, Object... optionalArgs)
     {
+        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         List<Object> balances = (List<Object>) this.safeList2(response, "data", "accounts", new ArrayList<Object>(Arrays.asList()));
         Object accounts = this.safeList(parameters, "type", ((Map<String, Object>)this.options).get("accounts"));
         Object v3Accounts = this.safeList(parameters, "type", ((Map<String, Object>)this.options).get("v3Accounts"));
@@ -3140,10 +2937,10 @@ public class Coinbase extends CoinbaseApi
                     String code = this.safeCurrencyCode(currencyId);
                     String total = this.safeString(value, "amount");
                     Object free = total;
-                    Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code);
+                    Object account = this.safeDict(result, code);
                     if (java.util.Objects.equals(account, null))
                     {
-                        account = (Map<String, Object>) this.account();
+                        account = this.account();
                         ((Map<String, Object>)account).put("free", free);
                         ((Map<String, Object>)account).put("total", total);
                     } else
@@ -3167,10 +2964,10 @@ public class Coinbase extends CoinbaseApi
                     String used = this.safeString(hold, "value");
                     String free = this.safeString(available, "value");
                     Object total = Precise.stringAdd(used, free);
-                    Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code);
+                    Object account = this.safeDict(result, code);
                     if (java.util.Objects.equals(account, null))
                     {
-                        account = (Map<String, Object>) this.account();
+                        account = this.account();
                         ((Map<String, Object>)account).put("free", free);
                         ((Map<String, Object>)account).put("used", used);
                         ((Map<String, Object>)account).put("total", total);
@@ -3189,10 +2986,6 @@ public class Coinbase extends CoinbaseApi
         }
         return this.safeBalance(result);
     }
-    public Object parseCustomBalance(Map<String, Object> response, Object... optionalArgs)
-    {
-        return this.parseCustomBalance(response, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3207,11 +3000,12 @@ public class Coinbase extends CoinbaseApi
      * @param {int} [params.limit] default 250, maximum number of accounts to return
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters2)
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3313,23 +3107,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(Balances::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
-     * @param {string} [params.type] "spot" (default) or "swap" or "future"
-     * @param {int} [params.limit] default 250, maximum number of accounts to return
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3343,13 +3120,15 @@ public class Coinbase extends CoinbaseApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code2, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
-        final String code3 = code2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object code = code3;
-            Object parameters = parameters3;
+
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3395,22 +3174,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchLedger
-     * @description Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
-     * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
-     * @param {string} [code] unified currency code, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-     * @param {int} [limit] max number of ledger entries to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
-     */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
-    {
-        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     public String parseLedgerEntryStatus(String status)
     {
@@ -3436,7 +3199,7 @@ public class Coinbase extends CoinbaseApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
     {
         //
         // crypto deposit transaction
@@ -3681,6 +3444,7 @@ public class Coinbase extends CoinbaseApi
         //         }
         //     }
         //
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> amountInfo = (Map<String, Object>) this.safeDict(item, "amount", new HashMap<String, Object>() {{}});
         String amount = this.safeString(amountInfo, "amount");
         String direction = null;
@@ -3694,7 +3458,7 @@ public class Coinbase extends CoinbaseApi
         }
         String currencyId = this.safeString(amountInfo, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
+        currency = this.safeCurrency(currencyId, currency);
         //
         // the address and txid do not belong to the unified ledger structure
         //
@@ -3733,7 +3497,7 @@ public class Coinbase extends CoinbaseApi
                 accountId = Helpers.GetValue(parts, 3);
             }
         }
-        final String finalDirection = direction;
+        final Object finalDirection = direction;
         final Object finalAccountId = accountId;
         final Object finalAmount = amount;
         final Object finalFee = fee;
@@ -3755,21 +3519,18 @@ public class Coinbase extends CoinbaseApi
             put( "fee", finalFee );
         }}, currency);
     }
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
-    {
-        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
-    public CompletableFuture<Object> findAccountId(String code, Map<String, Object> parameters)
+    public CompletableFuture<Object> findAccountId(String code, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            (this.loadAccounts(false, parameters)).join();
+            (this.loadAccounts((Object)(false), (Object)(parameters))).join();
             for (var i = 0; i < ((List<?>)this.accounts).size(); i++)
             {
                 Object account = (this.accounts == null || i < 0 || i >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(i));
@@ -3782,19 +3543,17 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    public CompletableFuture<Object> findAccountId(String code, Object... optionalArgs)
-    {
-        return this.findAccountId(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object prepareAccountRequest(Long limit, Map<String, Object> parameters)
+    public Object prepareAccountRequest(Object... optionalArgs)
     {
+        Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         String accountId = this.safeString2(parameters, "account_id", "accountId");
         if (java.util.Objects.equals(accountId, null))
         {
             throw new ArgumentsRequired((this.id + " prepareAccountRequest() method requires an account_id (or accountId) parameter")) ;
         }
-        final String finalAccountId = accountId;
+        final Object finalAccountId = accountId;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "account_id", finalAccountId );
         }};
@@ -3804,20 +3563,15 @@ public class Coinbase extends CoinbaseApi
         }
         return request;
     }
-    public Object prepareAccountRequest(Object... optionalArgs)
-    {
-        return this.prepareAccountRequest(Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    public CompletableFuture<Object> prepareAccountRequestWithCurrencyCode(String code2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> prepareAccountRequestWithCurrencyCode(Object... optionalArgs)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object code = code3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object accountId = this.safeString2(parameters, "account_id", "accountId");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             if (java.util.Objects.equals(accountId, null))
@@ -3844,10 +3598,6 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    public CompletableFuture<Object> prepareAccountRequestWithCurrencyCode(Object... optionalArgs)
-    {
-        return this.prepareAccountRequestWithCurrencyCode(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3859,11 +3609,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3877,20 +3628,6 @@ public class Coinbase extends CoinbaseApi
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name coinbase#createMarketBuyOrderWithCost
-     * @description create a market buy order by providing the symbol and cost
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {float} cost how much you want to trade in units of the quote currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
-    {
-        return this.createMarketBuyOrderWithCost(symbol, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3922,17 +3659,15 @@ public class Coinbase extends CoinbaseApi
      * @param {float} [params.reduceOnly] set to true for closing a position or use closePosition
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        final Object price3 = price2;
-        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object price = price3;
-            Object parameters = parameters3;
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3979,8 +3714,8 @@ public class Coinbase extends CoinbaseApi
                         }
                         final Object finalPrice = price;
                         final Object finalTriggerPrice = triggerPrice;
-                        final String finalStopDirection = stopDirection;
-                        final String finalEndTime = endTime;
+                        final Object finalStopDirection = stopDirection;
+                        final Object finalEndTime = endTime;
                         ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
         put( "stop_limit_stop_limit_gtd", new HashMap<String, Object>() {{
             put( "base_size", Coinbase.this.amountToPrecision(symbol, amount) );
@@ -3994,7 +3729,7 @@ public class Coinbase extends CoinbaseApi
                     {
                         final Object finalPrice_2 = price;
                         final Object finalTriggerPrice_2 = triggerPrice;
-                        final String finalStopDirection_2 = stopDirection;
+                        final Object finalStopDirection_2 = stopDirection;
                         ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
         put( "stop_limit_stop_limit_gtc", new HashMap<String, Object>() {{
             put( "base_size", Coinbase.this.amountToPrecision(symbol, amount) );
@@ -4024,7 +3759,7 @@ public class Coinbase extends CoinbaseApi
                     }
                     final Object finalPrice_3 = price;
                     final Object finalTpslPrice = tpslPrice;
-                    final String finalStopDirection_3 = stopDirection;
+                    final Object finalStopDirection_3 = stopDirection;
                     ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
         put( "stop_limit_stop_limit_gtc", new HashMap<String, Object>() {{
             put( "base_size", Coinbase.this.amountToPrecision(symbol, amount) );
@@ -4042,7 +3777,7 @@ public class Coinbase extends CoinbaseApi
                             throw new ExchangeError((this.id + " createOrder() requires an end_time parameter for a GTD order")) ;
                         }
                         final Object finalPrice_4 = price;
-                        final String finalEndTime_2 = endTime;
+                        final Object finalEndTime_2 = endTime;
                         ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
         put( "limit_limit_gtd", new HashMap<String, Object>() {{
             put( "base_size", Coinbase.this.amountToPrecision(symbol, amount) );
@@ -4106,8 +3841,8 @@ public class Coinbase extends CoinbaseApi
                             throw new InvalidOrder((this.id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            String amountString = this.numberToString(amount);
-                            String priceString = this.numberToString(price);
+                            Object amountString = this.numberToString(amount);
+                            Object priceString = this.numberToString(price);
                             String costRequest = Precise.stringMul(amountString, priceString);
                             total = this.costToPrecision(symbol, costRequest);
                         }
@@ -4115,7 +3850,7 @@ public class Coinbase extends CoinbaseApi
                     {
                         total = this.costToPrecision(symbol, amount);
                     }
-                    final String finalTotal = total;
+                    final Object finalTotal = total;
                     ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
         put( "market_market_ioc", new HashMap<String, Object>() {{
             put( "quote_size", finalTotal );
@@ -4208,41 +3943,8 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(Order::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#createOrder
-     * @description create a trade order
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
-     * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] price to trigger stop orders
-     * @param {float} [params.triggerPrice] price to trigger stop orders
-     * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
-     * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
-     * @param {bool} [params.postOnly] true or false
-     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
-     * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
-     * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
-     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-     * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
-     * @param {float} [params.leverage] default to 1, the leverage to use for the order
-     * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.retail_portfolio_id] portfolio uid
-     * @param {boolean} [params.is_max] Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
-     * @param {string} [params.tradable_balance] amount of tradable balance
-     * @param {float} [params.reduceOnly] set to true for closing a position or use closePosition
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseOrder(Object order, Map<String, Object> market)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -4306,11 +4008,12 @@ public class Coinbase extends CoinbaseApi
         //         "cancel_message": ""
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(order, "product_id");
         String symbol = this.safeSymbol(marketId, market, "-");
         if (!java.util.Objects.equals(symbol, null))
         {
-            market = (Map<String, Object>) (this.safeMarket(symbol, market));
+            market = this.safeMarket(symbol, market);
         }
         Map<String, Object> orderConfiguration = (Map<String, Object>) this.safeDict(order, "order_configuration", new HashMap<String, Object>() {{}});
         Map<String, Object> limitGTC = (Map<String, Object>) this.safeDict(orderConfiguration, "limit_limit_gtc");
@@ -4359,11 +4062,11 @@ public class Coinbase extends CoinbaseApi
         {
             currencyFee = ((Map<String, Object>)market).get("quote");
         }
-        final String finalSymbol = symbol;
+        final Object finalSymbol = symbol;
         final Object finalPostOnly = postOnly;
-        final String finalPrice = price;
-        final String finalTriggerPrice = triggerPrice;
-        final String finalAmount = amount;
+        final Object finalPrice = price;
+        final Object finalTriggerPrice = triggerPrice;
+        final Object finalAmount = amount;
         final Object finalCurrencyFee = currencyFee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -4391,10 +4094,6 @@ public class Coinbase extends CoinbaseApi
             }} );
             put( "trades", null );
         }}), market);
-    }
-    public Object parseOrder(Object order, Object... optionalArgs)
-    {
-        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseOrderStatus(String status)
@@ -4447,11 +4146,13 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4460,20 +4161,6 @@ public class Coinbase extends CoinbaseApi
             return this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name coinbase#cancelOrder
-     * @description cancels an open order
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
-     * @param {string} id order id
-     * @param {string} symbol not used by cancelOrder()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4486,11 +4173,13 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4528,20 +4217,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name coinbase#cancelOrders
-     * @description cancel multiple orders
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
-     * @param {string[]} ids order ids
-     * @param {string} symbol not used by cancelOrders()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
-    {
-        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -4558,15 +4233,14 @@ public class Coinbase extends CoinbaseApi
      * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
-        final Object amount3 = amount2;
-        final Object price3 = price2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object amount = amount3;
-            Object price = price3;
-            Object parameters = parameters3;
+
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4606,25 +4280,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(Order::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#editOrder
-     * @description edit a trade order
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/edit-order
-     * @param {string} id cancel order id
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
-    {
-        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -4636,11 +4291,13 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4698,20 +4355,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(Order::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchOrder
-     * @description fetches information on an order made by the user
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/get-order
-     * @param {string} id the order id
-     * @param {string} symbol unified market symbol that the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
-    {
-        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -4726,17 +4369,15 @@ public class Coinbase extends CoinbaseApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 100;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4828,35 +4469,16 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
-     * @param {string} symbol unified market symbol that the orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
-    {
-        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, 100L), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
-    public CompletableFuture<Object> fetchOrdersByStatus(String status, String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchOrdersByStatus(String status, Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4943,10 +4565,6 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    public CompletableFuture<Object> fetchOrdersByStatus(String status, Object... optionalArgs)
-    {
-        return this.fetchOrdersByStatus(status, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -4961,11 +4579,15 @@ public class Coinbase extends CoinbaseApi
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4982,23 +4604,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchOpenOrders
-     * @description fetches information on all currently open orders
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
-     * @param {string} symbol unified market symbol of the orders
-     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-     * @param {int} [limit] the maximum number of open order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -5013,11 +4618,15 @@ public class Coinbase extends CoinbaseApi
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5034,44 +4643,7 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
-     * @param {string} symbol unified market symbol of the orders
-     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-     * @param {int} [limit] the maximum number of closed order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
-    /**
-     * @method
-     * @name coinbase#fetchCanceledOrders
-     * @description fetches information on multiple canceled orders made by the user
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
-     * @param {string} symbol unified market symbol of the orders
-     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-     * @param {int} [limit] the maximum number of canceled order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            return (this.fetchOrdersByStatus("CANCELLED", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
-
-    }
     /**
      * @method
      * @name coinbase#fetchCanceledOrders
@@ -5085,7 +4657,16 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
     {
-        return this.fetchCanceledOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            return (this.fetchOrdersByStatus("CANCELLED", symbol, since, limit, parameters)).join();
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
     }
 
     /**
@@ -5104,15 +4685,15 @@ public class Coinbase extends CoinbaseApi
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5136,13 +4717,13 @@ public class Coinbase extends CoinbaseApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             int duration = this.parseTimeframe(timeframe);
             Object requestedDuration = Helpers.multiply(limit, duration);
-            String sinceString = null;
+            Object sinceString = null;
             if (!java.util.Objects.equals(since, null))
             {
                 sinceString = this.numberToString(this.parseToInt(Helpers.divide(since, 1000)));
             } else
             {
-                String now = String.valueOf(this.seconds());
+                Object now = String.valueOf(this.seconds());
                 sinceString = Precise.stringSub(now, String.valueOf(requestedDuration));
             }
             ((Map<String, Object>)request).put("start", sinceString);
@@ -5185,28 +4766,8 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-candles
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-candles
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch, not used by coinbase
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the candles
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
     {
         //
         //     [
@@ -5220,11 +4781,8 @@ public class Coinbase extends CoinbaseApi
         //         },
         //     ]
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "start"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
-    }
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -5240,15 +4798,14 @@ public class Coinbase extends CoinbaseApi
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the trades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5309,23 +4866,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades
-     * @param {string} symbol unified market symbol of the trades
-     * @param {int} [since] not used by coinbase fetchTrades
-     * @param {int} [limit] the maximum number of trade structures to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the trades
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -5340,17 +4880,15 @@ public class Coinbase extends CoinbaseApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object since = since3;
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5423,23 +4961,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-fills
-     * @param {string} symbol unified market symbol of the trades
-     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-     * @param {int} [limit] the maximum number of trade structures to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -5453,13 +4974,13 @@ public class Coinbase extends CoinbaseApi
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object limit = limit3;
-            Object parameters = parameters3;
+
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5511,22 +5032,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(OrderBook::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-book
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-book
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -5537,11 +5042,13 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchBidsAsks(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
     {
-        final Object symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5580,19 +5087,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(Tickers::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchBidsAsks
-     * @description fetches the bid and ask price and volume for multiple markets
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-best-bid-ask
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
-    {
-        return this.fetchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -5608,15 +5102,13 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params.travel_rule_data] some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, String tag2, Map<String, Object> parameters2)
+    public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final String code3 = code2;
-        final String tag3 = tag2;
-        final Map<String, Object> parameters3 = parameters2;
+        final Object code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
-            Object tag = tag3;
-            Object parameters = parameters3;
+            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
@@ -5712,24 +5204,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(Transaction::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#withdraw
-     * @description make a withdrawal
-     * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} [tag] an optional tag for the withdrawal
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
-     * @param {object} [params.travel_rule_data] some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
-    {
-        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -5740,11 +5214,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5816,21 +5291,8 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchDepositAddress
-     * @description fetch the deposit address for a currency associated with this account
-     * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Object... optionalArgs)
-    {
-        return this.fetchDepositAddressesByNetwork(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
     {
         //
         //    {
@@ -5888,6 +5350,7 @@ public class Coinbase extends CoinbaseApi
         //     "destination_tag":""
         // }
         //
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         String networkId = this.safeString(depositAddress, "network");
@@ -5912,10 +5375,6 @@ public class Coinbase extends CoinbaseApi
             put( "tag", Coinbase.this.safeString(addressInfo, "destination_tag") );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
-    {
-        return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -5929,13 +5388,12 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.accountId] the id of the account to deposit into
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> deposit(String code2, Object amount, String id, Map<String, Object> parameters2)
+    public CompletableFuture<Object> deposit(String code2, Object amount, String id, Object... optionalArgs)
     {
-        final String code3 = code2;
-        final Map<String, Object> parameters3 = parameters2;
+        final Object code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
-            Object parameters = parameters3;
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6006,22 +5464,6 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    /**
-     * @method
-     * @name coinbase#deposit
-     * @description make a deposit
-     * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to deposit
-     * @param {string} id the payment method id to be used for the deposit, can be retrieved from v2PrivateGetPaymentMethods
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountId] the id of the account to deposit into
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<Object> deposit(String code, Object amount, String id, Object... optionalArgs)
-    {
-        return this.deposit(code, amount, id, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -6034,13 +5476,13 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.accountId] the id of the account that the funds were deposited into
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchDeposit(String id, String code2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchDeposit(String id, Object... optionalArgs)
     {
-        final String code3 = code2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object code = code3;
-            Object parameters = parameters3;
+
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6107,21 +5549,6 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchDeposit
-     * @description fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
-     * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
-     * @param {string} id deposit id
-     * @param {string} [code] unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountId] the id of the account that the funds were deposited into
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<Object> fetchDeposit(String id, Object... optionalArgs)
-    {
-        return this.fetchDeposit(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -6131,11 +5558,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
-    public CompletableFuture<Object> fetchDepositMethodIds(Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchDepositMethodIds(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6165,18 +5593,6 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchDepositMethodIds
-     * @description fetch the deposit id for a fiat currency associated with this account
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/list-payment-methods
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
-     */
-    public CompletableFuture<Object> fetchDepositMethodIds(Object... optionalArgs)
-    {
-        return this.fetchDepositMethodIds(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -6187,11 +5603,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
-    public CompletableFuture<Object> fetchDepositMethodId(String id, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchDepositMethodId(String id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6222,22 +5639,10 @@ public class Coinbase extends CoinbaseApi
         });
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchDepositMethodId
-     * @description fetch the deposit id for a fiat currency associated with this account
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/get-payment-method
-     * @param {string} id the deposit payment method id
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
-     */
-    public CompletableFuture<Object> fetchDepositMethodId(String id, Object... optionalArgs)
-    {
-        return this.fetchDepositMethodId(id, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseDepositMethodIds(Object ids, Map<String, Object> parameters)
+    public Object parseDepositMethodIds(Object ids, Object... optionalArgs)
     {
+        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
@@ -6245,10 +5650,6 @@ public class Coinbase extends CoinbaseApi
             ((List<Object>)result).add(id);
         }
         return result;
-    }
-    public Object parseDepositMethodIds(Object ids, Object... optionalArgs)
-    {
-        return this.parseDepositMethodIds(ids, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> parseDepositMethodId(Map<String, Object> depositId)
@@ -6276,11 +5677,13 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6296,24 +5699,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(Conversion::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchConvertQuote
-     * @description fetch a quote for converting from one currency to another
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/create-convert-quote
-     * @param {string} fromCode the currency that you want to sell and convert from
-     * @param {string} toCode the currency that you want to buy and convert into
-     * @param {float} [amount] how much you want to trade in units of the from currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.trade_incentive_metadata] an object to fill in user incentive data
-     * @param {string} [params.trade_incentive_metadata.user_incentive_id] the id of the incentive
-     * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
-     */
-    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
-    {
-        return this.fetchConvertQuote(fromCode, toCode, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -6327,11 +5712,13 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> createConvertTrade(String id, Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> createConvertTrade(String id, Object fromCode, Object toCode, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6347,22 +5734,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(Conversion::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#createConvertTrade
-     * @description convert from one currency to another
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/commit-convert-trade
-     * @param {string} id the id of the trade that you want to make
-     * @param {string} fromCode the currency that you want to sell and convert from
-     * @param {string} toCode the currency that you want to buy and convert into
-     * @param {float} [amount] how much you want to trade in units of the from currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
-     */
-    public CompletableFuture<Conversion> createConvertTrade(String id, Object fromCode, Object toCode, Object... optionalArgs)
-    {
-        return this.createConvertTrade(id, fromCode, toCode, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -6375,13 +5746,13 @@ public class Coinbase extends CoinbaseApi
      * @param {strng} params.toCode the unified currency code that was converted into
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertTrade(String id, String code2, Map<String, Object> parameters2)
+    public CompletableFuture<Conversion> fetchConvertTrade(String id, Object... optionalArgs)
     {
-        final String code3 = code2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object code = code3;
-            Object parameters = parameters3;
+
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6397,7 +5768,7 @@ public class Coinbase extends CoinbaseApi
             }
             parameters = this.omit(parameters, "toCode");
             final Object finalCode = code;
-            final String finalToCode = toCode;
+            final Object finalToCode = toCode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "trade_id", id );
                 put( "from_account", finalCode );
@@ -6409,24 +5780,11 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(Conversion::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchConvertTrade
-     * @description fetch the data for a conversion trade
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/get-convert-trade
-     * @param {string} id the id of the trade that you want to commit
-     * @param {string} code the unified currency code that was converted from
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {strng} params.toCode the unified currency code that was converted into
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
-     */
-    public CompletableFuture<Conversion> fetchConvertTrade(String id, Object... optionalArgs)
-    {
-        return this.fetchConvertTrade(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
+    public Object parseConversion(Map<String, Object> conversion, Object... optionalArgs)
     {
+        Object fromCurrency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object toCurrency = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         String fromCoin = this.safeString(conversion, "source_currency");
         String fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
         String to = this.safeString(conversion, "target_currency");
@@ -6447,10 +5805,6 @@ public class Coinbase extends CoinbaseApi
             put( "fee", Coinbase.this.safeNumber(feeAmountStructure, "value") );
         }};
     }
-    public Object parseConversion(Map<String, Object> conversion, Object... optionalArgs)
-    {
-        return this.parseConversion(conversion, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, null));
-    }
 
     /**
      * @method
@@ -6464,11 +5818,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -6493,24 +5848,8 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(TransferEntry::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#transfer
-     * @description transfer currency internally between portfolios of the same account
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
-     * @param {string} code unified currency code
-     * @param {float} amount amount to transfer
-     * @param {string} fromAccount the portfolio uuid to transfer funds from
-     * @param {string} toAccount the portfolio uuid to transfer funds to
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
-    {
-        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parseTransfer(Object transfer, Map<String, Object> currency)
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
         //
         //     {
@@ -6518,6 +5857,7 @@ public class Coinbase extends CoinbaseApi
         //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
         //     }
         //
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyCode = this.safeCurrencyCode((String) (null), currency);
         return new HashMap<String, Object>() {{
             put( "info", transfer );
@@ -6530,10 +5870,6 @@ public class Coinbase extends CoinbaseApi
             put( "toAccount", Coinbase.this.safeString(transfer, "target_portfolio_uuid") );
             put( "status", null );
         }};
-    }
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
-    {
-        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -6548,11 +5884,13 @@ public class Coinbase extends CoinbaseApi
      * @param {float} [params.size] the size of the position to close, optional
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<String, Object> parameters2)
+    public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object side = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6574,22 +5912,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(Order::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#closePosition
-     * @description *futures only* closes open positions for a market
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
-     * @param {string} symbol Unified CCXT market symbol
-     * @param {string} [side] not used by coinbase
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
-     * @param {float} [params.size] the size of the position to close, optional
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
-    {
-        return this.closePosition(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -6602,13 +5924,13 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        final Object symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
-            Object parameters = parameters3;
+
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6648,21 +5970,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchPositions
-     * @description fetch all open positions
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
-    {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -6676,11 +5983,12 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.portfolio] *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters2)
+    public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6694,7 +6002,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchPosition() requires a \"product_id\" in params")) ;
                 }
-                final String finalProductId = productId;
+                final Object finalProductId = productId;
                 Map<String, Object> futureRequest = new HashMap<String, Object>() {{
                     put( "product_id", finalProductId );
                 }};
@@ -6721,24 +6029,8 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(Position::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchPosition
-     * @description fetch data on a single open contract trade position
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
-     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
-     * @param {string} [params.portfolio] *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchPosition(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         // {
@@ -6829,8 +6121,9 @@ public class Coinbase extends CoinbaseApi
         //     }
         // }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "symbol", "");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        market = this.safeMarket(marketId, market);
         String rawMargin = this.safeString(position, "margin_type");
         String marginMode = null;
         if (!java.util.Objects.equals(rawMargin, null))
@@ -6846,7 +6139,7 @@ public class Coinbase extends CoinbaseApi
         Map<String, Object> vwapObject = (Map<String, Object>) this.safeDict(position, "vwap", new HashMap<String, Object>() {{}});
         Map<String, Object> summaryObject = (Map<String, Object>) this.safeDict(position, "portfolio_summary", new HashMap<String, Object>() {{}});
         final Object finalMarket = market;
-        final String finalMarginMode = marginMode;
+        final Object finalMarginMode = marginMode;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Coinbase.this.safeString(position, "product_id") );
@@ -6878,10 +6171,6 @@ public class Coinbase extends CoinbaseApi
             put( "takeProfitPrice", null );
         }}));
     }
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -6892,11 +6181,12 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.type] 'spot' or 'swap'
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters2)
+    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6957,19 +6247,6 @@ public class Coinbase extends CoinbaseApi
         }).thenApply(TradingFees::new);
 
     }
-    /**
-     * @method
-     * @name coinbase#fetchTradingFees
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/fees/get-transaction-summary
-     * @description fetch the trading fees for multiple markets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap'
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
-     */
-    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
-    {
-        return this.fetchTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -6980,11 +6257,12 @@ public class Coinbase extends CoinbaseApi
      * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
      * @returns {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
      */
-    public CompletableFuture<Object> fetchPortfolioDetails(Object portfolioUuid, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchPortfolioDetails(Object portfolioUuid, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6997,19 +6275,6 @@ public class Coinbase extends CoinbaseApi
             return result;
         });
 
-    }
-    /**
-     * @method
-     * @name coinbase#fetchPortfolioDetails
-     * @description Fetch details for a specific portfolio by UUID
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/get-portfolio-breakdown
-     * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
-     * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
-     * @returns {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
-     */
-    public CompletableFuture<Object> fetchPortfolioDetails(Object portfolioUuid, Object... optionalArgs)
-    {
-        return this.fetchPortfolioDetails(portfolioUuid, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePortfolioDetails(Map<String, Object> portfolioData)
@@ -7025,16 +6290,16 @@ public class Coinbase extends CoinbaseApi
             Object position = (spotPositions == null || i < 0 || i >= spotPositions.size() ? null : spotPositions.get(i));
             String currencyCode = this.safeString(position, "asset", "Unknown");
             String availableBalanceStr = this.safeString(position, "available_to_trade_fiat", "0");
-            Double availableBalance = this.parseNumber(availableBalanceStr);
+            Object availableBalance = this.parseNumber(availableBalanceStr);
             String totalBalanceFiatStr = this.safeString(position, "total_balance_fiat", "0");
-            Double totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
-            Object holdAmount = (totalBalanceFiat - availableBalance);
+            Object totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
+            Object holdAmount = Helpers.subtract(totalBalanceFiat, availableBalance);
             Map<String, Object> costBasisDict = (Map<String, Object>) this.safeDict(position, "cost_basis", new HashMap<String, Object>() {{}});
             String costBasisStr = this.safeString(costBasisDict, "value", "0");
             Map<String, Object> averageEntryPriceDict = (Map<String, Object>) this.safeDict(position, "average_entry_price", new HashMap<String, Object>() {{}});
             String averageEntryPriceStr = this.safeString(averageEntryPriceDict, "value", "0");
             final Object finalHoldAmount = holdAmount;
-            final Double finalTotalBalanceFiat = totalBalanceFiat;
+            final Object finalTotalBalanceFiat = totalBalanceFiat;
             Map<String, Object> positionData = new HashMap<String, Object>() {{
                 put( "currency", currencyCode );
                 put( "available_balance", availableBalance );
@@ -7064,10 +6329,13 @@ public class Coinbase extends CoinbaseApi
         return parsedPositions;
     }
 
-    public String createAuthToken(Object seconds, String method, String url, Object useEddsa)
+    public String createAuthToken(Object seconds, Object... optionalArgs)
     {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
+        Object method = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object url = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        Object useEddsa = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : false;
         Object uri = null;
         if (!java.util.Objects.equals(url, null))
         {
@@ -7121,25 +6389,26 @@ public class Coinbase extends CoinbaseApi
             }});
         }
     }
-    public String createAuthToken(Object seconds, Object... optionalArgs)
-    {
-        return this.createAuthToken(seconds, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : false);
-    }
 
     public Object nonce()
     {
         return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object... optionalArgs)
     {
+        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList());
+        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object version = Helpers.GetValue(api, 0);
         Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 1), "private");
         Boolean isV3 = java.util.Objects.equals(version, "v3");
         String pathPart = ((Boolean.TRUE.equals(isV3))) ? "api/v3" : "v2";
         String fullPath = ((("/" + pathPart) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        String savedPath = fullPath;
+        Object savedPath = fullPath;
         if (java.util.Objects.equals(method, "GET"))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
@@ -7167,7 +6436,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                     {
-                        body = (String) (this.json(query));
+                        body = this.json(query);
                         payload = body;
                     }
                 } else
@@ -7218,10 +6487,10 @@ public class Coinbase extends CoinbaseApi
                 {
                     Object nonce = this.nonce();
                     Long timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
-                    String timestampString = String.valueOf(timestamp);
-                    String auth = (((timestampString + method) + savedPath) + payload);
-                    String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                    final String finalTimestampString = timestampString;
+                    Object timestampString = String.valueOf(timestamp);
+                    Object auth = Helpers.add(Helpers.add(Helpers.add(timestampString, method), savedPath), payload);
+                    Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                    final Object finalTimestampString = timestampString;
                     headers = new HashMap<String, Object>() {{
                         put( "CB-ACCESS-KEY", Coinbase.this.apiKey );
                         put( "CB-ACCESS-SIGN", signature );
@@ -7232,7 +6501,7 @@ public class Coinbase extends CoinbaseApi
             }
             if (!java.util.Objects.equals(authorizationString, null))
             {
-                final String finalAuthorizationString = authorizationString;
+                final Object finalAuthorizationString = authorizationString;
                 headers = new HashMap<String, Object>() {{
                     put( "Authorization", finalAuthorizationString );
                     put( "Content-Type", "application/json" );
@@ -7241,7 +6510,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                     {
-                        body = (String) (this.json(query));
+                        body = this.json(query);
                     }
                 }
             }
@@ -7255,10 +6524,6 @@ public class Coinbase extends CoinbaseApi
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList()), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -7354,11 +6619,13 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.accountId] account ID to fetch deposit addresses for
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
      */
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7369,19 +6636,5 @@ public class Coinbase extends CoinbaseApi
             return this.parseDepositAddresses(data, codes, false, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name coinbase#fetchDepositAddresses
-     * @description fetch deposit addresses for multiple currencies (when available)
-     * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
-     * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountId] account ID to fetch deposit addresses for
-     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
-     */
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object... optionalArgs)
-    {
-        return this.fetchDepositAddresses(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 }

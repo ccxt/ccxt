@@ -189,7 +189,7 @@ func (this *Bingx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes15312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes15312)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market any = this.Market(symbol)
 	var marketType any = nil
 	var subType any = nil
 	var url any = nil
@@ -204,8 +204,8 @@ func (this *Bingx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	} else {
 		url = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), marketType)
 	}
-	var dataType any = ccxt.Add(market["id"], "@ticker")
-	var messageHash any = this.GetMessageHash("ticker", market["symbol"])
+	var dataType any = ccxt.Add(ccxt.GetValue(market, "id"), "@ticker")
+	var messageHash any = this.GetMessageHash("ticker", ccxt.GetValue(market, "symbol"))
 	var uuid string = this.Uuid()
 	var request map[string]any = map[string]any{
 		"id":       uuid,
@@ -251,9 +251,9 @@ func (this *Bingx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		retRes19612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes19612)
 	}
-	var market map[string]any = this.Market(symbol)
-	var dataType any = ccxt.Add(market["id"], "@ticker")
-	var subMessageHash any = this.GetMessageHash("ticker", market["symbol"])
+	var market any = this.Market(symbol)
+	var dataType any = ccxt.Add(ccxt.GetValue(market, "id"), "@ticker")
+	var subMessageHash any = this.GetMessageHash("ticker", ccxt.GetValue(market, "symbol"))
 	var messageHash any = ccxt.Add("unsubscribe::", subMessageHash)
 	var topic string = "ticker"
 	var methodName string = "unWatchTicker"
@@ -473,8 +473,8 @@ func (this *Bingx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes37812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes37812)
 	}
-	var market map[string]any = this.Market(symbol)
-	symbol = market["symbol"]
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
 	var marketType any = nil
 	var subType any = nil
 	var url any = nil
@@ -489,7 +489,7 @@ func (this *Bingx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	} else {
 		url = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), marketType)
 	}
-	var rawHash any = ccxt.Add(market["id"], "@trade")
+	var rawHash any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
 	var messageHash any = ccxt.Add("trade::", symbol)
 	var uuid string = this.Uuid()
 	var request map[string]any = map[string]any{
@@ -549,9 +549,9 @@ func (this *Bingx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		retRes43312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes43312)
 	}
-	var market map[string]any = this.Market(symbol)
-	var dataType any = ccxt.Add(market["id"], "@trade")
-	var subMessageHash any = this.GetMessageHash("trade", market["symbol"])
+	var market any = this.Market(symbol)
+	var dataType any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
+	var subMessageHash any = this.GetMessageHash("trade", ccxt.GetValue(market, "symbol"))
 	var messageHash any = ccxt.Add("unsubscribe::", subMessageHash)
 	var topic string = "trades"
 	var methodName string = "unWatchTrades"
@@ -703,7 +703,7 @@ func (this *Bingx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		retRes56612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes56612)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market any = this.Market(symbol)
 	var marketType any = nil
 	var subType any = nil
 	var url any = nil
@@ -718,10 +718,10 @@ func (this *Bingx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	} else {
 		url = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), marketType)
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var depth *int64 = this.SafeInteger(options, "depth", 100)
-	var subscriptionHash any = ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@"), "depth"), this.NumberToString(depth))
-	var messageHash any = this.GetMessageHash("orderbook", market["symbol"])
+	var subscriptionHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), "depth"), this.NumberToString(depth))
+	var messageHash any = this.GetMessageHash("orderbook", ccxt.GetValue(market, "symbol"))
 	var uuid string = this.Uuid()
 	var request map[string]any = map[string]any{
 		"id":       uuid,
@@ -731,7 +731,7 @@ func (this *Bingx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		request["reqType"] = "sub"
 	}
 	var subscriptionArgs map[string]any = map[string]any{}
-	if market["inverse"] == true {
+	if ccxt.GetValue(market, "inverse") == true {
 		subscriptionArgs = map[string]any{
 			"id":          uuid,
 			"unsubscribe": false,
@@ -780,10 +780,10 @@ func (this *Bingx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes62412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes62412)
 	}
-	var market map[string]any = this.Market(symbol)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var market any = this.Market(symbol)
+	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var depth *int64 = this.SafeInteger(options, "depth", 100)
-	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@"), "depth"), this.NumberToString(depth))
+	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), "depth"), this.NumberToString(depth))
 	var messageHash any = ccxt.Add("unsubscribe::", subMessageHash)
 	var topic string = "orderbook"
 	var methodName string = "unWatchOrderBook"
@@ -892,7 +892,7 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	}
 	orderbook = ccxt.GetValue(this.Orderbooks, symbol)
-	var snapshot map[string]any = nil
+	var snapshot any = nil
 	var timestamp *int64 = this.SafeInteger2(message, "timestamp", "ts")
 	timestamp = this.SafeInteger2(data, "timestamp", "ts", timestamp)
 	if ccxt.GetValue(market, "inverse") == true {
@@ -1100,7 +1100,7 @@ func (this *Bingx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes91212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes91212)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market any = this.Market(symbol)
 	var marketType any = nil
 	var subType any = nil
 	var url any = nil
@@ -1118,11 +1118,11 @@ func (this *Bingx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	if ccxt.IsEqual(url, nil) {
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" watchOHLCV is not supported for ", marketType), " markets.")))
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
+	var options any = this.SafeDict(this.Options, marketType, map[string]any{})
 	var timeframes map[string]any = ccxt.SafeMapTyped(options, "timeframes")
 	var rawTimeframe *string = this.SafeString(timeframes, timeframe, timeframe)
-	var messageHash any = this.GetMessageHash("ohlcv", market["symbol"], timeframe)
-	var subscriptionHash any = ccxt.Add(ccxt.Add(market["id"], "@kline_"), rawTimeframe)
+	var messageHash any = this.GetMessageHash("ohlcv", ccxt.GetValue(market, "symbol"), timeframe)
+	var subscriptionHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@kline_"), rawTimeframe)
 	var uuid string = this.Uuid()
 	var request map[string]any = map[string]any{
 		"id":       uuid,
@@ -1178,15 +1178,15 @@ func (this *Bingx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes96912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes96912)
 	}
-	var market map[string]any = this.Market(symbol)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, market["type"])
+	var market any = this.Market(symbol)
+	var options any = this.SafeDict(this.Options, ccxt.GetValue(market, "type"), map[string]any{})
 	var timeframes map[string]any = ccxt.SafeMapTyped(options, "timeframes")
 	var rawTimeframe *string = this.SafeString(timeframes, timeframe, timeframe)
-	var subMessageHash any = ccxt.Add(ccxt.Add(market["id"], "@kline_"), rawTimeframe)
+	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@kline_"), rawTimeframe)
 	var messageHash any = ccxt.Add("unsubscribe::", subMessageHash)
 	var topic string = "ohlcv"
 	var methodName string = "unWatchOHLCV"
-	var symbolsAndTimeframes []any = []any{[]any{market["symbol"], timeframe}}
+	var symbolsAndTimeframes []any = []any{[]any{ccxt.GetValue(market, "symbol"), timeframe}}
 	ccxt.AddElementToObject(params, "symbolsAndTimeframes", symbolsAndTimeframes)
 
 	retRes98115 := (<-this.UnWatchAsync(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params))
@@ -1710,7 +1710,7 @@ func (this *Bingx) ParseWsPosition(position any, optionalArgs ...any) any {
 		}
 	}
 	var marginMode *string = this.SafeString(position, "mt")
-	var collateral *float64 = func() *float64 {
+	var collateral any = func() any {
 		if marginMode != nil && *marginMode == "isolated" {
 			return this.SafeNumber(position, "iw")
 		}
@@ -1772,15 +1772,10 @@ func (this *Bingx) HandlePositions(client any, message any) {
 	if !(func() bool { _, ok := data["P"]; return ok }()) {
 		return
 	}
-	var rawPositions []any = ccxt.SafeListTyped(data, "P")
+	var rawPositions any = this.SafeList(data, "P", []any{})
 	var newPositions []any = []any{}
-	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = func() any {
-			if i >= 0 && i < len(rawPositions) {
-				return ccxt.DerefScalar(rawPositions[i])
-			}
-			return nil
-		}()
+	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
+		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var position any = this.ParseWsPosition(rawPosition)
 		var symbol *string = this.SafeString(position, "symbol")
 		if symbol == nil {
@@ -2305,10 +2300,10 @@ func (this *Bingx) HandleBalance(client any, message any) {
 		var balance any = ccxt.GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["info"] = balance
-		account["used"] = this.SafeString(balance, "lk")
-		account["free"] = this.SafeString(balance, "wb")
+		var account any = this.Account()
+		ccxt.AddElementToObject(account, "info", balance)
+		ccxt.AddElementToObject(account, "used", this.SafeString(balance, "lk"))
+		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "wb"))
 		if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 		}
@@ -2368,7 +2363,7 @@ func (this *Bingx) HandleMessage(client any, message any) {
 		}
 		return strings.Index(*dataType, "executionReport")
 	}() >= 0 {
-		var data map[string]any = ccxt.SafeMapTyped(message, "data")
+		var data any = this.SafeDict(message, "data", map[string]any{})
 		var typeVar *string = this.SafeString(data, "x")
 		if typeVar != nil && *typeVar == "TRADE" {
 			this.HandleMyTrades(client, message)
@@ -2383,7 +2378,7 @@ func (this *Bingx) HandleMessage(client any, message any) {
 	}
 	if e != nil && *e == "ORDER_TRADE_UPDATE" {
 		this.HandleOrder(client, message)
-		var data map[string]any = ccxt.SafeMapTyped(message, "o")
+		var data any = this.SafeDict(message, "o", map[string]any{})
 		var typeVar *string = this.SafeString(data, "x")
 		var status *string = this.SafeString(data, "X")
 		if (typeVar != nil && *typeVar == "TRADE") && (status != nil && *status == "FILLED") {
@@ -2418,21 +2413,11 @@ func (this *Bingx) HandleSubscriptionStatus(client any, message any) any {
 	return message
 }
 func (this *Bingx) HandleUnSubscription(client any, subscription any) {
-	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
-	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
-	for i := 0; i < len(messageHashes); i++ {
-		var unsubHash any = func() any {
-			if i >= 0 && i < len(messageHashes) {
-				return ccxt.DerefScalar(messageHashes[i])
-			}
-			return nil
-		}()
-		var subHash any = func() any {
-			if i >= 0 && i < len(subMessageHashes) {
-				return ccxt.DerefScalar(subMessageHashes[i])
-			}
-			return nil
-		}()
+	var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
+	var subMessageHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
+	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
+		var unsubHash any = ccxt.GetValue(messageHashes, i)
+		var subHash any = ccxt.GetValue(subMessageHashes, i)
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)

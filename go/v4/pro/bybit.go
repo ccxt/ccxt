@@ -489,7 +489,7 @@ func (this *Bybit) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	url := (<-this.GetUrlByMarketTypeAsync(symbol, false, "watchTicker", params))
 	ccxt.PanicOnError(url)
 	params = this.CleanParams(params)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
+	var options any = this.SafeDict(this.Options, "watchTicker", map[string]any{})
 	var topic any = ccxt.DerefScalar(this.SafeString(options, "name", "tickers"))
 	if (ccxt.GetValue(market, "spot") != true) && !ccxt.IsEqual(topic, "tickers") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() only supports name tickers for contract markets"))
@@ -536,7 +536,7 @@ func (this *Bybit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	url := (<-this.GetUrlByMarketTypeAsync(ccxt.GetValue(symbols, 0), false, "watchTickers", params))
 	ccxt.PanicOnError(url)
 	params = this.CleanParams(params)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
+	var options any = this.SafeDict(this.Options, "watchTickers", map[string]any{})
 	var topic *string = this.SafeString(options, "name", "tickers")
 	var marketIds any = this.MarketIds(symbols)
 	var topics []any = []any{}
@@ -588,7 +588,7 @@ func (this *Bybit) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes45312)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
+	var options any = this.SafeDict(this.Options, "watchTickers", map[string]any{})
 	var topic *string = this.SafeString(options, "name", "tickers")
 	var messageHashes []any = []any{}
 	var subMessageHashes []any = []any{}
@@ -1376,7 +1376,7 @@ func (this *Bybit) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	if isSnapshot {
-		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
+		var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
 		var asks any = this.SafeList(data, "a", []any{})
@@ -2900,14 +2900,9 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 	var account any = nil
 	if topic != nil && *topic == "outboundAccountInfo" {
 		account = "spot"
-		var data []any = ccxt.SafeListTyped(message, "data")
-		for i := 0; i < len(data); i++ {
-			var B any = this.SafeList(func() any {
-				if i >= 0 && i < len(data) {
-					return ccxt.DerefScalar(data[i])
-				}
-				return nil
-			}(), "B", []any{})
+		var data any = this.SafeList(message, "data", []any{})
+		for i := 0; i < ccxt.GetArrayLength(data); i++ {
+			var B any = this.SafeList(ccxt.GetValue(data, i), "B", []any{})
 			rawBalances = this.ArrayConcat(rawBalances, B)
 		}
 		info = rawBalances
@@ -2978,25 +2973,25 @@ func (this *Bybit) ParseWsBalance(balance any, optionalArgs ...any) {
 	//
 	accountType := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = accountType
-	var account map[string]any = this.Account()
+	var account any = this.Account()
 	var currencyId *string = this.SafeString2(balance, "a", "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	account["free"] = this.SafeStringN(balance, []any{"availableToWithdraw", "f", "free"})
+	ccxt.AddElementToObject(account, "free", this.SafeStringN(balance, []any{"availableToWithdraw", "f", "free"}))
 	var used *string = this.SafeString2(balance, "l", "locked")
 	if used != nil {
-		account["used"] = used
+		ccxt.AddElementToObject(account, "used", used)
 	} else {
 		// the unified account wallet stream has no locked field, the margin
 		// lives in the per coin initial margin fields, so the used amount
 		// is derived from those, see https://github.com/ccxt/ccxt/issues/24365
 		var totalPositionIm *string = this.SafeString(balance, "totalPositionIM", "0")
 		var totalOrderIm *string = this.SafeString(balance, "totalOrderIM", "0")
-		account["used"] = ccxt.Precise.StringAdd(totalPositionIm, totalOrderIm)
+		ccxt.AddElementToObject(account, "used", ccxt.Precise.StringAdd(totalPositionIm, totalOrderIm))
 	}
 	// on the unified rows the free amount and the margin are both measured
 	// against the equity, which includes the unrealized pnl, so the equity
 	// is the consistent total, the spot rows fall back to the wallet balance
-	account["total"] = this.SafeString2(balance, "equity", "walletBalance")
+	ccxt.AddElementToObject(account, "total", this.SafeString2(balance, "equity", "walletBalance"))
 	if accountType != nil {
 		if ccxt.IsEqual(this.SafeDict(this.Balance, accountType), nil) {
 			ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})

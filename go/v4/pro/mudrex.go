@@ -105,7 +105,7 @@ func (this *Mudrex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		}
 		return ""
 	}()
-	var assetId string = ccxt.ToLower(baseIdString) + ccxt.ToLower(quoteIdString)
+	var assetId any = ccxt.ToLower(baseIdString) + ccxt.ToLower(quoteIdString)
 	var subscribe map[string]any = map[string]any{
 		"id":     this.RequestId(),
 		"method": "SUBSCRIBE",

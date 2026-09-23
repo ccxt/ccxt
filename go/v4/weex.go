@@ -1262,12 +1262,12 @@ func (this *Weex) ParseMarket(market any) any {
 		amountPrecision = this.ParseNumber(amountPrecisionString)
 		pricePrecision = this.ParseNumber(pricePrecisionString)
 	}
-	var fees map[string]any = SafeMapTyped(this.Fees, func() string {
+	var fees any = this.SafeDict(this.Fees, func() string {
 		if isSpot {
 			return "spot"
 		}
 		return "contract"
-	}())
+	}(), map[string]any{})
 	if id == nil {
 		panic(ExchangeError(this.Id + " method() missing id"))
 	}
@@ -1299,7 +1299,7 @@ func (this *Weex) ParseMarket(market any) any {
 		"inverse":        isInverse,
 		"taker":          this.SafeNumber(market, "takerFeeRate"),
 		"maker":          this.SafeNumber(market, "makerFeeRate"),
-		"feeSide":        fees["feeSide"],
+		"feeSide":        GetValue(fees, "feeSide"),
 		"contractSize":   this.SafeNumber(market, "contractVal"),
 		"expiry":         nil,
 		"expiryDatetime": nil,
@@ -1328,9 +1328,9 @@ func (this *Weex) ParseMarket(market any) any {
 			},
 		},
 		"created":    nil,
-		"percentage": fees["percentage"],
-		"tierBased":  fees["tierBased"],
-		"tiers":      fees["tiers"],
+		"percentage": GetValue(fees, "percentage"),
+		"tierBased":  GetValue(fees, "tierBased"),
+		"tiers":      GetValue(fees, "tiers"),
 		"info":       market,
 	})
 }
@@ -1835,8 +1835,8 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//         "lastUpdateId": 14138610208
 	//     }
 	//
-	var orderbook map[string]any = this.ParseOrderBook(response, symbol)
-	orderbook["nonce"] = this.SafeInteger(response, "lastUpdateId")
+	var orderbook any = this.ParseOrderBook(response, symbol)
+	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
 
 	ch <- orderbook
 	return nil
@@ -2606,10 +2606,10 @@ func (this *Weex) ParseBalance(response any) any {
 			currencyId = "USDT" // demo trading balances are denominated in the demo asset SUSDT
 		}
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString2(entry, "availableBalance", "free")
-		account["used"] = this.SafeString2(entry, "frozen", "locked")
-		account["total"] = this.SafeString(entry, "balance")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString2(entry, "availableBalance", "free"))
+		AddElementToObject(account, "used", this.SafeString2(entry, "frozen", "locked"))
+		AddElementToObject(account, "total", this.SafeString(entry, "balance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

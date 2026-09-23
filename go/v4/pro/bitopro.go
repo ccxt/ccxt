@@ -103,14 +103,14 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		retRes7312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes7312)
 	}
-	var market map[string]any = this.Market(symbol)
-	symbol = market["symbol"]
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("ORDER_BOOK"+":", symbol)
 	var endPart any = nil
 	if limit == nil {
-		endPart = market["id"]
+		endPart = ccxt.GetValue(market, "id")
 	} else {
-		endPart = ccxt.Add(ccxt.Add(market["id"], ":"), this.NumberToString(limit))
+		endPart = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), ":"), this.NumberToString(limit))
 	}
 
 	orderbook := (<-this.WatchPublicAsync("order-books", messageHash, endPart))
@@ -151,7 +151,7 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 		orderbook = this.OrderBook(map[string]any{})
 	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount")
+	var snapshot any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -571,12 +571,12 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	}
 	for i := 0; i < len(currencies); i++ {
 		var currency *string = this.SafeString(currencies, i)
-		var balance map[string]any = ccxt.SafeMapTyped(data, currency)
+		var balance any = this.SafeDict(data, currency, map[string]any{})
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(balance, "available")
-		account["total"] = this.SafeString(balance, "amount")
+		var account any = this.Account()
+		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "available"))
+		ccxt.AddElementToObject(account, "total", this.SafeString(balance, "amount"))
 		if code != nil {
 			ccxt.AddElementToObject(result, code, account)
 		}

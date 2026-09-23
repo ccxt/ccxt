@@ -419,12 +419,12 @@ func (this *Zaif) ParseBalance(response any) any {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var balance *string = this.SafeString(funds, currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = balance
-		account["total"] = balance
+		var account any = this.Account()
+		AddElementToObject(account, "free", balance)
+		AddElementToObject(account, "total", balance)
 		if !IsEqual(deposit, nil) {
 			if InOp(deposit, currencyId) {
-				account["total"] = this.SafeString(deposit, currencyId)
+				AddElementToObject(account, "total", this.SafeString(deposit, currencyId))
 			}
 		}
 		if code != nil {

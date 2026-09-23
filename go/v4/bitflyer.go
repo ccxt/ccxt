@@ -556,9 +556,9 @@ func (this *Bitflyer) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency_code")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString(balance, "amount")
-		account["free"] = this.SafeString(balance, "available")
+		var account any = this.Account()
+		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
+		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1569,7 +1569,7 @@ func (this *Bitflyer) ParseTransaction(transaction any, optionalArgs ...any) any
 	var txId *string = this.SafeString(transaction, "tx_hash")
 	var rawStatus *string = this.SafeString(transaction, "status")
 	var typeVar string
-	var status *string = nil
+	var status any = nil
 	var fee any = nil
 	if InOp(transaction, "fee") {
 		typeVar = "withdrawal"

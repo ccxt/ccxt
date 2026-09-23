@@ -306,8 +306,8 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	var action *string = this.SafeString(message, "action")
 	if action != nil && *action == "snapshot" {
-		var orderBookSnapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp)
-		orderBookSnapshot["nonce"] = this.SafeInteger(data, "seqId")
+		var orderBookSnapshot any = this.ParseOrderBook(data, symbol, timestamp)
+		ccxt.AddElementToObject(orderBookSnapshot, "nonce", this.SafeInteger(data, "seqId"))
 		orderbook.(ccxt.OrderBookInterface).Reset(orderBookSnapshot)
 	} else {
 		var asks any = this.SafeList(data, "asks", []any{})
@@ -406,14 +406,9 @@ func (this *Blofin) HandleTicker(client any, message map[string]any) {
 	this.HandleBidAsk(client, message)
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
-	var data []any = ccxt.SafeListTyped(message, "data")
-	for i := 0; i < len(data); i++ {
-		var ticker any = this.ParseWsTicker(func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}())
+	var data any = this.SafeList(message, "data")
+	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+		var ticker any = this.ParseWsTicker(ccxt.GetValue(data, i))
 		var symbol any = ccxt.GetValue(ticker, "symbol")
 		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -487,14 +482,9 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Blofin) HandleBidAsk(client any, message map[string]any) {
-	var data []any = ccxt.SafeListTyped(message, "data")
-	for i := 0; i < len(data); i++ {
-		var ticker any = this.ParseWsBidAsk(func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}())
+	var data any = this.SafeList(message, "data")
+	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+		var ticker any = this.ParseWsBidAsk(ccxt.GetValue(data, i))
 		var symbol any = ccxt.GetValue(ticker, "symbol")
 		var messageHash any = ccxt.Add("bidask:", symbol)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
@@ -618,7 +608,7 @@ func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data any = this.SafeList(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -631,13 +621,8 @@ func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe, stored)
 	}
-	for i := 0; i < len(data); i++ {
-		var candle any = func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}()
+	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+		var candle any = ccxt.GetValue(data, i)
 		var parsed any = this.ParseOHLCV(candle, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
@@ -705,7 +690,7 @@ func (this *Blofin) HandleBalance(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Balance, marketType, map[string]any{})
 	}
 	ccxt.AddElementToObject(this.Balance, marketType, this.ParseWsBalance(message))
-	var messageHash string = marketType + ":balance"
+	var messageHash any = marketType + ":balance"
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, marketType), messageHash)
 }
 func (this *Blofin) ParseWsBalance(message map[string]any) any {
@@ -827,14 +812,9 @@ func (this *Blofin) HandleOrders(client any, message map[string]any) {
 	var orders any = this.Orders
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
-	var data []any = ccxt.SafeListTyped(message, "data")
-	for i := 0; i < len(data); i++ {
-		var order any = this.ParseWsOrder(func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}())
+	var data any = this.SafeList(message, "data")
+	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+		var order any = this.ParseWsOrder(ccxt.GetValue(data, i))
 		var symbol any = ccxt.GetValue(order, "symbol")
 		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
 		orders.(ccxt.Appender).Append(order)
@@ -910,15 +890,10 @@ func (this *Blofin) HandlePositions(client any, message map[string]any) {
 	var cache any = this.Positions
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data any = this.SafeList(message, "data")
 	var newPositions []any = []any{}
-	for i := 0; i < len(data); i++ {
-		var position any = this.ParseWsPosition(func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}())
+	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+		var position any = this.ParseWsPosition(ccxt.GetValue(data, i))
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), ccxt.GetValue(position, "symbol"))
@@ -1048,7 +1023,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 	if symbolsLength > 0 {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var current any = ccxt.GetValue(symbols, i)
-			var market map[string]any = nil
+			var market any = nil
 			var channel any = channelName
 			if isOHLCV {
 				market = this.Market(current)
@@ -1163,7 +1138,7 @@ func (this *Blofin) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var milliseconds int64 = this.Milliseconds()
 	var messageHash string = "authenticate_hash"
 	var timestamp string = ccxt.ToString(milliseconds)
-	var nonce string = "n_" + timestamp
+	var nonce any = "n_" + timestamp
 	var auth any = ccxt.Add("/users/self/verify"+"GET"+timestamp+"", nonce)
 	var signature string = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256))
 	var request map[string]any = map[string]any{

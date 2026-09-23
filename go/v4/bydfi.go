@@ -761,8 +761,8 @@ func (this *Bydfi) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var orderBook map[string]any = this.ParseOrderBook(data, market["symbol"], nil, "bids", "asks", "price", "amount")
-	orderBook["nonce"] = this.SafeInteger(data, "lastUpdateId")
+	var orderBook any = this.ParseOrderBook(data, market["symbol"], nil, "bids", "asks", "price", "amount")
+	AddElementToObject(orderBook, "nonce", this.SafeInteger(data, "lastUpdateId"))
 
 	ch <- orderBook
 	return nil
@@ -1002,7 +1002,7 @@ func (this *Bydfi) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var orderId *string = this.SafeString(trade, "orderId")
-	var side *string = nil // fetchMyTrades always returns side BUY
+	var side any = nil // fetchMyTrades always returns side BUY
 	if orderId == nil {
 		// from fetchTrades
 		side = this.SafeStringLower(trade, "side")
@@ -3276,7 +3276,7 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if wallet == nil {
-		var options map[string]any = SafeMapTyped(this.Options, "accountsByType")
+		var options any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 		var parsedAccountType *string = this.SafeStringUpper(options, typeVar, typeVar)
 		request["walletType"] = parsedAccountType
 		//
@@ -3347,9 +3347,9 @@ func (this *Bydfi) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var symbol *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(symbol)
-		var account map[string]any = this.Account()
-		account["total"] = this.SafeString2(balance, "total", "balance")
-		account["free"] = this.SafeString2(balance, "available", "availableBalance")
+		var account any = this.Account()
+		AddElementToObject(account, "total", this.SafeString2(balance, "total", "balance"))
+		AddElementToObject(account, "free", this.SafeString2(balance, "available", "availableBalance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

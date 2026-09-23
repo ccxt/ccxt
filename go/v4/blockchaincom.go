@@ -703,7 +703,7 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var exchangeOrderId *string = this.SafeString(order, "exOrdId")
-	var price *string = func() *string {
+	var price any = func() any {
 		if typeVar == nil || *typeVar != "market" {
 			return this.SafeString(order, "price")
 		}
@@ -1226,13 +1226,13 @@ func (this *Blockchaincom) fetchDepositAddressBody(ch chan any, code any, option
 	response := (<-this.PrivatePostDepositsCurrency(this.Extend(request, params)))
 	PanicOnError(response)
 	var rawAddress *string = this.SafeString(response, "address")
-	var tag *string = nil
-	var address *string = nil
+	var tag any = nil
+	var address any = nil
 	if rawAddress != nil {
 		var addressParts []string = Split(rawAddress, ";")
 		// if a tag or memo is used it is separated by a colon in the 'address' value
-		tag = this.SafeString(addressParts, 0)
-		address = this.SafeString(addressParts, 1)
+		tag = DerefScalar(this.SafeString(addressParts, 0))
+		address = DerefScalar(this.SafeString(addressParts, 1))
 	}
 
 	ch <- map[string]any{
@@ -1283,7 +1283,7 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var typeVar any = nil
-	var id *string = nil
+	var id any = nil
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var currencyId *string = this.SafeString(transaction, "currency")
@@ -1291,12 +1291,12 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 	var state *string = this.SafeString(transaction, "state")
 	if InOp(transaction, "depositId") {
 		typeVar = "deposit"
-		id = this.SafeString(transaction, "depositId")
+		id = DerefScalar(this.SafeString(transaction, "depositId"))
 	} else if InOp(transaction, "withdrawalId") {
 		typeVar = "withdrawal"
-		id = this.SafeString(transaction, "withdrawalId")
+		id = DerefScalar(this.SafeString(transaction, "withdrawalId"))
 	}
-	var feeCost *float64 = func() *float64 {
+	var feeCost any = func() any {
 		if IsEqual(typeVar, "withdrawal") {
 			return this.SafeNumber(transaction, "fee")
 		}
@@ -1620,9 +1620,9 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 		var entry any = GetValue(balances, i)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account map[string]any = this.Account()
-		account["free"] = this.SafeString(entry, "available")
-		account["total"] = this.SafeString(entry, "balance")
+		var account any = this.Account()
+		AddElementToObject(account, "free", this.SafeString(entry, "available"))
+		AddElementToObject(account, "total", this.SafeString(entry, "balance"))
 		AddElementToObject(result, code, account)
 	}
 

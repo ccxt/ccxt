@@ -353,12 +353,12 @@ func (this *Bit2c) ParseBalance(response any) any {
 	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(codes); i++ {
 		var code string = GetValue(codes, i).(string)
-		var account map[string]any = this.Account()
+		var account any = this.Account()
 		var currency map[string]any = MapTyped(this.Currency(code))
 		var uppercase string = ToUpper(currency["id"])
 		if InOp(response, uppercase) {
-			account["free"] = this.SafeString(response, "AVAILABLE_"+uppercase)
-			account["total"] = this.SafeString(response, uppercase)
+			AddElementToObject(account, "free", this.SafeString(response, "AVAILABLE_"+uppercase))
+			AddElementToObject(account, "total", this.SafeString(response, uppercase))
 		}
 		result[code] = account
 	}
@@ -1000,14 +1000,14 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) any {
 		side = "sell"
 	}
 	var price *string = this.SafeString(orderUnified, "price")
-	var amount *string = nil
-	var remaining *string = nil
+	var amount any = nil
+	var remaining any = nil
 	if isNewOrder {
-		amount = this.SafeString(orderUnified, "amount") // NOTE:'initialAmount' is currently not set on new order
-		remaining = this.SafeString(orderUnified, "amount")
+		amount = DerefScalar(this.SafeString(orderUnified, "amount")) // NOTE:'initialAmount' is currently not set on new order
+		remaining = DerefScalar(this.SafeString(orderUnified, "amount"))
 	} else {
-		amount = this.SafeString(orderUnified, "initialAmount")
-		remaining = this.SafeString(orderUnified, "amount")
+		amount = DerefScalar(this.SafeString(orderUnified, "initialAmount"))
+		remaining = DerefScalar(this.SafeString(orderUnified, "amount"))
 	}
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
@@ -1173,9 +1173,9 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = nil
-	var id *string = nil
+	var id any = nil
 	var price any = nil
-	var amount *string = nil
+	var amount any = nil
 	var orderId any = nil
 	var fee any = nil
 	var side any = nil
@@ -1186,7 +1186,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = this.SafeTimestamp(trade, "ticks")
 		price = DerefScalar(this.SafeString(trade, "price"))
 		price = this.RemoveCommaFromValue(price)
-		amount = this.SafeString(trade, "firstAmount")
+		amount = DerefScalar(this.SafeString(trade, "firstAmount"))
 		var reference_parts []string = Split(reference, "|") // reference contains 'pair|orderId_by_taker|orderId_by_maker'
 		var marketId *string = this.SafeString(trade, "pair")
 		market = this.SafeMarket(marketId, market)
@@ -1219,9 +1219,9 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	} else {
 		timestamp = this.SafeTimestamp(trade, "date")
-		id = this.SafeString(trade, "tid")
+		id = DerefScalar(this.SafeString(trade, "tid"))
 		price = DerefScalar(this.SafeString(trade, "price"))
-		amount = this.SafeString(trade, "amount")
+		amount = DerefScalar(this.SafeString(trade, "amount"))
 		side = this.SafeValue(trade, "isBid")
 		if side != nil {
 			if (side != nil) && (!IsEqual(side, "")) {

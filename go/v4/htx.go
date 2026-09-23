@@ -2187,7 +2187,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		//         }
 		//     }
 		//
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		var marketStatus *int64 = this.SafeInteger(data, "marketStatus")
 		status = func() string {
 			if marketStatus != nil && *marketStatus == 1 {
@@ -2220,7 +2220,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		//         "ts": 1557714418033 // stale on the exchange side, do not trust as an update time
 		//     }
 		//
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		var heartbeatKey string = "heartbeat"
 		var etaKey string = "estimated_recovery_time"
 		if IsEqual(subType, "linear") {
@@ -2269,7 +2269,7 @@ func (this *Htx) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options map[string]any = SafeMapTyped(this.Options, "fetchTime")
+	var options any = this.SafeDict(this.Options, "fetchTime", map[string]any{})
 	var defaultType *string = this.SafeString(this.Options, "defaultType", "spot")
 	var typeVar *string = this.SafeString(options, "type", defaultType)
 	typeVar = this.SafeString(params, "type", typeVar)
@@ -2483,7 +2483,7 @@ func (this *Htx) ParseTradingLimits(limits any, optionalArgs ...any) map[string]
 	}
 }
 func (this *Htx) CostToPrecision(symbol any, cost any) any {
-	return this.DecimalToPrecision(cost, TRUNCATE, GetValue(this.Market(symbol)["precision"], "cost"), this.PrecisionMode)
+	return this.DecimalToPrecision(cost, TRUNCATE, GetValue(GetValue(this.Market(symbol), "precision"), "cost"), this.PrecisionMode)
 }
 
 /**
@@ -2987,26 +2987,26 @@ func (this *Htx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol any = DerefScalar(this.SafeSymbol(marketId, market))
 	symbol = this.TryGetSymbolFromFutureMarkets(symbol)
 	var timestamp *int64 = this.SafeInteger2(ticker, "ts", "quoteTime")
-	var bid *string = nil
-	var bidVolume *string = nil
-	var ask *string = nil
-	var askVolume *string = nil
+	var bid any = nil
+	var bidVolume any = nil
+	var ask any = nil
+	var askVolume any = nil
 	if InOp(ticker, "bid") {
 		if !IsEqual(GetValue(ticker, "bid"), nil) && IsArray(GetValue(ticker, "bid")) {
-			bid = this.SafeString(GetValue(ticker, "bid"), 0)
-			bidVolume = this.SafeString(GetValue(ticker, "bid"), 1)
+			bid = DerefScalar(this.SafeString(GetValue(ticker, "bid"), 0))
+			bidVolume = DerefScalar(this.SafeString(GetValue(ticker, "bid"), 1))
 		} else {
-			bid = this.SafeString(ticker, "bid")
-			bidVolume = this.SafeString(ticker, "bidSize")
+			bid = DerefScalar(this.SafeString(ticker, "bid"))
+			bidVolume = DerefScalar(this.SafeString(ticker, "bidSize"))
 		}
 	}
 	if InOp(ticker, "ask") {
 		if !IsEqual(GetValue(ticker, "ask"), nil) && IsArray(GetValue(ticker, "ask")) {
-			ask = this.SafeString(GetValue(ticker, "ask"), 0)
-			askVolume = this.SafeString(GetValue(ticker, "ask"), 1)
+			ask = DerefScalar(this.SafeString(GetValue(ticker, "ask"), 0))
+			askVolume = DerefScalar(this.SafeString(GetValue(ticker, "ask"), 1))
 		} else {
-			ask = this.SafeString(ticker, "ask")
-			askVolume = this.SafeString(ticker, "askSize")
+			ask = DerefScalar(this.SafeString(ticker, "ask"))
+			askVolume = DerefScalar(this.SafeString(ticker, "askSize"))
 		}
 	}
 	var open *string = this.SafeString(ticker, "open")
@@ -3468,8 +3468,8 @@ func (this *Htx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		}
 		var tick any = this.SafeDict(response, "tick")
 		var timestamp *int64 = this.SafeInteger(tick, "ts", this.SafeInteger(response, "ts"))
-		var result map[string]any = this.ParseOrderBook(tick, symbol, timestamp)
-		result["nonce"] = this.SafeInteger(tick, "version")
+		var result any = this.ParseOrderBook(tick, symbol, timestamp)
+		AddElementToObject(result, "nonce", this.SafeInteger(tick, "version"))
 
 		ch <- result
 		return nil
@@ -3626,7 +3626,7 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	// htx's multi-market trade-id is a bit complex to parse accordingly.
 	// - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
 	// - otherwise the least priority is given to the `id` key
-	var id *string = nil
+	var id any = nil
 	var safeId *string = this.SafeString(trade, "id")
 	if (safeId != nil) && (func() int {
 		if safeId == nil {
@@ -3636,7 +3636,7 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	}() >= 0) {
 		id = safeId
 	} else {
-		id = this.SafeStringN(trade, []any{"trade_id", "trade-id", "id"})
+		id = DerefScalar(this.SafeStringN(trade, []any{"trade_id", "trade-id", "id"}))
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -4888,9 +4888,9 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			}()
 			var currencyId *string = this.SafeString(balance, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(balance, "available_margin")
-			account["total"] = this.SafeString(balance, "equity")
+			var account any = this.Account()
+			AddElementToObject(account, "free", this.SafeString(balance, "available_margin"))
+			AddElementToObject(account, "total", this.SafeString(balance, "equity"))
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -4918,14 +4918,9 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			}
 			result = this.SafeBalance(result)
 		} else {
-			var balances []any = SafeListTyped(data, "list")
-			for i := 0; i < len(balances); i++ {
-				var balance any = func() any {
-					if i >= 0 && i < len(balances) {
-						return DerefScalar(balances[i])
-					}
-					return nil
-				}()
+			var balances any = this.SafeList(data, "list", []any{})
+			for i := 0; i < GetArrayLength(balances); i++ {
+				var balance any = GetValue(balances, i)
 				var currencyId *string = this.SafeString(balance, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				if code != nil {
@@ -4939,9 +4934,9 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			var balance any = GetValue(data, i)
 			var currencyId *string = this.SafeString(balance, "symbol")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(balance, "margin_available")
-			account["used"] = this.SafeString(balance, "margin_frozen")
+			var account any = this.Account()
+			AddElementToObject(account, "free", this.SafeString(balance, "margin_available"))
+			AddElementToObject(account, "used", this.SafeString(balance, "margin_frozen"))
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -6458,13 +6453,13 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var timestamp *int64 = this.SafeIntegerN(order, []any{"created_at", "created-at", "create_date", "created_time"})
 	var clientOrderId *string = this.SafeStringN(order, []any{"client_order_id", "client-or" + "der-id", "algo_client_order_id"}) // transpiler regex trick for php issue
-	var cost *string = nil
-	var amount *string = nil
+	var cost any = nil
+	var amount any = nil
 	if (!IsEqual(typeVar, nil)) && (GetIndexOf(typeVar, "market") >= 0) && (isLinearOrder != true) {
-		cost = this.SafeString(order, "field-cash-amount")
+		cost = DerefScalar(this.SafeString(order, "field-cash-amount"))
 	} else {
-		amount = this.SafeString2(order, "volume", "amount")
-		cost = this.SafeStringN(order, []any{"filled-cash-amount", "field-cash-amount", "trade_turnover"}) // same typo here
+		amount = DerefScalar(this.SafeString2(order, "volume", "amount"))
+		cost = DerefScalar(this.SafeStringN(order, []any{"filled-cash-amount", "field-cash-amount", "trade_turnover"})) // same typo here
 	}
 	var filled *string = this.SafeStringN(order, []any{"filled-amount", "field-amount", "trade_volume"}) // typo in their API, filled amount
 	var price *string = this.SafeString2(order, "price", "order_price")
@@ -6670,7 +6665,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	}
 	var orderType any = Replace(typeVar, "buy-", "")
 	orderType = Replace(orderType, "sell-", "")
-	var options map[string]any = SafeMapTyped(this.Options, market["type"])
+	var options any = this.SafeDict(this.Options, market["type"], map[string]any{})
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "stop-price"})
 	if triggerPrice == nil {
 		var stopOrderTypes map[string]any = SafeMapTyped(options, "stopOrderTypes")
@@ -7882,7 +7877,7 @@ func (this *Htx) ParseCancelOrders(orders any) []any {
 	} else {
 		success = this.SafeList(orders, "success", []any{})
 	}
-	var failed []any = SafeList2Typed(orders, "errors", "failed")
+	var failed any = this.SafeList2(orders, "errors", "failed", []any{})
 	var data []any = SafeListTyped(orders, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -7907,13 +7902,8 @@ func (this *Htx) ParseCancelOrders(orders any) []any {
 			"status": "canceled",
 		}))
 	}
-	for i := 0; i < len(failed); i++ {
-		var order any = func() any {
-			if i >= 0 && i < len(failed) {
-				return DerefScalar(failed[i])
-			}
-			return nil
-		}()
+	for i := 0; i < GetArrayLength(failed); i++ {
+		var order any = GetValue(failed, i)
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString2(order, "order-id", "order_id"),
@@ -9650,7 +9640,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 		} else if access != nil && *access == "private" {
 			this.CheckRequiredCredentials()
 			if IsEqual(method, "POST") {
-				var options map[string]any = SafeMapTyped(this.Options, "broker")
+				var options any = this.SafeDict(this.Options, "broker", map[string]any{})
 				var id *string = this.SafeString(options, "id", "AA03022abc")
 				if !isArrayParams {
 					if (GetIndexOf(pathString, "cancel") == OpNeg(1)) && EndsWith(pathString, "order") {

@@ -51,8 +51,8 @@ public partial class testMainClass : BaseTest
         // trick csharp-transpiler for string
         if (!isTrue((((object)method).ToString().Contains("BidsAsks"))))
         {
-            emptyAllowedFor.Add("bid");
-            emptyAllowedFor.Add("ask");
+            ((IList<object>)emptyAllowedFor).Add("bid");
+            ((IList<object>)emptyAllowedFor).Add("ask");
         }
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
