@@ -5422,10 +5422,17 @@ function ccxtGoProducerArgIsMap (goTranspiler, arg) {
     if (arg.kind === ts.SyntaxKind.ObjectLiteralExpression) {
         return true;
     }
-    if ((arg.kind === ts.SyntaxKind.Identifier) && (typeof goTranspiler.goDeclaredTypeOfIdentifier === 'function')) {
-        return goTranspiler.goDeclaredTypeOfIdentifier (arg) === CCXT_GO_PRODUCER_DICT_TYPE;
+    if (arg.kind !== ts.SyntaxKind.Identifier) {
+        return false;
     }
-    return false;
+    // a parameter bound through GetArgMap is a map[string]any local
+    const decl = ccxtGoParamDeclarationOf (goTranspiler, arg);
+    if ((decl?.kind === ts.SyntaxKind.Parameter) && (typeof goTranspiler.goGetArgParameterType === 'function')
+        && (goTranspiler.goGetArgParameterType (decl) === CCXT_GO_PRODUCER_DICT_TYPE)) {
+        return true;
+    }
+    return (typeof goTranspiler.goDeclaredTypeOfIdentifier === 'function')
+        && (goTranspiler.goDeclaredTypeOfIdentifier (arg) === CCXT_GO_PRODUCER_DICT_TYPE);
 }
 
 function ccxtGoProducerUseRebinds (n) {
