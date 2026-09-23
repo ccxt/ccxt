@@ -539,14 +539,16 @@ public partial class PredictionExchange : BaseExchange
         {
             return ((IDictionary<string, object>)((object)(outcomeObj)));
         }
-        return ((IDictionary<string, object>)((object)(new Dictionary<string, object>() {
+        // stub for an unknown handle; it only carries the identity keys, not the market fields
+        outcomeObj = new Dictionary<string, object>() {
             { "outcome", outcomeIdOrSymbol },
             { "outcomeId", outcomeIdOrSymbol },
             { "market", null },
             { "label", null },
             { "event", null },
             { "info", new Dictionary<string, object>() {} },
-        })));
+        };
+        return ((IDictionary<string, object>)((object)(outcomeObj)));
     }
 
     public virtual string? safeOutcomeSymbol(object outcomeIdOrSymbol, object outcomeObj = null)

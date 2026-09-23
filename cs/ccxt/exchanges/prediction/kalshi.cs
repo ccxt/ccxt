@@ -1283,7 +1283,7 @@ public partial class kalshi : PredictionExchange
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         string? ticker = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "ticker");
-        bool isNo = isEqual((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("label") ? ((IDictionary<string, object>)outcomeObj)["label"] : null), "NO");
+        bool isNo = (((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("label") ? ((IDictionary<string, object>)outcomeObj)["label"] : null) as string) == "NO");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
         };
@@ -2316,7 +2316,7 @@ public partial class kalshi : PredictionExchange
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         string? ticker = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "ticker");
-        bool isNo = (isEqual((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("label") ? ((IDictionary<string, object>)outcomeObj)["label"] : null), "NO"));
+        bool isNo = ((((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("label") ? ((IDictionary<string, object>)outcomeObj)["label"] : null) as string) == "NO"));
         bool isBuy = ((side == "buy"));
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
