@@ -1824,15 +1824,13 @@ export default class tokocrypto extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId');
         const postOnly = this.safeBool (params, 'postOnly', false);
         // only supported for spot/margin api
-        if (postOnly === true) {
-            type = 'LIMIT_MAKER';
-        }
-        params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
-        const initialUppercaseType = type.toUpperCase ();
+        const typeResolved: OrderType = (postOnly === true) ? 'LIMIT_MAKER' : type;
+        const initialUppercaseType = typeResolved.toUpperCase ();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const triggerKeys: string[] = (triggerPrice !== undefined) ? [ 'triggerPrice', 'stopPrice' ] : [];
+        let paramsRequest: Dict = this.omit (params, this.arrayConcat ([ 'clientId', 'clientOrderId' ], triggerKeys));
         if (triggerPrice !== undefined) {
-            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
             } else if (uppercaseType === 'LIMIT') {
@@ -1842,9 +1840,9 @@ export default class tokocrypto extends Exchange {
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
-                throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + typeResolved + ' orders');
             } else {
-                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+                throw new InvalidOrder (this.id + ' ' + typeResolved + ' is not a valid order type for the ' + symbol + ' market');
             }
         }
         const reverseOrderTypeMapping: Dict = {
@@ -1896,9 +1894,9 @@ export default class tokocrypto extends Exchange {
                 const precision = market['precision']['price'];
                 let quoteAmount: Str | Num = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber2 (params, 'cost', 'quoteOrderQty');
-                params = this.omit (params, [ 'cost', 'quoteOrderQty' ]);
+                [ createMarketBuyOrderRequiresPrice, paramsRequest ] = this.handleOptionAndParams (paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber2 (paramsRequest, 'cost', 'quoteOrderQty');
+                paramsRequest = this.omit (paramsRequest, [ 'cost', 'quoteOrderQty' ]);
                 if (cost !== undefined) {
                     quoteAmount = cost;
                 } else if (createMarketBuyOrderRequiresPrice) {
@@ -1938,18 +1936,18 @@ export default class tokocrypto extends Exchange {
         }
         if (priceIsRequired) {
             if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a ' + typeResolved + ' order');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (triggerPriceIsRequired) {
             if (triggerPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order');
+                throw new InvalidOrder (this.id + ' createOrder() requires a triggerPrice extra param for a ' + typeResolved + ' order');
             } else {
                 request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             }
         }
-        const response = await this.privatePostOpenV1Orders (this.extend (request, params));
+        const response = await this.privatePostOpenV1Orders (this.extend (request, paramsRequest));
         //
         //     {
         //         "code": 0,
@@ -2211,14 +2209,14 @@ export default class tokocrypto extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
+        const paramsOmitted: Dict = (endTime !== undefined) ? this.omit (params, [ 'endTime', 'until' ]) : params;
         if (endTime !== undefined) {
             request['endTime'] = endTime;
-            params = this.omit (params, [ 'endTime', 'until' ]);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenV1OrdersTrades (this.extend (request, params));
+        const response = await this.privateGetOpenV1OrdersTrades (this.extend (request, paramsOmitted));
         //
         //     {
         //         "code": 0,
@@ -2270,13 +2268,13 @@ export default class tokocrypto extends Exchange {
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        const paramsOmitted: Dict = (network !== undefined) ? this.omit (params, 'network') : params;
         if (network !== undefined) {
             request['network'] = network;
-            params = this.omit (params, 'network');
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        const response = await this.privateGetOpenV1DepositsAddress (this.extend (request, params));
+        const response = await this.privateGetOpenV1DepositsAddress (this.extend (request, paramsOmitted));
         //
         //     {
         //         "code":0,
@@ -2630,13 +2628,12 @@ export default class tokocrypto extends Exchange {
         if (userDataStream) {
             if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 // v1 special case for userDataStream
-                headers = {
+                const headersStream: NullableDict = {
                     'X-MBX-APIKEY': this.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                if (method !== 'GET') {
-                    body = this.urlencode (params);
-                }
+                const bodyStream = (method !== 'GET') ? this.urlencode (params) : body;
+                return { 'url': url, 'method': method, 'body': bodyStream, 'headers': headersStream };
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
@@ -2663,15 +2660,17 @@ export default class tokocrypto extends Exchange {
             }
             const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
             query += '&' + 'signature=' + signature;
-            headers = {
+            const headersSigned: NullableDict = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
+            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (api === 'wapi');
+            const bodySigned = (queryInUrl) ? body : query;
+            if (queryInUrl) {
                 url += '?' + query;
             } else {
-                body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
+            return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         } else {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
@@ -2704,9 +2703,9 @@ export default class tokocrypto extends Exchange {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool (response, 'success', true);
+        let parsedMessage: NullableDict = undefined;
         if (success !== true) {
             const messageInner = this.safeString (response, 'msg');
-            let parsedMessage: NullableDict = undefined;
             if (messageInner !== undefined) {
                 try {
                     parsedMessage = JSON.parse (messageInner);
@@ -2714,18 +2713,16 @@ export default class tokocrypto extends Exchange {
                     // do nothing
                     parsedMessage = undefined;
                 }
-                if (parsedMessage !== undefined) {
-                    response = parsedMessage;
-                }
             }
         }
-        const message = this.safeString (response, 'msg');
+        const responseParsed = (parsedMessage !== undefined) ? parsedMessage : response;
+        const message = this.safeString (responseParsed, 'msg');
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, this.id + ' ' + message);
         }
         // checks against error codes
-        const error = this.safeString (response, 'code');
+        const error = this.safeString (responseParsed, 'code');
         if (error !== undefined) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742

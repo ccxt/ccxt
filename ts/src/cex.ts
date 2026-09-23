@@ -1813,23 +1813,25 @@ export default class cex extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
             } else {
-                body = this.json (query);
-                headers = {
+                const bodyJson = this.json (query);
+                const headersJson: NullableDict = {
                     'Content-Type': 'application/json',
                 };
+                return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersJson };
             }
         } else {
             this.checkRequiredCredentials ();
             const seconds = this.seconds ().toString ();
-            body = this.json (query);
-            const auth = path + seconds + body;
+            const bodySigned = this.json (query);
+            const auth = path + seconds + bodySigned;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
-            headers = {
+            const headersSigned: NullableDict = {
                 'Content-Type': 'application/json',
                 'X-AGGR-KEY': this.apiKey,
                 'X-AGGR-TIMESTAMP': seconds,
                 'X-AGGR-SIGNATURE': signature,
             };
+            return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1838,17 +1840,19 @@ export default class cex extends Exchange {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         // and because of `.parseJson` bug, we need extra fix
+        let responseFixed = undefined;
         if (response === undefined) {
             if (body === undefined) {
                 throw new NullResponse (this.id + ' returned empty response');
             } else if (body[0] === '{') {
                 const fixed = this.fixStringifiedJsonMembers (body);
-                response = this.parseJson (fixed);
+                responseFixed = this.parseJson (fixed);
             } else {
                 throw new NullResponse (this.id + ' returned unparsed response: ' + body);
             }
         }
-        const error = this.safeString (response, 'error');
+        const responseParsed = (response === undefined) ? responseFixed : response;
+        const error = this.safeString (responseParsed, 'error');
         if (error !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
@@ -1857,7 +1861,7 @@ export default class cex extends Exchange {
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
         if (url.indexOf ('do_my_new_order') >= 0) {
-            const data = this.safeDict (response, 'data', {});
+            const data = this.safeDict (responseParsed, 'data', {});
             const rejectReason = this.safeString (data, 'rejectReason');
             if (rejectReason !== undefined) {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], rejectReason, rejectReason);

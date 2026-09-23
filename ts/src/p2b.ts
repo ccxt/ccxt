@@ -558,31 +558,29 @@ export default class p2b extends Exchange {
         //    }
         //
         const timestamp = this.safeIntegerProduct (ticker, 'at', 1000);
-        if ('ticker' in ticker) {
-            ticker = this.safeDict (ticker, 'ticker');
-        }
-        const last = this.safeString (ticker, 'last');
+        const tickerInner = ('ticker' in ticker) ? this.safeDict (ticker, 'ticker') : ticker;
+        const last = this.safeString (tickerInner, 'last');
         return this.safeTicker ({
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
-            'bid': this.safeString (ticker, 'bid'),
+            'high': this.safeString (tickerInner, 'high'),
+            'low': this.safeString (tickerInner, 'low'),
+            'bid': this.safeString (tickerInner, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeString (ticker, 'ask'),
+            'ask': this.safeString (tickerInner, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
+            'open': this.safeString (tickerInner, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString (ticker, 'change'),
+            'percentage': this.safeString (tickerInner, 'change'),
             'average': undefined,
-            'baseVolume': this.safeString2 (ticker, 'vol', 'volume'),
-            'quoteVolume': this.safeString (ticker, 'deal'),
-            'info': ticker,
+            'baseVolume': this.safeString2 (tickerInner, 'vol', 'volume'),
+            'quoteVolume': this.safeString (tickerInner, 'deal'),
+            'info': tickerInner,
         }, market);
     }
 
@@ -1149,14 +1147,12 @@ export default class p2b extends Exchange {
                 until = since + 86400000;
             }
         }
-        if (since === undefined) {
-            since = until - 86400000;
-        }
-        if ((until - since) > 86400000) {
+        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
+        if ((until - sinceResolved) > 86400000) {
             throw new BadRequest (this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const market = this.market (symbol);
-        const sinceSec = this.parseToInt (since / 1000);
+        const sinceSec = this.parseToInt (sinceResolved / 1000);
         const untilSec = this.parseToInt (until / 1000);
         const request: Dict = {
             'market': market['id'],
@@ -1195,7 +1191,7 @@ export default class p2b extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const deals = this.safeList (result, 'deals', []);
-        return this.parseTrades (deals, market, since, limit);
+        return this.parseTrades (deals, market, sinceResolved, limit);
     }
 
     /**
@@ -1230,13 +1226,11 @@ export default class p2b extends Exchange {
                 until = since + 86400000;
             }
         }
-        if (since === undefined) {
-            since = until - 86400000;
-        }
-        if ((until - since) > 86400000) {
+        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
+        if ((until - sinceResolved) > 86400000) {
             throw new BadRequest (this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
-        const sinceSec = this.parseToInt (since / 1000);
+        const sinceSec = this.parseToInt (sinceResolved / 1000);
         const untilSec = this.parseToInt (until / 1000);
         const request: Dict = {
             'startTime': sinceSec,
@@ -1281,7 +1275,7 @@ export default class p2b extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const marketOrders = result[marketId];
-            const parsedOrders = this.parseOrders (marketOrders, market, since, limit);
+            const parsedOrders = this.parseOrders (marketOrders, market, sinceResolved, limit);
             orders = this.arrayConcat (orders, parsedOrders);
         }
         return orders;
@@ -1368,13 +1362,14 @@ export default class p2b extends Exchange {
             paramsOmitted['request'] = '/api/v2/' + path;
             paramsOmitted['nonce'] = this.nonce ().toString ();
             const payload = this.stringToBase64 (this.json (paramsOmitted));  // Body json encoded in base64
-            headers = {
+            const headersSigned: NullableDict = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': this.hmac (this.encode (payload), this.encode (this.secret), sha512),
             };
-            body = this.json (paramsOmitted);
+            const bodyJson = this.json (paramsOmitted);
+            return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
