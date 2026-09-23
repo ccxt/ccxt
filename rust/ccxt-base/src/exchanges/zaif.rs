@@ -1137,6 +1137,12 @@ impl ZaifCore {
             market = self.market(symbol);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency_pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
+        if (since != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("since".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+        }
+        if (limit != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
+        }
         let __ws_arg_6 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_trade_history(&[__ws_arg_6]).await;
         let mut data: Value = self.safe_dict_k(response, "return", &[Value::Map({

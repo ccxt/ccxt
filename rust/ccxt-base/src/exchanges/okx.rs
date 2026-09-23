@@ -6337,9 +6337,9 @@ impl OkxCore {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
-        let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isTrigger: bool = (trigger != Value::Null) && (!is_equal(&trigger, &Value::Bool(false)));
+        let mut isTrigger: bool = trigger.as_bool() == Some(true);
         if isTrigger || (trailing.as_bool() == Some(true)) {
             let mut orderInner: Value = self.cancel_orders(Value::from(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
             return self.safe_dict(orderInner, Value::Int(0), &[]);
@@ -6406,7 +6406,6 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument".into()))));
         }
@@ -6423,9 +6422,9 @@ impl OkxCore {
         let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod]);
         let mut clientOrderIds: Value = self.parse_ids(self.safe_value2(params.clone(), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]));
         let mut algoIds: Value = self.parse_ids(self.safe_value_k(params.clone(), "algoId", &[]));
-        let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isTrigger: bool = (trigger != Value::Null) && (!is_equal(&trigger, &Value::Bool(false)));
+        let mut isTrigger: bool = trigger.as_bool() == Some(true);
         if isTrigger || (trailing.as_bool() == Some(true)) {
             method = Value::Str("privatePostTradeCancelAlgos".into());
         }
@@ -6449,7 +6448,7 @@ impl OkxCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1003: bool = true;
                 while { if !__for_first_1003 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1003 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-                if (trailing.as_bool() == Some(true)) || (trigger != Value::Null) {
+                if (trailing.as_bool() == Some(true)) || isTrigger {
                     append_to_array(&mut request, Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("algoId".to_string(), ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
@@ -6471,7 +6470,7 @@ impl OkxCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1004: bool = true;
                 while { if !__for_first_1004 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1004 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&clientOrderIds).as_f64().unwrap_or(f64::NAN) } {
-                if (trailing.as_bool() == Some(true)) || (trigger != Value::Null) {
+                if (trailing.as_bool() == Some(true)) || isTrigger {
                     append_to_array(&mut request, Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -7021,8 +7020,8 @@ impl OkxCore {
 })]);
         let mut defaultMethod: Value = self.safe_string_k(options, "method", &[Value::Str("privateGetTradeOrder".into())]);
         let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod]);
-        let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
-        let mut isTrigger: bool = (trigger != Value::Null) && (!is_equal(&trigger, &Value::Bool(false)));
+        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut isTrigger: bool = trigger.as_bool() == Some(true);
         if isTrigger {
             method = Value::Str("privateGetTradeOrderAlgo".into());
             if (clientOrderId != Value::Null) {
@@ -7206,15 +7205,15 @@ impl OkxCore {
         let mut defaultMethod: Value = self.safe_string_k(options, "method", &[Value::Str("privateGetTradeOrdersPending".into())]);
         let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod]);
         let mut ordType: Value = self.safe_string_k(params.clone(), "ordType", &[]);
-        let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isTrigger: bool = (trigger != Value::Null) && (!is_equal(&trigger, &Value::Bool(false)));
+        let mut isTrigger: bool = trigger.as_bool() == Some(true);
         if (trailing.as_bool() == Some(true)) || isTrigger || ((ordType != Value::Null) && (in_op(&algoOrderTypes, &ordType))) {
             method = Value::Str("privateGetTradeOrdersAlgoPending".into());
         }
         if (trailing.as_bool() == Some(true)) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("move_order_stop".into())); }
-        }  else if (trigger != Value::Null) && (ordType == Value::Null) {
+        }  else if isTrigger && (ordType == Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("trigger".into())); }
         }
         let mut query: Value = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]);
@@ -7383,9 +7382,9 @@ impl OkxCore {
         let mut defaultMethod: Value = self.safe_string_k(options, "method", &[Value::Str("privateGetTradeOrdersHistory".into())]);
         let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod]);
         let mut ordType: Value = self.safe_string_k(params.clone(), "ordType", &[]);
-        let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isTrigger: bool = (trigger != Value::Null) && (!is_equal(&trigger, &Value::Bool(false)));
+        let mut isTrigger: bool = trigger.as_bool() == Some(true);
         if (trailing.as_bool() == Some(true)) {
             method = Value::Str("privateGetTradeOrdersAlgoHistory".into());
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("move_order_stop".into())); }

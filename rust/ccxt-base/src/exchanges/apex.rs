@@ -1269,6 +1269,7 @@ impl ApexCore {
         if (limit == Value::Null) {
             limit = Value::Int(200); // default is 200 when requested with `since`
         }
+        limit = crate::runtime::Math::min(&limit, &Value::Int(200)); // fix maxcap
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // max 200, default 200
         { let __destr_tmp = self.handle_until_option(Value::Str("end".into()), request.clone(), params.clone(), &[Value::Float(0.001)]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (since != Value::Null) {
