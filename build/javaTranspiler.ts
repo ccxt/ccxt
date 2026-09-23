@@ -3063,6 +3063,10 @@ class NewTranspiler {
             return;
         }
 
+        if (exchanges.length === 0) {
+            // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
+            await this.transpilePrediction(force)
+        }
 
         await this.transpileTests(force)
 
