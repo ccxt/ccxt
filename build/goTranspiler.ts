@@ -910,15 +910,240 @@ function resolveGofmt (): string | null {
     return resolvedGofmt;
 }
 
-// Semantic post-passes over the printer text: a leaked body goroutine and a missing type
-// assertion are fixed here; layout is the printer's job and is gofmt-clean except where an
-// emitter splices operand text into a call it prints (see goGofmtSplicedText).
+// `s[i]` on a local the printer typed `[]string` prints as `GetValue(s, i)`, whose Go
+// return type is `any`, so the declaration keeps the box; inside a loop that bounds the
+// counter to `len(s)` every read is the element itself, and the retag happens here.
+function goTextMaskLiteralsAndComments (content: string): string {
+    const out = content.split ('');
+    let state = 'code';
+    let escaped = false;
+    for (let i = 0; i < content.length; i++) {
+        const c = content[i];
+        if (state === 'code') {
+            if ((c === '/') && (content[i + 1] === '/')) { state = 'line'; out[i] = ' '; out[i + 1] = ' '; i++; continue; }
+            if ((c === '/') && (content[i + 1] === '*')) { state = 'block'; out[i] = ' '; out[i + 1] = ' '; i++; continue; }
+            if (c === '"') { state = 'dq'; out[i] = ' '; continue; }
+            if (c === '`') { state = 'raw'; out[i] = ' '; continue; }
+            if (c === '\'') { state = 'rune'; out[i] = ' '; continue; }
+            continue;
+        }
+        out[i] = (c === '\n') ? '\n' : ' ';
+        if (state === 'line') { if (c === '\n') { state = 'code'; } continue; }
+        if (state === 'block') { if ((c === '*') && (content[i + 1] === '/')) { out[i + 1] = ' '; i++; state = 'code'; } continue; }
+        if (state === 'dq') { if (escaped) { escaped = false; } else if (c === '\\') { escaped = true; } else if (c === '"') { state = 'code'; } continue; }
+        if (state === 'rune') { if (escaped) { escaped = false; } else if (c === '\\') { escaped = true; } else if (c === '\'') { state = 'code'; } continue; }
+        if (state === 'raw') { if (c === '`') { state = 'code'; } continue; }
+    }
+    return out.join ('');
+}
+
+// every brace-delimited block of the file as { open, close, depth } line indices, plus the
+// brace depth at the start of each line (and after the last one)
+function goTextBlocks (maskedLines: string[]): any {
+    const depth: number[] = [];
+    let current = 0;
+    for (const line of maskedLines) {
+        depth.push (current);
+        current += (line.split ('{').length - 1) - (line.split ('}').length - 1);
+    }
+    depth.push (current);
+    const blocks: any[] = [];
+    const stack: any[] = [];
+    for (let k = 0; k < maskedLines.length; k++) {
+        const before = depth[k];
+        const after = depth[k + 1];
+        if (after > before) {
+            for (let x = before; x < after; x++) {
+                const block: any = { 'open': k, 'close': maskedLines.length - 1, 'depth': x + 1 };
+                blocks.push (block);
+                stack.push (block);
+            }
+        } else if (after < before) {
+            for (let x = before; x > after; x--) {
+                const closed: any = stack.pop ();
+                if (closed !== undefined) {
+                    closed.close = k;
+                }
+            }
+        }
+    }
+    return { 'blocks': blocks, 'depth': depth };
+}
+
+// the innermost block holding this line, undefined at the top level
+function goTextEnclosingBlock (blocks: any[], index: number): any {
+    let found: any = undefined;
+    for (const block of blocks) {
+        if ((block.open < index) && (index <= block.close) && ((found === undefined) || (block.depth > found.depth))) {
+            found = block;
+        }
+    }
+    return found;
+}
+
+// a line that writes, rebinds or takes the address of `name`
+function goTextWritesName (maskedLine: string, name: string): boolean {
+    const patterns = [
+        new RegExp ('\\b' + name + '\\s*:='),
+        new RegExp ('\\bvar\\s+' + name + '\\b'),
+        new RegExp ('\\b' + name + '\\s*\\[[^\\]]*\\]\\s*[-+*/%&|^]?=(?!=)'),
+        new RegExp ('\\b' + name + '\\s*[-+*/%&|^]?=(?!=)'),
+        new RegExp ('\\b' + name + '\\s*(?:\\+\\+|--)'),
+        new RegExp ('&\\s*' + name + '\\b'),
+    ];
+    return patterns.some ((rx: RegExp) => rx.test (maskedLine));
+}
+
+// a read of the local a `string` declaration cannot carry, or one that would observe the
+// box instead of the element: a nil comparison, `IsEqual(x, nil)`, a type assertion, len
+function goTextReadIsHazard (maskedLine: string, name: string): boolean {
+    const patterns = [
+        new RegExp ('\\b' + name + '\\s*[!=]=\\s*nil\\b'),
+        new RegExp ('\\bnil\\s*[!=]=\\s*' + name + '\\b'),
+        new RegExp ('\\bIsEqual\\s*\\(\\s*' + name + '\\s*,\\s*nil\\s*\\)'),
+        new RegExp ('\\b' + name + '\\s*\\.\\s*\\('),
+        new RegExp ('\\b(?:len|cap)\\s*\\(\\s*' + name + '\\s*\\)'),
+    ];
+    return patterns.some ((rx: RegExp) => rx.test (maskedLine));
+}
+
+// `var x any = [ccxt.]GetValue(s, i)` -> `var x string = s[i]` when `s` is a `[]string`
+// local and the declaration heads a counting loop bounded by `len(s)` (directly or via an
+// unwritten int local); any write to the counter or slice, or a hazard read, keeps `any`.
+function retagLoopBoundedElementReads (content: string): string {
+    if (content.indexOf ('GetValue(') < 0) {
+        return content; // no candidate line anywhere in this file
+    }
+    const lines = content.split ('\n');
+    const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== maskedLines.length) {
+        return content;
+    }
+    const { 'blocks': blocks, 'depth': depth } = goTextBlocks (maskedLines);
+    let changed = false;
+    for (let index = 0; index < lines.length; index++) {
+        const candidate = /^([ \t]*)var ([A-Za-z_]\w*) any = (?:ccxt\.)?GetValue\(([A-Za-z_]\w*), ([A-Za-z_]\w*)\)[ \t]*$/.exec (lines[index]);
+        if ((candidate === null) || (lines[index] !== maskedLines[index])) {
+            continue; // not the exact declaration line, or (partly) inside a literal/comment
+        }
+        const indent = candidate[1];
+        const name = candidate[2];
+        const slice = candidate[3];
+        const counter = candidate[4];
+        if ((name === slice) || (name === counter) || (slice === counter)) {
+            continue;
+        }
+        const body = goTextEnclosingBlock (blocks, index);
+        if (body === undefined) {
+            continue;
+        }
+        const header = /^[ \t]*for ([A-Za-z_]\w*) := (\d+); ([A-Za-z_]\w*) < (.+); ([A-Za-z_]\w*)\+\+ \{$/.exec (maskedLines[body.open]);
+        if ((header === null) || (header[1] !== counter) || (header[3] !== counter) || (header[5] !== counter)) {
+            continue; // the declaration is not the first statement of a counting for-loop
+        }
+        const fn = blocks.find ((block: any) => (block.depth === 1) && (block.open < index) && (index <= block.close));
+        if ((fn === undefined) || (maskedLines[fn.open].indexOf ('func ') !== 0)) {
+            continue; // no enclosing function: a different code path prints this line
+        }
+        // the slice: a `[]string` local of this function, declared in a scope that still
+        // holds at the loop header, and never written
+        const declarationRx = new RegExp ('^[ \\t]*var ' + slice + ' \\[\\]string = ');
+        let sliceLine = -1;
+        for (let k = fn.open + 1; k < body.open; k++) {
+            if (declarationRx.test (maskedLines[k])) {
+                if ((sliceLine >= 0) || (depth[k] > depth[body.open])) {
+                    sliceLine = -2; // ambiguous or declared inside the loop
+                    break;
+                }
+                sliceLine = k;
+            }
+        }
+        if (sliceLine < 0) {
+            continue;
+        }
+        const sliceBlock = goTextEnclosingBlock (blocks, sliceLine);
+        if ((sliceBlock !== undefined) && (sliceBlock.close < body.open)) {
+            continue; // the declaration sits in a block that closed before the loop
+        }
+        let sliceWritten = false;
+        for (let k = fn.open + 1; k < fn.close; k++) {
+            if ((k !== sliceLine) && goTextWritesName (maskedLines[k], slice)) {
+                sliceWritten = true;
+                break;
+            }
+        }
+        if (sliceWritten) {
+            continue;
+        }
+        // the bound: len(slice), GetArrayLength(slice), or an int local `= len(slice)` that
+        // is declared before the loop and never written
+        const bound = header[4].trim ();
+        if ((bound !== 'len(' + slice + ')') && (bound !== 'GetArrayLength(' + slice + ')')) {
+            if (!/^[A-Za-z_]\w*$/.test (bound) || (bound === name) || (bound === counter) || (bound === slice)) {
+                continue;
+            }
+            const boundRx = new RegExp ('^[ \\t]*(?:var ' + bound + ' int = |' + bound + ' := )len\\(' + slice + '\\)[ \\t]*$');
+            let boundLine = -1;
+            for (let k = fn.open + 1; k < body.open; k++) {
+                if (boundRx.test (maskedLines[k])) {
+                    if ((boundLine >= 0) || (depth[k] > depth[body.open])) {
+                        boundLine = -2; // ambiguous or declared inside the loop
+                        break;
+                    }
+                    boundLine = k;
+                }
+            }
+            if (boundLine < 0) {
+                continue;
+            }
+            const boundBlock = goTextEnclosingBlock (blocks, boundLine);
+            if ((boundBlock !== undefined) && (boundBlock.close < body.open)) {
+                continue;
+            }
+            let boundWritten = false;
+            for (let k = fn.open + 1; k < fn.close; k++) {
+                if ((k !== boundLine) && goTextWritesName (maskedLines[k], bound)) {
+                    boundWritten = true;
+                    break;
+                }
+            }
+            if (boundWritten) {
+                continue;
+            }
+        }
+        // the body: no write to the counter or the slice, and every read of the local a
+        // value position
+        let unsafe = false;
+        for (let k = body.open + 1; k < body.close; k++) {
+            const maskedLine = maskedLines[k];
+            if (goTextWritesName (maskedLine, counter) || goTextWritesName (maskedLine, slice)) {
+                unsafe = true;
+                break;
+            }
+            if ((k !== index) && new RegExp ('\\b' + name + '\\b').test (maskedLine) && goTextReadIsHazard (maskedLine, name)) {
+                unsafe = true;
+                break;
+            }
+        }
+        if (unsafe) {
+            continue;
+        }
+        lines[index] = indent + 'var ' + name + ' string = ' + slice + '[' + counter + ']';
+        changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// Semantic post-passes over the printer text: a leaked body goroutine, a missing type
+// assertion and an unbounded element read are fixed here; layout is the printer's job and
+// is gofmt-clean except where an emitter splices operand text into a call it prints.
 function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
     content = guardMultiSendCores (content);
     content = assertTypedElementAccess (content);
+    content = retagLoopBoundedElementReads (content);
     return goGofmtSplicedText (content);
 }
 
