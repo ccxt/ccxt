@@ -1605,7 +1605,7 @@ func (this *Predictfun) ParsePredictionTicker(ticker any, optionalArgs ...any) a
 	//         ]
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var info map[string]any = ccxt.SafeMapTyped(market, "info")
 	var indexSet *int64 = this.SafeInteger(info, "indexSet")
@@ -1684,11 +1684,11 @@ func (this *Predictfun) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Predictfun) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1786,9 +1786,9 @@ func (this *Predictfun) FetchTradesAsync(outcome any, optionalArgs ...any) <-cha
 func (this *Predictfun) fetchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1908,7 +1908,7 @@ func (this *Predictfun) fetchTradesBody(ch chan any, outcome any, optionalArgs .
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Predictfun) ParsePredictionTrade(trade any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var party map[string]any = ccxt.SafeMapTyped(trade, "partyToParse")
 	// fetchMyTrades spans several markets at once, so the row's identity comes from the party
@@ -2225,7 +2225,7 @@ func (this *Predictfun) CreateOrderAsync(outcome any, typeVar any, side any, amo
 func (this *Predictfun) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	price := ccxt.GetArg(optionalArgs, 0, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2590,7 +2590,7 @@ func (this *Predictfun) fetchPositionBody(ch chan any, outcome any, optionalArgs
  * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
 func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var rawOutcome map[string]any = ccxt.SafeMapTyped(position, "outcome")
 	var rawMarket map[string]any = ccxt.SafeMapTyped(position, "market")
@@ -2723,7 +2723,7 @@ func (this *Predictfun) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan a
 func (this *Predictfun) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2818,7 +2818,7 @@ func (this *Predictfun) FetchOrderAsync(id any, optionalArgs ...any) <-chan any 
 func (this *Predictfun) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2974,11 +2974,11 @@ func (this *Predictfun) FetchOrdersHelperAsync(optionalArgs ...any) <-chan any {
 func (this *Predictfun) fetchOrdersHelperBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3079,7 +3079,7 @@ func (this *Predictfun) ParsePredictionOrder(order any, optionalArgs ...any) any
 	//         "strategy": "LIMIT"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var data map[string]any = ccxt.SafeDict2Typed(order, "order", "data")
 	// the fetch endpoints nest the hash inside the contract order, the create endpoint
@@ -3341,7 +3341,7 @@ func (this *Predictfun) ApproveAsync(optionalArgs ...any) <-chan any {
 func (this *Predictfun) approveBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

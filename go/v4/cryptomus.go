@@ -610,10 +610,10 @@ func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) any {
 	//         "quote_volume": "55.523761128544"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "currency_pair")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var last *string = this.SafeString(ticker, "last_price")
 	return this.SafeTicker(map[string]any{
@@ -723,9 +723,9 @@ func (this *Cryptomus) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Cryptomus) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -773,7 +773,7 @@ func (this *Cryptomus) ParseTrade(trade any, optionalArgs ...any) any {
 	//         "type": "sell"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(trade, "timestamp")
 	return this.SafeTrade(map[string]any{
@@ -886,7 +886,7 @@ func (this *Cryptomus) CreateOrderAsync(symbol any, typeVar any, side any, amoun
 func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1029,11 +1029,11 @@ func (this *Cryptomus) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-
 func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1131,7 +1131,7 @@ func (this *Cryptomus) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptomus) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1234,11 +1234,11 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
 	//         "stopLossPrice": "101.12"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(order, "order_id", "id")
 	var marketId *string = this.SafeString(order, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var dateTime *string = this.SafeString(order, "createdAt")
 	var timestamp *int64 = this.Parse8601(dateTime)
 	var deal map[string]any = SafeMapTyped(order, "deal")

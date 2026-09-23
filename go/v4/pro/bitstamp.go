@@ -296,7 +296,7 @@ func (this *Bitstamp) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Bitstamp) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -377,7 +377,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//         "price": 6294.77
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var microtimestamp *int64 = this.SafeInteger(trade, "microtimestamp", 0)
 	var id *string = this.SafeString(trade, "id")
@@ -385,7 +385,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "amount")
 	if market == nil {
-		market = this.SafeMarket(nil, market)
+		market = ccxt.MapTyped(this.SafeMarket(nil, market))
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var sideRaw *int64 = this.SafeInteger(trade, "type")
@@ -543,7 +543,7 @@ func (this *Bitstamp) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -638,7 +638,7 @@ func (this *Bitstamp) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -771,11 +771,11 @@ func (this *Bitstamp) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	// position_id, is_liquidation and trade_type, which the live feed
 	// omits for plain spot orderbook fills
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var microtimestamp *int64 = this.SafeInteger(trade, "microtimestamp", 0)
 	var timestamp int64 = this.ParseToInt(ccxt.Divide(microtimestamp, 1000))
-	market = this.SafeMarket(nil, market)
+	market = ccxt.MapTyped(this.SafeMarket(nil, market))
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var feeCost *string = this.SafeString(trade, "fee")
 	var fee any = nil
@@ -876,7 +876,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 	//        "trade_account_id": 0
 	//    }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "id_str")
 	var orderTypeRaw *string = this.SafeStringLower(order, "order_type")
@@ -925,7 +925,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 	}
 	var triggerPrice *string = this.SafeString(order, "stop_price")
 	var timestamp *int64 = this.SafeTimestamp(order, "datetime")
-	market = this.SafeMarket(nil, market)
+	market = ccxt.MapTyped(this.SafeMarket(nil, market))
 	var symbol any = ccxt.GetValue(market, "symbol")
 	return this.SafeOrder(map[string]any{
 		"info":               order,

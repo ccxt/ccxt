@@ -513,7 +513,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	return nil
 }
 func (this *Bit2c) ParseTicker(ticker any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
 	var averagePrice *string = this.SafeString(ticker, "av")
@@ -600,7 +600,7 @@ func (this *Bit2c) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	defer ReturnPanicError(ch)
 	since := GetArg(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -736,7 +736,7 @@ func (this *Bit2c) CreateOrderAsync(symbol any, typeVar any, side any, amount an
 func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -827,11 +827,11 @@ func (this *Bit2c) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bit2c) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -874,7 +874,7 @@ func (this *Bit2c) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Bit2c) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -938,7 +938,7 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) any {
 	//          "initialAmount": 2.00000000
 	//      }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var orderUnified any = nil
 	var isNewOrder bool = false
@@ -1042,11 +1042,11 @@ func (this *Bit2c) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Bit2c) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1158,7 +1158,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 	//         "isMaker": True,
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = nil
 	var id *string = nil
@@ -1177,8 +1177,8 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		amount = this.SafeString(trade, "firstAmount")
 		var reference_parts []string = Split(reference, "|") // reference contains 'pair|orderId_by_taker|orderId_by_maker'
 		var marketId *string = this.SafeString(trade, "pair")
-		market = this.SafeMarket(marketId, market)
-		market = this.SafeMarket(GetValue(reference_parts, 0), market)
+		market = MapTyped(this.SafeMarket(marketId, market))
+		market = MapTyped(this.SafeMarket(GetValue(reference_parts, 0), market))
 		var isMaker *bool = this.SafeBool(trade, "isMaker")
 		makerOrTaker = func() string {
 			if isMaker != nil && *isMaker == true {
@@ -1219,7 +1219,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 		}
 	}
-	market = this.SafeMarket(nil, market)
+	market = MapTyped(this.SafeMarket(nil, market))
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
@@ -1290,7 +1290,7 @@ func (this *Bit2c) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	//         "hasTx": False
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
 	this.CheckAddress(address)

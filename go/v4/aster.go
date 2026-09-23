@@ -1553,9 +1553,9 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1656,7 +1656,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 	//     "positionSide": "BOTH",      // only in PERP
 	// }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(trade, "id", "a")
 	var marketId *string = this.SafeString(trade, "symbol")
@@ -1666,7 +1666,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 		return "spot"
 	}()
-	market = this.SafeMarket(marketId, market, nil, marketType)
+	market = MapTyped(this.SafeMarket(marketId, market, nil, marketType))
 	var currencyId *string = this.SafeString2(trade, "commissionAsset", "marginAsset")
 	var currencyCode *string = this.SafeCurrencyCode(currencyId)
 	var amountString *string = this.SafeString2(trade, "qty", "q")
@@ -1746,9 +1746,9 @@ func (this *Aster) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any 
 func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1820,11 +1820,11 @@ func (this *Aster) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2000,7 +2000,7 @@ func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) any {
 	//            "lastUpdateId": "453174307613"   // only in PERP
 	//        }, ...
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "closeTime")
 	var last *string = this.SafeString(ticker, "lastPrice")
@@ -2028,7 +2028,7 @@ func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) any {
 		}()
 	}
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = this.SafeMarket(marketId, market, nil, marketType)
+	market = MapTyped(this.SafeMarket(marketId, market, nil, marketType))
 	return this.SafeTicker(map[string]any{
 		"symbol":        GetValue(market, "symbol"),
 		"timestamp":     timestamp,
@@ -2394,7 +2394,7 @@ func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//         "fundingFeeFloor": -0.03
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(contract, "symbol")
 	var nextFundingTimestamp *int64 = this.SafeInteger(contract, "nextFundingTime")
@@ -2592,11 +2592,11 @@ func (this *Aster) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan any 
 func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2735,7 +2735,7 @@ func (this *Aster) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-cha
 func (this *Aster) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2848,10 +2848,10 @@ func (this *Aster) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	return nil
 }
 func (this *Aster) ParseTradingFee(fee any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol *string = this.SafeSymbol(marketId, market)
 	return map[string]any{
 		"info":       fee,
@@ -2988,7 +2988,7 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) any {
 	//            "orderListId": "-1"
 	//        }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var info any = order
 	var positionSide *string = this.SafeString(order, "positionSide")
@@ -2999,7 +2999,7 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) any {
 		return "spot"
 	}()
 	var marketId *string = this.SafeString(order, "symbol")
-	market = this.SafeMarket(marketId, market, nil, defaultType)
+	market = MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
 	var side *string = this.SafeStringLower(order, "side")
 	var timestamp *int64 = this.SafeInteger(order, "time")
 	var statusId *string = this.SafeStringUpper(order, "status")
@@ -3053,7 +3053,7 @@ func (this *Aster) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3136,7 +3136,7 @@ func (this *Aster) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3221,11 +3221,11 @@ func (this *Aster) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3314,11 +3314,11 @@ func (this *Aster) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3422,7 +3422,7 @@ func (this *Aster) CreateOrderAsync(symbol any, typeVar any, side any, amount an
 func (this *Aster) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3747,7 +3747,7 @@ func (this *Aster) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3804,7 +3804,7 @@ func (this *Aster) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3862,7 +3862,7 @@ func (this *Aster) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any {
 func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3914,7 +3914,7 @@ func (this *Aster) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan an
 func (this *Aster) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4016,7 +4016,7 @@ func (this *Aster) ParseLeverage(leverage any, optionalArgs ...any) any {
 	//         "updateTime": 0
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
 	var marginMode *string = this.SafeStringLower(leverage, "marginType")
@@ -4113,10 +4113,10 @@ func (this *Aster) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	//         "updateTime": 0
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(marginMode, "symbol")
-	market = this.SafeMarket(marketId, market, nil, "swap")
+	market = MapTyped(this.SafeMarket(marketId, market, nil, "swap"))
 	return map[string]any{
 		"info":       marginMode,
 		"symbol":     this.SafeString(market, "symbol"),
@@ -4145,13 +4145,13 @@ func (this *Aster) FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan
 func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	typeVar := GetArg(optionalArgs, 1, nil)
 	_ = typeVar
-	since := GetArg(optionalArgs, 2, nil)
+	var since *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 3, nil)
+	var limit *float64 = GetArgFloat64Ptr(optionalArgs, 3, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
@@ -4220,13 +4220,13 @@ func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) any {
 	//         "type": 1
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var rawType *int64 = this.SafeInteger(data, "type")
 	var errorCode *string = this.SafeString(data, "code")
 	var marketId *string = this.SafeString(data, "symbol")
 	var timestamp *int64 = this.SafeInteger(data, "time")
-	market = this.SafeMarket(marketId, market, nil, "swap")
+	market = MapTyped(this.SafeMarket(marketId, market, nil, "swap"))
 	var noErrorCode bool = (errorCode == nil)
 	var success bool = (errorCode != nil && *errorCode == "200")
 	return map[string]any{
@@ -4356,7 +4356,7 @@ func (this *Aster) ParseIncome(income any, optionalArgs ...any) any {
 	//       "tradeId": ""
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var currencyId *string = this.SafeString(income, "asset")
@@ -4394,11 +4394,11 @@ func (this *Aster) FetchFundingHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4441,7 +4441,7 @@ func (this *Aster) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//         "tradeId": ""
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var amount *string = this.SafeString(item, "income")
 	var direction string
@@ -4453,7 +4453,7 @@ func (this *Aster) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}
 	var currencyId *string = this.SafeString(item, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	currency = this.SafeCurrency(currencyId, currency)
+	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var timestamp *int64 = this.SafeInteger(item, "time")
 	var typeVar *string = this.SafeString(item, "incomeType")
 	return this.SafeLedgerEntry(map[string]any{
@@ -4507,11 +4507,11 @@ func (this *Aster) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4572,10 +4572,10 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	//         "updateTime": 1625474304765
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	market = this.SafeMarket(marketId, market, nil, "contract")
+	market = MapTyped(this.SafeMarket(marketId, market, nil, "contract"))
 	var symbol *string = this.SafeString(market, "symbol")
 	var isolatedMarginString *string = this.SafeString(position, "isolatedMargin")
 	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
@@ -4920,10 +4920,10 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 	return result
 }
 func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	market = this.SafeMarket(marketId, market, nil, "contract")
+	market = MapTyped(this.SafeMarket(marketId, market, nil, "contract"))
 	var symbol *string = this.SafeString(market, "symbol")
 	var leverageString *string = this.SafeString(position, "leverage")
 	var leverage any = func() any {
@@ -5438,7 +5438,7 @@ func (this *Aster) transferBody(ch chan any, code any, amount any, fromAccount a
 	return nil
 }
 func (this *Aster) ParseTransfer(transfer any, optionalArgs ...any) any {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "code")
 	return map[string]any{

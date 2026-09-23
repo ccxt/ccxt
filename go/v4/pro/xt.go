@@ -256,7 +256,7 @@ func (this *Xt) SubscribeAsync(name any, access any, methodName any, optionalArg
 func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	symbols := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = symbols
@@ -348,7 +348,7 @@ func (this *Xt) UnSubscribeAsync(messageHash any, name any, access any, methodNa
 func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access any, methodName any, topic any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	symbols := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = symbols
@@ -616,7 +616,7 @@ func (this *Xt) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -699,7 +699,7 @@ func (this *Xt) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Xt) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -863,9 +863,9 @@ func (this *Xt) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Xt) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -911,9 +911,9 @@ func (this *Xt) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Xt) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -991,9 +991,9 @@ func (this *Xt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1691,7 +1691,7 @@ func (this *Xt) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	//        "clientOrderId": "204788317630342726"
 	//    }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "s")
 	var tradeType string = func() string {
@@ -1700,7 +1700,7 @@ func (this *Xt) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 		}
 		return "spot"
 	}()
-	market = this.SafeMarket(marketId, market, nil, tradeType)
+	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, tradeType))
 	var timestamp *string = this.SafeString(trade, "t")
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -1765,7 +1765,7 @@ func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) any {
 	//        "clientOrderId": "204788317630342726"
 	//    }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(order, "s", "symbol")
 	var tradeType string = func() string {
@@ -1774,7 +1774,7 @@ func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) any {
 		}
 		return "spot"
 	}()
-	market = this.SafeMarket(marketId, market, nil, tradeType)
+	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, tradeType))
 	var timestamp *int64 = this.SafeInteger2(order, "ct", "createTime")
 	return this.SafeOrder(map[string]any{
 		"info":               order,

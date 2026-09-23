@@ -238,7 +238,7 @@ func (this *Coinex) ParseWSTicker(ticker any, optionalArgs ...any) any {
 	//         "period": 86400
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var marketId *string = this.SafeString(ticker, "market")
@@ -477,7 +477,7 @@ func (this *Coinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -684,7 +684,7 @@ func (this *Coinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//         "fee_ccy": "USDT"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "created_at")
 	var isSpot bool = (ccxt.InOp(trade, "margin_market"))
@@ -695,7 +695,7 @@ func (this *Coinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		return "swap"
 	}()
 	var marketId *string = this.SafeString(trade, "market")
-	market = this.SafeMarket(marketId, market, nil, defaultType)
+	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
 	var fee map[string]any = map[string]any{}
 	var feeCost any = this.OmitZero(this.SafeString(trade, "fee"))
 	if feeCost != nil {
@@ -840,9 +840,9 @@ func (this *Coinex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Coinex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -874,9 +874,9 @@ func (this *Coinex) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any)
 func (this *Coinex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1033,7 +1033,7 @@ func (this *Coinex) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Coinex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1143,7 +1143,7 @@ func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1429,7 +1429,7 @@ func (this *Coinex) ParseWsOrder(order any, optionalArgs ...any) any {
 	//         "updated_at": 1689146382674
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(order, "created_at")
 	var marketId *string = this.SafeString(order, "market")
@@ -1441,7 +1441,7 @@ func (this *Coinex) ParseWsOrder(order any, optionalArgs ...any) any {
 		}
 		return "swap"
 	}()
-	market = this.SafeMarket(marketId, market, nil, defaultType)
+	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
 	var fee any = nil
 	var feeCost any = this.OmitZero(this.SafeString2(order, "fee", "quote_ccy_fee"))
 	if feeCost != nil {
@@ -1586,11 +1586,11 @@ func (this *Coinex) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 	//         "best_ask_size": "0.15"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var marketId *string = this.SafeString(ticker, "market")
-	market = this.SafeMarket(marketId, market, nil, defaultType)
+	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
 	var timestamp *int64 = this.SafeInteger(ticker, "updated_at")
 	return this.SafeTicker(map[string]any{
 		"symbol":    this.SafeSymbol(marketId, market, nil, defaultType),

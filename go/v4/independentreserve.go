@@ -623,7 +623,7 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any
 	//     "SecondaryCurrencyCode":"Usd",
 	//     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
 	// }
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "CreatedTimestampUtc"))
 	var baseId *string = this.SafeString(ticker, "PrimaryCurrencyCode")
@@ -632,7 +632,7 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any
 	if (baseId != nil) && (quoteId != nil) {
 		defaultMarketId = *baseId + "/" + *quoteId
 	}
-	market = this.SafeMarket(defaultMarketId, market, "/")
+	market = MapTyped(this.SafeMarket(defaultMarketId, market, "/"))
 	var symbol any = GetValue(market, "symbol")
 	var last *string = this.SafeString(ticker, "LastPrice")
 	return this.SafeTicker(map[string]any{
@@ -756,7 +756,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 	//        "VolumeFilled": 0,
 	//        "VolumeOrdered": 0.358
 	//    }
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = nil
 	var baseId *string = this.SafeString(order, "PrimaryCurrencyCode")
@@ -861,7 +861,7 @@ func (this *Independentreserve) FetchOrderAsync(id any, optionalArgs ...any) <-c
 func (this *Independentreserve) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -901,9 +901,9 @@ func (this *Independentreserve) FetchOpenOrdersAsync(optionalArgs ...any) <-chan
 func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -951,9 +951,9 @@ func (this *Independentreserve) FetchClosedOrdersAsync(optionalArgs ...any) <-ch
 func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1001,9 +1001,9 @@ func (this *Independentreserve) FetchMyTradesAsync(optionalArgs ...any) <-chan a
 func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, 50)
 	_ = limit
@@ -1033,7 +1033,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 	return nil
 }
 func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(GetValue(trade, "TradeTimestampUtc"))
 	var id *string = this.SafeString(trade, "TradeGuid")
@@ -1093,9 +1093,9 @@ func (this *Independentreserve) FetchTradesAsync(symbol any, optionalArgs ...any
 func (this *Independentreserve) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1208,7 +1208,7 @@ func (this *Independentreserve) CreateOrderAsync(symbol any, typeVar any, side a
 func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1457,7 +1457,7 @@ func (this *Independentreserve) ParseTransaction(transaction any, optionalArgs .
 	//        "Transaction": null
 	//    }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var amount map[string]any = SafeMapTyped(transaction, "Amount")
 	var destination map[string]any = SafeMapTyped(transaction, "Destination")

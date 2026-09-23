@@ -468,7 +468,7 @@ func (this *Coinbaseinternational) ParseWsInstrument(ticker map[string]any, opti
 	//       time: '2024-07-30T15:26:56.766Z',
 	//   }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "product_id")
 	var datetime *string = this.SafeString(ticker, "time")
@@ -539,7 +539,7 @@ func (this *Coinbaseinternational) ParseWsTicker(ticker any, optionalArgs ...any
 	//       "type": "UPDATE"
 	//    }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var datetime *string = this.SafeString(ticker, "time")
 	var marketId *string = this.SafeString(ticker, "product_id")
@@ -589,7 +589,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan any, symbol any, optio
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -676,9 +676,9 @@ func (this *Coinbaseinternational) WatchTradesAsync(symbol any, optionalArgs ...
 func (this *Coinbaseinternational) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -707,7 +707,7 @@ func (this *Coinbaseinternational) WatchTradesForSymbolsAsync(symbols any, optio
 func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -772,7 +772,7 @@ func (this *Coinbaseinternational) ParseWsTrade(trade any, optionalArgs ...any) 
 	//       "channel": "MATCH",
 	//       "type": "UPDATE"
 	//    }
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(trade, "symbol", "product_id")
 	var datetime *string = this.SafeString(trade, "time")
@@ -811,7 +811,7 @@ func (this *Coinbaseinternational) WatchOrderBookAsync(symbol any, optionalArgs 
 func (this *Coinbaseinternational) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
