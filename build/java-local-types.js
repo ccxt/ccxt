@@ -3501,6 +3501,34 @@ const HANDLE_ELEMENT_TYPES = {
     'handleSubTypeAndParams': { element0: 'String', stringDefaultArg: 3 },
 };
 
+// venue-declared tuple producers whose Java body boxes element 0 as this type (or null) on
+// every return path, declared once in the named venue file with no subclass override
+const HANDLE_VENUE_ELEMENT_TYPES = {
+    'handleProductTypeAndParams': { element0: 'String', file: /[\\/]ts[\\/]src[\\/]bitget\.ts$/ },
+    'handleOriginAndSingleAddress': { element0: 'String', file: /[\\/]ts[\\/]src[\\/]pacifica\.ts$/ },
+    'handleApiKeyIndex': { element0: 'Long', file: /[\\/]ts[\\/]src[\\/]lighter\.ts$/ },
+    'handleAccountIndex': { element0: 'Long', file: /[\\/]ts[\\/]src[\\/]lighter\.ts$/ },
+    'handleHfAndParams': { element0: 'Boolean', file: /[\\/]ts[\\/]src[\\/]kucoin\.ts$/ },
+};
+
+function handleVenueElementType (printer, node) {
+    const callNode = (node !== undefined && ts.isAwaitExpression (node)) ? unwrapParens (node.expression) : node;
+    if (!isThisCall (callNode)) {
+        return undefined;
+    }
+    const spec = HANDLE_VENUE_ELEMENT_TYPES[String (callNode.expression.name.escapedText)];
+    if (spec === undefined) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration;
+    } catch (e) {
+        return undefined;
+    }
+    return (declaration !== undefined && spec.file.test (declaration.getSourceFile ().fileName)) ? spec.element0 : undefined;
+}
+
 // callee name -> element 1 is the caller's params box: the base tier's tuple producers
 // declare `[T, Dict]` and return `asList(<slot0>, parameters)`. `handleTriggerPricesAndParams`
 // carries a String at index 1 and is deliberately absent.
@@ -3732,6 +3760,9 @@ function handleElement1Type (printer, callNode) {
 
 // the audited element type of `this.handleX (...)`[index], or undefined
 function handleElementType (printer, callNode, index) {
+    if (index === 0 && handleVenueElementType (printer, callNode) !== undefined) {
+        return handleVenueElementType (printer, callNode);
+    }
     if (!isThisCall (callNode)) {
         return undefined;
     }
