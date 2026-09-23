@@ -1375,10 +1375,14 @@ export default class umx extends Exchange {
         // the settled instrument is delisted at once, so safeSymbol () would answer either the
         // requested market, labelling the whole family with one symbol, or the bare exchange id.
         // the id carries every part the unified symbol needs, so it is rebuilt from it instead
-        const market = this.createExpiredOptionMarket ((marketId as string));
+        let symbol: Str = undefined;
+        if (marketId !== undefined) {
+            const market = this.createExpiredOptionMarket (marketId);
+            symbol = market['symbol'];
+        }
         return {
             'info': settlement,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'price': this.safeNumber (settlement, 'price'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
