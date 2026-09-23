@@ -5380,8 +5380,29 @@ function auditStripWrappedStringCasts (s: string): string {
         s = s.slice(0, at) + s.slice(at + open.length, closed) + s.slice(closed + 1);
     }
 }
+// `F(<balanced-expr>)` -> `<balanced-expr>` for the two truthiness wrappers the handle* tuple
+// coercion (build/java-local-types.js section 4b) injects on the element write; the read spellings
+// themselves are untouched by that section, so both sides strip symmetrically
+function auditStripTruthinessCoercion (s: string): string {
+    for (const open of ['Boolean.TRUE.equals(', 'Helpers.isTrue(']) {
+        for (;;) {
+            const at = s.indexOf(open);
+            if (at === -1) break;
+            let depth = 1, j = at + open.length, closed = -1;
+            for (; j < s.length; j++) {
+                const ch = s[j];
+                if (ch === '"') { j++; while (j < s.length && s[j] !== '"') { if (s[j] === '\\') j++; j++; } continue; }
+                if (ch === '(') depth++;
+                else if (ch === ')') { depth--; if (depth === 0) { closed = j; break; } }
+            }
+            if (closed === -1) break;
+            s = s.slice(0, at) + s.slice(at + open.length, closed) + s.slice(closed + 1);
+        }
+    }
+    return s;
+}
 function auditStripCasts (s: string): string {
-    return auditStripWrappedStringCasts(s)
+    return auditStripTruthinessCoercion(auditStripWrappedStringCasts(s))
         .replace(/\(String\)[ \t]*/g, '')
         .replace(/\(Object\)[ \t]+(?=[A-Za-z_$])/g, '')
         .replace(/([(,=] ?)\(([A-Za-z_$][A-Za-z0-9_$]*)\)(?=[,;)])/g, '$1$2');
