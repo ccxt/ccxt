@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Currency, Dict, Endpoint, Int, List, Market, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Currencies, Currency, Dict, Endpoint, FundingRate, FundingRates, Int, List, Market, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -64,16 +64,16 @@ export default class umx extends Exchange {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
+                'fetchFundingRates': true,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
@@ -1122,6 +1122,111 @@ export default class umx extends Exchange {
 
     /**
      * @method
+     * @name umx#fetchFundingRates
+     * @description fetch the current funding rates for multiple markets
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-current-funding-rate
+     * @param {string[]} [symbols] unified market symbols, every perpetual market is returned if not given
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        // only perpetual markets are funded, the venue answers 40015 for any other instrument
+        symbols = this.marketSymbols (symbols, 'swap', true, true);
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                // a single symbol is narrowed by the venue instead of pulling every perpetual
+                const market = this.getMarketFromSymbols (symbols);
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.publicGetV1MarketFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "symbol": "ETH-USDT-PERP",
+        //                 "fundingRate": "0.000021",
+        //                 "fundingTime": "1790179200000",
+        //                 "fundingInterval": "8",
+        //                 "upperFundingRate": "0.003",
+        //                 "lowerFundingRate": "-0.003"
+        //             }
+        //         ],
+        //         "ts": "1790178080281"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        // the entries carry no timestamp of their own, only the envelope does
+        const timestamp = this.safeInteger (response, 'ts');
+        const rates: List = [];
+        for (let i = 0; i < data.length; i++) {
+            rates.push (this.extend (this.safeDict (data, i, {}), {
+                'ts': timestamp,
+            }));
+        }
+        return this.parseFundingRates (rates, symbols);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-current-funding-rate
+     * @param {string} symbol unified market symbol, the venue only funds perpetual markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['swap'] !== true) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap markets only');
+        }
+        const rates = await this.fetchFundingRates ([ symbol ], params);
+        return this.safeDict (rates, market['symbol']) as FundingRate;
+    }
+
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
+        const timestamp = this.safeInteger (contract, 'ts');
+        // fundingInterval is reported in hours, and fundingRate is the rate of the upcoming funding
+        const fundingInterval = this.safeString (contract, 'fundingInterval');
+        let interval: Str = undefined;
+        if (fundingInterval !== undefined) {
+            interval = fundingInterval + 'h';
+        }
+        const fundingTimestamp = this.safeInteger (contract, 'fundingTime');
+        // the endpoint carries no mark or index price, those live on the ticker endpoint
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': interval,
+        } as FundingRate;
+    }
+
+    /**
+     * @method
      * @name umx#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, close price, and the volume of a market
      * @see https://www.umx.com/docs/coin-apis/ticker/get-kline-data
@@ -1132,6 +1237,7 @@ export default class umx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true fetches the candles in multiple calls
+     * @param {string} [params.price] "mark" or "index" to fetch the mark price or index price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1155,29 +1261,53 @@ export default class umx extends Exchange {
         const market = this.market (symbol);
         const marketId = market['id'];
         const period = this.safeString (this.timeframes, timeframe, timeframe);
+        let price: Str = undefined;
+        [ price, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'price');
+        const isMark = (price === 'mark');
+        const isIndex = (price === 'index');
         let request: Dict = {
-            'symbol': marketId,
             'period': period,
         };
+        if (isIndex) {
+            // the index series is keyed by the spot underlying of the contract, not by the market id
+            request['symbolFamily'] = this.safeString (market['info'], 'symbolFamily');
+        } else {
+            request['symbol'] = marketId;
+        }
+        if (isMark && (market['contract'] !== true)) {
+            // a spot symbol is accepted but answered with an empty series
+            throw new BadSymbol (this.id + ' fetchOHLCV() can only fetch mark price candles for contract markets');
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
-            if (!('endTime' in request)) {
-                // limit keeps the newest entries inside the requested range, so without an explicit
-                // end the venue answers with the tail of the history instead of the candles that
-                // follow since, which also makes the deterministic pagination walk forward
-                const count = (limit !== undefined) ? limit : 1000;
-                let span = count * duration;
-                if (span > maxSpan) {
-                    span = maxSpan;
-                }
-                request['endTime'] = this.sum (since, span);
+            // limit keeps the newest entries inside the requested range, so a range wider than
+            // limit answers with the tail of it instead of the candles that follow since. the end
+            // is therefore always narrowed to the window that since and limit describe, and an
+            // explicit until only applies while it is the closer of the two. this is also what
+            // makes the deterministic pagination walk forward instead of repeating the same tail
+            const count = (limit !== undefined) ? limit : 1000;
+            let span = count * duration;
+            if (span > maxSpan) {
+                span = maxSpan;
+            }
+            const derivedEnd = this.sum (since, span);
+            const until = this.safeInteger (request, 'endTime');
+            if ((until === undefined) || (derivedEnd < until)) {
+                request['endTime'] = derivedEnd;
             }
         }
-        const response = await this.publicGetV1MarketKline (this.extend (request, params));
+        let response = undefined;
+        if (isMark) {
+            response = await this.publicGetV1MarketMarkPriceKline (this.extend (request, params));
+        } else if (isIndex) {
+            response = await this.publicGetV1MarketIndexPriceKline (this.extend (request, params));
+        } else {
+            response = await this.publicGetV1MarketKline (this.extend (request, params));
+        }
         //
         //     {
         //         "code": "0",

@@ -8,17 +8,431 @@
     ],
     "options": {},
     "methods": {
+        "fetchIndexOHLCV": [
+            {
+                "description": "index price ohlcv for a spot market",
+                "method": "fetchIndexOHLCV",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        [
+                            "1h",
+                            "1790179200000",
+                            "1790180910038",
+                            "2656.2",
+                            "2661.1",
+                            "2665.15",
+                            "2635.6",
+                            "",
+                            "",
+                            "",
+                            "",
+                            ""
+                        ],
+                        [
+                            "1h",
+                            "1790175600000",
+                            "1790179199999",
+                            "2676.3",
+                            "2656.2",
+                            "2684.23",
+                            "2654.9",
+                            "",
+                            "",
+                            "",
+                            "",
+                            ""
+                        ]
+                    ],
+                    "ts": "1790180912928"
+                },
+                "parsedResponse": [
+                    [
+                        1790175600000,
+                        2676.3,
+                        2684.23,
+                        2654.9,
+                        2656.2,
+                        null
+                    ],
+                    [
+                        1790179200000,
+                        2656.2,
+                        2665.15,
+                        2635.6,
+                        2661.1,
+                        null
+                    ]
+                ]
+            },
+            {
+                "description": "index price ohlcv",
+                "method": "fetchIndexOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        [
+                            "1h",
+                            "1790179200000",
+                            "1790180904077",
+                            "2656.2",
+                            "2661",
+                            "2665.15",
+                            "2635.6",
+                            "",
+                            "",
+                            "",
+                            "",
+                            ""
+                        ],
+                        [
+                            "1h",
+                            "1790175600000",
+                            "1790179199999",
+                            "2676.3",
+                            "2656.2",
+                            "2684.23",
+                            "2654.9",
+                            "",
+                            "",
+                            "",
+                            "",
+                            ""
+                        ]
+                    ],
+                    "ts": "1790180910037"
+                },
+                "parsedResponse": [
+                    [
+                        1790175600000,
+                        2676.3,
+                        2684.23,
+                        2654.9,
+                        2656.2,
+                        null
+                    ],
+                    [
+                        1790179200000,
+                        2656.2,
+                        2665.15,
+                        2635.6,
+                        2661,
+                        null
+                    ]
+                ]
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "mark price ohlcv for a delivery future",
+                "method": "fetchMarkOHLCV",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    "1h",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        [
+                            "1h",
+                            "1790179200000",
+                            "1790180905080",
+                            "2658.54",
+                            "2663.04",
+                            "2667.89",
+                            "2640.02",
+                            "",
+                            "",
+                            "",
+                            "",
+                            ""
+                        ],
+                        [
+                            "1h",
+                            "1790175600000",
+                            "1790179199999",
+                            "2678.44",
+                            "2658.78",
+                            "2686.82",
+                            "2657.45",
+                            "",
+                            "",
+                            "",
+                            "",
+                            ""
+                        ]
+                    ],
+                    "ts": "1790180906645"
+                },
+                "parsedResponse": [
+                    [
+                        1790175600000,
+                        2678.44,
+                        2686.82,
+                        2657.45,
+                        2658.78,
+                        null
+                    ],
+                    [
+                        1790179200000,
+                        2658.54,
+                        2667.89,
+                        2640.02,
+                        2663.04,
+                        null
+                    ]
+                ]
+            },
+            {
+                "description": "mark price ohlcv",
+                "method": "fetchMarkOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        [
+                            "1h",
+                            "1790179200000",
+                            "1790180901761",
+                            "2655.19",
+                            "2659.72",
+                            "2664.78",
+                            "2634.43",
+                            "",
+                            "",
+                            "",
+                            "",
+                            ""
+                        ],
+                        [
+                            "1h",
+                            "1790175600000",
+                            "1790179199999",
+                            "2675.01",
+                            "2655.19",
+                            "2683.52",
+                            "2653.48",
+                            "",
+                            "",
+                            "",
+                            "",
+                            ""
+                        ]
+                    ],
+                    "ts": "1790180903699"
+                },
+                "parsedResponse": [
+                    [
+                        1790175600000,
+                        2675.01,
+                        2683.52,
+                        2653.48,
+                        2655.19,
+                        null
+                    ],
+                    [
+                        1790179200000,
+                        2655.19,
+                        2664.78,
+                        2634.43,
+                        2659.72,
+                        null
+                    ]
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "funding rates for every perpetual market",
+                "method": "fetchFundingRates",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000025",
+                            "fundingTime": "1790179200000",
+                            "fundingInterval": "8",
+                            "upperFundingRate": "0.003",
+                            "lowerFundingRate": "-0.003"
+                        }
+                    ],
+                    "ts": "1790179032458"
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "info": {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000025",
+                            "fundingTime": "1790179200000",
+                            "fundingInterval": "8",
+                            "upperFundingRate": "0.003",
+                            "lowerFundingRate": "-0.003",
+                            "ts": 1790179032458
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1790179032458,
+                        "datetime": "2026-09-23T15:57:12.458Z",
+                        "fundingRate": 2.5e-05,
+                        "fundingTimestamp": 1790179200000,
+                        "fundingDatetime": "2026-09-23T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
+            },
+            {
+                "description": "funding rates for a single market",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000025",
+                            "fundingTime": "1790179200000",
+                            "fundingInterval": "8",
+                            "upperFundingRate": "0.003",
+                            "lowerFundingRate": "-0.003"
+                        }
+                    ],
+                    "ts": "1790179029423"
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "info": {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000025",
+                            "fundingTime": "1790179200000",
+                            "fundingInterval": "8",
+                            "upperFundingRate": "0.003",
+                            "lowerFundingRate": "-0.003",
+                            "ts": 1790179029423
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1790179029423,
+                        "datetime": "2026-09-23T15:57:09.423Z",
+                        "fundingRate": 2.5e-05,
+                        "fundingTimestamp": 1790179200000,
+                        "fundingDatetime": "2026-09-23T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000025",
+                            "fundingTime": "1790179200000",
+                            "fundingInterval": "8",
+                            "upperFundingRate": "0.003",
+                            "lowerFundingRate": "-0.003"
+                        }
+                    ],
+                    "ts": "1790179026497"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "ETH-USDT-PERP",
+                        "fundingRate": "0.000025",
+                        "fundingTime": "1790179200000",
+                        "fundingInterval": "8",
+                        "upperFundingRate": "0.003",
+                        "lowerFundingRate": "-0.003",
+                        "ts": 1790179026497
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1790179026497,
+                    "datetime": "2026-09-23T15:57:06.497Z",
+                    "fundingRate": 2.5e-05,
+                    "fundingTimestamp": 1790179200000,
+                    "fundingDatetime": "2026-09-23T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            }
+        ],
         "fetchOHLCV": [
             {
-                "description": "ohlcv since and explicit until",
+                "description": "ohlcv since and until narrower than limit",
                 "method": "fetchOHLCV",
                 "input": [
                     "ETH/USDT",
                     "1h",
                     1789344000000,
-                    2,
+                    5,
                     {
-                        "until": 1789362000000
+                        "until": 1789354800000
                     }
                 ],
                 "httpResponse": {
@@ -27,51 +441,139 @@
                     "data": [
                         [
                             "1h",
-                            "1789358400000",
-                            "1789361999999",
-                            "2512.96",
-                            "2514.97",
-                            "2518.25",
-                            "2511.14",
-                            "4.97",
-                            "12497.986977",
-                            "649",
-                            "2.01",
-                            "0.0007"
+                            "1789351200000",
+                            "1789354799999",
+                            "2493.55",
+                            "2511.55",
+                            "2513.56",
+                            "2490.76",
+                            "79.5457",
+                            "199205.16341",
+                            "855",
+                            "18",
+                            "0.0072"
                         ],
                         [
                             "1h",
-                            "1789354800000",
-                            "1789358399999",
-                            "2511.42",
-                            "2512.96",
-                            "2520.1",
-                            "2507.5",
-                            "48.0595",
-                            "120910.781038",
-                            "751",
-                            "1.54",
-                            "0.0006"
+                            "1789347600000",
+                            "1789351199999",
+                            "2484.29",
+                            "2493.56",
+                            "2495.49",
+                            "2473.7",
+                            "29.308",
+                            "72988.227106",
+                            "804",
+                            "9.27",
+                            "0.0037"
+                        ],
+                        [
+                            "1h",
+                            "1789344000000",
+                            "1789347599999",
+                            "2478.4",
+                            "2484.42",
+                            "2491.32",
+                            "2466.47",
+                            "4.1615",
+                            "10324.527696",
+                            "815",
+                            "6.02",
+                            "0.0024"
                         ]
                     ],
-                    "ts": "1790174273295"
+                    "ts": "1790179384483"
                 },
                 "parsedResponse": [
                     [
-                        1789354800000,
-                        2511.42,
-                        2520.1,
-                        2507.5,
-                        2512.96,
-                        48.0595
+                        1789344000000,
+                        2478.4,
+                        2491.32,
+                        2466.47,
+                        2484.42,
+                        4.1615
                     ],
                     [
-                        1789358400000,
-                        2512.96,
-                        2518.25,
-                        2511.14,
-                        2514.97,
-                        4.97
+                        1789347600000,
+                        2484.29,
+                        2495.49,
+                        2473.7,
+                        2493.56,
+                        29.308
+                    ],
+                    [
+                        1789351200000,
+                        2493.55,
+                        2513.56,
+                        2490.76,
+                        2511.55,
+                        79.5457
+                    ]
+                ]
+            },
+            {
+                "description": "ohlcv since and until wider than limit",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1789344000000,
+                    2,
+                    {
+                        "until": 1790208000000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        [
+                            "1h",
+                            "1789347600000",
+                            "1789351199999",
+                            "2484.29",
+                            "2493.56",
+                            "2495.49",
+                            "2473.7",
+                            "29.308",
+                            "72988.227106",
+                            "804",
+                            "9.27",
+                            "0.0037"
+                        ],
+                        [
+                            "1h",
+                            "1789344000000",
+                            "1789347599999",
+                            "2478.4",
+                            "2484.42",
+                            "2491.32",
+                            "2466.47",
+                            "4.1615",
+                            "10324.527696",
+                            "815",
+                            "6.02",
+                            "0.0024"
+                        ]
+                    ],
+                    "ts": "1790179352274"
+                },
+                "parsedResponse": [
+                    [
+                        1789344000000,
+                        2478.4,
+                        2491.32,
+                        2466.47,
+                        2484.42,
+                        4.1615
+                    ],
+                    [
+                        1789347600000,
+                        2484.29,
+                        2495.49,
+                        2473.7,
+                        2493.56,
+                        29.308
                     ]
                 ]
             },

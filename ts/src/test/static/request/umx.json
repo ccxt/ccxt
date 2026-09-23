@@ -8,18 +8,116 @@
     ],
     "options": {},
     "methods": {
+        "fetchIndexOHLCV": [
+            {
+                "description": "index price ohlcv for a spot market",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api.umx.com/api/v1/market/indexPriceKline?period=1h&symbolFamily=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "index price ohlcv",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api.umx.com/api/v1/market/indexPriceKline?period=1h&symbolFamily=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "mark price ohlcv for a delivery future",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.umx.com/api/v1/market/markPriceKline?period=1h&symbol=ETH-USDT-25SEP26&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "mark price ohlcv",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.umx.com/api/v1/market/markPriceKline?period=1h&symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "funding rates for every perpetual market",
+                "method": "fetchFundingRates",
+                "url": "https://api.umx.com/api/v1/market/fundingRate",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "funding rates for a single market",
+                "method": "fetchFundingRates",
+                "url": "https://api.umx.com/api/v1/market/fundingRate?symbol=ETH-USDT-PERP",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.umx.com/api/v1/market/fundingRate?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchOHLCV": [
             {
-                "description": "ohlcv since and explicit until",
+                "description": "ohlcv since and until narrower than limit",
                 "method": "fetchOHLCV",
-                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT&period=1h&limit=2&endTime=1789362000000&startTime=1789344000000",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT&period=1h&limit=5&endTime=1789354800000&startTime=1789344000000",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1789344000000,
+                    5,
+                    {
+                        "until": 1789354800000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "ohlcv since and until wider than limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT&period=1h&limit=2&endTime=1789351200000&startTime=1789344000000",
                 "input": [
                     "ETH/USDT",
                     "1h",
                     1789344000000,
                     2,
                     {
-                        "until": 1789362000000
+                        "until": 1790208000000
                     }
                 ],
                 "output": null
