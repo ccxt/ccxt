@@ -481,7 +481,7 @@ func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan any, met
 
 	var accounts []any = ListTyped(PanicOnError((<-this.FetchAccountsAsync())))
 	for i := 0; i < GetArrayLength(accounts); i++ {
-		var account any = GetValue(accounts, i)
+		var account map[string]any = MapTyped(GetValue(accounts, i))
 		var info map[string]any = SafeMapTyped(account, "info")
 		if IsEqual(this.SafeBool(info, "is_default"), true) {
 			var portfolioId *string = this.SafeString(info, "portfolio_id")
@@ -1120,12 +1120,12 @@ func (this *Coinbaseinternational) createDepositAddressBody(ch chan any, code an
 func (this *Coinbaseinternational) FindDefaultNetwork(networks any) any {
 	var networksArray []any = this.ToArray(networks)
 	for i := 0; i < len(networksArray); i++ {
-		var info any = GetValue(func() any {
+		var info map[string]any = MapTyped(GetValue(func() any {
 			if i >= 0 && i < len(networksArray) {
 				return DerefScalar(networksArray[i])
 			}
 			return nil
-		}(), "info")
+		}(), "info"))
 		var is_default *bool = this.SafeBool(info, "is_default", false)
 		if is_default != nil && *is_default == true {
 			return func() any {
@@ -2077,7 +2077,7 @@ func (this *Coinbaseinternational) fetchTickersBody(ch chan any, optionalArgs ..
 		rows = instruments
 	}
 	for i := 0; i < GetArrayLength(rows); i++ {
-		var instrument any = GetValue(rows, i)
+		var instrument map[string]any = MapTyped(GetValue(rows, i))
 		var marketId *string = this.SafeString(instrument, "symbol")
 		var symbol *string = this.SafeSymbol(marketId)
 		var quote map[string]any = MapTyped(this.SafeDict(instrument, "quote", map[string]any{}))
@@ -2243,7 +2243,7 @@ func (this *Coinbaseinternational) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var rawBalance any = GetValue(response, i)
+		var rawBalance map[string]any = MapTyped(GetValue(response, i))
 		var currencyId *string = this.SafeString(rawBalance, "asset_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

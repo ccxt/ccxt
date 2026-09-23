@@ -1619,12 +1619,12 @@ func (this *Bigone) ParseBalance(response any) any {
 	}
 	var balances []any = SafeListTyped(response, "data")
 	for i := 0; i < len(balances); i++ {
-		var balance any = func() any {
+		var balance map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var symbol *string = this.SafeString(balance, "asset_symbol")
 		var code *string = this.SafeCurrencyCode(symbol)
 		var account map[string]any = this.Account()

@@ -6073,7 +6073,7 @@ func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		panic(BadRequest(this.Id + " createOrders() accepts a maximum of 10 orders at a time"))
 	}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		orderSymbols = append(orderSymbols, marketId)
 		var typeVar *string = this.SafeString(rawOrder, "type")
@@ -6130,8 +6130,8 @@ func (this *Gate) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 
 	PanicOnError((<-this.LoadUnifiedStatusAsync()))
 	var ordersRequests any = this.CreateOrdersRequest(orders, params)
-	var firstOrder any = GetValue(orders, 0)
-	var market map[string]any = MapTyped(this.Market(GetValue(firstOrder, "symbol")))
+	var firstOrder map[string]any = MapTyped(GetValue(orders, 0))
+	var market map[string]any = MapTyped(this.Market(firstOrder["symbol"]))
 	var response any = nil
 	if GetValue(market, "spot") == true {
 
@@ -7869,7 +7869,7 @@ func (this *Gate) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalAr
 	PanicOnError((<-this.LoadUnifiedStatusAsync()))
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var order any = GetValue(orders, i)
+		var order map[string]any = MapTyped(GetValue(orders, i))
 		var symbol *string = this.SafeString(order, "symbol")
 		var market map[string]any = MapTyped(this.Market(symbol))
 		if GetValue(market, "spot") != true {

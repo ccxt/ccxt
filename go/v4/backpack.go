@@ -1804,7 +1804,7 @@ func (this *Backpack) ParseBalance(response any) any {
 	for i := 0; i < len(balanceKeys); i++ {
 		var id string = GetValue(balanceKeys, i).(string)
 		var code *string = this.SafeCurrencyCode(id)
-		var balance any = GetValue(response, id)
+		var balance map[string]any = MapTyped(GetValue(response, id))
 		var account map[string]any = this.Account()
 		var locked *string = this.SafeString(balance, "locked")
 		var staked *string = this.SafeString(balance, "staked")
@@ -2263,7 +2263,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")

@@ -2413,21 +2413,21 @@ func (this *Lighter) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var accounts []any = SafeListTyped(response, "accounts")
 	for i := 0; i < len(accounts); i++ {
-		var account any = func() any {
+		var account map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(accounts) {
 				return DerefScalar(accounts[i])
 			}
 			return nil
-		}()
+		}())
 		if typeVar != nil && *typeVar == "spot" {
 			var assets []any = SafeListTyped(account, "assets")
 			for j := 0; j < len(assets); j++ {
-				var asset any = func() any {
+				var asset map[string]any = MapTyped(func() any {
 					if j >= 0 && j < len(assets) {
 						return DerefScalar(assets[j])
 					}
 					return nil
-				}()
+				}())
 				var codeId *string = this.SafeString(asset, "symbol")
 				var code *string = this.SafeCurrencyCode(codeId)
 				var balance any = this.SafeDict(result, code, this.Account())
@@ -2570,12 +2570,12 @@ func (this *Lighter) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var allPositions []any = []any{}
 	var accounts []any = SafeListTyped(response, "accounts")
 	for i := 0; i < len(accounts); i++ {
-		var account any = func() any {
+		var account map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(accounts) {
 				return DerefScalar(accounts[i])
 			}
 			return nil
-		}()
+		}())
 		var positions []any = SafeListTyped(account, "positions")
 		for j := 0; j < len(positions); j++ {
 			allPositions = append(allPositions, func() any {

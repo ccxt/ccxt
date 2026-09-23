@@ -1316,7 +1316,7 @@ func (this *Bitmex) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance any = GetValue(response, i)
+		var balance map[string]any = MapTyped(GetValue(response, i))
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -3983,12 +3983,12 @@ func (this *Bitmex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		var scale *string = this.SafeString(fee, "scale")
 		var precision any = this.ParsePrecision(scale)
 		for i := 0; i < networksLength; i++ {
-			var network any = func() any {
+			var network map[string]any = MapTyped(func() any {
 				if i >= 0 && i < len(networks) {
 					return DerefScalar(networks[i])
 				}
 				return nil
-			}()
+			}())
 			var networkId *string = this.SafeString(network, "asset")
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)

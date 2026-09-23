@@ -2083,7 +2083,7 @@ func (this *Toobit) ParseBalance(response any) any {
 	}
 	var balances any = this.SafeList(response, "balances", response)
 	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+		var balance map[string]any = MapTyped(GetValue(balances, i))
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString2(balance, "free", "availableBalance")

@@ -997,7 +997,7 @@ func (this *P2b) ParseBalance(response any) any {
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
 		var currencyId string = GetValue(keys, i).(string)
-		var balance any = GetValue(response, currencyId)
+		var balance map[string]any = MapTyped(GetValue(response, currencyId))
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var used *string = this.SafeString(balance, "freeze")
 		var available *string = this.SafeString(balance, "available")

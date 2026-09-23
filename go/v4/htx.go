@@ -4400,7 +4400,7 @@ func (this *Htx) fetchAccountIdByTypeBody(ch chan any, typeVar any, optionalArgs
 		marketId = this.MarketId(symbol)
 	}
 	for i := 0; i < GetArrayLength(accounts); i++ {
-		var account any = GetValue(accounts, i)
+		var account map[string]any = MapTyped(GetValue(accounts, i))
 		var info map[string]any = SafeMapTyped(account, "info")
 		var subtype *string = this.SafeString(info, "subtype")
 		var typeFromAccount *string = this.SafeString(account, "type")
@@ -4880,7 +4880,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	} else if spot || margin {
 		if isolated {
 			for i := 0; i < GetArrayLength(data); i++ {
-				var entry any = GetValue(data, i)
+				var entry map[string]any = MapTyped(GetValue(data, i))
 				var balances any = this.SafeValue(entry, "list")
 				var subResult map[string]any = map[string]any{}
 				for j := 0; j < GetArrayLength(balances); j++ {
@@ -5794,7 +5794,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 			PanicOnError((<-this.LoadAccountsAsync()))
 			for i := 0; i < GetArrayLength(this.Accounts); i++ {
-				var account any = GetValue(this.Accounts, i)
+				var account map[string]any = MapTyped(GetValue(this.Accounts, i))
 				if this.SafeString(account, "type") != nil && *this.SafeString(account, "type") == "spot" {
 					accountId = this.SafeString(account, "id")
 					if accountId != nil {
@@ -7218,7 +7218,7 @@ func (this *Htx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	var market any = nil
 	var marginMode any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if IsEqual(symbol, nil) {
 			symbol = marketId
@@ -10505,12 +10505,12 @@ func (this *Htx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	var tiers []any = []any{}
 	var brackets []any = SafeListTyped(info, "list")
 	for i := 0; i < len(brackets); i++ {
-		var item any = func() any {
+		var item map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(brackets) {
 				return DerefScalar(brackets[i])
 			}
 			return nil
-		}()
+		}())
 		var leverage *string = this.SafeString(item, "lever_rate")
 		var ladders []any = SafeListTyped(item, "ladders")
 		for k := 0; k < len(ladders); k++ {
@@ -11451,12 +11451,12 @@ func (this *Htx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	var code *string = this.SafeString(currency, "code")
 	var result any = this.DepositWithdrawFee(fee)
 	for j := 0; j < len(chains); j++ {
-		var chainEntry any = func() any {
+		var chainEntry map[string]any = MapTyped(func() any {
 			if j >= 0 && j < len(chains) {
 				return DerefScalar(chains[j])
 			}
 			return nil
-		}()
+		}())
 		var networkId *string = this.SafeString(chainEntry, "chain")
 		var withdrawFeeType *string = this.SafeString(chainEntry, "withdrawFeeType")
 		var networkCode any = this.NetworkIdToCode(networkId, code)

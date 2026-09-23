@@ -849,7 +849,7 @@ func (this *Cryptomus) ParseBalance(balance any) any {
 		"info": balance,
 	}
 	for i := 0; i < GetArrayLength(balance); i++ {
-		var balanceEntry any = GetValue(balance, i)
+		var balanceEntry map[string]any = MapTyped(GetValue(balance, i))
 		var currencyId *string = this.SafeString(balanceEntry, "ticker")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1408,12 +1408,12 @@ func (this *Cryptomus) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[st
 	var takerFees []any = []any{}
 	var makerFees []any = []any{}
 	for i := 0; i < len(feeTiers); i++ {
-		var tier any = func() any {
+		var tier map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(feeTiers) {
 				return DerefScalar(feeTiers[i])
 			}
 			return nil
-		}()
+		}())
 		var turnover *float64 = this.SafeNumber(tier, "from_turnover")
 		var taker *string = this.SafeString(tier, "taker_percent")
 		var maker *string = this.SafeString(tier, "maker_percent")

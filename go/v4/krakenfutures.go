@@ -1051,12 +1051,12 @@ func (this *Krakenfutures) ParseTradingFee(fee any, optionalArgs ...any) any {
 	var makerFee *string = nil
 	var takerFee *string = nil
 	for i := 0; i < len(tiers); i++ {
-		var tier any = func() any {
+		var tier map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(tiers) {
 				return DerefScalar(tiers[i])
 			}
 			return nil
-		}()
+		}())
 		var tierVolume *string = this.SafeString(tier, "usdVolume")
 		if (volume == nil) || Precise.StringGe(volume, tierVolume) {
 			makerFee = this.SafeString(tier, "makerFee")
@@ -1310,7 +1310,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		var length int = len(elements)
 		for i := 0; i < length; i++ {
 			var index any = Subtract(Subtract(length, 1), i)
-			var element any = GetValue(elements, index)
+			var element map[string]any = MapTyped(GetValue(elements, index))
 			var event map[string]any = SafeMapTyped(element, "event")
 			var executionContainer map[string]any = SafeMapTyped(event, "Execution")
 			var rawTrade map[string]any = MapTyped(this.SafeDict(executionContainer, "execution", map[string]any{}))
@@ -1736,7 +1736,7 @@ func (this *Krakenfutures) createOrdersBody(ch chan any, orders any, optionalArg
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -2274,12 +2274,12 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 	var allOrders []any = SafeListTyped(response, "elements")
 	var closedOrders []any = []any{}
 	for i := 0; i < len(allOrders); i++ {
-		var order any = func() any {
+		var order map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(allOrders) {
 				return DerefScalar(allOrders[i])
 			}
 			return nil
-		}()
+		}())
 		var event map[string]any = SafeMapTyped(order, "event")
 		var orderPlaced any = this.SafeDict2(event, "OrderPlaced", "OrderTriggerActivated")
 		var orderUpdated any = this.SafeDict(event, "OrderUpdated")
@@ -2362,12 +2362,12 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan any, optionalArgs ...
 	var allOrders []any = SafeListTyped(response, "elements")
 	var canceledAndRejected []any = []any{}
 	for i := 0; i < len(allOrders); i++ {
-		var order any = func() any {
+		var order map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(allOrders) {
 				return DerefScalar(allOrders[i])
 			}
 			return nil
-		}()
+		}())
 		var event map[string]any = SafeMapTyped(order, "event")
 		var isCancelledTriggerOrder bool = (func() bool { _, ok := event["OrderTriggerCancelled"]; return ok }())
 		var orderPlaced any = this.SafeDict2(event, "OrderPlaced", "OrderTriggerCancelled")
@@ -2885,7 +2885,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	if tradesLength > 0 {
 		var vwapSum any = "0.0"
 		for i := 0; i < GetArrayLength(trades); i++ {
-			var trade any = GetValue(trades, i)
+			var trade map[string]any = MapTyped(GetValue(trades, i))
 			var tradeAmount *string = this.SafeString(trade, "amount")
 			var tradePrice *string = this.SafeString(trade, "price")
 			filled2 = Precise.StringAdd(filled2, tradeAmount)

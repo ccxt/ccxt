@@ -1305,7 +1305,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 			"info": response,
 		}
 		for i := 0; i < GetArrayLength(balances); i++ {
-			var balance any = GetValue(balances, i)
+			var balance map[string]any = MapTyped(GetValue(balances, i))
 			var unifiedCode *string = this.SafeCurrencyCode(this.SafeString(balance, "coin"))
 			var code any = func() any {
 				if isSpot == true {
@@ -3336,7 +3336,7 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan any, orders any, opt
 	}
 	var cancelByCloid bool = false
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var order any = GetValue(orders, i)
+		var order map[string]any = MapTyped(GetValue(orders, i))
 		var clientOrderId *string = this.SafeString(order, "clientOrderId")
 		if clientOrderId != nil {
 			cancelByCloid = true

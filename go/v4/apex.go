@@ -630,12 +630,12 @@ func (this *Apex) ParseCurrency(currency any) any {
 		var chain any = GetValue(chains, j)
 		var tokens []any = SafeListTyped(chain, "tokens")
 		for f := 0; f < len(tokens); f++ {
-			var token any = func() any {
+			var token map[string]any = MapTyped(func() any {
 				if f >= 0 && f < len(tokens) {
 					return DerefScalar(tokens[f])
 				}
 				return nil
-			}()
+			}())
 			var tokenName *string = this.SafeString(token, "token")
 			if tokenName == currencyId || (tokenName != nil && currencyId != nil && *tokenName == *currencyId) {
 				var networkId *string = this.SafeString(chain, "chainId")

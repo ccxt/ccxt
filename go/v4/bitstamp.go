@@ -2077,7 +2077,7 @@ func (this *Bitstamp) ParseBalance(response any) any {
 		response = []any{}
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var currencyBalance any = GetValue(response, i)
+		var currencyBalance map[string]any = MapTyped(GetValue(response, i))
 		var currencyId *string = this.SafeString(currencyBalance, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2373,7 +2373,7 @@ func (this *Bitstamp) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any 
 	var result any = this.DepositWithdrawFee(fee)
 	var code *string = this.SafeString(currency, "code")
 	for j := 0; j < GetArrayLength(fee); j++ {
-		var networkEntry any = GetValue(fee, j)
+		var networkEntry map[string]any = MapTyped(GetValue(fee, j))
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "fee")

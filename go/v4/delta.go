@@ -1988,12 +1988,12 @@ func (this *Delta) ParseBalance(response any) any {
 	}
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	for i := 0; i < len(balances); i++ {
-		var balance any = func() any {
+		var balance map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(balance, "asset_id")
 		var currency any = this.SafeDict(currenciesByNumericId, currencyId)
 		var code any = func() any {

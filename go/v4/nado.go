@@ -3266,12 +3266,12 @@ func (this *Nado) ParseBalance(response any) any {
 	}
 	var balances []any = SafeListTyped(response, "spot_balances")
 	for i := 0; i < len(balances); i++ {
-		var rawBalance any = func() any {
+		var rawBalance map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(rawBalance, "product_id")
 		var code any = DerefScalar(this.SafeCurrencyCode(currencyId))
 		if IsEqual(code, "0") {

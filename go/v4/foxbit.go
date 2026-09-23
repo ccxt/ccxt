@@ -443,12 +443,12 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 	var typeVar *string = this.SafeStringLower(rawCurrency, "type")
 	var parsedNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(networks); j++ {
-		var network any = func() any {
+		var network map[string]any = MapTyped(func() any {
 			if j >= 0 && j < len(networks) {
 				return DerefScalar(networks[j])
 			}
 			return nil
-		}()
+		}())
 		var networkId *string = this.SafeString(network, "code")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var networkWithdrawInfo map[string]any = SafeMapTyped(network, "withdraw_info")
@@ -1039,12 +1039,12 @@ func (this *Foxbit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"info": response,
 	}
 	for i := 0; i < len(accounts); i++ {
-		var account any = func() any {
+		var account map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(accounts) {
 				return DerefScalar(accounts[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(account, "currency_symbol")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var total *string = this.SafeString(account, "balance")
@@ -2271,11 +2271,11 @@ func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market_symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, nil, "spot")
-	var rolling_24h any = GetValue(ticker, "rolling_24h")
+	var rolling_24h map[string]any = MapTyped(GetValue(ticker, "rolling_24h"))
 	var best map[string]any = SafeMapTyped(ticker, "best")
 	var bestAsk map[string]any = SafeMapTyped(best, "ask")
 	var bestBid map[string]any = SafeMapTyped(best, "bid")
-	var lastTrade any = GetValue(ticker, "last_trade")
+	var lastTrade map[string]any = MapTyped(GetValue(ticker, "last_trade"))
 	var lastPrice *string = this.SafeString(lastTrade, "price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,

@@ -2554,12 +2554,12 @@ func (this *Okx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"info": response,
 	}
 	for i := 0; i < len(data); i++ {
-		var event any = func() any {
+		var event map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(data) {
 				return DerefScalar(data[i])
 			}
 			return nil
-		}()
+		}())
 		var state *string = this.SafeString(event, "state")
 		update["eta"] = this.SafeInteger(event, "end")
 		update["url"] = this.SafeString(event, "href")
@@ -4143,12 +4143,12 @@ func (this *Okx) ParseTradingBalance(response any) any {
 	var timestamp *int64 = this.SafeInteger(first, "uTime")
 	var details []any = SafeListTyped(first, "details")
 	for i := 0; i < len(details); i++ {
-		var balance any = func() any {
+		var balance map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(details) {
 				return DerefScalar(details[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(balance, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -4176,12 +4176,12 @@ func (this *Okx) ParseFundingBalance(response any) any {
 	}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var balance any = func() any {
+		var balance map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(data) {
 				return DerefScalar(data[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(balance, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -4948,7 +4948,7 @@ func (this *Okx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if marketId == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
@@ -5463,7 +5463,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArg
 		method = "privatePostTradeCancelAlgos"
 	}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var order any = GetValue(orders, i)
+		var order map[string]any = MapTyped(GetValue(orders, i))
 		var id *string = this.SafeString(order, "id")
 		var clientOrderId *string = this.SafeString2(order, "clOrdId", "clientOrderId")
 		var symbol *string = this.SafeString(order, "symbol")
@@ -7890,7 +7890,7 @@ func (this *Okx) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var longLeverage *int64 = nil
 	var shortLeverage *int64 = nil
 	for i := 0; i < GetArrayLength(leverage); i++ {
-		var entry any = GetValue(leverage, i)
+		var entry map[string]any = MapTyped(GetValue(leverage, i))
 		marginMode = this.SafeStringLower(entry, "mgnMode")
 		marketId = DerefScalar(this.SafeString(entry, "instId"))
 		var positionSide *string = this.SafeStringLower(entry, "posSide")
@@ -10747,12 +10747,12 @@ func (this *Okx) ParseSettlements(settlements []any, market map[string]any) []an
 	//
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		var entry any = func() any {
+		var entry map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(settlements) {
 				return DerefScalar(settlements[i])
 			}
 			return nil
-		}()
+		}())
 		var timestamp *int64 = this.SafeInteger(entry, "ts")
 		var details []any = SafeListTyped(entry, "details")
 		for j := 0; j < len(details); j++ {
@@ -11788,12 +11788,12 @@ func (this *Okx) HandleErrors(httpCode any, reason any, url any, method any, hea
 		var feedback any = Add(this.Id+" ", body)
 		var data []any = SafeListTyped(response, "data")
 		for i := 0; i < len(data); i++ {
-			var error any = func() any {
+			var error map[string]any = MapTyped(func() any {
 				if i >= 0 && i < len(data) {
 					return DerefScalar(data[i])
 				}
 				return nil
-			}()
+			}())
 			var errorCode *string = this.SafeString(error, "sCode")
 			var message *string = this.SafeString(error, "sMsg")
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

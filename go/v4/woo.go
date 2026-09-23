@@ -3438,12 +3438,12 @@ func (this *Woo) ParseBalance(response any) any {
 	}
 	var balances []any = SafeListTyped(response, "holding")
 	for i := 0; i < len(balances); i++ {
-		var balance any = func() any {
+		var balance map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(balance, "holding")
@@ -5851,7 +5851,7 @@ func (this *Woo) ParseADLRank(info any, optionalArgs ...any) any {
 }
 func (this *Woo) DefaultNetworkCodeForCurrency(code any) any {
 	var currencyItem map[string]any = MapTyped(this.Currency(code))
-	var networks any = currencyItem["networks"]
+	var networks map[string]any = MapTyped(currencyItem["networks"])
 	var networkKeys []string = ObjectKeys(networks)
 	for i := 0; i < len(networkKeys); i++ {
 		var network string = GetValue(networkKeys, i).(string)

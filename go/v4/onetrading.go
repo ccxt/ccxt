@@ -945,12 +945,12 @@ func (this *Onetrading) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[s
 	var takerFees []any = []any{}
 	var makerFees []any = []any{}
 	for i := 0; i < len(feeTiers); i++ {
-		var tier any = func() any {
+		var tier map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(feeTiers) {
 				return DerefScalar(feeTiers[i])
 			}
 			return nil
-		}()
+		}())
 		var volume *float64 = this.SafeNumber(tier, "volume")
 		var taker *string = this.SafeString(tier, "taker_fee")
 		var maker *string = this.SafeString(tier, "maker_fee")
@@ -1440,12 +1440,12 @@ func (this *Onetrading) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < len(balances); i++ {
-		var balance any = func() any {
+		var balance map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(balance, "currency_code")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

@@ -3234,12 +3234,12 @@ func (this *Kucoin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		}
 		var chains []any = SafeListTyped(fee, "chains")
 		for i := 0; i < len(chains); i++ {
-			var chain any = func() any {
+			var chain map[string]any = MapTyped(func() any {
 				if i >= 0 && i < len(chains) {
 					return DerefScalar(chains[i])
 				}
 				return nil
-			}()
+			}())
 			var chainId *string = this.SafeString(chain, "chainId")
 			var networkCodeNew any = this.NetworkIdToCode(chainId, this.SafeString(currency, "code"))
 			if networkCodeNew != nil {
@@ -5892,7 +5892,7 @@ func (this *Kucoin) createSpotOrdersBody(ch chan any, orders any, optionalArgs .
 	var ordersRequests []any = []any{}
 	var symbol any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if marketId == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
@@ -6007,7 +6007,7 @@ func (this *Kucoin) createContractOrdersBody(ch chan any, orders any, optionalAr
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
@@ -10346,7 +10346,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 		var assets any = this.SafeValue(data, "assets", data)
 		for i := 0; i < GetArrayLength(assets); i++ {
-			var entry any = GetValue(assets, i)
+			var entry map[string]any = MapTyped(GetValue(assets, i))
 			var base map[string]any = MapTyped(this.SafeDict(entry, "baseAsset", map[string]any{}))
 			var quote map[string]any = MapTyped(this.SafeDict(entry, "quoteAsset", map[string]any{}))
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "currency"))
@@ -10601,12 +10601,12 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
 	var accounts []any = SafeListTypedDefault(data, "accounts", []any{})
 	if isIsolated {
 		for i := 0; i < len(accounts); i++ {
-			var entry any = func() any {
+			var entry map[string]any = MapTyped(func() any {
 				if i >= 0 && i < len(accounts) {
 					return DerefScalar(accounts[i])
 				}
 				return nil
-			}()
+			}())
 			var currencies []any = SafeListTypedDefault(entry, "currencies", []any{})
 			for j := 0; j < len(currencies); j++ {
 				var currencyEntry map[string]any = MapTyped(this.SafeDict(currencies, j, map[string]any{}))

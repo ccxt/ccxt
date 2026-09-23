@@ -2435,7 +2435,7 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		var keysLength int = len(keys)
 		for i := 0; i < keysLength; i++ {
 			var key string = keys[i]
-			var value any = GetValue(withdrawalFees, key)
+			var value map[string]any = MapTyped(GetValue(withdrawalFees, key))
 			var currencyId *string = this.SafeString(value, "symbol")
 			var currencyCode *string = this.SafeCurrencyCode(currencyId)
 			var networkCode any = this.NetworkIdToCode(key, currencyCode)

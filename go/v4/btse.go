@@ -1295,19 +1295,19 @@ func (this *Btse) ParseBalance(response any) any {
 	var frees map[string]any = map[string]any{}
 	var useds map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var row any = GetValue(response, i)
+		var row map[string]any = MapTyped(GetValue(response, i))
 		var assets any = this.SafeList(row, "assets")
 		if !IsEqual(assets, nil) {
 			// futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
 			// several wallet rows can report the same currency, so amounts are aggregated
 			var inUse []any = SafeListTyped(row, "assetsInUse")
 			for j := 0; j < len(inUse); j++ {
-				var usedRow any = func() any {
+				var usedRow map[string]any = MapTyped(func() any {
 					if j >= 0 && j < len(inUse) {
 						return DerefScalar(inUse[j])
 					}
 					return nil
-				}()
+				}())
 				var usedCode *string = this.SafeCurrencyCode(this.SafeString(usedRow, "currency"))
 				if usedCode == nil {
 					continue
@@ -1315,7 +1315,7 @@ func (this *Btse) ParseBalance(response any) any {
 				AddElementToObject(useds, usedCode, Precise.StringAdd(this.SafeString(useds, usedCode, "0"), this.SafeString(usedRow, "balance")))
 			}
 			for j := 0; j < GetArrayLength(assets); j++ {
-				var assetRow any = GetValue(assets, j)
+				var assetRow map[string]any = MapTyped(GetValue(assets, j))
 				var code *string = this.SafeCurrencyCode(this.SafeString(assetRow, "currency"))
 				if code == nil {
 					continue
@@ -1407,7 +1407,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+		var entry map[string]any = MapTyped(GetValue(data, i))
 		var marketId *string = this.SafeString(entry, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = GetValue(market, "symbol")
@@ -4494,7 +4494,7 @@ func (this *Btse) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 	var shortLeverage any = nil
 	var marginMode any = nil
 	for i := 0; i < GetArrayLength(safeResponse); i++ {
-		var entrty any = GetValue(safeResponse, i)
+		var entrty map[string]any = MapTyped(GetValue(safeResponse, i))
 		var leverageValue *int64 = this.SafeInteger(entrty, "leverage")
 		var positionDirection *string = this.SafeString(entrty, "positionDirection")
 		marginMode = this.SafeStringLower(entrty, "marginMode")
@@ -4627,7 +4627,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 		rows = []any{response}
 	}
 	for i := 0; i < GetArrayLength(rows); i++ {
-		var row any = GetValue(rows, i)
+		var row map[string]any = MapTyped(GetValue(rows, i))
 		var status *string = this.SafeString(row, "status")
 		if status != nil {
 			var message *string = this.SafeString(row, "message")

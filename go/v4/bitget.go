@@ -7260,7 +7260,7 @@ func (this *Bitget) ParseUtaBalance(balance any) any {
 	//     }
 	//
 	for i := 0; i < GetArrayLength(balance); i++ {
-		var entry any = GetValue(balance, i)
+		var entry map[string]any = MapTyped(GetValue(balance, i))
 		var account map[string]any = this.Account()
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -7326,7 +7326,7 @@ func (this *Bitget) ParseBalance(balance any) any {
 	//       }
 	//
 	for i := 0; i < GetArrayLength(balance); i++ {
-		var entry any = GetValue(balance, i)
+		var entry map[string]any = MapTyped(GetValue(balance, i))
 		var account map[string]any = this.Account()
 		var currencyId *string = this.SafeString2(entry, "marginCoin", "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -8373,7 +8373,7 @@ func (this *Bitget) createUtaOrdersBody(ch chan any, orders any, optionalArgs ..
 	var symbol any = nil
 	var marginMode any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if IsEqual(symbol, nil) {
 			symbol = marketId
@@ -8466,7 +8466,7 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	var symbol any = nil
 	var marginMode any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if IsEqual(symbol, nil) {
 			symbol = marketId
@@ -13430,12 +13430,12 @@ func (this *Bitget) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		"networks": map[string]any{},
 	}
 	for i := 0; i < chainsLength; i++ {
-		var chain any = func() any {
+		var chain map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(chains) {
 				return DerefScalar(chains[i])
 			}
 			return nil
-		}()
+		}())
 		var networkId *string = this.SafeString(chain, "chain")
 		var currencyCode *string = this.SafeString(currency, "code")
 		var networkCode any = this.NetworkIdToCode(networkId, currencyCode)

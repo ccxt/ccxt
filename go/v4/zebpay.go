@@ -2365,12 +2365,12 @@ func (this *Zebpay) ParseBalance(response any) any {
 	}
 	var currencyList []any = SafeListTyped(response, "data")
 	for i := 0; i < len(currencyList); i++ {
-		var entry any = func() any {
+		var entry map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(currencyList) {
 				return DerefScalar(currencyList[i])
 			}
 			return nil
-		}()
+		}())
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(entry, "total")
 		account["free"] = this.SafeString(entry, "free")

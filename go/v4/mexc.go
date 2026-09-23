@@ -3262,7 +3262,7 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 	var ordersRequests []any = []any{}
 	var symbol any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var market map[string]any = MapTyped(this.Market(marketId))
 		if GetValue(market, "spot") != true {
@@ -7171,12 +7171,12 @@ func (this *Mexc) ParseTransactionFee(transaction any, optionalArgs ...any) map[
 	var networkList []any = SafeListTyped(transaction, "networkList")
 	var result map[string]any = map[string]any{}
 	for j := 0; j < len(networkList); j++ {
-		var networkEntry any = func() any {
+		var networkEntry map[string]any = MapTyped(func() any {
 			if j >= 0 && j < len(networkList) {
 				return DerefScalar(networkList[j])
 			}
 			return nil
-		}()
+		}())
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode *string = this.SafeString(GetValue(this.Options, "networks"), networkId, networkId)
 		var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
@@ -7278,12 +7278,12 @@ func (this *Mexc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	var networkList []any = SafeListTyped(fee, "networkList")
 	var result any = this.DepositWithdrawFee(fee)
 	for j := 0; j < len(networkList); j++ {
-		var networkEntry any = func() any {
+		var networkEntry map[string]any = MapTyped(func() any {
 			if j >= 0 && j < len(networkList) {
 				return DerefScalar(networkList[j])
 			}
 			return nil
-		}()
+		}())
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode any = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 		if networkCode != nil {
@@ -7373,7 +7373,7 @@ func (this *Mexc) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var longLeverage *int64 = nil
 	var shortLeverage *int64 = nil
 	for i := 0; i < GetArrayLength(leverage); i++ {
-		var entry any = GetValue(leverage, i)
+		var entry map[string]any = MapTyped(GetValue(leverage, i))
 		var openType *int64 = this.SafeInteger(entry, "openType")
 		var positionType *int64 = this.SafeInteger(entry, "positionType")
 		if positionType != nil && *positionType == 1 {

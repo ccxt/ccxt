@@ -1474,7 +1474,7 @@ func (this *Deribit) ParseBalance(balance any) any {
 		summaries = []any{balance}
 	}
 	for i := 0; i < GetArrayLength(summaries); i++ {
-		var data any = GetValue(summaries, i)
+		var data map[string]any = MapTyped(GetValue(summaries, i))
 		var currencyId *string = this.SafeString(data, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

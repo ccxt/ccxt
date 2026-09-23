@@ -3115,12 +3115,12 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) any 
 		"info": response,
 	}
 	for b := 0; b < len(balances); b++ {
-		var balance any = func() any {
+		var balance map[string]any = MapTyped(func() any {
 			if b >= 0 && b < len(balances) {
 				return DerefScalar(balances[b])
 			}
 			return nil
-		}()
+		}())
 		var typeVar *string = this.SafeString(balance, "type")
 		if this.InArray(typeVar, accounts) {
 			var value any = this.SafeDict(balance, "balance")
@@ -6597,19 +6597,19 @@ func (this *Coinbase) fetchPortfolioDetailsBody(ch chan any, portfolioUuid any, 
 	return nil
 }
 func (this *Coinbase) ParsePortfolioDetails(portfolioData any) any {
-	var breakdown any = GetValue(portfolioData, "breakdown")
+	var breakdown map[string]any = MapTyped(GetValue(portfolioData, "breakdown"))
 	var portfolioInfo map[string]any = SafeMapTyped(breakdown, "portfolio")
 	var portfolioName *string = this.SafeString(portfolioInfo, "name", "Unknown")
 	var portfolioUuid *string = this.SafeString(portfolioInfo, "uuid", "")
 	var spotPositions []any = SafeListTyped(breakdown, "spot_positions")
 	var parsedPositions []any = []any{}
 	for i := 0; i < len(spotPositions); i++ {
-		var position any = func() any {
+		var position map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(spotPositions) {
 				return DerefScalar(spotPositions[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyCode *string = this.SafeString(position, "asset", "Unknown")
 		var availableBalanceStr *string = this.SafeString(position, "available_to_trade_fiat", "0")
 		var availableBalance any = this.ParseNumber(availableBalanceStr)

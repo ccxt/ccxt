@@ -640,7 +640,7 @@ func (this *Coinone) ParseBalance(response any) any {
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
-		var balance any = GetValue(balances, currencyId)
+		var balance map[string]any = MapTyped(GetValue(balances, currencyId))
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(balance, "avail")

@@ -1601,7 +1601,7 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(balances); i++ {
-		var entry any = GetValue(balances, i)
+		var entry map[string]any = MapTyped(GetValue(balances, i))
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

@@ -3261,15 +3261,15 @@ func (this *Derive) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var subaccount any = GetValue(response, i)
+		var subaccount map[string]any = MapTyped(GetValue(response, i))
 		var collaterals []any = SafeListTyped(subaccount, "collaterals")
 		for j := 0; j < len(collaterals); j++ {
-			var balance any = func() any {
+			var balance map[string]any = MapTyped(func() any {
 				if j >= 0 && j < len(collaterals) {
 					return DerefScalar(collaterals[j])
 				}
 				return nil
-			}()
+			}())
 			var code *string = this.SafeCurrencyCode(this.SafeString(balance, "currency"))
 			var account any = this.SafeDict(result, code)
 			if IsEqual(account, nil) {

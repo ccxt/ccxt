@@ -2938,12 +2938,12 @@ func (this *Bullish) loadAccountBody(ch chan any, optionalArgs ...any) any {
 		var response []any = ListTyped(PanicOnError((<-this.PrivateGetV1AccountsTradingAccounts(params)).Raw))
 		var accounts []any = this.ToArray(response)
 		for i := 0; i < len(accounts); i++ {
-			var account any = func() any {
+			var account map[string]any = MapTyped(func() any {
 				if i >= 0 && i < len(accounts) {
 					return DerefScalar(accounts[i])
 				}
 				return nil
-			}()
+			}())
 			var name *string = this.SafeString(account, "tradingAccountName")
 			if name != nil && *name == "Primary Account" {
 				tradingAccountId = DerefScalar(this.SafeString(account, "tradingAccountId"))
@@ -3240,7 +3240,7 @@ func (this *Bullish) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance any = GetValue(response, i)
+		var balance map[string]any = MapTyped(GetValue(response, i))
 		var symbol *string = this.SafeString(balance, "assetSymbol")
 		var code *string = this.SafeCurrencyCode(symbol)
 		var account map[string]any = this.Account()

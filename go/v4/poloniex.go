@@ -4316,12 +4316,12 @@ func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var marginMode *string = nil
 	var data []any = SafeListTyped(leverage, "data")
 	for i := 0; i < len(data); i++ {
-		var entry any = func() any {
+		var entry map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(data) {
 				return DerefScalar(data[i])
 			}
 			return nil
-		}()
+		}())
 		marketId = DerefScalar(this.SafeString(entry, "symbol"))
 		// mgnMode arrives upper case; parseOrder and parsePosition read the
 		// same field with safeStringLower

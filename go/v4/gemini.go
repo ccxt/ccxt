@@ -1152,11 +1152,11 @@ func (this *Gemini) ParseMarket(response any) any {
 		var conflictingMarkets map[string]any = SafeMapTyped(this.Options, "conflictingMarkets")
 		var lowerCaseId string = strings.ToLower(marketIdWithoutPerp)
 		if func() bool { _, ok := conflictingMarkets[lowerCaseId]; return ok }() {
-			var conflictingMarket any = conflictingMarkets[lowerCaseId]
-			baseId = GetValue(conflictingMarket, "base")
-			quoteId = GetValue(conflictingMarket, "quote")
+			var conflictingMarket map[string]any = MapTyped(conflictingMarkets[lowerCaseId])
+			baseId = conflictingMarket["base"]
+			quoteId = conflictingMarket["quote"]
 			if isPerp {
-				settleId = GetValue(conflictingMarket, "quote")
+				settleId = conflictingMarket["quote"]
 			}
 		} else {
 			var quoteCurrencies any = this.HandleOption("fetchMarketsFromAPI", "quoteCurrencies", []any{})
@@ -1727,7 +1727,7 @@ func (this *Gemini) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance any = GetValue(response, i)
+		var balance map[string]any = MapTyped(GetValue(response, i))
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

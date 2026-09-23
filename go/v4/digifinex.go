@@ -809,8 +809,8 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 
 	promises := (<-promiseAll(promisesRaw))
 	PanicOnError(promises)
-	var spotMarkets any = GetValue(promises, 0)
-	var swapMarkets any = GetValue(promises, 1)
+	var spotMarkets map[string]any = MapTyped(GetValue(promises, 0))
+	var swapMarkets map[string]any = MapTyped(GetValue(promises, 1))
 	//
 	// spot and margin
 	//
@@ -1106,7 +1106,7 @@ func (this *Digifinex) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance any = GetValue(response, i)
+		var balance map[string]any = MapTyped(GetValue(response, i))
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

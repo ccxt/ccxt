@@ -1164,7 +1164,7 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	var nonce any = this.Nonce()
 	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -1320,7 +1320,7 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 	var nonce any = this.Nonce()
 	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var id *string = this.SafeString(rawOrder, "id")
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
@@ -2436,7 +2436,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	promises := (<-promiseAll(rawPromises))
 	PanicOnError(promises)
-	var responseCapitalHistory any = GetValue(promises, 0)
+	var responseCapitalHistory map[string]any = MapTyped(GetValue(promises, 0))
 	//
 	// {
 	//     "transactions": [
@@ -2491,7 +2491,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var rowsCapitalHistory []any = SafeListTypedDefault(responseCapitalHistory, "transactions", []any{})
-	var responseTradingHistory any = GetValue(promises, 1)
+	var responseTradingHistory map[string]any = MapTyped(GetValue(promises, 1))
 	//
 	// {
 	//     "tradingHistory": [

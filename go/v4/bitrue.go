@@ -1228,12 +1228,12 @@ func (this *Bitrue) ParseBalance(response any) any {
 	var timestamp *int64 = this.SafeInteger(response, "updateTime")
 	var balances []any = SafeList2Typed(response, "balances", "account")
 	for i := 0; i < len(balances); i++ {
-		var balance any = func() any {
+		var balance map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString2(balance, "asset", "marginCoin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -3414,12 +3414,12 @@ func (this *Bitrue) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	if chainDetailLength != 0 {
 		for i := 0; i < chainDetailLength; i++ {
-			var chainDetail any = func() any {
+			var chainDetail map[string]any = MapTyped(func() any {
 				if i >= 0 && i < len(chainDetails) {
 					return DerefScalar(chainDetails[i])
 				}
 				return nil
-			}()
+			}())
 			var networkId *string = this.SafeString(chainDetail, "chain")
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)

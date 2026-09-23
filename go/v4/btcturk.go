@@ -380,12 +380,12 @@ func (this *Btcturk) ParseMarket(entry any) any {
 	var maxAmount *float64 = nil
 	var minCost *float64 = nil
 	for j := 0; j < len(filters); j++ {
-		var filter any = func() any {
+		var filter map[string]any = MapTyped(func() any {
 			if j >= 0 && j < len(filters) {
 				return DerefScalar(filters[j])
 			}
 			return nil
-		}()
+		}())
 		var filterType *string = this.SafeString(filter, "filterType")
 		if filterType != nil && *filterType == "PRICE_FILTER" {
 			minPrice = this.SafeNumber(filter, "minPrice")
@@ -454,12 +454,12 @@ func (this *Btcturk) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < len(data); i++ {
-		var entry any = func() any {
+		var entry map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(data) {
 				return DerefScalar(data[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

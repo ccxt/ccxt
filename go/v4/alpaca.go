@@ -2823,12 +2823,12 @@ func (this *Alpaca) ParseBalance(response any) any {
 		AddElementToObject(result, code, cashAccount)
 	}
 	for i := 0; i < len(positions); i++ {
-		var position any = func() any {
+		var position map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(positions) {
 				return DerefScalar(positions[i])
 			}
 			return nil
-		}()
+		}())
 		var positionSymbol *string = this.SafeString(position, "symbol")
 		if positionSymbol == nil {
 			continue

@@ -599,7 +599,7 @@ func (this *Coinspot) ParseBalance(response any) any {
 			var currencyIds []string = ObjectKeys(currencies)
 			for j := 0; j < len(currencyIds); j++ {
 				var currencyId string = GetValue(currencyIds, j).(string)
-				var balance any = GetValue(currencies, currencyId)
+				var balance map[string]any = MapTyped(GetValue(currencies, currencyId))
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account map[string]any = this.Account()
 				account["total"] = this.SafeString(balance, "balance")

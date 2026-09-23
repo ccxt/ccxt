@@ -1750,12 +1750,12 @@ func (this *Xt) ParseMarket(market any) any {
 	var maxPrice *float64 = nil
 	var amountPrecision any = nil
 	for i := 0; i < len(filters); i++ {
-		var entry any = func() any {
+		var entry map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(filters) {
 				return DerefScalar(filters[i])
 			}
 			return nil
-		}()
+		}())
 		var filter *string = this.SafeString(entry, "filter")
 		if filter != nil && *filter == "QUANTITY" {
 			minAmount = this.SafeNumber(entry, "min")
@@ -3182,7 +3182,7 @@ func (this *Xt) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance any = GetValue(response, i)
+		var balance map[string]any = MapTyped(GetValue(response, i))
 		var currencyId *string = this.SafeString2(balance, "currency", "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

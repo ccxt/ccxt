@@ -881,7 +881,7 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 	//     }]
 	// }
 	//
-	var currentBuilders any = GetValue(results, 0)
+	var currentBuilders map[string]any = MapTyped(GetValue(results, 0))
 	var approvedBuilder []any = SafeListTypedDefault(currentBuilders, "results", []any{})
 	var length int = len(approvedBuilder)
 	var found bool = false
@@ -1000,7 +1000,7 @@ func (this *Grvt) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	results := (<-promiseAll(promises))
 	PanicOnError(results)
-	var response any = GetValue(results, 0)
+	var response map[string]any = MapTyped(GetValue(results, 0))
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
 	ch <- this.ParseMarkets(result)
@@ -1878,12 +1878,12 @@ func (this *Grvt) ParseBalance(response any) any {
 	var spotBalances []any = SafeListTyped(response, "spot_balances")
 	var availableBalance *string = this.SafeString(response, "available_balance")
 	for i := 0; i < len(spotBalances); i++ {
-		var balance any = func() any {
+		var balance map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(spotBalances) {
 				return DerefScalar(spotBalances[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2888,18 +2888,18 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 	var orderLegs []any = SafeListTyped(order, "legs")
 	var legs []any = []any{}
 	for i := 0; i < len(orderLegs); i++ {
-		var leg any = func() any {
+		var leg map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(orderLegs) {
 				return DerefScalar(orderLegs[i])
 			}
 			return nil
-		}()
-		var market map[string]any = MapTyped(this.Market(GetValue(leg, "instrument")))
+		}())
+		var market map[string]any = MapTyped(this.Market(leg["instrument"]))
 		var bigInt10 any = this.ConvertToBigIntCustom("10")
 		var precisionValue int = this.PrecisionFromString(this.SafeString(market["precision"], "base"))
 		var precisionValueStr string = ToString(precisionValue)
 		var sizeMultiplier float64 = MathPow(bigInt10, this.ConvertToBigIntCustom(precisionValueStr))
-		var size any = GetValue(leg, "size")
+		var size any = leg["size"]
 		var sizeParts []string = Split(size, ".")
 		var sizeDec *string = this.SafeString(sizeParts, 1, "")
 		var sizeDecLength any = GetLength(sizeDec) + 0 // php tr
@@ -2908,11 +2908,11 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 		var legOrder map[string]any = map[string]any{
 			"assetID":          GetValue(market["info"], "instrument_hash"),
 			"contractSize":     this.ParseToInt(sizeInteger),
-			"isBuyingContract": GetValue(leg, "is_buying_asset"),
+			"isBuyingContract": leg["is_buying_asset"],
 		}
 		var limitPrice *string = this.SafeString(leg, "limit_price")
 		if !IsEqual(this.OmitZero(limitPrice), nil) {
-			var price any = GetValue(leg, "limit_price")
+			var price any = leg["limit_price"]
 			var limitParts []string = Split(price, ".")
 			var limitDec *string = this.SafeString(limitParts, 1, "")
 			var limitDecLength any = GetLength(limitDec) + 0 // php tr

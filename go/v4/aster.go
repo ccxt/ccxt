@@ -2703,7 +2703,7 @@ func (this *Aster) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance any = GetValue(response, i)
+		var balance map[string]any = MapTyped(GetValue(response, i))
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -3502,7 +3502,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		panic(InvalidOrder(this.Id + " createOrders() order list max 5 orders"))
 	}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var currentMarket map[string]any = MapTyped(this.Market(marketId))
 		AppendToArray(&orderSymbols, currentMarket["symbol"])
@@ -4870,12 +4870,12 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 	var assets []any = SafeListTyped(account, "assets")
 	var balances map[string]any = map[string]any{}
 	for i := 0; i < len(assets); i++ {
-		var entry any = func() any {
+		var entry map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(assets) {
 				return DerefScalar(assets[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var crossWalletBalance *string = this.SafeString(entry, "crossWalletBalance")
@@ -5195,23 +5195,23 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 		this.Options.Store("leverageBrackets", this.CreateSafeDictionary())
 		var entries []any = this.ToArray(response)
 		for i := 0; i < len(entries); i++ {
-			var entry any = func() any {
+			var entry map[string]any = MapTyped(func() any {
 				if i >= 0 && i < len(entries) {
 					return DerefScalar(entries[i])
 				}
 				return nil
-			}()
+			}())
 			var marketId *string = this.SafeString(entry, "symbol")
 			var symbol *string = this.SafeSymbol(marketId, nil, nil, "contract")
 			var brackets []any = SafeListTyped(entry, "brackets")
 			var result []any = []any{}
 			for j := 0; j < len(brackets); j++ {
-				var bracket any = func() any {
+				var bracket map[string]any = MapTyped(func() any {
 					if j >= 0 && j < len(brackets) {
 						return DerefScalar(brackets[j])
 					}
 					return nil
-				}()
+				}())
 				var floorValue *string = this.SafeString(bracket, "notionalFloor")
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
 				result = append(result, []any{floorValue, maintenanceMarginPercentage})

@@ -3406,12 +3406,12 @@ func (this *Lbank) fetchPrivateTransactionFeesBody(ch chan any, optionalArgs ...
 	var result []any = SafeListTyped(response, "data")
 	var withdrawFees map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
-		var entry any = func() any {
+		var entry map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(result) {
 				return DerefScalar(result[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var networkList []any = SafeListTyped(entry, "networkList")
@@ -3419,12 +3419,12 @@ func (this *Lbank) fetchPrivateTransactionFeesBody(ch chan any, optionalArgs ...
 			AddElementToObject(withdrawFees, code, map[string]any{})
 		}
 		for j := 0; j < len(networkList); j++ {
-			var networkEntry any = func() any {
+			var networkEntry map[string]any = MapTyped(func() any {
 				if j >= 0 && j < len(networkList) {
 					return DerefScalar(networkList[j])
 				}
 				return nil
-			}()
+			}())
 			var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
 			if fee != nil {
 				var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
@@ -3494,12 +3494,12 @@ func (this *Lbank) fetchPublicTransactionFeesBody(ch chan any, optionalArgs ...a
 	var result []any = SafeListTyped(response, "data")
 	var withdrawFees map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
-		var item any = func() any {
+		var item map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(result) {
 				return DerefScalar(result[i])
 			}
 			return nil
-		}()
+		}())
 		var canWithdraw *string = this.SafeString(item, "canWithDraw")
 		if canWithdraw != nil && *canWithdraw == "true" {
 			var currencyId *string = this.SafeString(item, "assetCode")
@@ -3786,12 +3786,12 @@ func (this *Lbank) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	var code *string = this.SafeString(currency, "code")
 	var networkList []any = SafeListTyped(fee, "networkList")
 	for j := 0; j < len(networkList); j++ {
-		var networkEntry any = func() any {
+		var networkEntry map[string]any = MapTyped(func() any {
 			if j >= 0 && j < len(networkList) {
 				return DerefScalar(networkList[j])
 			}
 			return nil
-		}()
+		}())
 		var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
 		var isDefault *bool = this.SafeBool(networkEntry, "isDefault")

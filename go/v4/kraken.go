@@ -702,7 +702,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	responses := (<-promiseAll(promises))
 	PanicOnError(responses)
-	var assetsResponse any = GetValue(responses, 0)
+	var assetsResponse map[string]any = MapTyped(GetValue(responses, 0))
 	//
 	//     {
 	//         "error": [],
@@ -2182,7 +2182,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	var symbol any = nil
 	var market any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if IsEqual(symbol, nil) {
 			symbol = marketId
@@ -4604,12 +4604,12 @@ func (this *Kraken) HandleErrors(code any, reason any, url any, method any, head
 				if func() bool { _, ok := result["orders"]; return ok }() {
 					var orders []any = SafeListTyped(result, "orders")
 					for i := 0; i < len(orders); i++ {
-						var order any = func() any {
+						var order map[string]any = MapTyped(func() any {
 							if i >= 0 && i < len(orders) {
 								return DerefScalar(orders[i])
 							}
 							return nil
-						}()
+						}())
 						var error *string = this.SafeString(order, "error")
 						if error != nil {
 							this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, message)

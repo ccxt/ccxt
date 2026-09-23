@@ -5590,12 +5590,12 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) any {
 	} else if isolated {
 		var assets []any = SafeListTyped(response, "assets")
 		for i := 0; i < len(assets); i++ {
-			var asset any = func() any {
+			var asset map[string]any = MapTyped(func() any {
 				if i >= 0 && i < len(assets) {
 					return DerefScalar(assets[i])
 				}
 				return nil
-			}()
+			}())
 			var base map[string]any = MapTyped(this.SafeDict(asset, "baseAsset", map[string]any{}))
 			var quote map[string]any = MapTyped(this.SafeDict(asset, "quoteAsset", map[string]any{}))
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "asset"))
@@ -8062,7 +8062,7 @@ func (this *Binance) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		AppendToArray(&orderSymbols, marketId)
 		var id *string = this.SafeString(rawOrder, "id")
@@ -8894,7 +8894,7 @@ func (this *Binance) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		AppendToArray(&orderSymbols, marketId)
 		var typeVar *string = this.SafeString(rawOrder, "type")
@@ -12813,12 +12813,12 @@ func (this *Binance) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) 
 	var withdrawFees map[string]any = map[string]any{}
 	var coins []any = this.ToArray(response)
 	for i := 0; i < len(coins); i++ {
-		var entry any = func() any {
+		var entry map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(coins) {
 				return DerefScalar(coins[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var networkList []any = SafeListTyped(entry, "networkList")
@@ -12826,12 +12826,12 @@ func (this *Binance) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) 
 			AddElementToObject(withdrawFees, code, map[string]any{})
 		}
 		for j := 0; j < len(networkList); j++ {
-			var networkEntry any = func() any {
+			var networkEntry map[string]any = MapTyped(func() any {
 				if j >= 0 && j < len(networkList) {
 					return DerefScalar(networkList[j])
 				}
 				return nil
-			}()
+			}())
 			var networkId *string = this.SafeString(networkEntry, "network")
 			var networkCode *string = this.SafeCurrencyCode(networkId)
 			var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
@@ -12970,12 +12970,12 @@ func (this *Binance) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	var networkList []any = SafeListTyped(fee, "networkList")
 	var result any = this.DepositWithdrawFee(fee)
 	for j := 0; j < len(networkList); j++ {
-		var networkEntry any = func() any {
+		var networkEntry map[string]any = MapTyped(func() any {
 			if j >= 0 && j < len(networkList) {
 				return DerefScalar(networkList[j])
 			}
 			return nil
-		}()
+		}())
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
@@ -13763,12 +13763,12 @@ func (this *Binance) ParseAccountPositions(account any, optionalArgs ...any) any
 	var assets []any = SafeListTyped(account, "assets")
 	var balances map[string]any = map[string]any{}
 	for i := 0; i < len(assets); i++ {
-		var entry any = func() any {
+		var entry map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(assets) {
 				return DerefScalar(assets[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var crossWalletBalance *string = this.SafeString(entry, "crossWalletBalance")
@@ -14397,23 +14397,23 @@ func (this *Binance) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) 
 		}
 		var entries []any = this.ToArray(response)
 		for i := 0; i < len(entries); i++ {
-			var entry any = func() any {
+			var entry map[string]any = MapTyped(func() any {
 				if i >= 0 && i < len(entries) {
 					return DerefScalar(entries[i])
 				}
 				return nil
-			}()
+			}())
 			var marketId *string = this.SafeString(entry, "symbol")
 			var symbol *string = this.SafeSymbol(marketId, nil, nil, "contract")
 			var brackets []any = SafeListTyped(entry, "brackets")
 			var result []any = []any{}
 			for j := 0; j < len(brackets); j++ {
-				var bracket any = func() any {
+				var bracket map[string]any = MapTyped(func() any {
 					if j >= 0 && j < len(brackets) {
 						return DerefScalar(brackets[j])
 					}
 					return nil
-				}()
+				}())
 				var floorValue *string = this.SafeString2(bracket, "notionalFloor", "qtyFloor")
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
 				result = append(result, []any{floorValue, maintenanceMarginPercentage})
@@ -16483,7 +16483,7 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
 		// cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
 		var arrayLength int = GetArrayLength(response)
 		if arrayLength == 1 {
-			var element any = GetValue(response, 0)
+			var element map[string]any = MapTyped(GetValue(response, 0))
 			var errorCode *string = this.SafeString(element, "code")
 			if errorCode != nil {
 				this.ThrowExactlyMatchedException(this.GetExceptionsByUrl(url, "exact"), errorCode, Add(this.Id+" ", body))

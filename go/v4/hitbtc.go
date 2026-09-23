@@ -1230,7 +1230,7 @@ func (this *Hitbtc) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var entry any = GetValue(response, i)
+		var entry map[string]any = MapTyped(GetValue(response, i))
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -4696,12 +4696,12 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	var networks []any = SafeListTyped(fee, "networks")
 	var result any = this.DepositWithdrawFee(fee)
 	for j := 0; j < len(networks); j++ {
-		var networkEntry any = func() any {
+		var networkEntry map[string]any = MapTyped(func() any {
 			if j >= 0 && j < len(networks) {
 				return DerefScalar(networks[j])
 			}
 			return nil
-		}()
+		}())
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var code *string = this.SafeString(currency, "code")
 		var networkCode any = this.NetworkIdToCode(networkId, code)

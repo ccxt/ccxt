@@ -1017,12 +1017,12 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var data []any = SafeListTyped(response, "data")
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var marketData any = func() any {
+		var marketData map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(data) {
 				return DerefScalar(data[i])
 			}
 			return nil
-		}()
+		}())
 		var marketId *string = this.SafeString(marketData, "name")
 		var market any = this.SafeMarket(marketId)
 		var stats map[string]any = MapTyped(this.SafeDict(marketData, "marketStats", map[string]any{}))

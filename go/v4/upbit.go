@@ -773,7 +773,7 @@ func (this *Upbit) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance any = GetValue(response, i)
+		var balance map[string]any = MapTyped(GetValue(response, i))
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -907,19 +907,19 @@ func (this *Upbit) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var orderbooks []any = this.ToArray(response)
 	for i := 0; i < len(orderbooks); i++ {
-		var orderbook any = func() any {
+		var orderbook map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(orderbooks) {
 				return DerefScalar(orderbooks[i])
 			}
 			return nil
-		}()
+		}())
 		var marketId *string = this.SafeString(orderbook, "market")
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 		AddElementToObject(result, symbol, map[string]any{
 			"symbol":    symbol,
-			"bids":      this.SortBy(this.ParseOrderBookBidsAsks(GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true),
-			"asks":      this.SortBy(this.ParseOrderBookBidsAsks(GetValue(orderbook, "orderbook_units"), "ask_price", "ask_size"), 0),
+			"bids":      this.SortBy(this.ParseOrderBookBidsAsks(orderbook["orderbook_units"], "bid_price", "bid_size"), 0, true),
+			"asks":      this.SortBy(this.ParseOrderBookBidsAsks(orderbook["orderbook_units"], "ask_price", "ask_size"), 0),
 			"timestamp": timestamp,
 			"datetime":  this.Iso8601(timestamp),
 			"nonce":     nil,
@@ -2395,7 +2395,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		cost = "0"
 		for i := 0; i < numTrades; i++ {
-			var trade any = GetValue(trades, i)
+			var trade map[string]any = MapTyped(GetValue(trades, i))
 			cost = Precise.StringAdd(cost, this.SafeString(trade, "cost"))
 			if getFeesFromTrades {
 				var tradeFee map[string]any = SafeMapTyped(GetValue(trades, i), "fee")

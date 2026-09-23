@@ -2150,12 +2150,12 @@ func (this *Hashkey) ParseBalance(balance any) any {
 	}
 	var balances []any = SafeListTyped(balance, "balances")
 	for i := 0; i < len(balances); i++ {
-		var balanceEntry any = func() any {
+		var balanceEntry map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(balanceEntry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -3338,7 +3338,7 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -3352,12 +3352,12 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		}
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	var firstOrder any = func() any {
+	var firstOrder map[string]any = MapTyped(func() any {
 		if 0 >= 0 && 0 < len(ordersRequests) {
 			return DerefScalar(ordersRequests[0])
 		}
 		return nil
-	}()
+	}())
 	var firstSymbol *string = this.SafeString(firstOrder, "symbol")
 	var market map[string]any = MapTyped(this.Market(firstSymbol))
 	var request map[string]any = map[string]any{

@@ -801,7 +801,7 @@ func (this *Bithumb) ParseBalance(response any) any {
 		}
 	} else {
 		for i := 0; i < GetArrayLength(response); i++ {
-			var entry any = GetValue(response, i)
+			var entry map[string]any = MapTyped(GetValue(response, i))
 			var account map[string]any = this.Account()
 			var currencyId *string = this.SafeString(entry, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
@@ -928,12 +928,12 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		var bids []any = []any{}
 		var asks []any = []any{}
 		for i := 0; i < len(orderBookUnits); i++ {
-			var entry any = func() any {
+			var entry map[string]any = MapTyped(func() any {
 				if i >= 0 && i < len(orderBookUnits) {
 					return DerefScalar(orderBookUnits[i])
 				}
 				return nil
-			}()
+			}())
 			bids = append(bids, map[string]any{
 				"price":    this.SafeString(entry, "bid_price"),
 				"quantity": this.SafeString(entry, "bid_size"),
@@ -1878,7 +1878,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder any = GetValue(orders, i)
+		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires each order to have a symbol"))

@@ -806,12 +806,12 @@ func (this *Bitbank) ParseBalance(response any) any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var assets []any = SafeListTyped(data, "assets")
 	for i := 0; i < len(assets); i++ {
-		var balance any = func() any {
+		var balance map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(assets) {
 				return DerefScalar(assets[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

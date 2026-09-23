@@ -636,12 +636,12 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var takerFees []any = []any{}
 		var makerFees []any = []any{}
 		for j := 0; j < len(feeTiers); j++ {
-			var tier any = func() any {
+			var tier map[string]any = MapTyped(func() any {
 				if j >= 0 && j < len(feeTiers) {
 					return DerefScalar(feeTiers[j])
 				}
 				return nil
-			}()
+			}())
 			var volume *float64 = this.SafeNumber(tier, "volume")
 			var takerFee *float64 = this.SafeNumber(tier, "taker")
 			var makerFee *float64 = this.SafeNumber(tier, "maker")
@@ -805,12 +805,12 @@ func (this *Bitso) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < len(balances); i++ {
-		var balance any = func() any {
+		var balance map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

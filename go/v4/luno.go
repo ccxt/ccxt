@@ -774,12 +774,12 @@ func (this *Luno) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < len(wallets); i++ {
-		var wallet any = func() any {
+		var wallet map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(wallets) {
 				return DerefScalar(wallets[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(wallet, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var reserved *string = this.SafeString(wallet, "reserved")
