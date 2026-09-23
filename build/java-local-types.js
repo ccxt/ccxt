@@ -1331,6 +1331,148 @@ function awaitedThisCallType (node) {
     return table?.get (methodName);
 }
 
+// ===== awaited cores: `(this.<m>(...)).join()` carries the exact T the generated file declares =====
+// The compiler resolves the call against the on-disk class chain, so one reachable
+// `CompletableFuture<T>` spelling is the proof; `Object` T and primitive spellings are declined.
+const JAVA_CORE_DIRS = { rest: 'exchanges', pro: 'exchanges/pro', prediction: 'exchanges/prediction' };
+const JAVA_CORE_TIER_FILES = { rest: [ 'Exchange.java' ], pro: [ 'Exchange.java' ], prediction: [ 'PredictionExchange.java' ] };
+const JAVA_CORE_METHOD = /^\s*(?:public|protected)\s+(?:java\.util\.concurrent\.)?CompletableFuture<(.+?)>\s+(\w+)\s*\(/;
+const JAVA_CORE_TYPE_OK = /^(?:java\.util\.)?(?:List|Map)<[A-Za-z0-9_$<>,. ]+>$|^[A-Z][A-Za-z0-9_]*$|^String$|^Long$|^Double$|^Boolean$|^Void$/;
+const javaCoreTables = new Map ();
+
+function javaCoreTierOf (node) {
+    const fileName = node.getSourceFile?.()?.fileName ?? '';
+    if (/[\\/]prediction[\\/]/.test (fileName)) {
+        return 'prediction';
+    }
+    return /[\\/]pro[\\/]/.test (fileName) ? 'pro' : 'rest';
+}
+
+// the on-disk generated files the compiler resolves a core call through, most derived first
+function javaCoreFileCandidates (node) {
+    const tier = javaCoreTierOf (node);
+    const id = sourceExchangeId (node);
+    const capital = id.charAt (0).toUpperCase () + id.slice (1);
+    const root = path.join (JAVA_API_FOLDER, '..');
+    const files = [ path.join (root, JAVA_CORE_DIRS[tier], capital + '.java') ];
+    if (tier === 'pro') {
+        // `class Binance extends io.github.ccxt.exchanges.Binance`
+        files.push (path.join (root, JAVA_CORE_DIRS.rest, capital + '.java'));
+    }
+    for (const base of JAVA_CORE_TIER_FILES[tier]) {
+        files.push (path.join (root, base));
+    }
+    files.push (path.join (root, 'BaseExchange.java'));
+    return files;
+}
+
+// method name -> Set of the T spellings every reachable `CompletableFuture<T>` declares
+function javaCoreReturnTypes (node) {
+    const key = javaCoreTierOf (node) + '|' + sourceExchangeId (node);
+    if (javaCoreTables.has (key)) {
+        return javaCoreTables.get (key);
+    }
+    const table = new Map ();
+    for (const file of javaCoreFileCandidates (node)) {
+        let content;
+        try {
+            content = fs.readFileSync (file, 'utf8');
+        } catch (e) {
+            continue; // venue file not generated yet — never fatal
+        }
+        for (const line of content.split ('\n')) {
+            const match = JAVA_CORE_METHOD.exec (line);
+            if (match === null) {
+                continue;
+            }
+            const types = table.get (match[2]) ?? new Set ();
+            types.add (qualifyApiReturnType (match[1]));
+            table.set (match[2], types);
+        }
+    }
+    javaCoreTables.set (key, table);
+    return table;
+}
+
+// the Java type of `await this.<core>(...)` / `await super.<core>(...)`, or undefined when
+// no reachable on-disk declaration proves a single accepted T
+function awaitedCoreCallType (node) {
+    if (node?.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    const call = node.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || !isThisOrSuperCall (call)) {
+        return undefined;
+    }
+    const methodName = call.expression.name?.escapedText;
+    if (methodName === undefined) {
+        return undefined;
+    }
+    const types = javaCoreReturnTypes (node)?.get (methodName);
+    if (types === undefined || types.size !== 1) {
+        return undefined;
+    }
+    const type = [ ...types ][0];
+    return type !== 'Object' && JAVA_CORE_TYPE_OK.test (type) ? type : undefined;
+}
+
+// ===== sync whole-call initialisers: `Object x = this.<m>(...)` =====
+// Same on-disk read, and the value is never a future: a name with any reachable
+// `CompletableFuture` declaration belongs to the awaited family; the module's own traps stay refused.
+const JAVA_CORE_ANY_METHOD = /^\s*(?:public|protected)\s+(?:static\s+final\s+|static\s+|final\s+|abstract\s+|synchronized\s+)*([\w.$]+(?:<[^()]*>)?)\s+(\w+)\s*\(/;
+const JAVA_CORE_SYNC_DECLINED = new Set ([ 'omit', 'omitN', 'omitZero', 'clone', 'deepExtend2', 'sort' ]);
+const javaCoreDeclTables = new Map ();
+
+// method name -> { types: Set of every declared return spelling, future: bool }
+function javaCoreDeclarationTable (node) {
+    const key = javaCoreTierOf (node) + '|' + sourceExchangeId (node);
+    if (javaCoreDeclTables.has (key)) {
+        return javaCoreDeclTables.get (key);
+    }
+    const table = new Map ();
+    for (const file of javaCoreFileCandidates (node)) {
+        let content;
+        try {
+            content = fs.readFileSync (file, 'utf8');
+        } catch (e) {
+            continue;
+        }
+        for (const line of content.split ('\n')) {
+            // a typed core and its untyped front print the same return token, so the Set
+            // stays one-valued for a split method
+            const match = JAVA_CORE_ANY_METHOD.exec (line);
+            if (match === null) {
+                continue;
+            }
+            const entry = table.get (match[2]) ?? { types: new Set (), future: false };
+            entry.types.add (qualifyApiReturnType (match[1].replace (/\s+/g, '')));
+            if (/^(?:java\.util\.concurrent\.)?CompletableFuture</.test (match[1])) {
+                entry.future = true;
+            }
+            table.set (match[2], entry);
+        }
+    }
+    javaCoreDeclTables.set (key, table);
+    return table;
+}
+
+function syncCoreCallType (node) {
+    if (node?.kind !== ts.SyntaxKind.CallExpression || !isThisOrSuperCall (node)) {
+        return undefined;
+    }
+    const methodName = node.expression.name?.escapedText;
+    if (methodName === undefined || JAVA_CORE_SYNC_DECLINED.has (methodName)) {
+        return undefined;
+    }
+    const entry = javaCoreDeclarationTable (node)?.get (methodName);
+    if (entry === undefined || entry.future || entry.types.size !== 1) {
+        return undefined;
+    }
+    const type = [ ...entry.types ][0];
+    return type !== 'Object' && JAVA_CORE_TYPE_OK.test (type) ? type : undefined;
+}
+
+
 // ===== helpers =====
 
 const JAVA_ARRAY_TYPE = 'java.util.List<Object>';
@@ -1914,9 +2056,11 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     // awaited generated api calls: `(this.<endpoint>(...)).join()` has the T of the
     // endpoint's on-disk `CompletableFuture<T>` — cast-free
     if (initializer.kind === ts.SyntaxKind.AwaitExpression) {
-        const awaited = awaitedThisCallType (initializer);
+        const awaited = awaitedThisCallType (initializer) ?? awaitedCoreCallType (initializer);
         if (awaited !== undefined) {
-            return { type: awaited, valuePrefix: '(this.', strictPlus: awaited === 'String' };
+            // the api stubs are reached through `this.` only; a generated core can be called
+            // through `super.` too — both print `(<receiver>.<m>(...)).join()`
+            return { type: awaited, valuePrefixes: [ '(this.', '(super.' ], strictPlus: awaited === 'String' };
         }
         return undefined;
     }
@@ -2032,6 +2176,15 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     if (parseStructure !== undefined) {
         return parseStructure;
     }
+    // sync whole-call initialiser (`Object x = this.<m>(...)`): the callee's declaration
+    // read over the class chain has the static type of the call. Last in the function so
+    // every name a family above already covers keeps that family's audit.
+    if (!asserted) {
+        const sync = syncCoreCallType (assertedCall);
+        if (sync !== undefined) {
+            return { type: sync };
+        }
+    }
     return undefined;
 }
 
@@ -2068,7 +2221,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 && isProvablyStringExpression (printer, node.left, selfName, undefined);
         case ts.SyntaxKind.AwaitExpression:
             // `x = await this.<endpoint>(...)` — same T as the declaration's callee
-            return awaitedThisCallType (node) === javaType;
+            return (awaitedThisCallType (node) ?? awaitedCoreCallType (node)) === javaType;
         case ts.SyntaxKind.ElementAccessExpression:
             // `x = this.trades[key]` / `this.orderbooks[key]` — a ws map read
             return isWsType (javaType) && wsMapReadType (node) === javaType;
@@ -2153,6 +2306,11 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                     && accessorDefaultProvesBoolean (node, accessor.defaultArg)
                     && safeBoolCallTypeIsBoolean (printer, node)
                     && accessorResolvesToBase (printer, node, name, accessor);
+            }
+            // a later sync core write (`x = this.<m>(...)`): the same on-disk declaration
+            // the initialiser read proves the box
+            if (syncCoreCallType (node) === javaType) {
+                return true;
             }
             return false;
         }
