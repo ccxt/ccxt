@@ -155,6 +155,91 @@ const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/java/examples/';
 const csharpComments: any = {};
 
+// the raw-text `final Object finalX = x;` hoists and the async-param snapshots are emitted
+// as plain text, so no local-type family can re-type them; this pass copies the source
+// declaration's own emitted type token onto the hoist — never a cast, never a primitive.
+const RETYPE_HOIST_LINE = /^(\s*)final Object (final[A-Za-z0-9_]+) = ([A-Za-z_$][A-Za-z0-9_$]*);$/;
+const RETYPE_SNAPSHOT_LINE = /^(\s*)final Object ([A-Za-z_$][A-Za-z0-9_$]*3) = ([A-Za-z_$][A-Za-z0-9_$]*2);$/;
+const RETYPE_REFERENCE_TYPES = new Set ([
+    'String', 'Long', 'Double', 'Boolean', 'Integer', 'Character',
+    'java.lang.String', 'java.lang.Long', 'java.lang.Double', 'java.lang.Boolean',
+    'java.lang.Integer', 'java.lang.Character',
+]);
+const RETYPE_TYPED_CONTAINER = /^(?:java\.util\.)?(?:List|Map|Set)<[A-Za-z0-9_$<>,. ]*>$/;
+const RETYPE_MEMBER_BOUNDARY = /^\s*(?:public|private|protected|@)/;
+const RETYPE_METHOD_END = /^ {0,4}\}$/;
+// audited use shapes — the positions a hoisted name may occupy for the retype to fire: the
+// `put` of the anonymous `HashMap<String, Object>` initializer every parse* returns, and the
+// async-param snapshot's single widening copy (both fixed-parameter Object positions).
+const RETYPE_AUDITED_USE_SHAPES = [
+    /^\s*(?:[A-Za-z_$][\w$.]*\s*\.\s*)?put\s*\([^;]*,\s*NAME\s*\)\s*;$/,
+    /^\s*(?:final\s+)?Object\s+[A-Za-z_$][\w$]*\s*=\s*NAME\s*;$/,
+];
+
+function retypeReferenceToken (token: string | undefined): string | undefined {
+    if (token === undefined) return undefined;
+    const t = token.trim ();
+    if (t === '' || t === 'Object' || t === 'var') return undefined;
+    if (RETYPE_REFERENCE_TYPES.has (t)) return t;
+    if (RETYPE_TYPED_CONTAINER.test (t)) return t;
+    return undefined;
+}
+
+// the member (method) window: a generated file closes a member with a 4-space `}` and opens a
+// new one with a `public|private|protected`/`@` line — the convention the final pass below
+// and `fixEffectivelyFinal` share
+function retypeMemberStart (lines: string[], index: number): number {
+    for (let j = index - 1; j >= 0; j--) {
+        if (RETYPE_MEMBER_BOUNDARY.test (lines[j]) || RETYPE_METHOD_END.test (lines[j])) return j;
+    }
+    return -1;
+}
+
+function retypeMemberEnd (lines: string[], index: number): number {
+    for (let j = index + 1; j < lines.length; j++) {
+        if (RETYPE_MEMBER_BOUNDARY.test (lines[j]) || RETYPE_METHOD_END.test (lines[j])) return j - 1;
+    }
+    return lines.length - 1;
+}
+
+function retypeSignatureLine (lines: string[], from: number, to: number): number {
+    for (let j = to; j >= from; j--) {
+        if (/^\s*(?:public|private|protected)\s+.*\(.*\)/.test (lines[j])) return j;
+    }
+    return -1;
+}
+
+function retypeParameterType (signature: string, name: string): string | undefined {
+    const open = signature.indexOf ('(');
+    const close = signature.lastIndexOf (')');
+    if (open === -1 || close === -1 || close < open) return undefined;
+    const params = signature.slice (open + 1, close);
+    let depth = 0;
+    let start = 0;
+    const parts: string[] = [];
+    for (let k = 0; k < params.length; k++) {
+        const c = params[k];
+        if (c === '<' || c === '(' || c === '[') depth++;
+        else if (c === '>' || c === ')' || c === ']') depth--;
+        else if (c === ',' && depth === 0) { parts.push (params.slice (start, k)); start = k + 1; }
+    }
+    parts.push (params.slice (start));
+    for (const part of parts) {
+        const tokens = part.trim ().split (/\s+/);
+        if (tokens.length < 2 || tokens[tokens.length - 1] !== name) continue;
+        return tokens.slice (0, tokens.length - 1).join (' ').replace (/^final\s+/, '').replace (/\.\.\.$/, '');
+    }
+    return undefined;
+}
+
+function retypeUseIsAudited (line: string, name: string): boolean {
+    if (!new RegExp (`\\b${name}\\b`).test (line)) return true;   // the line does not mention the hoist
+    for (const shape of RETYPE_AUDITED_USE_SHAPES) {
+        if (new RegExp (shape.source.replace (/NAME/g, name)).test (line)) return true;
+    }
+    return false;
+}
+
 // every ts/src/prediction/*.ts venue — read by getPredictionImplementedNames() to decide
 // which Exchange-tier methods get injected into PredictionExchange.java, so they are real
 // inputs of the prediction base stage. Computed once per process.
@@ -2918,6 +3003,10 @@ class NewTranspiler {
             content = this.postProcessWsJava(content, name, true, true);
         }
         content = this.addDeprecatedAnnotations(content);
+
+        // retype the raw-text `final Object` hoists (see retypeFinalVarDeclarations)
+        content = this.retypeFinalVarDeclarations(content);
+
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
 
@@ -3967,6 +4056,63 @@ class NewTranspiler {
         }
 
         return lines.join('\n');
+    }
+
+    // retypes the raw-text `final Object` hoists and the async-param snapshots to the source
+    // declaration's own emitted type token (never a cast); a later use that is not an audited
+    // fixed-parameter Object position keeps the line as the transpiler printed it
+    retypeFinalVarDeclarations (content: string): string {
+        const lines = content.split ('\n');
+        const debug = process.env.CCXT_JAVA_FINAL_HOIST_DEBUG === '1';
+        for (let i = 0; i < lines.length; i++) {
+            const hoistMatch = lines[i].match (RETYPE_HOIST_LINE);
+            const snapshotMatch = hoistMatch === null ? lines[i].match (RETYPE_SNAPSHOT_LINE) : null;
+            const match = hoistMatch !== null ? hoistMatch : snapshotMatch;
+            if (match === null) continue;
+            const isSnapshot = hoistMatch === null;
+            const indent = match[1];
+            const hoistedName = match[2];
+            const sourceName = match[3];
+            const start = retypeMemberStart (lines, i);
+            const end = retypeMemberEnd (lines, i);
+
+            // 1. the source type: the nearest preceding declaration of the same name inside the
+            //    member, or — for the async snapshot shape — the parameter type from the signature
+            let typeToken: string | undefined;
+            if (!isSnapshot) {
+                for (let j = i - 1; j > start; j--) {
+                    const decl = lines[j].match (new RegExp (`^(\\s*)(?:final\\s+)?([A-Za-z_$][\\w$.]*(?:<[^;=]*>)?)\\s+${sourceName}\\s*=`));
+                    if (decl !== null) {
+                        if (decl[1].length > indent.length) break;      // deeper scope: a shadow
+                        typeToken = decl[2];
+                        break;
+                    }
+                }
+            } else {
+                const signature = retypeSignatureLine (lines, start, i - 1);
+                if (signature !== -1) typeToken = retypeParameterType (lines[signature], sourceName);
+            }
+            const reference = retypeReferenceToken (typeToken);
+            if (reference === undefined) {
+                if (debug) console.log (`final-hoist decline ${hoistedName} (source ${typeToken === undefined ? 'not found' : typeToken})`);
+                continue;
+            }
+
+            // 2. every later mention of the hoisted name inside the member must be an audited
+            //    fixed-parameter Object position
+            let audited = true;
+            for (let j = i + 1; j <= end; j++) {
+                if (!retypeUseIsAudited (lines[j], hoistedName)) { audited = false; break; }
+            }
+            if (!audited) {
+                if (debug) console.log (`final-hoist decline ${hoistedName} (use not audited)`);
+                continue;
+            }
+
+            lines[i] = `${indent}final ${reference} ${hoistedName} = ${sourceName};`;
+            if (debug) console.log (`final-hoist retype ${hoistedName} -> ${reference} (source ${sourceName})`);
+        }
+        return lines.join ('\n');
     }
 
     fixEffectivelyFinal(content: string): string {
