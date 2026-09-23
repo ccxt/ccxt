@@ -2355,14 +2355,14 @@ func (this *Coinex) fetchMarginBalanceBody(ch chan any, optionalArgs ...any) any
 		var used map[string]any = SafeMapTyped(entry, "frozen")
 		var loan map[string]any = SafeMapTyped(entry, "repaid")
 		var interest map[string]any = SafeMapTyped(entry, "interest")
-		var baseAccount any = this.Account()
+		var baseAccount map[string]any = this.Account()
 		var baseCurrencyId *string = this.SafeString(entry, "base_ccy")
 		var baseCurrencyCode *string = this.SafeCurrencyCode(baseCurrencyId)
-		AddElementToObject(baseAccount, "free", this.SafeString(free, "base_ccy"))
-		AddElementToObject(baseAccount, "used", this.SafeString(used, "base_ccy"))
+		baseAccount["free"] = this.SafeString(free, "base_ccy")
+		baseAccount["used"] = this.SafeString(used, "base_ccy")
 		var baseDebt *string = this.SafeString(loan, "base_ccy")
 		var baseInterest *string = this.SafeString(interest, "base_ccy")
-		AddElementToObject(baseAccount, "debt", Precise.StringAdd(baseDebt, baseInterest))
+		baseAccount["debt"] = Precise.StringAdd(baseDebt, baseInterest)
 		if baseCurrencyCode != nil {
 			AddElementToObject(result, baseCurrencyCode, baseAccount)
 		}
@@ -2415,9 +2415,9 @@ func (this *Coinex) fetchSpotBalanceBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var currencyId *string = this.SafeString(entry, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(entry, "available"))
-		AddElementToObject(account, "used", this.SafeString(entry, "frozen"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(entry, "available")
+		account["used"] = this.SafeString(entry, "frozen")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -2473,9 +2473,9 @@ func (this *Coinex) fetchSwapBalanceBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var currencyId *string = this.SafeString(entry, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(entry, "available"))
-		AddElementToObject(account, "used", this.SafeString(entry, "frozen"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(entry, "available")
+		account["used"] = this.SafeString(entry, "frozen")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -2528,9 +2528,9 @@ func (this *Coinex) fetchFinancialBalanceBody(ch chan any, optionalArgs ...any) 
 		}()
 		var currencyId *string = this.SafeString(entry, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(entry, "available"))
-		AddElementToObject(account, "used", this.SafeString(entry, "frozen"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(entry, "available")
+		account["used"] = this.SafeString(entry, "frozen")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

@@ -601,8 +601,8 @@ func (this *Coinspot) ParseBalance(response any) any {
 				var currencyId string = GetValue(currencyIds, j).(string)
 				var balance any = GetValue(currencies, currencyId)
 				var code *string = this.SafeCurrencyCode(currencyId)
-				var account any = this.Account()
-				AddElementToObject(account, "total", this.SafeString(balance, "balance"))
+				var account map[string]any = this.Account()
+				account["total"] = this.SafeString(balance, "balance")
 				if code != nil {
 					AddElementToObject(result, code, account)
 				}
@@ -613,8 +613,8 @@ func (this *Coinspot) ParseBalance(response any) any {
 		for i := 0; i < len(currencyIds); i++ {
 			var currencyId string = GetValue(currencyIds, i).(string)
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "total", this.SafeString(balances, currencyId))
+			var account map[string]any = this.Account()
+			account["total"] = this.SafeString(balances, currencyId)
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}

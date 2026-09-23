@@ -993,10 +993,10 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 		var balance any = ccxt.GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "info", balance)
-		ccxt.AddElementToObject(account, "used", this.SafeString(balance, "l"))
-		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "f"))
+		var account map[string]any = this.Account()
+		account["info"] = balance
+		account["used"] = this.SafeString(balance, "l")
+		account["free"] = this.SafeString(balance, "f")
 		if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 		}

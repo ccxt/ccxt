@@ -4852,9 +4852,9 @@ func (this *Bybit) ParseBalance(response any) any {
 	if IsEqual(currencyList, nil) {
 		// usdc wallet
 		var code string = "USDC"
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(responseResult, "availableBalance"))
-		AddElementToObject(account, "total", this.SafeString(responseResult, "walletBalance"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(responseResult, "availableBalance")
+		account["total"] = this.SafeString(responseResult, "walletBalance")
 		result[code] = account
 	} else {
 		for i := 0; i < GetArrayLength(currencyList); i++ {
@@ -4863,7 +4863,7 @@ func (this *Bybit) ParseBalance(response any) any {
 			if (accountType != nil && *accountType == "UNIFIED") || (accountType != nil && *accountType == "CONTRACT") || (accountType != nil && *accountType == "SPOT") {
 				var coins []any = SafeListTyped(entry, "coin")
 				for j := 0; j < len(coins); j++ {
-					var account any = this.Account()
+					var account map[string]any = this.Account()
 					var coinEntry any = func() any {
 						if j >= 0 && j < len(coins) {
 							return DerefScalar(coins[j])
@@ -4873,19 +4873,19 @@ func (this *Bybit) ParseBalance(response any) any {
 					var loan *string = this.SafeString(coinEntry, "borrowAmount")
 					var interest *string = this.SafeString(coinEntry, "accruedInterest")
 					if (loan != nil) && (interest != nil) {
-						AddElementToObject(account, "debt", Precise.StringAdd(loan, interest))
+						account["debt"] = Precise.StringAdd(loan, interest)
 					}
-					AddElementToObject(account, "total", this.SafeString(coinEntry, "walletBalance"))
+					account["total"] = this.SafeString(coinEntry, "walletBalance")
 					var free *string = this.SafeString2(coinEntry, "availableToWithdraw", "free")
 					if free != nil {
-						AddElementToObject(account, "free", free)
+						account["free"] = free
 					} else {
 						var locked *string = this.SafeString(coinEntry, "locked", "0")
 						var totalPositionIm *string = this.SafeString(coinEntry, "totalPositionIM", "0")
 						var totalOrderIm *string = this.SafeString(coinEntry, "totalOrderIM", "0")
 						var totalUsed *string = Precise.StringAdd(locked, totalPositionIm)
 						totalUsed = Precise.StringAdd(totalUsed, totalOrderIm)
-						AddElementToObject(account, "used", totalUsed)
+						account["used"] = totalUsed
 					}
 					// account['used'] = this.safeString (coinEntry, 'locked');
 					var currencyId *string = this.SafeString(coinEntry, "coin")
@@ -4895,15 +4895,15 @@ func (this *Bybit) ParseBalance(response any) any {
 					}
 				}
 			} else {
-				var account any = this.Account()
+				var account map[string]any = this.Account()
 				var loan *string = this.SafeString(entry, "loan")
 				var interest *string = this.SafeString(entry, "interest")
 				if (loan != nil) && (interest != nil) {
-					AddElementToObject(account, "debt", Precise.StringAdd(loan, interest))
+					account["debt"] = Precise.StringAdd(loan, interest)
 				}
-				AddElementToObject(account, "total", this.SafeString2(entry, "total", "walletBalance"))
-				AddElementToObject(account, "free", this.SafeStringN(entry, []any{"free", "availableBalanceWithoutConvert", "availableBalance", "transferBalance"}))
-				AddElementToObject(account, "used", this.SafeString(entry, "locked"))
+				account["total"] = this.SafeString2(entry, "total", "walletBalance")
+				account["free"] = this.SafeStringN(entry, []any{"free", "availableBalanceWithoutConvert", "availableBalance", "transferBalance"})
+				account["used"] = this.SafeString(entry, "locked")
 				var currencyId *string = this.SafeStringN(entry, []any{"tokenId", "coin", "currencyCoin"})
 				var code *string = this.SafeCurrencyCode(currencyId)
 				if code != nil {

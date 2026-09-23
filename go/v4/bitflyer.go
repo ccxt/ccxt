@@ -556,9 +556,9 @@ func (this *Bitflyer) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency_code")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
-		AddElementToObject(account, "free", this.SafeString(balance, "available"))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(balance, "amount")
+		account["free"] = this.SafeString(balance, "available")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

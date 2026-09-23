@@ -1043,9 +1043,9 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 		}()
 		var currencyId *string = this.SafeString(asset, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "free", this.SafeString(asset, "balance"))
-		ccxt.AddElementToObject(account, "used", this.SafeString(asset, "locked"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(asset, "balance")
+		account["used"] = this.SafeString(asset, "locked")
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}

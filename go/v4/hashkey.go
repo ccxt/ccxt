@@ -2160,10 +2160,10 @@ func (this *Hashkey) ParseBalance(balance any) any {
 		var balanceEntry any = GetValue(balances, i)
 		var currencyId *string = this.SafeString(balanceEntry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "total", this.SafeString(balanceEntry, "total"))
-		AddElementToObject(account, "free", this.SafeString(balanceEntry, "free"))
-		AddElementToObject(account, "used", this.SafeString(balanceEntry, "locked"))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(balanceEntry, "total")
+		account["free"] = this.SafeString(balanceEntry, "free")
+		account["used"] = this.SafeString(balanceEntry, "locked")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -2183,11 +2183,11 @@ func (this *Hashkey) ParseSwapBalance(balance any) any {
 	//
 	var currencyId *string = this.SafeString(balance, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var account any = this.Account()
-	AddElementToObject(account, "total", this.SafeString(balance, "balance"))
+	var account map[string]any = this.Account()
+	account["total"] = this.SafeString(balance, "balance")
 	var positionMargin *string = this.SafeString(balance, "positionMargin")
 	var orderMargin *string = this.SafeString(balance, "orderMargin")
-	AddElementToObject(account, "used", Precise.StringAdd(positionMargin, orderMargin))
+	account["used"] = Precise.StringAdd(positionMargin, orderMargin)
 	var result map[string]any = map[string]any{
 		"info": balance,
 	}

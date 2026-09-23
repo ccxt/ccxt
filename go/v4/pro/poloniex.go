@@ -367,7 +367,7 @@ func (this *Poloniex) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any
 	_ = params
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
-		var clientOrderIds any = this.SafeValue(params, "clientOrderId", []any{})
+		var clientOrderIds any = this.SafeList(params, "clientOrderId", []any{})
 		ccxt.AddElementToObject(params, "clientOrderIds", this.ArrayConcat(clientOrderIds, []any{clientOrderId}))
 	}
 
@@ -688,7 +688,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	trades := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeValue(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -1556,9 +1556,9 @@ func (this *Poloniex) ParseWsBalance(response any) any {
 		var balance map[string]any = ccxt.SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var newAccount any = this.Account()
-		ccxt.AddElementToObject(newAccount, "free", this.SafeString(balance, "available"))
-		ccxt.AddElementToObject(newAccount, "used", this.SafeString(balance, "hold"))
+		var newAccount map[string]any = this.Account()
+		newAccount["free"] = this.SafeString(balance, "available")
+		newAccount["used"] = this.SafeString(balance, "hold")
 		if code != nil {
 			ccxt.AddElementToObject(result, code, newAccount)
 		}

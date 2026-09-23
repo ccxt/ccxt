@@ -424,9 +424,9 @@ func (this *Apex) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	var code string = "USDT"
-	var account any = this.Account()
-	AddElementToObject(account, "free", this.SafeString(response, "availableBalance"))
-	AddElementToObject(account, "total", this.SafeString(response, "totalEquityValue"))
+	var account map[string]any = this.Account()
+	account["free"] = this.SafeString(response, "availableBalance")
+	account["total"] = this.SafeString(response, "totalEquityValue")
 	result[code] = account
 	return this.SafeBalance(result)
 }

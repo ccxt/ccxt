@@ -2215,10 +2215,10 @@ func (this *Weex) HandleBalance(client any, message any) {
 		var entry map[string]any = ccxt.SafeMapTyped(balanceUpdates, i)
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "free", this.SafeString2(entry, "available", "amount"))
-		ccxt.AddElementToObject(account, "used", this.SafeString(entry, "frozen"))
-		ccxt.AddElementToObject(account, "total", this.SafeString2(entry, "equity", "legacyAmount"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString2(entry, "available", "amount")
+		account["used"] = this.SafeString(entry, "frozen")
+		account["total"] = this.SafeString2(entry, "equity", "legacyAmount")
 		if (!ccxt.IsEqual(accountType, nil)) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
 		}

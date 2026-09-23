@@ -2300,10 +2300,10 @@ func (this *Bingx) HandleBalance(client any, message any) {
 		var balance any = ccxt.GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "info", balance)
-		ccxt.AddElementToObject(account, "used", this.SafeString(balance, "lk"))
-		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "wb"))
+		var account map[string]any = this.Account()
+		account["info"] = balance
+		account["used"] = this.SafeString(balance, "lk")
+		account["free"] = this.SafeString(balance, "wb")
 		if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 		}

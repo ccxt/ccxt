@@ -423,7 +423,7 @@ func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var currency map[string]any = ccxt.SafeMapTyped(this.Currencies, code)
 		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var used any = ccxt.DerefScalar(this.SafeString(balance, "totalUsedBalanceRv"))
 		if ccxt.IsEqual(used, nil) {
 			var usedEv *string = this.SafeString(balance, "totalUsedBalanceEv")
@@ -439,8 +439,8 @@ func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
 			var totalEv *string = this.SafeString2(balance, "accountBalanceEv", "balanceEv")
 			total = this.FromEn(totalEv, scale)
 		}
-		ccxt.AddElementToObject(account, "used", used)
-		ccxt.AddElementToObject(account, "total", total)
+		account["used"] = used
+		account["total"] = total
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}

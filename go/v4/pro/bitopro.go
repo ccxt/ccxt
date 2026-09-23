@@ -574,9 +574,9 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 		var balance any = this.SafeDict(data, currency, map[string]any{})
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "available"))
-		ccxt.AddElementToObject(account, "total", this.SafeString(balance, "amount"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(balance, "available")
+		account["total"] = this.SafeString(balance, "amount")
 		if code != nil {
 			ccxt.AddElementToObject(result, code, account)
 		}

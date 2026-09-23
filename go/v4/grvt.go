@@ -1902,9 +1902,9 @@ func (this *Grvt) ParseBalance(response any) any {
 		}()
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-		AddElementToObject(account, "free", availableBalance) // todo: revise after API team clarification
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(balance, "balance")
+		account["free"] = availableBalance // todo: revise after API team clarification
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

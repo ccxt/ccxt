@@ -4139,16 +4139,16 @@ func (this *Okx) ParseTradingBalance(response any) any {
 		var balance any = GetValue(details, i)
 		var currencyId *string = this.SafeString(balance, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		// it may be incorrect to use total, free and used for swap accounts
 		var eq *string = this.SafeString(balance, "eq")
 		var availEq *string = this.SafeString(balance, "availEq")
-		AddElementToObject(account, "total", eq)
+		account["total"] = eq
 		if availEq == nil {
-			AddElementToObject(account, "free", this.SafeString(balance, "availBal"))
-			AddElementToObject(account, "used", this.SafeString(balance, "frozenBal"))
+			account["free"] = this.SafeString(balance, "availBal")
+			account["used"] = this.SafeString(balance, "frozenBal")
 		} else {
-			AddElementToObject(account, "free", availEq)
+			account["free"] = availEq
 		}
 		if code != nil {
 			AddElementToObject(result, code, account)
@@ -4167,11 +4167,11 @@ func (this *Okx) ParseFundingBalance(response any) any {
 		var balance any = GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		// it may be incorrect to use total, free and used for swap accounts
-		AddElementToObject(account, "total", this.SafeString(balance, "bal"))
-		AddElementToObject(account, "free", this.SafeString(balance, "availBal"))
-		AddElementToObject(account, "used", this.SafeString(balance, "frozenBal"))
+		account["total"] = this.SafeString(balance, "bal")
+		account["free"] = this.SafeString(balance, "availBal")
+		account["used"] = this.SafeString(balance, "frozenBal")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

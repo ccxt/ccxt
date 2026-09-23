@@ -791,25 +791,25 @@ func (this *Bithumb) ParseBalance(response any) any {
 		var codes []string = ObjectKeys(this.Currencies)
 		for i := 0; i < len(codes); i++ {
 			var code string = GetValue(codes, i).(string)
-			var account any = this.Account()
+			var account map[string]any = this.Account()
 			var currency map[string]any = MapTyped(this.Currency(code))
 			var lowerCurrencyId *string = this.SafeStringLower(currency, "id")
-			AddElementToObject(account, "total", this.SafeString(balances, Add("total_", lowerCurrencyId)))
-			AddElementToObject(account, "used", this.SafeString(balances, Add("in_use_", lowerCurrencyId)))
-			AddElementToObject(account, "free", this.SafeString(balances, Add("available_", lowerCurrencyId)))
+			account["total"] = this.SafeString(balances, Add("total_", lowerCurrencyId))
+			account["used"] = this.SafeString(balances, Add("in_use_", lowerCurrencyId))
+			account["free"] = this.SafeString(balances, Add("available_", lowerCurrencyId))
 			result[code] = account
 		}
 	} else {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var entry any = GetValue(response, i)
-			var account any = this.Account()
+			var account map[string]any = this.Account()
 			var currencyId *string = this.SafeString(entry, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			if code == nil {
 				continue
 			}
-			AddElementToObject(account, "free", this.SafeString(entry, "balance"))
-			AddElementToObject(account, "used", this.SafeString(entry, "locked"))
+			account["free"] = this.SafeString(entry, "balance")
+			account["used"] = this.SafeString(entry, "locked")
 			AddElementToObject(result, code, account)
 		}
 	}

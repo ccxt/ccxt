@@ -1905,9 +1905,9 @@ func (this *Mexc) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "datetime", this.Iso8601(timestamp))
 	var currencyId *string = this.SafeString2(data, "currency", "vcoinName")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var account any = this.Account()
-	ccxt.AddElementToObject(account, "free", this.SafeString2(data, "balanceAmount", "availableBalance"))
-	ccxt.AddElementToObject(account, "used", this.SafeString2(data, "frozenBalance", "frozenAmount"))
+	var account map[string]any = this.Account()
+	account["free"] = this.SafeString2(data, "balanceAmount", "availableBalance")
+	account["used"] = this.SafeString2(data, "frozenBalance", "frozenAmount")
 	if code != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}

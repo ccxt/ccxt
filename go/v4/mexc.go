@@ -4794,9 +4794,9 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 			var entry any = GetValue(wallet, i)
 			var currencyId *string = this.SafeString(entry, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(entry, "availableBalance"))
-			AddElementToObject(account, "used", this.SafeString(entry, "frozenBalance"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(entry, "availableBalance")
+			account["used"] = this.SafeString(entry, "frozenBalance")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -4807,9 +4807,9 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 			var entry any = GetValue(wallet, i)
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(entry, "free"))
-			AddElementToObject(account, "used", this.SafeString(entry, "locked"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(entry, "free")
+			account["used"] = this.SafeString(entry, "locked")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -4818,13 +4818,13 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 	}
 }
 func (this *Mexc) ParseBalanceHelper(entry any) any {
-	var account any = this.Account()
-	AddElementToObject(account, "used", this.SafeString(entry, "locked"))
-	AddElementToObject(account, "free", this.SafeString(entry, "free"))
-	AddElementToObject(account, "total", this.SafeString(entry, "totalAsset"))
+	var account map[string]any = this.Account()
+	account["used"] = this.SafeString(entry, "locked")
+	account["free"] = this.SafeString(entry, "free")
+	account["total"] = this.SafeString(entry, "totalAsset")
 	var debt *string = this.SafeString(entry, "borrowed")
 	var interest *string = this.SafeString(entry, "interest")
-	AddElementToObject(account, "debt", Precise.StringAdd(debt, interest))
+	account["debt"] = Precise.StringAdd(debt, interest)
 	return account
 }
 

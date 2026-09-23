@@ -1314,11 +1314,11 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 				}
 				return unifiedCode
 			}()
-			var account any = this.Account()
+			var account map[string]any = this.Account()
 			var total *string = this.SafeString(balance, "total")
 			var used *string = this.SafeString(balance, "hold")
-			AddElementToObject(account, "total", total)
-			AddElementToObject(account, "used", used)
+			account["total"] = total
+			account["used"] = used
 			if code != nil {
 				AddElementToObject(spotBalances, code, account)
 			}

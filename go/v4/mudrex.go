@@ -811,16 +811,16 @@ func (this *Mudrex) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var account any = this.Account()
+	var account map[string]any = this.Account()
 	var futuresBalance *string = this.SafeString(data, "balance")
 	if futuresBalance != nil {
 		// futures wallet: balance is the free/available margin, locked_amount is used, safeBalance derives total
-		AddElementToObject(account, "free", futuresBalance)
-		AddElementToObject(account, "used", this.SafeString(data, "locked_amount"))
+		account["free"] = futuresBalance
+		account["used"] = this.SafeString(data, "locked_amount")
 	} else {
 		// spot wallet: total is the total, withdrawable is free, safeBalance derives used
-		AddElementToObject(account, "total", this.SafeString(data, "total"))
-		AddElementToObject(account, "free", this.SafeString(data, "withdrawable"))
+		account["total"] = this.SafeString(data, "total")
+		account["free"] = this.SafeString(data, "withdrawable")
 	}
 	AddElementToObject(result, currency, account)
 	return this.SafeBalance(result)

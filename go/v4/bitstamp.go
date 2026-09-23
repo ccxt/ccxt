@@ -2087,10 +2087,10 @@ func (this *Bitstamp) ParseBalance(response any) any {
 		var currencyBalance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(currencyBalance, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(currencyBalance, "available"))
-		AddElementToObject(account, "used", this.SafeString(currencyBalance, "reserved"))
-		AddElementToObject(account, "total", this.SafeString(currencyBalance, "total"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(currencyBalance, "available")
+		account["used"] = this.SafeString(currencyBalance, "reserved")
+		account["total"] = this.SafeString(currencyBalance, "total")
 		if currencyCode != nil {
 			AddElementToObject(result, currencyCode, account)
 		}

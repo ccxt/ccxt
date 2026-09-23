@@ -1115,9 +1115,9 @@ func (this *Pacifica) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{
 		"info": data,
 	}
-	var usdcAccount any = this.Account()
-	AddElementToObject(usdcAccount, "total", this.SafeString(data, "balance"))
-	AddElementToObject(usdcAccount, "used", this.SafeString(data, "total_margin_used"))
+	var usdcAccount map[string]any = this.Account()
+	usdcAccount["total"] = this.SafeString(data, "balance")
+	usdcAccount["used"] = this.SafeString(data, "total_margin_used")
 	result["USDC"] = usdcAccount
 	var spotBalances []any = SafeListTyped(data, "spot_balances")
 	for i := 0; i < len(spotBalances); i++ {
@@ -1129,9 +1129,9 @@ func (this *Pacifica) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var currencyId *string = this.SafeString(balance, "symbol")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
-		AddElementToObject(account, "free", this.SafeString(balance, "available_to_withdraw"))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(balance, "amount")
+		account["free"] = this.SafeString(balance, "available_to_withdraw")
 		// skip a spot USDC entry so it can't clobber the perp-collateral account above
 		if (code != nil) && !(func() bool {
 			if code == nil {

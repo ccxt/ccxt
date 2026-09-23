@@ -1111,12 +1111,12 @@ func (this *Digifinex) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var free *string = this.SafeString2(balance, "free", "avail_balance")
 		var total *string = this.SafeString2(balance, "total", "equity")
-		AddElementToObject(account, "free", free)
-		AddElementToObject(account, "used", Precise.StringSub(total, free))
-		AddElementToObject(account, "total", total)
+		account["free"] = free
+		account["used"] = Precise.StringSub(total, free)
+		account["total"] = total
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

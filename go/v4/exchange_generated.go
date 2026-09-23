@@ -6390,7 +6390,7 @@ func (this *BaseExchange) fetchContractDepositAddressBody(ch chan any, code any,
 	_ = params
 	panic(NotSupported(this.Id + " fetchContractDepositAddress() is not supported yet"))
 }
-func (this *BaseExchange) Account() any {
+func (this *BaseExchange) Account() map[string]any {
 	return map[string]any{
 		"free":  nil,
 		"used":  nil,

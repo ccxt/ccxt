@@ -2385,9 +2385,9 @@ func (this *Htx) HandleBalance(client any, message any) {
 		// spot balance
 		var currencyId *string = this.SafeString(data, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "free", this.SafeString(data, "available"))
-		ccxt.AddElementToObject(account, "total", this.SafeString(data, "balance"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(data, "available")
+		account["total"] = this.SafeString(data, "balance")
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
@@ -2415,9 +2415,9 @@ func (this *Htx) HandleBalance(client any, message any) {
 				if code == nil {
 					continue
 				}
-				var account any = this.Account()
-				ccxt.AddElementToObject(account, "free", this.SafeString(detail, "withdraw_available"))
-				ccxt.AddElementToObject(account, "total", this.SafeString(detail, "equity"))
+				var account map[string]any = this.Account()
+				account["free"] = this.SafeString(detail, "withdraw_available")
+				account["total"] = this.SafeString(detail, "equity")
 				ccxt.AddElementToObject(this.Balance, code, account)
 			}
 			this.Balance = this.SafeBalance(this.Balance)
@@ -2463,9 +2463,9 @@ func (this *Htx) HandleBalance(client any, message any) {
 			var marginAsset *string = this.SafeString(first, "margin_asset")
 			var code *string = this.SafeCurrencyCode(marginAsset)
 			var marginFrozen *string = this.SafeString(first, "margin_frozen")
-			var unifiedAccount any = this.Account()
-			ccxt.AddElementToObject(unifiedAccount, "free", this.SafeString(first, "withdraw_available"))
-			ccxt.AddElementToObject(unifiedAccount, "used", marginFrozen)
+			var unifiedAccount map[string]any = this.Account()
+			unifiedAccount["free"] = this.SafeString(first, "withdraw_available")
+			unifiedAccount["used"] = marginFrozen
 			if code != nil {
 				ccxt.AddElementToObject(this.Balance, code, unifiedAccount)
 			}
@@ -2478,10 +2478,10 @@ func (this *Htx) HandleBalance(client any, message any) {
 				var currencyId *string = this.SafeString2(first, "margin_asset", "margin_account")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				if code != nil {
-					var account any = this.Account()
-					ccxt.AddElementToObject(account, "free", this.SafeString2(first, "withdraw_available", "margin_available"))
-					ccxt.AddElementToObject(account, "used", this.SafeString(first, "margin_frozen"))
-					ccxt.AddElementToObject(account, "total", this.SafeString(first, "margin_balance"))
+					var account map[string]any = this.Account()
+					account["free"] = this.SafeString2(first, "withdraw_available", "margin_available")
+					account["used"] = this.SafeString(first, "margin_frozen")
+					account["total"] = this.SafeString(first, "margin_balance")
 					ccxt.AddElementToObject(this.Balance, code, account)
 					this.Balance = this.SafeBalance(this.Balance)
 				}
@@ -2489,9 +2489,9 @@ func (this *Htx) HandleBalance(client any, message any) {
 				// isolated margin
 				for i := 0; i < ccxt.GetArrayLength(data); i++ {
 					var isolatedBalance any = ccxt.GetValue(data, i)
-					var account any = this.Account()
-					ccxt.AddElementToObject(account, "free", this.SafeString(isolatedBalance, "margin_balance", "margin_available"))
-					ccxt.AddElementToObject(account, "used", this.SafeString(isolatedBalance, "margin_frozen"))
+					var account map[string]any = this.Account()
+					account["free"] = this.SafeString(isolatedBalance, "margin_balance", "margin_available")
+					account["used"] = this.SafeString(isolatedBalance, "margin_frozen")
 					var currencyId *string = this.SafeString2(isolatedBalance, "margin_asset", "symbol")
 					var code *string = this.SafeCurrencyCode(currencyId)
 					if code != nil {
@@ -2506,9 +2506,9 @@ func (this *Htx) HandleBalance(client any, message any) {
 				var balance any = ccxt.GetValue(data, i)
 				var currencyId *string = this.SafeString(balance, "symbol")
 				var code *string = this.SafeCurrencyCode(currencyId)
-				var account any = this.Account()
-				ccxt.AddElementToObject(account, "free", this.SafeString(balance, "margin_available"))
-				ccxt.AddElementToObject(account, "used", this.SafeString(balance, "margin_frozen"))
+				var account map[string]any = this.Account()
+				account["free"] = this.SafeString(balance, "margin_available")
+				account["used"] = this.SafeString(balance, "margin_frozen")
 				if code != nil {
 					ccxt.AddElementToObject(this.Balance, code, account)
 				}

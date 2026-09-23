@@ -1706,8 +1706,8 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 		for i := 0; i < len(holdingKeys); i++ {
 			var key string = ccxt.GetValue(holdingKeys, i).(string)
 			var code *string = this.SafeCurrencyCode(key)
-			var newAccount any = this.Account()
-			ccxt.AddElementToObject(newAccount, "total", this.SafeString(holding, key))
+			var newAccount map[string]any = this.Account()
+			newAccount["total"] = this.SafeString(holding, key)
 			if code != nil {
 				ccxt.AddElementToObject(holdingResult, code, newAccount)
 			}
@@ -1726,13 +1726,13 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 		for i := 0; i < len(futuresKeys); i++ {
 			var key string = ccxt.GetValue(futuresKeys, i).(string)
 			var symbol *string = this.SafeSymbol(key)
-			var newAccount any = this.Account()
+			var newAccount map[string]any = this.Account()
 			var future map[string]any = ccxt.SafeMapTyped(futures, key)
 			var currencyId *string = this.SafeString(future, "unit")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			ccxt.AddElementToObject(newAccount, "free", this.SafeString(future, "available"))
-			ccxt.AddElementToObject(newAccount, "used", this.SafeString(future, "initial_margin"))
-			ccxt.AddElementToObject(newAccount, "total", this.SafeString(future, "balance"))
+			newAccount["free"] = this.SafeString(future, "available")
+			newAccount["used"] = this.SafeString(future, "initial_margin")
+			newAccount["total"] = this.SafeString(future, "balance")
 			ccxt.AddElementToObject(futuresResult, symbol, map[string]any{})
 			if (symbol != nil) && (code != nil) {
 				ccxt.AddElementToObject(ccxt.GetValue(futuresResult, symbol), code, newAccount)
@@ -1754,10 +1754,10 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			var key string = ccxt.GetValue(flexFuturesKeys, i).(string)
 			var flexFuture map[string]any = ccxt.SafeMapTyped(flexFutureCurrencies, key)
 			var code *string = this.SafeCurrencyCode(key)
-			var newAccount any = this.Account()
-			ccxt.AddElementToObject(newAccount, "free", this.SafeString(flexFuture, "available"))
-			ccxt.AddElementToObject(newAccount, "used", this.SafeString(flexFuture, "collateral_value"))
-			ccxt.AddElementToObject(newAccount, "total", this.SafeString(flexFuture, "quantity"))
+			var newAccount map[string]any = this.Account()
+			newAccount["free"] = this.SafeString(flexFuture, "available")
+			newAccount["used"] = this.SafeString(flexFuture, "collateral_value")
+			newAccount["total"] = this.SafeString(flexFuture, "quantity")
 			if code != nil {
 				ccxt.AddElementToObject(flexFuturesResult, code, newAccount)
 			}

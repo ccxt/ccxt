@@ -3145,9 +3145,9 @@ func (this *Poloniex) ParseBalance(response any) any {
 			}()
 			var currencyId *string = this.SafeString(balance, "ccy")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "total", this.SafeString(balance, "avail"))
-			AddElementToObject(account, "used", this.SafeString(balance, "im"))
+			var account map[string]any = this.Account()
+			account["total"] = this.SafeString(balance, "avail")
+			account["used"] = this.SafeString(balance, "im")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -3162,9 +3162,9 @@ func (this *Poloniex) ParseBalance(response any) any {
 			var balance any = this.SafeDict(balances, j)
 			var currencyId *string = this.SafeString(balance, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var newAccount any = this.Account()
-			AddElementToObject(newAccount, "free", this.SafeString(balance, "available"))
-			AddElementToObject(newAccount, "used", this.SafeString(balance, "hold"))
+			var newAccount map[string]any = this.Account()
+			newAccount["free"] = this.SafeString(balance, "available")
+			newAccount["used"] = this.SafeString(balance, "hold")
 			if code != nil {
 				AddElementToObject(result, code, newAccount)
 			}

@@ -1347,10 +1347,10 @@ func (this *Btse) ParseBalance(response any) any {
 	var codes []string = ObjectKeys(totals)
 	for i := 0; i < len(codes); i++ {
 		var code string = GetValue(codes, i).(string)
-		var account any = this.Account()
-		AddElementToObject(account, "total", this.SafeString(totals, code))
-		AddElementToObject(account, "free", this.SafeString(frees, code))
-		AddElementToObject(account, "used", this.SafeString(useds, code))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(totals, code)
+		account["free"] = this.SafeString(frees, code)
+		account["used"] = this.SafeString(useds, code)
 		result[code] = account
 	}
 	return this.SafeBalance(result)

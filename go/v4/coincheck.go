@@ -361,10 +361,10 @@ func (this *Coincheck) ParseBalance(response any) any {
 		var currency map[string]any = MapTyped(this.Currency(code))
 		var currencyId any = currency["id"]
 		if InOp(response, currencyId) {
-			var account any = this.Account()
+			var account map[string]any = this.Account()
 			var reserved any = Add(currencyId, "_reserved")
-			AddElementToObject(account, "free", this.SafeString(response, currencyId))
-			AddElementToObject(account, "used", this.SafeString(response, reserved))
+			account["free"] = this.SafeString(response, currencyId)
+			account["used"] = this.SafeString(response, reserved)
 			result[code] = account
 		}
 	}

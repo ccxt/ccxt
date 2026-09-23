@@ -532,9 +532,9 @@ func (this *Independentreserve) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "CurrencyCode")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(balance, "AvailableBalance"))
-		AddElementToObject(account, "total", this.SafeString(balance, "TotalBalance"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(balance, "AvailableBalance")
+		account["total"] = this.SafeString(balance, "TotalBalance")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

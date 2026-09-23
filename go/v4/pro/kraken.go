@@ -1952,9 +1952,9 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var currencyId *string = this.SafeString(ccxt.GetValue(data, i), "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var eq *string = this.SafeString(ccxt.GetValue(data, i), "balance")
-		ccxt.AddElementToObject(account, "total", eq)
+		account["total"] = eq
 		ccxt.AddElementToObject(result, code, account)
 	}
 	var typeVar string = "spot"

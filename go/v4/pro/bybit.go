@@ -2973,25 +2973,25 @@ func (this *Bybit) ParseWsBalance(balance any, optionalArgs ...any) {
 	//
 	accountType := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = accountType
-	var account any = this.Account()
+	var account map[string]any = this.Account()
 	var currencyId *string = this.SafeString2(balance, "a", "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	ccxt.AddElementToObject(account, "free", this.SafeStringN(balance, []any{"availableToWithdraw", "f", "free"}))
+	account["free"] = this.SafeStringN(balance, []any{"availableToWithdraw", "f", "free"})
 	var used *string = this.SafeString2(balance, "l", "locked")
 	if used != nil {
-		ccxt.AddElementToObject(account, "used", used)
+		account["used"] = used
 	} else {
 		// the unified account wallet stream has no locked field, the margin
 		// lives in the per coin initial margin fields, so the used amount
 		// is derived from those, see https://github.com/ccxt/ccxt/issues/24365
 		var totalPositionIm *string = this.SafeString(balance, "totalPositionIM", "0")
 		var totalOrderIm *string = this.SafeString(balance, "totalOrderIM", "0")
-		ccxt.AddElementToObject(account, "used", ccxt.Precise.StringAdd(totalPositionIm, totalOrderIm))
+		account["used"] = ccxt.Precise.StringAdd(totalPositionIm, totalOrderIm)
 	}
 	// on the unified rows the free amount and the margin are both measured
 	// against the equity, which includes the unrealized pnl, so the equity
 	// is the consistent total, the spot rows fall back to the wallet balance
-	ccxt.AddElementToObject(account, "total", this.SafeString2(balance, "equity", "walletBalance"))
+	account["total"] = this.SafeString2(balance, "equity", "walletBalance")
 	if accountType != nil {
 		if ccxt.IsEqual(this.SafeDict(this.Balance, accountType), nil) {
 			ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})

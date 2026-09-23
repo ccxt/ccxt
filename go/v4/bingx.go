@@ -3441,10 +3441,10 @@ func (this *Bingx) ParseBalance(response any) any {
 				break
 			}
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString2(balance, "availableMargin", "availableBalance"))
-			AddElementToObject(account, "used", this.SafeString(balance, "usedMargin"))
-			AddElementToObject(account, "total", this.SafeString(balance, "maxWithdrawAmount"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString2(balance, "availableMargin", "availableBalance")
+			account["used"] = this.SafeString(balance, "usedMargin")
+			account["total"] = this.SafeString(balance, "maxWithdrawAmount")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -3454,9 +3454,9 @@ func (this *Bingx) ParseBalance(response any) any {
 			var balance any = GetValue(spotBalances, i)
 			var currencyId *string = this.SafeString(balance, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(balance, "free"))
-			AddElementToObject(account, "used", this.SafeString(balance, "locked"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(balance, "free")
+			account["used"] = this.SafeString(balance, "locked")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -7176,7 +7176,7 @@ func (this *Bingx) withdrawBody(ch chan any, code any, amount any, address any, 
 
 	response := (<-this.WalletsV1PrivatePostCapitalWithdrawApply(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeValue(response, "data")
+	var data any = this.SafeDict(response, "data")
 
 	//    {
 	//        "code":0,

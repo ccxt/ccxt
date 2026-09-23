@@ -1040,10 +1040,10 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 		if isMargin {
 			var currencyId *string = this.SafeString(balanceDict, "a")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			ccxt.AddElementToObject(account, "free", this.SafeString(balanceDict, "av"))
-			ccxt.AddElementToObject(account, "total", this.SafeString(balanceDict, "B"))
-			ccxt.AddElementToObject(account, "debt", this.SafeString(balanceDict, "b"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(balanceDict, "av")
+			account["total"] = this.SafeString(balanceDict, "B")
+			account["debt"] = this.SafeString(balanceDict, "b")
 			if code != nil {
 				ccxt.AddElementToObject(this.Balance, code, account)
 			}
@@ -1053,9 +1053,9 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 				var currencyId string = ccxt.GetValue(keys, j).(string)
 				var rawBalance map[string]any = ccxt.SafeMapTyped(balanceDict, currencyId)
 				var code *string = this.SafeCurrencyCode(currencyId)
-				var account any = this.Account()
-				ccxt.AddElementToObject(account, "free", this.SafeString(rawBalance, "available"))
-				ccxt.AddElementToObject(account, "used", this.SafeString(rawBalance, "freeze"))
+				var account map[string]any = this.Account()
+				account["free"] = this.SafeString(rawBalance, "available")
+				account["used"] = this.SafeString(rawBalance, "freeze")
 				if code != nil {
 					ccxt.AddElementToObject(this.Balance, code, account)
 				}

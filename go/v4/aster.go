@@ -2720,10 +2720,10 @@ func (this *Aster) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString2(balance, "free", "availableBalance"))
-		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
-		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString2(balance, "free", "availableBalance")
+		account["used"] = this.SafeString(balance, "locked")
+		account["total"] = this.SafeString(balance, "balance")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

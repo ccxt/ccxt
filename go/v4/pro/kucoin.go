@@ -3492,15 +3492,15 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), "timestamp", timestamp)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), "datetime", this.Iso8601(timestamp))
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var account any = this.Account()
+	var account map[string]any = this.Account()
 	var used *string = this.SafeString2(data, "hold", "holdBalance")
 	var isolatedPosMargin any = this.OmitZero(this.SafeString(data, "isolatedPosMargin"))
 	if isolatedPosMargin != nil {
 		used = ccxt.Precise.StringAdd(used, isolatedPosMargin)
 	}
-	ccxt.AddElementToObject(account, "free", this.SafeString2(data, "available", "availableBalance"))
-	ccxt.AddElementToObject(account, "used", used)
-	ccxt.AddElementToObject(account, "total", this.SafeString(data, "total"))
+	account["free"] = this.SafeString2(data, "available", "availableBalance")
+	account["used"] = used
+	account["total"] = this.SafeString(data, "total")
 	if (uniformType != nil) && (code != nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), code, account)
 	}
@@ -3535,10 +3535,10 @@ func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeIntegerProduct(data, "U", 0.000001)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "timestamp", timestamp)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "datetime", this.Iso8601(timestamp))
-	var account any = this.Account()
-	ccxt.AddElementToObject(account, "free", this.SafeString(data, "a"))
-	ccxt.AddElementToObject(account, "used", this.SafeString(data, "h"))
-	ccxt.AddElementToObject(account, "total", this.SafeString(data, "b"))
+	var account map[string]any = this.Account()
+	account["free"] = this.SafeString(data, "a")
+	account["used"] = this.SafeString(data, "h")
+	account["total"] = this.SafeString(data, "b")
 	if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}

@@ -2606,10 +2606,10 @@ func (this *Weex) ParseBalance(response any) any {
 			currencyId = "USDT" // demo trading balances are denominated in the demo asset SUSDT
 		}
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString2(entry, "availableBalance", "free"))
-		AddElementToObject(account, "used", this.SafeString2(entry, "frozen", "locked"))
-		AddElementToObject(account, "total", this.SafeString(entry, "balance"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString2(entry, "availableBalance", "free")
+		account["used"] = this.SafeString2(entry, "frozen", "locked")
+		account["total"] = this.SafeString(entry, "balance")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

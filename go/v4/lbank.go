@@ -1626,9 +1626,9 @@ func (this *Lbank) ParseBalance(response any) any {
 		for i := 0; i < len(currencies); i++ {
 			var currencyId string = GetValue(currencies, i).(string)
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "used", this.SafeString(used, currencyId))
-			AddElementToObject(account, "free", this.SafeString(free, currencyId))
+			var account map[string]any = this.Account()
+			account["used"] = this.SafeString(used, currencyId)
+			account["free"] = this.SafeString(free, currencyId)
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -1642,9 +1642,9 @@ func (this *Lbank) ParseBalance(response any) any {
 			var item any = GetValue(balances, i)
 			var currencyId *string = this.SafeString(item, "asset")
 			var codeInner *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(item, "free"))
-			AddElementToObject(account, "used", this.SafeString(item, "locked"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(item, "free")
+			account["used"] = this.SafeString(item, "locked")
 			if codeInner != nil {
 				AddElementToObject(result, codeInner, account)
 			}
@@ -1658,9 +1658,9 @@ func (this *Lbank) ParseBalance(response any) any {
 			var item any = GetValue(data, i)
 			var currencyId *string = this.SafeString(item, "coin")
 			var codeInner *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(item, "usableAmt"))
-			AddElementToObject(account, "used", this.SafeString(item, "freezeAmt"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(item, "usableAmt")
+			account["used"] = this.SafeString(item, "freezeAmt")
 			if codeInner != nil {
 				AddElementToObject(result, codeInner, account)
 			}

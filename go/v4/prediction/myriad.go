@@ -2748,9 +2748,9 @@ func (this *Myriad) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			"networkId":  networkId,
 		},
 	}
-	var account any = this.Account()
-	ccxt.AddElementToObject(account, "free", balanceString)
-	ccxt.AddElementToObject(account, "total", balanceString)
+	var account map[string]any = this.Account()
+	account["free"] = balanceString
+	account["total"] = balanceString
 	ccxt.AddElementToObject(result, currency, account)
 
 	ch <- this.SafeBalance(result)

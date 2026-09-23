@@ -10227,13 +10227,13 @@ func (this *Kucoin) fetchContractWithdrawalsBody(ch chan any, optionalArgs ...an
 	return nil
 }
 func (this *Kucoin) ParseBalanceHelper(entry any) any {
-	var account any = this.Account()
-	AddElementToObject(account, "used", this.SafeString2(entry, "holdBalance", "hold"))
-	AddElementToObject(account, "free", this.SafeString2(entry, "availableBalance", "available"))
-	AddElementToObject(account, "total", this.SafeString2(entry, "totalBalance", "total"))
+	var account map[string]any = this.Account()
+	account["used"] = this.SafeString2(entry, "holdBalance", "hold")
+	account["free"] = this.SafeString2(entry, "availableBalance", "available")
+	account["total"] = this.SafeString2(entry, "totalBalance", "total")
 	var debt *string = this.SafeString(entry, "liability")
 	var interest *string = this.SafeString(entry, "interest")
-	AddElementToObject(account, "debt", Precise.StringAdd(debt, interest))
+	account["debt"] = Precise.StringAdd(debt, interest)
 	return account
 }
 
@@ -10458,10 +10458,10 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			if IsEqual(balanceType, typeVar) {
 				var currencyId *string = this.SafeString(balance, "currency")
 				var codeInner2 *string = this.SafeCurrencyCode(currencyId)
-				var account any = this.Account()
-				AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-				AddElementToObject(account, "free", this.SafeString(balance, "available"))
-				AddElementToObject(account, "used", this.SafeString(balance, "holds"))
+				var account map[string]any = this.Account()
+				account["total"] = this.SafeString(balance, "balance")
+				account["free"] = this.SafeString(balance, "available")
+				account["used"] = this.SafeString(balance, "holds")
 				if codeInner2 != nil {
 					AddElementToObject(result, codeInner2, account)
 				}
@@ -10535,9 +10535,9 @@ func (this *Kucoin) fetchContractBalanceBody(ch chan any, optionalArgs ...any) a
 	var data map[string]any = SafeMapTyped(response, "data")
 	var currencyId *string = this.SafeString(data, "currency")
 	var currencyCode *string = this.SafeCurrencyCode(currencyId, currency)
-	var account any = this.Account()
-	AddElementToObject(account, "free", this.SafeString(data, "availableBalance"))
-	AddElementToObject(account, "total", this.SafeString(data, "accountEquity"))
+	var account map[string]any = this.Account()
+	account["free"] = this.SafeString(data, "availableBalance")
+	account["total"] = this.SafeString(data, "accountEquity")
 	if currencyCode != nil {
 		AddElementToObject(result, currencyCode, account)
 	}

@@ -2095,10 +2095,10 @@ func (this *Toobit) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var balance any = GetValue(balances, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString2(balance, "free", "availableBalance"))
-		AddElementToObject(account, "total", this.SafeString2(balance, "total", "balance"))
-		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString2(balance, "free", "availableBalance")
+		account["total"] = this.SafeString2(balance, "total", "balance")
+		account["used"] = this.SafeString(balance, "locked")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

@@ -193,7 +193,7 @@ func (this *Bitrue) ParseWSBalances(balances any) {
 		var balance any = ccxt.GetValue(balances, i)
 		var currencyId *string = this.SafeString(balance, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var free *string = this.SafeString(balance, "F")
 		var used *string = this.SafeString(balance, "L")
 		var balanceUpdateTime *int64 = this.SafeInteger(balance, "T", 0)
@@ -202,10 +202,10 @@ func (this *Bitrue) ParseWSBalances(balances any) {
 		var updateUsed bool = (lockBalanceUpdateTime == nil || *lockBalanceUpdateTime != 0)
 		if updateFree || updateUsed {
 			if updateFree {
-				ccxt.AddElementToObject(account, "free", free)
+				account["free"] = free
 			}
 			if updateUsed {
-				ccxt.AddElementToObject(account, "used", used)
+				account["used"] = used
 			}
 			if code != nil {
 				ccxt.AddElementToObject(this.Balance, code, account)

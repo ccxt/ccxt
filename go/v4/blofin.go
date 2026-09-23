@@ -1645,16 +1645,16 @@ func (this *Blofin) ParseBalance(response any) any {
 		var balance any = GetValue(details, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		// it may be incorrect to use total, free and used for swap accounts
 		var eq *string = this.SafeString(balance, "equity")
 		var availEq *string = this.SafeString(balance, "available")
 		if (eq == nil) || (availEq == nil) {
-			AddElementToObject(account, "free", this.SafeString(balance, "availableEquity"))
-			AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
+			account["free"] = this.SafeString(balance, "availableEquity")
+			account["used"] = this.SafeString(balance, "frozen")
 		} else {
-			AddElementToObject(account, "total", eq)
-			AddElementToObject(account, "free", availEq)
+			account["total"] = eq
+			account["free"] = availEq
 		}
 		AddElementToObject(result, code, account)
 	}
@@ -1686,11 +1686,11 @@ func (this *Blofin) ParseFundingBalance(response any) any {
 		var balance any = GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		// it may be incorrect to use total, free and used for swap accounts
-		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-		AddElementToObject(account, "free", this.SafeString(balance, "available"))
-		AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
+		account["total"] = this.SafeString(balance, "balance")
+		account["free"] = this.SafeString(balance, "available")
+		account["used"] = this.SafeString(balance, "frozen")
 		AddElementToObject(result, code, account)
 	}
 	return this.SafeBalance(result)

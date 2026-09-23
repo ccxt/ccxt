@@ -1027,9 +1027,9 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "info", message)
 	var currencyId *string = this.SafeString(balanceUpdate, "a")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var account any = this.Account()
-	ccxt.AddElementToObject(account, "free", this.SafeString(balanceUpdate, "f"))
-	ccxt.AddElementToObject(account, "used", this.SafeString(balanceUpdate, "l"))
+	var account map[string]any = this.Account()
+	account["free"] = this.SafeString(balanceUpdate, "f")
+	account["used"] = this.SafeString(balanceUpdate, "l")
 	if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}

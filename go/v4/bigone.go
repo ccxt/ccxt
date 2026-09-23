@@ -1639,9 +1639,9 @@ func (this *Bigone) ParseBalance(response any) any {
 		}()
 		var symbol *string = this.SafeString(balance, "asset_symbol")
 		var code *string = this.SafeCurrencyCode(symbol)
-		var account any = this.Account()
-		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-		AddElementToObject(account, "used", this.SafeString(balance, "locked_balance"))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(balance, "balance")
+		account["used"] = this.SafeString(balance, "locked_balance")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

@@ -3328,10 +3328,10 @@ func (this *Nado) ParseBalance(response any) any {
 		}
 		var balance map[string]any = SafeMapTyped(rawBalance, "balance")
 		var amount *string = Precise.StringDiv(this.SafeString(balance, "amount"), "1000000000000000000")
-		var account any = this.Account()
-		AddElementToObject(account, "total", amount)
+		var account map[string]any = this.Account()
+		account["total"] = amount
 		// the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
-		AddElementToObject(account, "free", amount)
+		account["free"] = amount
 		if !IsEqual(code, nil) {
 			AddElementToObject(result, code, account)
 		}

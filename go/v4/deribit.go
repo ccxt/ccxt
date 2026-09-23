@@ -1482,10 +1482,10 @@ func (this *Deribit) ParseBalance(balance any) any {
 		var data any = GetValue(summaries, i)
 		var currencyId *string = this.SafeString(data, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(data, "available_funds"))
-		AddElementToObject(account, "used", this.SafeString(data, "maintenance_margin"))
-		AddElementToObject(account, "total", this.SafeString(data, "equity"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(data, "available_funds")
+		account["used"] = this.SafeString(data, "maintenance_margin")
+		account["total"] = this.SafeString(data, "equity")
 		if currencyCode != nil {
 			AddElementToObject(result, currencyCode, account)
 		}

@@ -1826,15 +1826,15 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "info", result)
 	for i := 0; i < ccxt.GetArrayLength(result); i++ {
 		var rawBalance any = ccxt.GetValue(result, i)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var currencyId *string = this.SafeString(rawBalance, "currency", "USDT") // when not present it is USDT
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var timestamp *int64 = this.SafeInteger2(rawBalance, "time_ms", "timestamp_ms")
 		ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 		ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
-		ccxt.AddElementToObject(account, "used", this.SafeString(rawBalance, "freeze"))
-		ccxt.AddElementToObject(account, "free", this.SafeString(rawBalance, "available"))
-		ccxt.AddElementToObject(account, "total", this.SafeString2(rawBalance, "total", "balance"))
+		account["used"] = this.SafeString(rawBalance, "freeze")
+		account["free"] = this.SafeString(rawBalance, "available")
+		account["total"] = this.SafeString2(rawBalance, "total", "balance")
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}

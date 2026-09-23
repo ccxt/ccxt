@@ -811,9 +811,9 @@ func (this *Bullish) HandleBalance(client any, message any) {
 	} else {
 		var data any = this.SafeDict(message, "data", map[string]any{})
 		var assetId *string = this.SafeString(data, "assetSymbol")
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "total", this.SafeString(data, "availableQuantity"))
-		ccxt.AddElementToObject(account, "used", this.SafeString(data, "lockedQuantity"))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(data, "availableQuantity")
+		account["used"] = this.SafeString(data, "lockedQuantity")
 		var code *string = this.SafeCurrencyCode(assetId)
 		if (tradingAccountId != nil) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), code, account)

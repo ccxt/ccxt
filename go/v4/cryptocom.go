@@ -1708,9 +1708,9 @@ func (this *Cryptocom) ParseBalance(response any) any {
 		}()
 		var currencyId *string = this.SafeString(balance, "instrument_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "total", this.SafeString(balance, "quantity"))
-		AddElementToObject(account, "used", this.SafeString(balance, "reserved_qty"))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(balance, "quantity")
+		account["used"] = this.SafeString(balance, "reserved_qty")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

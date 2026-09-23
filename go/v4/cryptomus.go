@@ -862,9 +862,9 @@ func (this *Cryptomus) ParseBalance(balance any) any {
 		var balanceEntry any = GetValue(balance, i)
 		var currencyId *string = this.SafeString(balanceEntry, "ticker")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(balanceEntry, "available"))
-		AddElementToObject(account, "used", this.SafeString(balanceEntry, "held"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(balanceEntry, "available")
+		account["used"] = this.SafeString(balanceEntry, "held")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

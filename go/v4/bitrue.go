@@ -1232,9 +1232,9 @@ func (this *Bitrue) ParseBalance(response any) any {
 		var balance any = GetValue(balances, i)
 		var currencyId *string = this.SafeString2(balance, "asset", "marginCoin")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString2(balance, "free", "accountNormal"))
-		AddElementToObject(account, "used", this.SafeString2(balance, "locked", "accountLock"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString2(balance, "free", "accountNormal")
+		account["used"] = this.SafeString2(balance, "locked", "accountLock")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

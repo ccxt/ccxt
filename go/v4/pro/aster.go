@@ -2013,10 +2013,10 @@ func (this *Aster) HandleBalance(client any, message any) {
 		}()
 		var currencyId *string = this.SafeString(entry, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "free", this.SafeString(entry, "f"))
-		ccxt.AddElementToObject(account, "used", this.SafeString(entry, "l"))
-		ccxt.AddElementToObject(account, "total", this.SafeString(entry, wallet))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(entry, "f")
+		account["used"] = this.SafeString(entry, "l")
+		account["total"] = this.SafeString(entry, wallet)
 		if (accountType != nil) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
 		}

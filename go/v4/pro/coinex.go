@@ -433,11 +433,11 @@ func (this *Coinex) ParseWsBalance(balance any, optionalArgs ...any) {
 	//
 	accountType := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = accountType
-	var account any = this.Account()
+	var account map[string]any = this.Account()
 	var currencyId *string = this.SafeString(balance, "ccy")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	ccxt.AddElementToObject(account, "free", this.SafeString(balance, "available"))
-	ccxt.AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
+	account["free"] = this.SafeString(balance, "available")
+	account["used"] = this.SafeString(balance, "frozen")
 	if accountType != nil {
 		if ccxt.IsEqual(this.SafeDict(this.Balance, accountType), nil) {
 			ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})

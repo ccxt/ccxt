@@ -5513,12 +5513,12 @@ func (this *Binance) ParseMarket(market any) any {
 	return this.SafeMarketStructure(entry)
 }
 func (this *Binance) ParseBalanceHelper(entry any) any {
-	var account any = this.Account()
-	AddElementToObject(account, "used", this.SafeString(entry, "locked"))
-	AddElementToObject(account, "free", this.SafeString(entry, "free"))
+	var account map[string]any = this.Account()
+	account["used"] = this.SafeString(entry, "locked")
+	account["free"] = this.SafeString(entry, "free")
 	var interest *string = this.SafeString(entry, "interest")
 	var debt *string = this.SafeString(entry, "borrowed")
-	AddElementToObject(account, "debt", Precise.StringAdd(debt, interest))
+	account["debt"] = Precise.StringAdd(debt, interest)
 	return account
 }
 func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) any {
@@ -5537,28 +5537,28 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) any {
 	if isPortfolioMargin == true {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var entry any = GetValue(response, i)
-			var account any = this.Account()
+			var account map[string]any = this.Account()
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			if IsEqual(typeVar, "linear") {
-				AddElementToObject(account, "free", this.SafeString(entry, "umWalletBalance"))
-				AddElementToObject(account, "used", this.SafeString(entry, "umUnrealizedPNL"))
+				account["free"] = this.SafeString(entry, "umWalletBalance")
+				account["used"] = this.SafeString(entry, "umUnrealizedPNL")
 			} else if IsEqual(typeVar, "inverse") {
-				AddElementToObject(account, "free", this.SafeString(entry, "cmWalletBalance"))
-				AddElementToObject(account, "used", this.SafeString(entry, "cmUnrealizedPNL"))
+				account["free"] = this.SafeString(entry, "cmWalletBalance")
+				account["used"] = this.SafeString(entry, "cmUnrealizedPNL")
 			} else if cross {
 				var borrowed *string = this.SafeString(entry, "crossMarginBorrowed")
 				var interest *string = this.SafeString(entry, "crossMarginInterest")
-				AddElementToObject(account, "debt", Precise.StringAdd(borrowed, interest))
-				AddElementToObject(account, "free", this.SafeString(entry, "crossMarginFree"))
-				AddElementToObject(account, "used", this.SafeString(entry, "crossMarginLocked"))
-				AddElementToObject(account, "total", this.SafeString(entry, "crossMarginAsset"))
+				account["debt"] = Precise.StringAdd(borrowed, interest)
+				account["free"] = this.SafeString(entry, "crossMarginFree")
+				account["used"] = this.SafeString(entry, "crossMarginLocked")
+				account["total"] = this.SafeString(entry, "crossMarginAsset")
 			} else {
 				var usedLinear *string = this.SafeString(entry, "umUnrealizedPNL")
 				var usedInverse *string = this.SafeString(entry, "cmUnrealizedPNL")
 				var totalUsed *string = Precise.StringAdd(usedLinear, usedInverse)
 				var totalWalletBalance *string = this.SafeString(entry, "totalWalletBalance")
-				AddElementToObject(account, "total", Precise.StringAdd(totalUsed, totalWalletBalance))
+				account["total"] = Precise.StringAdd(totalUsed, totalWalletBalance)
 			}
 			if code != nil {
 				AddElementToObject(result, code, account)
@@ -5571,13 +5571,13 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) any {
 			var balance any = GetValue(balances, i)
 			var currencyId *string = this.SafeString(balance, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(balance, "free"))
-			AddElementToObject(account, "used", this.SafeString(balance, "locked"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(balance, "free")
+			account["used"] = this.SafeString(balance, "locked")
 			if cross {
 				var debt *string = this.SafeString(balance, "borrowed")
 				var interest *string = this.SafeString(balance, "interest")
-				AddElementToObject(account, "debt", Precise.StringAdd(debt, interest))
+				account["debt"] = Precise.StringAdd(debt, interest)
 			}
 			if code != nil {
 				AddElementToObject(result, code, account)
@@ -5614,10 +5614,10 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) any {
 			}()
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
+			var account map[string]any = this.Account()
 			var usedAndTotal *string = this.SafeString(entry, "amount")
-			AddElementToObject(account, "total", usedAndTotal)
-			AddElementToObject(account, "used", usedAndTotal)
+			account["total"] = usedAndTotal
+			account["used"] = usedAndTotal
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -5625,14 +5625,14 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) any {
 	} else if IsEqual(typeVar, "funding") {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var entry any = GetValue(response, i)
-			var account any = this.Account()
+			var account map[string]any = this.Account()
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			AddElementToObject(account, "free", this.SafeString(entry, "free"))
+			account["free"] = this.SafeString(entry, "free")
 			var frozen *string = this.SafeString(entry, "freeze")
 			var withdrawing *string = this.SafeString(entry, "withdrawing")
 			var locked *string = this.SafeString(entry, "locked")
-			AddElementToObject(account, "used", Precise.StringAdd(frozen, Precise.StringAdd(locked, withdrawing)))
+			account["used"] = Precise.StringAdd(frozen, Precise.StringAdd(locked, withdrawing))
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -5651,10 +5651,10 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) any {
 			}
 			var currencyId *string = this.SafeString(balance, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(balance, "availableBalance"))
-			AddElementToObject(account, "used", this.SafeString(balance, "initialMargin"))
-			AddElementToObject(account, "total", this.SafeString2(balance, "marginBalance", "balance"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(balance, "availableBalance")
+			account["used"] = this.SafeString(balance, "initialMargin")
+			account["total"] = this.SafeString2(balance, "marginBalance", "balance")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}

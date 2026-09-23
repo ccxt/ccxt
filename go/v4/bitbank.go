@@ -825,10 +825,10 @@ func (this *Bitbank) ParseBalance(response any) any {
 		}()
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(balance, "free_amount"))
-		AddElementToObject(account, "used", this.SafeString(balance, "locked_amount"))
-		AddElementToObject(account, "total", this.SafeString(balance, "onhand_amount"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(balance, "free_amount")
+		account["used"] = this.SafeString(balance, "locked_amount")
+		account["total"] = this.SafeString(balance, "onhand_amount")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

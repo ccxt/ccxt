@@ -1972,9 +1972,9 @@ func (this *Kraken) ParseBalance(response any) any {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var balance map[string]any = SafeMapTyped(balances, currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "used", this.SafeString(balance, "hold_trade"))
-		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
+		var account map[string]any = this.Account()
+		account["used"] = this.SafeString(balance, "hold_trade")
+		account["total"] = this.SafeString(balance, "balance")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

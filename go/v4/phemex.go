@@ -2456,7 +2456,7 @@ func (this *Phemex) ParseSpotBalance(response any) any {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var currency map[string]any = SafeMapTyped(this.Currencies, code)
 		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var balanceEv *string = this.SafeString(balance, "balanceEv")
 		var lockedTradingBalanceEv *string = this.SafeString(balance, "lockedTradingBalanceEv")
 		var lockedWithdrawEv *string = this.SafeString(balance, "lockedWithdrawEv")
@@ -2471,8 +2471,8 @@ func (this *Phemex) ParseSpotBalance(response any) any {
 			}
 			return mathMax(timestamp, lastUpdateTimeNs)
 		}()
-		AddElementToObject(account, "total", total)
-		AddElementToObject(account, "used", used)
+		account["total"] = total
+		account["used"] = used
 		AddElementToObject(result, code, account)
 	}
 	result["timestamp"] = timestamp
@@ -2519,22 +2519,22 @@ func (this *Phemex) ParseSwapBalance(response any) any {
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var valueScale *int64 = this.SafeInteger(currency, "valueScale", 8)
-	var account any = this.Account()
+	var account map[string]any = this.Account()
 	var accountBalanceEv *string = this.SafeString2(balance, "accountBalanceEv", "accountBalanceRv")
 	var totalUsedBalanceEv *string = this.SafeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv")
 	var needsConversion bool = (code == nil || *code != "USDT")
-	AddElementToObject(account, "total", func() any {
+	account["total"] = func() any {
 		if needsConversion {
 			return this.FromEn(accountBalanceEv, valueScale)
 		}
 		return accountBalanceEv
-	}())
-	AddElementToObject(account, "used", func() any {
+	}()
+	account["used"] = func() any {
 		if needsConversion {
 			return this.FromEn(totalUsedBalanceEv, valueScale)
 		}
 		return totalUsedBalanceEv
-	}())
+	}()
 	AddElementToObject(result, code, account)
 	return this.SafeBalance(result)
 }

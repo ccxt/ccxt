@@ -3167,16 +3167,16 @@ func (this *Whitebit) ParseBalance(response any) any {
 		var code *string = this.SafeCurrencyCode(id)
 		var balance any = GetValue(response, id)
 		if !IsEqual(balance, nil) && this.IsDictionary(balance) {
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString2(balance, "available", "main_balance"))
-			AddElementToObject(account, "used", this.SafeString(balance, "freeze"))
-			AddElementToObject(account, "total", this.SafeString(balance, "main_balance"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString2(balance, "available", "main_balance")
+			account["used"] = this.SafeString(balance, "freeze")
+			account["total"] = this.SafeString(balance, "main_balance")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
 		} else {
-			var account any = this.Account()
-			AddElementToObject(account, "total", balance)
+			var account map[string]any = this.Account()
+			account["total"] = balance
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}

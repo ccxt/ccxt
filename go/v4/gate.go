@@ -4367,12 +4367,12 @@ func (this *Gate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Gate) ParseBalanceHelper(entry any) any {
-	var account any = this.Account()
-	AddElementToObject(account, "used", this.SafeString2(entry, "freeze", "locked"))
-	AddElementToObject(account, "free", this.SafeString(entry, "available"))
-	AddElementToObject(account, "total", this.SafeString(entry, "total"))
+	var account map[string]any = this.Account()
+	account["used"] = this.SafeString2(entry, "freeze", "locked")
+	account["free"] = this.SafeString(entry, "available")
+	account["total"] = this.SafeString(entry, "total")
 	if InOp(entry, "borrowed") {
-		AddElementToObject(account, "debt", this.SafeString(entry, "borrowed"))
+		account["debt"] = this.SafeString(entry, "borrowed")
 	}
 	return account
 }

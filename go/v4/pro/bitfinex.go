@@ -1191,7 +1191,7 @@ func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[
 	var updateType any = this.SafeValue(message, 1)
 	var data any = []any{}
 	if ccxt.IsEqual(updateType, "ws") {
-		data = this.SafeValue(message, 2)
+		data = this.SafeList(message, 2)
 	} else {
 		data = []any{this.SafeValue(message, 2)}
 	}
@@ -1231,11 +1231,11 @@ func (this *Bitfinex) ParseWsBalance(balance any) any {
 	//
 	var totalBalance *string = this.SafeString(balance, 2)
 	var availableBalance *string = this.SafeString(balance, 4)
-	var account any = this.Account()
+	var account map[string]any = this.Account()
 	if availableBalance != nil {
-		ccxt.AddElementToObject(account, "free", availableBalance)
+		account["free"] = availableBalance
 	}
-	ccxt.AddElementToObject(account, "total", totalBalance)
+	account["total"] = totalBalance
 	return account
 }
 func (this *Bitfinex) HandleSystemStatus(client any, message map[string]any) any {

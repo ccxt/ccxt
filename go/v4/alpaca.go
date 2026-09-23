@@ -2837,11 +2837,11 @@ func (this *Alpaca) ParseBalance(response any) any {
 	var currencyId *string = this.SafeString(account, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	if code != nil {
-		var cashAccount any = this.Account()
-		AddElementToObject(cashAccount, "free", this.SafeString(account, "cash")) // cash already excludes the amounts held for open orders, verified live 2026-09-16
+		var cashAccount map[string]any = this.Account()
+		cashAccount["free"] = this.SafeString(account, "cash") // cash already excludes the amounts held for open orders, verified live 2026-09-16
 		var equity *string = this.SafeString(account, "equity")
 		var positionsValue *string = this.SafeString(account, "position_market_value")
-		AddElementToObject(cashAccount, "total", Precise.StringSub(equity, positionsValue)) // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+		cashAccount["total"] = Precise.StringSub(equity, positionsValue) // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
 		AddElementToObject(result, code, cashAccount)
 	}
 	for i := 0; i < len(positions); i++ {
@@ -2882,9 +2882,9 @@ func (this *Alpaca) ParseBalance(response any) any {
 			_, ok := result[*positionCode]
 			return ok
 		}()) {
-			var positionAccount any = this.Account()
-			AddElementToObject(positionAccount, "free", this.SafeString(position, "qty_available"))
-			AddElementToObject(positionAccount, "total", this.SafeString(position, "qty"))
+			var positionAccount map[string]any = this.Account()
+			positionAccount["free"] = this.SafeString(position, "qty_available")
+			positionAccount["total"] = this.SafeString(position, "qty")
 			AddElementToObject(result, positionCode, positionAccount)
 		}
 	}

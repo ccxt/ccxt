@@ -810,9 +810,9 @@ func (this *Luno) ParseBalance(response any) any {
 				return result[*code]
 			}(), "total"), balanceUnconfirmed))
 		} else if code != nil {
-			var account any = this.Account()
-			AddElementToObject(account, "used", reservedUnconfirmed)
-			AddElementToObject(account, "total", balanceUnconfirmed)
+			var account map[string]any = this.Account()
+			account["used"] = reservedUnconfirmed
+			account["total"] = balanceUnconfirmed
 			AddElementToObject(result, code, account)
 		}
 	}

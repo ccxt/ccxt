@@ -919,10 +919,10 @@ func (this *Lbank) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "datetime", datetime)
 	var currencyId *string = this.SafeString(data, "assetCode")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var account any = this.Account()
-	ccxt.AddElementToObject(account, "free", this.SafeString(data, "free"))
-	ccxt.AddElementToObject(account, "used", this.SafeString(data, "freeze"))
-	ccxt.AddElementToObject(account, "total", this.SafeString(data, "asset"))
+	var account map[string]any = this.Account()
+	account["free"] = this.SafeString(data, "free")
+	account["used"] = this.SafeString(data, "freeze")
+	account["total"] = this.SafeString(data, "asset")
 	if code != nil {
 		ccxt.AddElementToObject(this.Balance, code, account)
 	}

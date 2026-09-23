@@ -3580,9 +3580,9 @@ func (this *Woofipro) ParseBalance(response any) any {
 			return nil
 		}()
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
-		var account any = this.Account()
-		AddElementToObject(account, "total", this.SafeString(balance, "holding"))
-		AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(balance, "holding")
+		account["used"] = this.SafeString(balance, "frozen")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

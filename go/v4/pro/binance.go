@@ -4643,16 +4643,16 @@ func (this *Binance) HandleBalance(client any, message any) {
 	if event != nil && *event == "balanceUpdate" {
 		var currencyId *string = this.SafeString(message, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var delta *string = this.SafeString(message, "d")
 		if (accountType != nil) && (code != nil) && (ccxt.InOp(ccxt.GetValue(this.Balance, accountType), code)) {
 			var previousValue any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Balance, accountType), code), "free")
 			if !ccxt.IsString(previousValue) {
 				previousValue = ccxt.DerefScalar(this.NumberToString(previousValue))
 			}
-			ccxt.AddElementToObject(account, "free", ccxt.Precise.StringAdd(previousValue, delta))
+			account["free"] = ccxt.Precise.StringAdd(previousValue, delta)
 		} else {
-			ccxt.AddElementToObject(account, "free", delta)
+			account["free"] = delta
 		}
 		if (accountType != nil) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
@@ -4667,10 +4667,10 @@ func (this *Binance) HandleBalance(client any, message any) {
 			var entry any = ccxt.GetValue(B, i)
 			var currencyId *string = this.SafeString(entry, "a")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			ccxt.AddElementToObject(account, "free", this.SafeString(entry, "f"))
-			ccxt.AddElementToObject(account, "used", this.SafeString(entry, "l"))
-			ccxt.AddElementToObject(account, "total", this.SafeString(entry, wallet))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(entry, "f")
+			account["used"] = this.SafeString(entry, "l")
+			account["total"] = this.SafeString(entry, wallet)
 			if (accountType != nil) && (code != nil) {
 				ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
 			}
@@ -7008,8 +7008,8 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message any) {
 		var currencyId *string = this.SafeString(entry, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
-			var account any = this.Account()
-			ccxt.AddElementToObject(account, "total", this.SafeString(entry, "b"))
+			var account map[string]any = this.Account()
+			account["total"] = this.SafeString(entry, "b")
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
 		}
 	}

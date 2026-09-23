@@ -1322,10 +1322,10 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var interest *string = this.SafeString(balance, 3)
 		if interest == nil || *interest != "0" {
-			AddElementToObject(account, "debt", interest)
+			account["debt"] = interest
 		}
 		var typeVar *string = this.SafeString(balance, 0)
 		var currencyId *string = this.SafeStringLower(balance, 1, "")
@@ -1335,8 +1335,8 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var derivativeCondition bool = (!isDerivative || isDerivativeCode)
 		if (accountType == typeVar || (accountType != nil && typeVar != nil && *accountType == *typeVar)) && derivativeCondition {
 			var code *string = this.SafeCurrencyCode(currencyId)
-			AddElementToObject(account, "total", this.SafeString(balance, 2))
-			AddElementToObject(account, "free", this.SafeString(balance, 4))
+			account["total"] = this.SafeString(balance, 2)
+			account["free"] = this.SafeString(balance, 4)
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}

@@ -2404,10 +2404,10 @@ func (this *Zebpay) ParseBalance(response any) any {
 			}
 			return nil
 		}()
-		var account any = this.Account()
-		AddElementToObject(account, "total", this.SafeString(entry, "total"))
-		AddElementToObject(account, "free", this.SafeString(entry, "free"))
-		AddElementToObject(account, "used", this.SafeString(entry, "used"))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(entry, "total")
+		account["free"] = this.SafeString(entry, "free")
+		account["used"] = this.SafeString(entry, "used")
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {

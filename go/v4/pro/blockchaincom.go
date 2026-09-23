@@ -142,9 +142,9 @@ func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
 		}()
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "free", this.SafeString(entry, "available"))
-		ccxt.AddElementToObject(account, "total", this.SafeString(entry, "balance"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(entry, "available")
+		account["total"] = this.SafeString(entry, "balance")
 		if code != nil {
 			ccxt.AddElementToObject(result, code, account)
 		}

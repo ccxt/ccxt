@@ -1460,19 +1460,19 @@ func (this *Lighter) HandleBalance(client any, message any) any {
 			var asset any = assets[assetId]
 			var codeId *string = this.SafeString(asset, "symbol")
 			var code *string = this.SafeCurrencyCode(codeId)
-			var account any = this.Account()
-			ccxt.AddElementToObject(account, "used", this.SafeString(asset, "locked_balance"))
-			ccxt.AddElementToObject(account, "total", this.SafeString(asset, "balance"))
+			var account map[string]any = this.Account()
+			account["used"] = this.SafeString(asset, "locked_balance")
+			account["total"] = this.SafeString(asset, "balance")
 			if code != nil {
 				ccxt.AddElementToObject(balance, code, account)
 			}
 		}
 	} else {
 		var stats any = this.SafeDict(message, "stats", map[string]any{})
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "free", this.SafeString(stats, "available_balance"))
-		ccxt.AddElementToObject(account, "total", this.SafeString(stats, "collateral"))
-		ccxt.AddElementToObject(account, "info", stats)
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(stats, "available_balance")
+		account["total"] = this.SafeString(stats, "collateral")
+		account["info"] = stats
 		ccxt.AddElementToObject(balance, "USDC", account)
 	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")

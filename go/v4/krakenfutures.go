@@ -3636,17 +3636,17 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 		if codeLength > 1 {
 			continue
 		}
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		if isFlex {
-			AddElementToObject(account, "total", this.SafeString(balance, "quantity"))
-			AddElementToObject(account, "free", this.SafeString(balance, "available"))
+			account["total"] = this.SafeString(balance, "quantity")
+			account["free"] = this.SafeString(balance, "available")
 		} else if isCash {
-			AddElementToObject(account, "used", "0.0")
-			AddElementToObject(account, "total", balance)
+			account["used"] = "0.0"
+			account["total"] = balance
 		} else {
 			var auxiliary map[string]any = SafeMapTyped(response, "auxiliary")
-			AddElementToObject(account, "free", this.SafeString(auxiliary, "af"))
-			AddElementToObject(account, "total", this.SafeString(auxiliary, "pv"))
+			account["free"] = this.SafeString(auxiliary, "af")
+			account["total"] = this.SafeString(auxiliary, "pv")
 		}
 		if code != nil {
 			AddElementToObject(result, code, account)

@@ -899,9 +899,9 @@ func (this *Upbit) HandleBalance(client any, message map[string]any) {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var available *string = this.SafeString(balance, "balance")
 		var frozen *string = this.SafeString(balance, "locked")
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "free", available)
-		ccxt.AddElementToObject(account, "used", frozen)
+		var account map[string]any = this.Account()
+		account["free"] = available
+		account["used"] = frozen
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}

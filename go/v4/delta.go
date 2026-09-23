@@ -2015,9 +2015,9 @@ func (this *Delta) ParseBalance(response any) any {
 			}
 			return GetValue(currency, "code")
 		}()
-		var account any = this.Account()
-		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-		AddElementToObject(account, "free", this.SafeString(balance, "available_balance"))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(balance, "balance")
+		account["free"] = this.SafeString(balance, "available_balance")
 		AddElementToObject(result, code, account)
 	}
 	return this.SafeBalance(result)

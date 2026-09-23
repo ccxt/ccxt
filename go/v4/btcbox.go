@@ -427,10 +427,10 @@ func (this *Btcbox) ParseBalance(response any) any {
 		var currencyId any = currency["id"]
 		var free any = Add(currencyId, "_balance")
 		if InOp(response, free) {
-			var account any = this.Account()
+			var account map[string]any = this.Account()
 			var used any = Add(currencyId, "_lock")
-			AddElementToObject(account, "free", this.SafeString(response, free))
-			AddElementToObject(account, "used", this.SafeString(response, used))
+			account["free"] = this.SafeString(response, free)
+			account["used"] = this.SafeString(response, used)
 			result[code] = account
 		}
 	}

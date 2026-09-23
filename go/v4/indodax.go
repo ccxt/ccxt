@@ -521,9 +521,9 @@ func (this *Indodax) ParseBalance(response any) any {
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(free, currencyId))
-		AddElementToObject(account, "used", this.SafeString(used, currencyId))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(free, currencyId)
+		account["used"] = this.SafeString(used, currencyId)
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

@@ -1311,9 +1311,9 @@ func (this *Bydfi) HandleBalance(client any, message any) {
 			}()
 			var currencyId *string = this.SafeString(balance, "a")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			ccxt.AddElementToObject(account, "total", this.SafeString(balance, "wb"))
-			ccxt.AddElementToObject(account, "used", this.SafeString(balance, "tfm"))
+			var account map[string]any = this.Account()
+			account["total"] = this.SafeString(balance, "wb")
+			account["used"] = this.SafeString(balance, "tfm")
 			if code != nil {
 				ccxt.AddElementToObject(result, code, account)
 			}

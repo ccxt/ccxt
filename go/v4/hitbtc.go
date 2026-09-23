@@ -1235,9 +1235,9 @@ func (this *Hitbtc) ParseBalance(response any) any {
 		var entry any = GetValue(response, i)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(entry, "available"))
-		AddElementToObject(account, "used", this.SafeString(entry, "reserved"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(entry, "available")
+		account["used"] = this.SafeString(entry, "reserved")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

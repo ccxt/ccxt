@@ -1916,10 +1916,10 @@ func (this *Xt) HandleBalance(client any, message map[string]any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var currencyId *string = this.SafeString2(data, "c", "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var account any = this.Account()
-	ccxt.AddElementToObject(account, "free", this.SafeString(data, "availableBalance"))
-	ccxt.AddElementToObject(account, "used", this.SafeString(data, "f"))
-	ccxt.AddElementToObject(account, "total", this.SafeString2(data, "b", "walletBalance"))
+	var account map[string]any = this.Account()
+	account["free"] = this.SafeString(data, "availableBalance")
+	account["used"] = this.SafeString(data, "f")
+	account["total"] = this.SafeString2(data, "b", "walletBalance")
 	if code != nil {
 		ccxt.AddElementToObject(this.Balance, code, account)
 	}

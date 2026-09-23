@@ -1822,12 +1822,12 @@ func (this *Backpack) ParseBalance(response any) any {
 		var id string = GetValue(balanceKeys, i).(string)
 		var code *string = this.SafeCurrencyCode(id)
 		var balance any = GetValue(response, id)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var locked *string = this.SafeString(balance, "locked")
 		var staked *string = this.SafeString(balance, "staked")
 		var used *string = Precise.StringAdd(locked, staked)
-		AddElementToObject(account, "free", this.SafeString(balance, "available"))
-		AddElementToObject(account, "used", used)
+		account["free"] = this.SafeString(balance, "available")
+		account["used"] = used
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

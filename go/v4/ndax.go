@@ -1656,9 +1656,9 @@ func (this *Ndax) ParseBalance(response any) any {
 		var currencyId *string = this.SafeString(balance, "ProductId")
 		if (currencyId != nil) && (this.Currencies_by_id != nil) && (InOp(this.Currencies_by_id, currencyId)) {
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "total", this.SafeString(balance, "Amount"))
-			AddElementToObject(account, "used", this.SafeString(balance, "Hold"))
+			var account map[string]any = this.Account()
+			account["total"] = this.SafeString(balance, "Amount")
+			account["used"] = this.SafeString(balance, "Hold")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}

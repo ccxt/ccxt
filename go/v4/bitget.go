@@ -7218,13 +7218,13 @@ func (this *Bitget) ParseUtaBalance(balance any) any {
 	//
 	for i := 0; i < GetArrayLength(balance); i++ {
 		var entry any = GetValue(balance, i)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		AddElementToObject(account, "debt", this.SafeString(entry, "debt"))
-		AddElementToObject(account, "used", this.SafeString2(entry, "locked", "frozen"))
-		AddElementToObject(account, "free", this.SafeString(entry, "available"))
-		AddElementToObject(account, "total", this.SafeString2(entry, "equity", "balance"))
+		account["debt"] = this.SafeString(entry, "debt")
+		account["used"] = this.SafeString2(entry, "locked", "frozen")
+		account["free"] = this.SafeString(entry, "available")
+		account["total"] = this.SafeString2(entry, "equity", "balance")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -7284,27 +7284,27 @@ func (this *Bitget) ParseBalance(balance any) any {
 	//
 	for i := 0; i < GetArrayLength(balance); i++ {
 		var entry any = GetValue(balance, i)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var currencyId *string = this.SafeString2(entry, "marginCoin", "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var borrow *string = this.SafeString(entry, "borrow")
 		if borrow != nil {
 			var interest *string = this.SafeString(entry, "interest")
-			AddElementToObject(account, "free", this.SafeString(entry, "transferable"))
-			AddElementToObject(account, "total", this.SafeString(entry, "totalAmount"))
-			AddElementToObject(account, "debt", Precise.StringAdd(borrow, interest))
+			account["free"] = this.SafeString(entry, "transferable")
+			account["total"] = this.SafeString(entry, "totalAmount")
+			account["debt"] = Precise.StringAdd(borrow, interest)
 		} else {
 			// Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
 			var spotAccountFree *string = this.SafeString(entry, "available")
 			var contractAccountFree *string = this.SafeString(entry, "maxTransferOut")
 			if contractAccountFree != nil {
-				AddElementToObject(account, "free", contractAccountFree)
-				AddElementToObject(account, "total", this.SafeString(entry, "accountEquity"))
+				account["free"] = contractAccountFree
+				account["total"] = this.SafeString(entry, "accountEquity")
 			} else {
-				AddElementToObject(account, "free", spotAccountFree)
+				account["free"] = spotAccountFree
 				var frozen *string = this.SafeString(entry, "frozen")
 				var locked *string = this.SafeString(entry, "locked")
-				AddElementToObject(account, "used", Precise.StringAdd(frozen, locked))
+				account["used"] = Precise.StringAdd(frozen, locked)
 			}
 		}
 		if code != nil {

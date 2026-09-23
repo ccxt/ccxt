@@ -4888,9 +4888,9 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			}()
 			var currencyId *string = this.SafeString(balance, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(balance, "available_margin"))
-			AddElementToObject(account, "total", this.SafeString(balance, "equity"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(balance, "available_margin")
+			account["total"] = this.SafeString(balance, "equity")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -4934,9 +4934,9 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			var balance any = GetValue(data, i)
 			var currencyId *string = this.SafeString(balance, "symbol")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(balance, "margin_available"))
-			AddElementToObject(account, "used", this.SafeString(balance, "margin_frozen"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(balance, "margin_available")
+			account["used"] = this.SafeString(balance, "margin_frozen")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}

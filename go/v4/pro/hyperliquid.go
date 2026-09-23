@@ -1583,19 +1583,19 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 	//
 	accountType := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = accountType
-	var account any = this.Account()
+	var account map[string]any = this.Account()
 	var currencyId *string = this.SafeString(balance, "coin")
 	var code any = nil
 	if currencyId == nil {
 		code = "USDC"
 		var marginSummary map[string]any = ccxt.SafeMapTyped(balance, "marginSummary")
-		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "withdrawable"))
-		ccxt.AddElementToObject(account, "used", this.SafeString(marginSummary, "totalMarginUsed"))
-		ccxt.AddElementToObject(account, "total", this.SafeString(marginSummary, "accountValue"))
+		account["free"] = this.SafeString(balance, "withdrawable")
+		account["used"] = this.SafeString(marginSummary, "totalMarginUsed")
+		account["total"] = this.SafeString(marginSummary, "accountValue")
 	} else {
 		code = ccxt.DerefScalar(this.SafeCurrencyCode(currencyId))
-		ccxt.AddElementToObject(account, "used", this.SafeString(balance, "hold"))
-		ccxt.AddElementToObject(account, "total", this.SafeString(balance, "total"))
+		account["used"] = this.SafeString(balance, "hold")
+		account["total"] = this.SafeString(balance, "total")
 	}
 	if accountType != nil {
 		if ccxt.IsEqual(this.SafeValue(this.Balance, accountType), nil) {

@@ -506,9 +506,9 @@ func (this *Hibachi) ParseBalance(response any) any {
 	}
 	// Hibachi only supports USDT on Arbitrum at this time
 	var code *string = this.SafeCurrencyCode("USDT")
-	var account any = this.Account()
-	AddElementToObject(account, "total", this.SafeString(response, "balance"))
-	AddElementToObject(account, "free", this.SafeString(response, "maximalWithdraw"))
+	var account map[string]any = this.Account()
+	account["total"] = this.SafeString(response, "balance")
+	account["free"] = this.SafeString(response, "maximalWithdraw")
 	if code != nil {
 		AddElementToObject(result, code, account)
 	}

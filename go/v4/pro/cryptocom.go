@@ -1517,9 +1517,9 @@ func (this *Cryptocom) HandleBalance(client any, message map[string]any) {
 		}()
 		var currencyId *string = this.SafeString(balance, "instrument_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "total", this.SafeString(balance, "quantity"))
-		ccxt.AddElementToObject(account, "used", this.SafeString(balance, "reserved_qty"))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(balance, "quantity")
+		account["used"] = this.SafeString(balance, "reserved_qty")
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}

@@ -816,10 +816,10 @@ func (this *Bitso) ParseBalance(response any) any {
 		}()
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(balance, "available"))
-		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
-		AddElementToObject(account, "total", this.SafeString(balance, "total"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(balance, "available")
+		account["used"] = this.SafeString(balance, "locked")
+		account["total"] = this.SafeString(balance, "total")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

@@ -1319,11 +1319,11 @@ func (this *Bitmex) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var free *string = this.SafeString(balance, "availableMargin")
 		var total *string = this.SafeString(balance, "marginBalance")
-		AddElementToObject(account, "free", this.ConvertToRealAmount(code, free))
-		AddElementToObject(account, "total", this.ConvertToRealAmount(code, total))
+		account["free"] = this.ConvertToRealAmount(code, free)
+		account["total"] = this.ConvertToRealAmount(code, total)
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}

@@ -132,9 +132,9 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 	var currencyIds []string = ccxt.ObjectKeys(freeBalance)
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = ccxt.GetValue(currencyIds, i).(string)
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "free", this.SafeString(freeBalance, currencyId))
-		ccxt.AddElementToObject(account, "used", this.SafeString(usedBalance, currencyId))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(freeBalance, currencyId)
+		account["used"] = this.SafeString(usedBalance, currencyId)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
 			ccxt.AddElementToObject(result, code, account)

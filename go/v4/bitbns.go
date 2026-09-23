@@ -676,9 +676,9 @@ func (this *Bitbns) ParseBalance(response any) any {
 		if numParts > 1 {
 			var currencyId any = DerefScalar(this.SafeString(parts, 1))
 			// note that "Money" stands for INR - the only fiat in bitbns
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(data, key))
-			AddElementToObject(account, "used", this.SafeString(data, Add("inorder", currencyId)))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(data, key)
+			account["used"] = this.SafeString(data, Add("inorder", currencyId))
 			if IsEqual(currencyId, "Money") {
 				currencyId = "INR"
 			}

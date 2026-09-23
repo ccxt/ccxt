@@ -3196,7 +3196,7 @@ func (this *Xt) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString2(balance, "currency", "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var free *string = this.SafeString2(balance, "availableAmount", "availableBalance")
 		var used *string = this.SafeString(balance, "frozenAmount")
 		var total *string = this.SafeString2(balance, "totalAmount", "walletBalance")
@@ -3204,9 +3204,9 @@ func (this *Xt) ParseBalance(response any) any {
 			var crossedAndIsolatedMargin *string = Precise.StringAdd(this.SafeString(balance, "crossedMargin"), this.SafeString(balance, "isolatedMargin"))
 			used = Precise.StringAdd(this.SafeString(balance, "openOrderMarginFrozen"), crossedAndIsolatedMargin)
 		}
-		AddElementToObject(account, "free", free)
-		AddElementToObject(account, "used", used)
-		AddElementToObject(account, "total", total)
+		account["free"] = free
+		account["used"] = used
+		account["total"] = total
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
