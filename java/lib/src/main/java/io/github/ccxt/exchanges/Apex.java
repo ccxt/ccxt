@@ -1002,6 +1002,7 @@ public class Apex extends ApexApi
             {
                 limit = 200; // default is 200 when requested with `since`
             }
+            limit = Helpers.mathMin(limit, 200); // fix maxcap
             ((Map<String, Object>)request).put("limit", limit); // max 200, default 200
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters, 0.001);
             request = ((List<Object>) requestparametersVariable).get(0);
