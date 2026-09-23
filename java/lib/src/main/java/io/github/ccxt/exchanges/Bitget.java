@@ -8233,8 +8233,8 @@ final Object finalMinNotional = minNotional;
                         throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options[\"createOrder\"] or params to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String quoteAmount = Precise.stringMul(amountString, priceString);
                         quantity = this.costToPrecision(symbol, quoteAmount);
                     }
@@ -8642,8 +8642,8 @@ final Object finalMinNotional = minNotional;
                         throw new InvalidOrder((this.id + " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String finalCost = (((java.util.Objects.equals(cost, null)))) ? (Precise.stringMul(amountString, priceString)) : cost;
                         ((Map<String, Object>)request).put("size", this.priceToPrecision(symbol, finalCost));
                     }
@@ -8744,7 +8744,7 @@ final Object finalMinNotional = minNotional;
                     response = (this.privateMixPostV2MixOrderModifyPlanOrder(this.extend(request, parameters))).join();
                 } else
                 {
-                    Object defaultNewClientOrderId = this.uuid();
+                    String defaultNewClientOrderId = this.uuid();
                     String newClientOrderId = this.safeString2(parameters, "newClientOid", "newClientOrderId", defaultNewClientOrderId);
                     parameters = this.omit(parameters, "newClientOrderId");
                     ((Map<String, Object>)request).put("newClientOid", newClientOrderId);
@@ -11848,7 +11848,7 @@ final Object finalMinNotional = minNotional;
         String side = this.safeString2(position, "holdSide", "posSide");
         String leverage = this.safeString(position, "leverage");
         Double contractSizeNumber = this.safeNumber(market, "contractSize");
-        Object contractSize = this.numberToString(contractSizeNumber);
+        String contractSize = this.numberToString(contractSizeNumber);
         String baseAmount = this.safeString2(position, "total", "openTotalPos");
         String entryPrice = this.safeStringN(position, new ArrayList<Object>(Arrays.asList("openPriceAvg", "openAvgPrice", "avgPrice")));
         String maintenanceMarginPercentage = this.safeString(position, "keepMarginRate");
@@ -15027,7 +15027,7 @@ final Object finalMinNotional = minNotional;
                     auth = (auth + ("?" + this.rawencode(sortedParams, true)));
                 }
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             String broker = this.safeString(this.options, "broker");
             final Object finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{

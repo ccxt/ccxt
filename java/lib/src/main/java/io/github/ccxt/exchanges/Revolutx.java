@@ -237,11 +237,11 @@ public class Revolutx extends RevolutxApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object implodedPath = this.implodeParams(path, parameters);
+        String implodedPath = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         List<Object> queryKeys = Helpers.objectKeys(query);
         Object queryLength = ((List<?>)queryKeys).size();
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), implodedPath);
+        String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/") + implodedPath);
         Object queryString = "";
         if (java.util.Objects.equals(api, "private"))
         {

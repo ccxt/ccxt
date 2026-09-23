@@ -2383,8 +2383,8 @@ public class Digifinex extends DigifinexApi
                         throw new InvalidOrder((this.id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         Double costRequest = this.parseNumber(Precise.stringMul(amountString, priceString));
                         quantity = this.costToPrecision(symbol, costRequest);
                     }
@@ -5551,7 +5551,7 @@ final Object finalI = i;
                 nonce = String.valueOf(this.nonce());
                 auth = urlencoded;
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             if (java.util.Objects.equals(method, "GET"))
             {
                 if ((!java.util.Objects.equals(urlencoded, null)) && (!java.util.Objects.equals(urlencoded, "")))

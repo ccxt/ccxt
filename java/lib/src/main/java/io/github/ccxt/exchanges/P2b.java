@@ -1566,7 +1566,7 @@ public class P2b extends P2bApi
         {
             ((Map<String, Object>)parameters).put("request", Helpers.add("/api/v2/", path));
             ((Map<String, Object>)parameters).put("nonce", String.valueOf(this.nonce()));
-            Object payload = this.stringToBase64(this.json(parameters)); // Body json encoded in base64
+            String payload = this.stringToBase64(this.json(parameters)); // Body json encoded in base64
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-TXC-APIKEY", P2b.this.apiKey );

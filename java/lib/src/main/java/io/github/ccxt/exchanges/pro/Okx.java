@@ -2007,7 +2007,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String method = "GET";
                 String path = "/users/self/verify";
                 String auth = ((timestamp + method) + path);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 String operation = "login";
                 final Object finalTimestamp = timestamp;
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2797,7 +2797,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         if (this.isEmpty(args))
         {
             String method = this.safeString(message, "op");
-            Object stringMsg = this.json(message);
+            String stringMsg = this.json(message);
             this.handleErrors(1, "", client.url, ((String)method), new HashMap<String, Object>() {{}}, stringMsg, message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
         }
         List<Object> orders = this.parseOrders(args, null, null);

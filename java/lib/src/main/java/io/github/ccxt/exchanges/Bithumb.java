@@ -2037,8 +2037,8 @@ public class Bithumb extends BithumbApi
                         throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         cost = Precise.stringMul(amountString, priceString);
                     }
                 } else
@@ -2225,7 +2225,7 @@ public class Bithumb extends BithumbApi
                 throw new BadRequest((this.id + " createTwapOrder() is only supported for the generation 2 API")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object durationString = this.numberToString(duration);
+            String durationString = this.numberToString(duration);
             String durationSeconds = Precise.stringDiv(durationString, "1000");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", Bithumb.this.getGen2MarketId((Map<String, Object>) (market)) );
@@ -4016,8 +4016,8 @@ public class Bithumb extends BithumbApi
                 body = String.join("+", (List<String>)bodyParts);
                 Object nonce = String.valueOf(this.nonce());
                 Object auth = ((((endpoint + "\\") + body) + "\\") + nonce); // eslint-disable-line quotes
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());
-                Object signature64 = this.stringToBase64(signature);
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512());
+                String signature64 = this.stringToBase64(signature);
                 headers = new HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
                     put( "Content-Type", "application/x-www-form-urlencoded" );

@@ -114,7 +114,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
-            Object timestamp = this.numberToString(this.milliseconds());
+            String timestamp = this.numberToString(this.milliseconds());
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
             String messageHash = "authenticated";
             Client client = this.client(url);
@@ -123,7 +123,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 String accessPath = "/ws";
                 String requestString = ((("GET\n" + accessPath) + "\nsignTimestamp=") + timestamp);
-                Object signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha256(), "base64");
+                String signature = (String) this.hmac(this.encode(requestString), this.encode(this.secret), sha256(), "base64");
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "event", "subscribe" );
                     put( "channel", new ArrayList<Object>(Arrays.asList("auth")) );
@@ -312,8 +312,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
@@ -1110,8 +1110,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     for (var j = 0; j < Helpers.getArrayLength(previousOrderTrades); j++)
                     {
                         Object previousOrderTrade = Helpers.GetValue(previousOrderTrades, j);
-                        Object cost = this.numberToString(Helpers.GetValue(previousOrderTrade, "cost"));
-                        Object amount = this.numberToString(Helpers.GetValue(previousOrderTrade, "amount"));
+                        String cost = this.numberToString(Helpers.GetValue(previousOrderTrade, "cost"));
+                        String amount = this.numberToString(Helpers.GetValue(previousOrderTrade, "amount"));
                         totalCost = Precise.stringAdd(totalCost, cost);
                         totalAmount = Precise.stringAdd(totalAmount, amount);
                     }
@@ -1122,13 +1122,13 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     ((Map<String, Object>)previousOrder).put("cost", this.parseNumber(totalCost));
                     if (!java.util.Objects.equals(((Map<String, Object>)previousOrder).get("filled"), null))
                     {
-                        Object tradeAmount = this.numberToString(((Map<String, Object>)trade).get("amount"));
-                        Object previousOrderFilled = this.numberToString(((Map<String, Object>)previousOrder).get("filled"));
+                        String tradeAmount = this.numberToString(((Map<String, Object>)trade).get("amount"));
+                        String previousOrderFilled = this.numberToString(((Map<String, Object>)previousOrder).get("filled"));
                         previousOrderFilled = Precise.stringAdd(previousOrderFilled, tradeAmount);
                         ((Map<String, Object>)previousOrder).put("filled", previousOrderFilled);
                         if (!java.util.Objects.equals(((Map<String, Object>)previousOrder).get("amount"), null))
                         {
-                            Object previousOrderAmount = this.numberToString(((Map<String, Object>)previousOrder).get("amount"));
+                            String previousOrderAmount = this.numberToString(((Map<String, Object>)previousOrder).get("amount"));
                             ((Map<String, Object>)previousOrder).put("remaining", this.parseNumber(Precise.stringSub(previousOrderAmount, previousOrderFilled)));
                         }
                     }
@@ -1142,8 +1142,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     }
                     if ((!java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"), null)) && (!java.util.Objects.equals(this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost"), null)))
                     {
-                        Object stringOrderCost = this.numberToString(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"));
-                        Object stringTradeCost = this.numberToString(this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost"));
+                        String stringOrderCost = this.numberToString(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"));
+                        String stringTradeCost = this.numberToString(this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost"));
                         Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                     }
                     String rawState = this.safeString(order, "state");

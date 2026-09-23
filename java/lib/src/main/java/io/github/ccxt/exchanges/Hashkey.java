@@ -4734,7 +4734,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new ArgumentsRequired((((this.id + " ") + type) + "Margin() params[\"side\"] must be either long or short")) ;
             }
-            Object amountString = this.numberToString(amount);
+            String amountString = this.numberToString(amount);
             if (java.util.Objects.equals(type, "reduce"))
             {
                 amountString = Precise.stringMul(amountString, "-1");

@@ -2940,10 +2940,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             if (java.util.Objects.equals(authenticated, null))
             {
                 Long expiresInt = (this.milliseconds() + 10000L);
-                Object expires = this.numberToString(expiresInt);
+                String expires = this.numberToString(expiresInt);
                 Object path = "GET/realtime";
                 Object auth = Helpers.add(path, expires);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "hex");
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "hex");
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "op", "auth" );
                     put( "args", new ArrayList<Object>(Arrays.asList(Bybit.this.apiKey, expires, signature)) );

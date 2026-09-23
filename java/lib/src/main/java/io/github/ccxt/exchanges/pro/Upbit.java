@@ -81,7 +81,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
             Object marketIds = this.marketIds(symbols);
-            Object url = this.implodeParams(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), new HashMap<String, Object>() {{
+            String url = (String) this.implodeParams(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), new HashMap<String, Object>() {{
                 put( "hostname", Upbit.this.hostname );
             }});
             Client client = this.client(url);
@@ -498,7 +498,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 ((Map<String, Object>)request).put("codes", marketIds);
                 messageHash = ((messageHash + ":") + symbol);
             }
-            Object url = this.implodeParams(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), new HashMap<String, Object>() {{
+            String url = (String) this.implodeParams(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), new HashMap<String, Object>() {{
                 put( "hostname", Upbit.this.hostname );
             }});
             url = (url + "/private");

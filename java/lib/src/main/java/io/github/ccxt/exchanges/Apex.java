@@ -1632,7 +1632,7 @@ public class Apex extends ApexApi
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, "swap", new HashMap<String, Object>() {{}});
             String taker = this.safeString(fees, "taker", "0.0005");
             String maker = this.safeString(fees, "maker", "0.0002");
-            Object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"))), TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
+            String limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"))), TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
             Long timeNow = this.milliseconds();
             String triggerPrice = this.safeString(parameters, "triggerPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -2324,7 +2324,7 @@ public class Apex extends ApexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object leverageString = this.numberToString(leverage);
+            String leverageString = this.numberToString(leverage);
             String initialMarginRate = Precise.stringDiv("1", leverageString, 4);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2459,7 +2459,7 @@ public class Apex extends ApexApi
             {
                 messageString = Helpers.add(messageString, signBody);
             }
-            Object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
             ((Map<String, Object>)headers).put("APEX-SIGNATURE", signature);
             ((Map<String, Object>)headers).put("APEX-API-KEY", this.apiKey);
             ((Map<String, Object>)headers).put("APEX-TIMESTAMP", timestamp);

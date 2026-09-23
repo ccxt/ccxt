@@ -5447,7 +5447,7 @@ public class Weex extends WeexApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object endpoint = this.implodeParams(path, parameters);
+        String endpoint = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean isBatch = (Helpers.getIndexOf(path, "batch") >= 0);
         if (!Boolean.TRUE.equals(isBatch) && ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"))))
@@ -5465,14 +5465,14 @@ public class Weex extends WeexApi
                 throw new NotSupported((Helpers.add((this.id + " "), path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }
             this.checkRequiredCredentials();
-            Object timestamp = this.numberToString(this.nonce());
-            Object payload = ((Helpers.add(timestamp, method) + "/") + endpoint);
+            String timestamp = this.numberToString(this.nonce());
+            Object payload = (((timestamp + method) + "/") + endpoint);
             if ((java.util.Objects.equals(method, "POST")) || Boolean.TRUE.equals(isBatch))
             {
                 body = this.json(query);
                 payload = Helpers.add(payload, body);
             }
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             final Object finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{
                 put( "ACCESS-KEY", Weex.this.apiKey );
@@ -5490,7 +5490,7 @@ public class Weex extends WeexApi
                 put( "User-Agent", "ccxt" );
             }};
         }
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), endpoint);
+        String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/") + endpoint);
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

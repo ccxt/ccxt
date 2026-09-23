@@ -1858,7 +1858,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 Object method = "public/auth";
                 Object nonce = String.valueOf(this.nonce());
                 Object auth = Helpers.add(Helpers.add(Helpers.add(method, nonce), this.apiKey), nonce);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalMethod = method;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "id", nonce );

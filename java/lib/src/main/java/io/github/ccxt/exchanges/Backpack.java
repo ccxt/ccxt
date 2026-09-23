@@ -2933,8 +2933,8 @@ public class Backpack extends BackpackApi
                 payload = this.generateBatchPayload(sortedParams, ts, recvWindow, instruction);
             } else
             {
-                Object queryString = this.urlencode(sortedParams);
-                if (((String)queryString).length() > 0)
+                String queryString = this.urlencode(sortedParams);
+                if (queryString.length() > 0)
                 {
                     queryString = (queryString + "&");
                 }
@@ -2958,8 +2958,8 @@ public class Backpack extends BackpackApi
         }
         if (java.util.Objects.equals(method, "GET"))
         {
-            Object query = this.urlencode(sortedParams);
-            if ((((String)query).length() != 0))
+            String query = this.urlencode(sortedParams);
+            if ((query.length() != 0))
             {
                 endpoint = (endpoint + ("?" + query));
             }
@@ -2984,7 +2984,7 @@ public class Backpack extends BackpackApi
         {
             Map<String, Object> order = (Map<String, Object>) this.safeDict(parameters, i, new HashMap<String, Object>() {{}});
             Map<String, Object> sortedOrder = this.keysort(order);
-            Object orderQuery = this.urlencode(sortedOrder);
+            String orderQuery = this.urlencode(sortedOrder);
             payload = (payload + (((("instruction=" + instruction) + "&") + orderQuery) + "&"));
             if (Helpers.isEqual(i, (Helpers.subtract(Helpers.getArrayLength(parameters), 1))))
             {

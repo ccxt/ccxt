@@ -751,8 +751,8 @@ public class Mercado extends MercadoApi
                     {
                         throw new InvalidOrder((this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")) ;
                     }
-                    Object amountString = this.numberToString(amount);
-                    Object priceString = this.numberToString(price);
+                    String amountString = this.numberToString(amount);
+                    String priceString = this.numberToString(price);
                     Object cost = this.parseToNumeric(Precise.stringMul(amountString, priceString));
                     ((Map<String, Object>)request).put("cost", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), cost));
                     response = (this.privatePostPlaceMarketBuyOrder(this.extend(request, parameters))).join();

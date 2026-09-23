@@ -3402,7 +3402,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             put( "apiKey", Binance.this.apiKey );
         }}, parameters);
         extendedParams = this.keysort(extendedParams);
-        Object query = this.rawencode(extendedParams);
+        String query = this.rawencode(extendedParams);
         Object signature = null;
         if (Helpers.isGreaterThan(((String)this.secret).indexOf("PRIVATE KEY"), -1))
         {

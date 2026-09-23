@@ -2434,7 +2434,7 @@ public class Bitstamp extends BitstampApi
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             }
             Object response = null;
-            Object capitalizedSide = this.capitalize(side);
+            String capitalizedSide = this.capitalize(side);
             if (java.util.Objects.equals(type, "market"))
             {
                 if (java.util.Objects.equals(capitalizedSide, "Buy"))
@@ -3773,7 +3773,7 @@ public class Bitstamp extends BitstampApi
         {
             this.checkRequiredCredentials();
             Object xAuth = ("BITSTAMP " + this.apiKey);
-            Object xAuthNonce = this.uuid();
+            String xAuthNonce = this.uuid();
             Object xAuthTimestamp = String.valueOf(this.milliseconds());
             String xAuthVersion = "v2";
             String contentType = "";
@@ -3806,7 +3806,7 @@ public class Bitstamp extends BitstampApi
             }
             Object authBody = (((!java.util.Objects.equals(body, null) && !java.util.Objects.equals(body, "")))) ? body : "";
             String auth = (((((Helpers.add(Helpers.add(xAuth, method), Helpers.replace(((String)url), "https://", "")) + contentType) + xAuthNonce) + xAuthTimestamp) + xAuthVersion) + authBody);
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             ((Map<String, Object>)headers).put("X-Auth-Signature", signature);
         }
         final Object finalUrl = url;

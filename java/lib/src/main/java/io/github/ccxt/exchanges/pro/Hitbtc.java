@@ -126,9 +126,9 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             if (java.util.Objects.equals(authenticated, null))
             {
                 Long timestamp = this.milliseconds();
-                Object timestampString = this.numberToString(timestamp);
-                Object timestampEncoded = (((java.util.Objects.equals(timestampString, null)))) ? "" : timestampString;
-                Object signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256(), "hex");
+                String timestampString = this.numberToString(timestamp);
+                String timestampEncoded = (((java.util.Objects.equals(timestampString, null)))) ? "" : timestampString;
+                String signature = (String) this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256(), "hex");
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "method", "login" );
                     put( "params", new HashMap<String, Object>() {{

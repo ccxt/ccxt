@@ -5425,7 +5425,7 @@ public class Binance extends BinanceApi
         Object linear = null;
         Object inverse = null;
         Object symbol = ((base + "/") + quote);
-        Object strike = null;
+        String strike = null;
         if (Boolean.TRUE.equals(contract))
         {
             if (Boolean.TRUE.equals(swap))
@@ -7830,8 +7830,8 @@ public class Binance extends BinanceApi
                     ((Map<String, Object>)request).put("quoteOrderQty", this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode));
                 } else if (!java.util.Objects.equals(price, null))
                 {
-                    Object amountString = this.numberToString(amount);
-                    Object priceString = this.numberToString(price);
+                    String amountString = this.numberToString(amount);
+                    String priceString = this.numberToString(price);
                     String quoteOrderQuantity = Precise.stringMul(amountString, priceString);
                     ((Map<String, Object>)request).put("quoteOrderQty", this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode));
                 } else
@@ -9467,8 +9467,8 @@ public class Binance extends BinanceApi
                         notional = quoteOrderQtyNew;
                     } else if (!java.util.Objects.equals(price, null))
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         notional = Precise.stringMul(amountString, priceString);
                     } else
                     {
@@ -9507,8 +9507,8 @@ public class Binance extends BinanceApi
                         ((Map<String, Object>)request).put("quoteOrderQty", this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode));
                     } else if (!java.util.Objects.equals(price, null))
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String quoteOrderQuantity = Precise.stringMul(amountString, priceString);
                         ((Map<String, Object>)request).put("quoteOrderQty", this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode));
                     } else
@@ -13980,7 +13980,7 @@ public class Binance extends BinanceApi
         String liquidationPriceStringRaw = null;
         Object liquidationPrice = null;
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         if (Precise.stringEquals(notionalString, "0"))
         {
             entryPrice = null;
@@ -14216,7 +14216,7 @@ public class Binance extends BinanceApi
         String entryPriceString = this.safeString(position, "entryPrice");
         Double entryPrice = this.parseNumber(entryPriceString);
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         Boolean linear = (Helpers.inOp(position, "notional"));
         if (java.util.Objects.equals(marginMode, "cross"))

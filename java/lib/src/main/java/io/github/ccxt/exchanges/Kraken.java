@@ -3746,7 +3746,7 @@ final Object finalId = id;
             }
             if (!java.util.Objects.equals(since, null))
             {
-                Object sinceString = this.numberToString(since);
+                String sinceString = this.numberToString(since);
                 ((Map<String, Object>)request).put("start", Precise.stringDiv(sinceString, "1000"));
             }
             String until = this.safeString2(parameters, "until", "till");
@@ -3851,7 +3851,7 @@ final Object finalId = id;
             }
             if (!java.util.Objects.equals(since, null))
             {
-                Object sinceString = this.numberToString(since);
+                String sinceString = this.numberToString(since);
                 ((Map<String, Object>)request).put("start", Precise.stringDiv(sinceString, "1000"));
             }
             String until = this.safeString2(parameters, "until", "till");
@@ -4454,7 +4454,7 @@ final Object finalId = id;
             Object binary = this.encode(url);
             Object binhash = this.binaryConcat(binary, hash);
             Object secret = this.base64ToBinary(this.secret);
-            Object signature = this.hmac(binhash, secret, sha512(), "base64");
+            String signature = (String) this.hmac(binhash, secret, sha512(), "base64");
             headers = new HashMap<String, Object>() {{
                 put( "API-Key", Kraken.this.apiKey );
                 put( "API-Sign", signature );

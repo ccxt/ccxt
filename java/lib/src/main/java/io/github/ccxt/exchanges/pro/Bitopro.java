@@ -490,12 +490,12 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }
         this.checkRequiredCredentials();
         Long nonce = this.milliseconds();
-        Object rawData = this.json(new HashMap<String, Object>() {{
+        String rawData = this.json(new HashMap<String, Object>() {{
             put( "nonce", nonce );
             put( "identity", Bitopro.this.login );
         }});
-        Object payload = this.stringToBase64(rawData);
-        Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+        String payload = this.stringToBase64(rawData);
+        String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
         Map<String, Object> defaultOptions = new HashMap<String, Object>() {{
             put( "ws", new HashMap<String, Object>() {{
                 put( "options", new HashMap<String, Object>() {{

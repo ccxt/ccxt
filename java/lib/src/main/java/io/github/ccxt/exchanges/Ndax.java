@@ -3289,7 +3289,7 @@ public class Ndax extends NdaxApi
             if (java.util.Objects.equals(path, "Authenticate"))
             {
                 String auth = ((this.login + ":") + this.password);
-                Object auth64 = this.stringToBase64(auth);
+                String auth64 = this.stringToBase64(auth);
                 headers = new HashMap<String, Object>() {{
                     put( "Authorization", ("Basic " + auth64) );
                 }};
@@ -3317,7 +3317,7 @@ public class Ndax extends NdaxApi
             {
                 Object nonce = String.valueOf(this.nonce());
                 Object auth = Helpers.add(Helpers.add(nonce, this.uid), this.apiKey);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalNonce = nonce;
                 headers = new HashMap<String, Object>() {{
                     put( "Nonce", finalNonce );

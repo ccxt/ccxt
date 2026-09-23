@@ -623,7 +623,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
             Object timestamp = String.valueOf(this.milliseconds());
             Object payload = Helpers.add(this.apiKey, timestamp);
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", channel );
                 put( "param", new HashMap<String, Object>() {{

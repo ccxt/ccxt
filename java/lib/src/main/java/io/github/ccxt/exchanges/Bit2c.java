@@ -751,8 +751,8 @@ public class Bit2c extends Bit2cApi
             } else
             {
                 ((Map<String, Object>)request).put("Price", price);
-                Object amountString = this.numberToString(amount);
-                Object priceString = this.numberToString(price);
+                String amountString = this.numberToString(amount);
+                String priceString = this.numberToString(price);
                 ((Map<String, Object>)request).put("Total", this.parseToNumeric(Precise.stringMul(amountString, priceString)));
                 ((Map<String, Object>)request).put("IsBid", (java.util.Objects.equals(side, "buy")));
                 response = (this.privatePostOrderAddOrder(this.extend(request, parameters))).join();
@@ -1318,7 +1318,7 @@ public class Bit2c extends Bit2cApi
             Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters);
-            Object auth = this.urlencode(query);
+            String auth = this.urlencode(query);
             if (java.util.Objects.equals(method, "GET"))
             {
                 if (((List<?>)new ArrayList<Object>(query.keySet())).size() > 0)
@@ -1329,7 +1329,7 @@ public class Bit2c extends Bit2cApi
             {
                 body = auth;
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "key", Bit2c.this.apiKey );

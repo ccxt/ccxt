@@ -1130,8 +1130,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 put( "request", request );
                 put( "nonce", Gemini.this.nonce() );
             }};
-            Object b64 = this.stringToBase64(this.json(payload));
-            Object signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384(), "hex");
+            String b64 = this.stringToBase64(this.json(payload));
+            String signature = (String) this.hmac(this.encode(b64), this.encode(this.secret), sha384(), "hex");
             Map<String, Object> defaultOptions = new HashMap<String, Object>() {{
                 put( "ws", new HashMap<String, Object>() {{
                     put( "options", new HashMap<String, Object>() {{

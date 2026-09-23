@@ -1593,7 +1593,7 @@ public class Btse extends BtseApi
         {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
-            Object contractSizeString = this.numberToString(((Map<String, Object>)market).get("contractSize"));
+            String contractSizeString = this.numberToString(((Map<String, Object>)market).get("contractSize"));
             if (!java.util.Objects.equals(contractSizeString, null))
             {
                 baseVolume = Precise.stringMul(baseVolume, contractSizeString);
@@ -2388,8 +2388,8 @@ public class Btse extends BtseApi
                         throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         quoteAmount = this.costToPrecision(symbol, Precise.stringMul(amountString, priceString));
                     }
                 } else
@@ -4567,7 +4567,7 @@ public class Btse extends BtseApi
         {
             this.checkRequiredCredentials();
             Object nonce = this.nonce();
-            Object bodyString = this.json(query);
+            String bodyString = this.json(query);
             if (((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"))) && !Boolean.TRUE.equals(isBodyDelete))
             {
                 bodyString = "";
@@ -4587,8 +4587,8 @@ public class Btse extends BtseApi
             {
                 signPath = this.cleanPath(path);
             }
-            Object payload = Helpers.add(Helpers.add(signPath, String.valueOf(nonce)), bodyString);
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+            String payload = (Helpers.add(signPath, String.valueOf(nonce)) + bodyString);
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
             headers = new HashMap<String, Object>() {{
                 put( "request-api", Btse.this.apiKey );
                 put( "request-nonce", String.valueOf(nonce) );

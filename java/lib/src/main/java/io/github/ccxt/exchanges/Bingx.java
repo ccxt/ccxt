@@ -3977,7 +3977,7 @@ public class Bingx extends BingxApi
             }
             if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
             {
-                Object stringifiedAmount = this.numberToString(amount);
+                String stringifiedAmount = this.numberToString(amount);
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
                     String slTriggerPrice = this.safeString2(stopLossDict, "triggerPrice", "stopPrice");
@@ -7761,7 +7761,7 @@ final Object finalMarket = market;
                 encodeRequest = this.rawencode(parsedParams, true);
             }
             Object encodeRequestSafe = (((java.util.Objects.equals(encodeRequest, null)))) ? "" : encodeRequest;
-            Object signature = this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256());
             headers = new HashMap<String, Object>() {{
                 put( "X-BX-APIKEY", Bingx.this.apiKey );
                 put( "X-SOURCE-KEY", Bingx.this.safeString(Bingx.this.options, "broker", "CCXT") );
@@ -7773,8 +7773,8 @@ final Object finalMarket = market;
                 body = this.json(parameters);
             } else
             {
-                Object query = this.urlencode(parsedParams, true);
-                url = (url + Helpers.add(((("?" + query) + "&") + "signature="), signature));
+                String query = this.urlencode(parsedParams, true);
+                url = (url + (((("?" + query) + "&") + "signature=") + signature));
             }
         }
         final Object finalUrl = url;

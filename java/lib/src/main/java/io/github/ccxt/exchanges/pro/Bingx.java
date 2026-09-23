@@ -145,7 +145,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), marketType);
             }
-            Object id = this.uuid();
+            String id = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "dataType", dataType );
@@ -215,7 +215,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             Object dataType = (((Map<String, Object>)market).get("id") + "@ticker");
             Object messageHash = this.getMessageHash("ticker", ((Map<String, Object>)market).get("symbol"));
-            Object uuid = this.uuid();
+            String uuid = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", dataType );
@@ -484,7 +484,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             Object rawHash = (((Map<String, Object>)market).get("id") + "@trade");
             String messageHash = ("trade::" + symbol);
-            Object uuid = this.uuid();
+            String uuid = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", rawHash );
@@ -704,7 +704,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Long depth = this.safeInteger(options, "depth", 100);
             String subscriptionHash = (((((Map<String, Object>)market).get("id") + "@") + "depth") + this.numberToString(depth));
             Object messageHash = this.getMessageHash("orderbook", ((Map<String, Object>)market).get("symbol"));
-            Object uuid = this.uuid();
+            String uuid = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", subscriptionHash );
@@ -1095,7 +1095,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
             Object messageHash = this.getMessageHash("ohlcv", ((Map<String, Object>)market).get("symbol"), timeframe);
             Object subscriptionHash = Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), rawTimeframe);
-            Object uuid = this.uuid();
+            String uuid = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", subscriptionHash );
@@ -1212,7 +1212,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 messageHash = Helpers.add(messageHash, (":" + symbol));
             }
-            Object uuid = this.uuid();
+            String uuid = this.uuid();
             String baseUrl = null;
             Object request = null;
             if (java.util.Objects.equals(type, "swap"))
@@ -1298,7 +1298,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 messageHash = Helpers.add(messageHash, (":" + symbol));
             }
-            Object uuid = this.uuid();
+            String uuid = this.uuid();
             String baseUrl = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(type, "swap"))
@@ -1370,7 +1370,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String subscriptionHash = ((Boolean.TRUE.equals(isSpot))) ? spotSubHash : swapSubHash;
             Object request = null;
             String baseUrl = null;
-            Object uuid = this.uuid();
+            String uuid = this.uuid();
             if (java.util.Objects.equals(type, "swap"))
             {
                 if (java.util.Objects.equals(subType, "inverse"))
@@ -1524,7 +1524,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> awaitPositionsSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "awaitPositionsSnapshot", false);
             awaitPositionsSnapshot = ((List<Object>) awaitPositionsSnapshotparametersVariable).get(0);
             parameters = ((List<Object>) awaitPositionsSnapshotparametersVariable).get(1);
-            Object uuid = this.uuid();
+            String uuid = this.uuid();
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );

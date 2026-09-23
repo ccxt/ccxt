@@ -1563,8 +1563,8 @@ public class Upbit extends UpbitApi
             {
                 throw new InvalidOrder((this.id + " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
             }
-            Object amountString = this.numberToString(amount);
-            Object priceString = this.numberToString(price);
+            String amountString = this.numberToString(amount);
+            String priceString = this.numberToString(price);
             String costRequest = Precise.stringMul(amountString, priceString);
             quoteAmount = this.costToPrecision(symbol, costRequest);
         } else
@@ -3011,7 +3011,7 @@ public class Upbit extends UpbitApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object url = this.implodeParams(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), new HashMap<String, Object>() {{
+        String url = (String) this.implodeParams(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), new HashMap<String, Object>() {{
             put( "hostname", Upbit.this.hostname );
         }});
         url = (url + ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
@@ -3027,7 +3027,7 @@ public class Upbit extends UpbitApi
         {
             this.checkRequiredCredentials();
             headers = new HashMap<String, Object>() {{}};
-            Object nonce = this.uuid();
+            String nonce = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "access_key", Upbit.this.apiKey );
                 put( "nonce", nonce );

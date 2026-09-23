@@ -3648,7 +3648,7 @@ public class Bullish extends BullishApi
             if (java.util.Objects.equals(method, "GET"))
             {
                 Object payload = Helpers.add((Helpers.add(Helpers.add(timestamp, nonce), method) + "/trading-api/"), path);
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 final Object finalTimestamp = timestamp;
                 headers = new HashMap<String, Object>() {{
                     put( "BX-TIMESTAMP", finalTimestamp );
@@ -3660,7 +3660,7 @@ public class Bullish extends BullishApi
                 body = this.json(parameters);
                 Object payload = Helpers.add(Helpers.add((Helpers.add(Helpers.add(timestamp, nonce), method) + "/trading-api/"), path), body);
                 Object digest = this.hash(this.encode(payload), sha256(), "hex");
-                Object signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256(), "hex");
+                String signature = (String) this.hmac(this.encode(digest), this.encode(this.secret), sha256(), "hex");
                 final Object finalTimestamp_2 = timestamp;
                 headers = new HashMap<String, Object>() {{
                     put( "BX-TIMESTAMP", finalTimestamp_2 );
@@ -3692,8 +3692,8 @@ public class Bullish extends BullishApi
         }
         if (java.util.Objects.equals(method, "GET"))
         {
-            Object query = this.urlencode(request);
-            if (((String)query).length() > 0)
+            String query = this.urlencode(request);
+            if (query.length() > 0)
             {
                 url = (url + ("?" + query));
             }

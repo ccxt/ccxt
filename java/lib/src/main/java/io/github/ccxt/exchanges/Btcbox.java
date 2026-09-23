@@ -1030,7 +1030,7 @@ public class Btcbox extends BtcboxApi
                 put( "key", Btcbox.this.apiKey );
                 put( "nonce", nonce );
             }}, parameters);
-            Object request = this.urlencode(query);
+            String request = this.urlencode(query);
             Object secret = this.hash(this.encode(this.secret), md5());
             Helpers.addElementToObject(query, "signature", this.hmac(this.encode(request), this.encode(secret), sha256()));
             body = this.urlencode(query);

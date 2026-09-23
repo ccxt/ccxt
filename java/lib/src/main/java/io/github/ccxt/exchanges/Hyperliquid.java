@@ -881,7 +881,7 @@ public class Hyperliquid extends HyperliquidApi
     public Object calculatePricePrecision(Object price, Object amountPrecision, Object maxDecimals)
     {
         Object pricePrecision = 0;
-        Object priceStr = this.numberToString(price);
+        String priceStr = this.numberToString(price);
         if (java.util.Objects.equals(priceStr, null))
         {
             return 0;
@@ -1034,9 +1034,9 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
                 }
-                Object pricePrecisionStr = this.numberToString(pricePrecision);
+                String pricePrecisionStr = this.numberToString(pricePrecision);
                 // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-                Object baseId = this.numberToString(Helpers.add(index, 10000));
+                String baseId = this.numberToString(Helpers.add(index, 10000));
                 final Object finalMappedBase = mappedBase;
                 final Object finalBaseName = baseName;
                 final Object finalQuoteId = quoteId;
@@ -1157,7 +1157,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         }
-        Object pricePrecisionStr = this.numberToString(pricePrecision);
+        String pricePrecisionStr = this.numberToString(pricePrecision);
         Boolean isDelisted = (Boolean) this.safeBool(market, "isDelisted");
         Boolean active = true;
         if (!java.util.Objects.equals(isDelisted, null))
@@ -1870,7 +1870,7 @@ public class Hyperliquid extends HyperliquidApi
     public Object amountToPrecision(Object symbol, Object amount)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object result = this.decimalToPrecision(amount, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), this.precisionMode, this.paddingMode);
+        String result = this.decimalToPrecision(amount, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), this.precisionMode, this.paddingMode);
         // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
         // with grouping positionTpsl and size 0, so only reject a positive amount that
         // became zero after rounding, never an explicitly requested zero
@@ -1884,10 +1884,10 @@ public class Hyperliquid extends HyperliquidApi
     public Object priceToPrecision(Object symbol, Object price)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object priceStr = this.numberToString(price);
-        Object integerPart = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)((String)priceStr)).split(java.util.regex.Pattern.quote(".")))), 0);
+        String priceStr = this.numberToString(price);
+        Object integerPart = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)priceStr).split(java.util.regex.Pattern.quote(".")))), 0);
         Object significantDigits = Math.max(5, ((String)integerPart).length());
-        Object result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
+        String result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         Object maxDecimals = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? 8 : 6;
         Object subtractedValue = Helpers.subtract(maxDecimals, this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "amount")));
         return this.decimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
@@ -5022,14 +5022,14 @@ final Object finalClientOrderId = clientOrderId;
                 {
                     throw new NotSupported((this.id + " transfer() only support spot <> swap transfer")) ;
                 }
-                Object strAmount = this.numberToString(amount);
+                String strAmount = this.numberToString(amount);
                 Object vaultAddress = this.safeString2(parameters, "vaultAddress", "subAccountAddress");
                 if (!java.util.Objects.equals(vaultAddress, null))
                 {
                     vaultAddress = this.formatVaultAddress(vaultAddress);
                     strAmount = ((strAmount + " subaccount:") + vaultAddress);
                 }
-                Object strAmountFinal = strAmount; // java req
+                String strAmountFinal = strAmount; // java req
                 Boolean toPerp = (java.util.Objects.equals(toAccount, "perp")) || (java.util.Objects.equals(toAccount, "swap"));
                 final Object finalIsSandboxMode = isSandboxMode;
                 Map<String, Object> transferPayload = new HashMap<String, Object>() {{

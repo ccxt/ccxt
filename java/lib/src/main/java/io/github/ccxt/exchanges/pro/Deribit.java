@@ -1159,8 +1159,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             }};
             Map<String, Object> extendedRequest = this.deepExtend(request, parameters);
             Long maxMessageByteLimit = (32768L - 1L); // 'Message Too Big: limit 32768B'
-            Object jsonedText = this.json(extendedRequest);
-            if (Helpers.isGreaterThanOrEqual(((String)jsonedText).length(), maxMessageByteLimit))
+            String jsonedText = this.json(extendedRequest);
+            if (Helpers.isGreaterThanOrEqual(jsonedText.length(), maxMessageByteLimit))
             {
                 throw new ExchangeError((this.id + " requested subscription length over limit, try to reduce symbols amount")) ;
             }
@@ -1303,8 +1303,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Client client = this.client(url);
             Long time = this.milliseconds();
-            Object timeString = this.numberToString(time);
-            Object nonce = timeString;
+            String timeString = this.numberToString(time);
+            String nonce = timeString;
             String messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(future, null))
@@ -1312,7 +1312,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 this.checkRequiredCredentials();
                 Object requestId = this.requestId();
                 String lineBreak = "\n"; // eslint-disable-line quotes
-                Object signature = this.hmac(this.encode((((timeString + lineBreak) + nonce) + lineBreak)), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode((((timeString + lineBreak) + nonce) + lineBreak)), this.encode(this.secret), sha256());
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "jsonrpc", "2.0" );
                     put( "id", requestId );

@@ -1022,7 +1022,7 @@ public class Hibachi extends HibachiApi
         // - Price: Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
         // - FeeRate: Internal = External * (10^8)
         Object amountStr = this.amountToPrecision(this.safeString(market, "symbol"), amount);
-        Object feeRateStr = this.numberToString(feeRate);
+        String feeRateStr = this.numberToString(feeRate);
         Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info");
         String underlying = ("1e" + this.safeString(info, "underlyingDecimals"));
         String settlement = ("1e" + this.safeString(info, "settlementDecimals"));
@@ -1510,8 +1510,8 @@ public class Hibachi extends HibachiApi
         // We only have USDT as our currency as this time
         Integer USDTAssetId = 1;
         String USDTFactor = "1000000";
-        Object amountStr = this.numberToString(amount);
-        Object maxFeesStr = this.numberToString(maxFees);
+        String amountStr = this.numberToString(amount);
+        String maxFeesStr = this.numberToString(maxFees);
         String one = "1";
         String quantityInternal = Precise.stringDiv(Precise.stringMul(amountStr, USDTFactor), one, 0);
         String maxFeesInternal = Precise.stringDiv(Precise.stringMul(maxFeesStr, USDTFactor), one, 0);
@@ -2201,8 +2201,8 @@ public class Hibachi extends HibachiApi
         if (java.util.Objects.equals(method, "GET"))
         {
             Object request = this.omit(parameters, this.extractParams(path));
-            Object query = this.urlencode(request);
-            if ((((String)query).length() != 0))
+            String query = this.urlencode(request);
+            if ((query.length() != 0))
             {
                 url = (url + ("?" + query));
             }

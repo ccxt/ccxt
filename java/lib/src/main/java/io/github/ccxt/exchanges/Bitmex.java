@@ -885,7 +885,7 @@ public class Bitmex extends BitmexApi
     {
         Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
         String precision = this.safeString(currency, "precision");
-        Object amountString = this.numberToString(amount);
+        String amountString = this.numberToString(amount);
         String finalAmount = Precise.stringDiv(amountString, precision);
         return this.parseNumber(finalAmount);
     }
@@ -2434,13 +2434,13 @@ public class Bitmex extends BitmexApi
         Long timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         String priceString = this.safeString2(trade, "avgPx", "price");
         Object amountString = this.convertFromRawQuantity(symbol, this.safeString2(trade, "size", "lastQty"));
-        Object execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
+        String execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
         String id = this.safeString(trade, "trdMatchID");
         String order = this.safeString(trade, "orderID");
         String side = this.safeStringLower(trade, "side");
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         Object fee = null;
-        Object feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
+        String feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String currencyId = this.safeString2(trade, "settlCurrency", "currency");
@@ -2571,8 +2571,8 @@ public class Bitmex extends BitmexApi
             amount = this.convertFromRawQuantity((String) (symbol), qty);
         }
         String average = this.safeString(order, "avgPx");
-        Object filled = null;
-        Object cumQty = this.numberToString(this.convertFromRawQuantity((String) (symbol), this.safeString(order, "cumQty")));
+        String filled = null;
+        String cumQty = this.numberToString(this.convertFromRawQuantity((String) (symbol), this.safeString(order, "cumQty")));
         if (Helpers.isTrue(isInverse))
         {
             filled = Precise.stringDiv(cumQty, average);
@@ -2740,8 +2740,8 @@ public class Bitmex extends BitmexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object orderType = this.capitalize(type);
-            Object capitalizeOrderType = orderType;
+            String orderType = this.capitalize(type);
+            String capitalizeOrderType = orderType;
             Object reduceOnly = this.safeValue(parameters, "reduceOnly");
             if (!java.util.Objects.equals(reduceOnly, null))
             {

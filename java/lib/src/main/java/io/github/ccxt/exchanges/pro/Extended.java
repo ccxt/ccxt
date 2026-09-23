@@ -95,9 +95,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orderbook:" + symbol);
-            Object query = this.urlencode(parameters);
+            String query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/orderbooks/"), ((Map<String, Object>)market).get("id"));
-            if (((String)query).length() > 0)
+            if (query.length() > 0)
             {
                 url = (url + ("?" + query));
             }
@@ -670,9 +670,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("fundingRate:" + symbol);
-            Object query = this.urlencode(parameters);
+            String query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/funding/"), ((Map<String, Object>)market).get("id"));
-            if (((String)query).length() > 0)
+            if (query.length() > 0)
             {
                 url = (url + ("?" + query));
             }
@@ -759,9 +759,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("markPrice:" + symbol);
-            Object query = this.urlencode(parameters);
+            String query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/prices/mark/"), ((Map<String, Object>)market).get("id"));
-            if (((String)query).length() > 0)
+            if (query.length() > 0)
             {
                 url = (url + ("?" + query));
             }
@@ -837,9 +837,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trades:" + symbol);
-            Object query = this.urlencode(parameters);
+            String query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/publicTrades/"), ((Map<String, Object>)market).get("id"));
-            if (((String)query).length() > 0)
+            if (query.length() > 0)
             {
                 url = (url + ("?" + query));
             }
@@ -958,7 +958,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("candleType", "price")));
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String messageHash = ((((("ohlcv:" + symbol) + ":") + timeframe) + ":") + candleType);
-            Object query = this.urlencode(this.extend(new HashMap<String, Object>() {{
+            String query = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "interval", interval );
             }}, parameters));
             String url = ((((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/candles/"), ((Map<String, Object>)market).get("id")) + "/") + candleType) + "?") + query);

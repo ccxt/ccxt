@@ -3038,7 +3038,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 Object timestamp = String.valueOf(this.seconds());
                 String auth = ((timestamp + "GET") + "/user/verify");
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 String operation = "login";
                 final Object finalTimestamp = timestamp;
                 Map<String, Object> request = new HashMap<String, Object>() {{

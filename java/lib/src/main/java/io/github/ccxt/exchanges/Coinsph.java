@@ -1787,8 +1787,8 @@ public class Coinsph extends CoinsphApi
                             throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             String costRequest = Precise.stringMul(amountString, priceString);
                             quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
@@ -2775,8 +2775,8 @@ public class Coinsph extends CoinsphApi
                 encodedArrayParams = Helpers.add(encodedArrayParams, encodedArrayParam);
             }
         }
-        Object encodedQuery = this.urlencode(query);
-        if ((((String)encodedQuery).length() != 0))
+        String encodedQuery = this.urlencode(query);
+        if ((encodedQuery.length() != 0))
         {
             return ((encodedQuery + "&") + encodedArrayParams);
         } else
@@ -2803,8 +2803,8 @@ public class Coinsph extends CoinsphApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object endpoint = this.implodeParams(path, parameters);
-        url = Helpers.add(Helpers.add(url, "/"), endpoint);
+        String endpoint = (String) this.implodeParams(path, parameters);
+        url = (Helpers.add(url, "/") + endpoint);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -2819,8 +2819,8 @@ public class Coinsph extends CoinsphApi
                 }
             }
             query = this.urlEncodeQuery(query);
-            Object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256());
-            url = Helpers.add((Helpers.add(Helpers.add(url, "?"), query) + "&signature="), signature);
+            String signature = (String) this.hmac(this.encode(query), this.encode(this.secret), sha256());
+            url = ((Helpers.add(Helpers.add(url, "?"), query) + "&signature=") + signature);
             headers = new HashMap<String, Object>() {{
                 put( "X-COINS-APIKEY", Coinsph.this.apiKey );
             }};

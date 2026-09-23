@@ -1356,10 +1356,10 @@ public class Alpaca extends AlpacaApi
     public String generateClientOrderId(Map<String, Object> parameters)
     {
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
-        Object uuid = this.uuid();
+        String uuid = this.uuid();
         Object parts = new ArrayList<Object>(Arrays.asList(((String)uuid).split(java.util.regex.Pattern.quote("-"))));
         Object random_id = String.join("", (List<String>)parts);
-        Object defaultClientId = this.implodeParams(clientOrderIdprefix, new HashMap<String, Object>() {{
+        String defaultClientId = (String) this.implodeParams(clientOrderIdprefix, new HashMap<String, Object>() {{
             put( "id", random_id );
         }});
         String clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);

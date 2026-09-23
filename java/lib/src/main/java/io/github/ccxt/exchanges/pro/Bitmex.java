@@ -809,7 +809,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 this.checkRequiredCredentials();
                 Long timestamp = this.milliseconds();
                 String payload = (("GET" + "/realtime") + String.valueOf(timestamp));
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "op", "authKeyExpires" );
                     put( "args", new ArrayList<Object>(Arrays.asList(Bitmex.this.apiKey, timestamp, signature)) );

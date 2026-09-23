@@ -2610,7 +2610,7 @@ public class Bybit extends BybitApi
         // and we shouldn't crash in those cases
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Boolean emptyPrecisionAmount = (java.util.Objects.equals(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), null));
-        Object amountString = this.numberToString(amount);
+        String amountString = this.numberToString(amount);
         if (!Boolean.TRUE.equals(emptyPrecisionAmount) && (!java.util.Objects.equals(amountString, "0")))
         {
             return this.amountToPrecision(symbol, amount);
@@ -9123,7 +9123,7 @@ public class Bybit extends BybitApi
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             // engage in leverage setting
             // we reuse the code here instead of having two methods
-            Object leverageString = this.numberToString(leverage);
+            String leverageString = this.numberToString(leverage);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "buyLeverage", leverageString );
@@ -12458,7 +12458,7 @@ final Object finalMarket = market;
                     body = "{}";
                 }
                 Object payload = Helpers.add(Helpers.add(timestamp, this.apiKey), body);
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 final Object finalTimestamp = timestamp;
                 headers = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
@@ -12480,7 +12480,7 @@ final Object finalMarket = market;
                     ((Map<String, Object>)headers).put("X-BAPI-SIGN-TYPE", "2");
                 }
                 Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, parameters);
-                Object queryEncoded = this.rawencode(query);
+                String queryEncoded = this.rawencode(query);
                 Object auth_base = Helpers.add(Helpers.add(String.valueOf(timestamp), this.apiKey), String.valueOf(((Map<String, Object>)this.options).get("recvWindow")));
                 Object authFull = null;
                 if (java.util.Objects.equals(method, "POST"))
@@ -12489,7 +12489,7 @@ final Object finalMarket = market;
                     authFull = Helpers.add(auth_base, body);
                 } else
                 {
-                    authFull = Helpers.add(auth_base, queryEncoded);
+                    authFull = (auth_base + queryEncoded);
                     url = (url + ("?" + queryEncoded));
                 }
                 Object signature = null;
@@ -12510,7 +12510,7 @@ final Object finalMarket = market;
                     put( "timestamp", finalTimestamp_3 );
                 }});
                 Map<String, Object> sortedQuery = this.keysort(query);
-                Object auth = this.rawencode(sortedQuery, true);
+                String auth = this.rawencode(sortedQuery, true);
                 Object signature = null;
                 if (Helpers.isGreaterThan(((String)this.secret).indexOf("PRIVATE KEY"), -1))
                 {

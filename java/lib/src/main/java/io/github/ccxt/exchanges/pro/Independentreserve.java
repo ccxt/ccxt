@@ -187,7 +187,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 limit = 100;
             }
-            Object limitString = this.numberToString(limit);
+            String limitString = this.numberToString(limit);
             String url = ((((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/orderbook/"), limitString) + "?subscribe=") + ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
             String messageHash = ((("orderbook:" + symbol) + ":") + limitString);
             Map<String, Object> subscription = new HashMap<String, Object>() {{

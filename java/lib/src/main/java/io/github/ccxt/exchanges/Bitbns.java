@@ -1617,8 +1617,8 @@ public class Bitbns extends BitbnsApi
                 put( "timeStamp_nonce", nonce );
                 put( "body", finalBody );
             }};
-            Object payload = this.stringToBase64(this.json(auth));
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512());
+            String payload = this.stringToBase64(this.json(auth));
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha512());
             headers = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
             ((Map<String, Object>)headers).put("X-BITBNS-PAYLOAD", payload);
             ((Map<String, Object>)headers).put("X-BITBNS-SIGNATURE", signature);

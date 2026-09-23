@@ -6754,7 +6754,7 @@ public Object describe()
         }
         // ensure that the average field is calculated correctly
         Boolean inverse = (Boolean) this.safeBool(market, "inverse", false);
-        Object contractSize = this.numberToString(this.safeValue(market, "contractSize", 1));
+        String contractSize = this.numberToString(this.safeValue(market, "contractSize", 1));
         // inverse
         // price = filled * contract size / cost
         //
@@ -6991,11 +6991,11 @@ public Object describe()
             // the fee is always in feeSide currency
             useQuote = java.util.Objects.equals(feeSide, "quote");
         }
-        Object cost = this.numberToString(amount);
+        String cost = this.numberToString(amount);
         String key = null;
         if (Boolean.TRUE.equals(useQuote))
         {
-            Object priceString = this.numberToString(price);
+            String priceString = this.numberToString(price);
             cost = Precise.stringMul(cost, priceString);
             key = "quote";
         } else
@@ -7012,7 +7012,7 @@ public Object describe()
         {
             takerOrMaker = "taker";
         }
-        Object rate = (((!java.util.Objects.equals(feeRate, null)))) ? this.numberToString(feeRate) : this.safeString(market, takerOrMaker);
+        String rate = (((!java.util.Objects.equals(feeRate, null)))) ? this.numberToString(feeRate) : this.safeString(market, takerOrMaker);
         cost = Precise.stringMul(cost, rate);
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalKey = key;
@@ -10470,7 +10470,7 @@ public Object describe()
             return null;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object result = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
+        String result = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
             throw new InvalidOrder(((((this.id + " price of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum price precision of ") + this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price")))) ;
@@ -10485,7 +10485,7 @@ public Object describe()
             return null;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object result = this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), this.precisionMode, this.paddingMode);
+        String result = this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
             throw new InvalidOrder(((((this.id + " amount of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount")))) ;

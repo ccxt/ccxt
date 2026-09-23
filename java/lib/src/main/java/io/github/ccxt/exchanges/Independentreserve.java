@@ -1198,7 +1198,7 @@ public class Independentreserve extends IndependentreserveApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object orderType = this.capitalize(type);
+            String orderType = this.capitalize(type);
             orderType = Helpers.add(orderType, (((java.util.Objects.equals(side, "sell")))) ? "Offer" : "Bid");
             final Object finalOrderType = orderType;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1481,11 +1481,11 @@ public class Independentreserve extends IndependentreserveApi
                 ((List<Object>)auth).add(Helpers.add((key + "="), value));
             }
             Object message = String.join(",", (List<String>)auth);
-            Object signature = this.hmac(this.encode(message), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(message), this.encode(this.secret), sha256());
             Map<String, Object> query = new HashMap<String, Object>() {{}};
             ((Map<String, Object>)query).put("apiKey", this.apiKey);
             ((Map<String, Object>)query).put("nonce", nonce);
-            ((Map<String, Object>)query).put("signature", ((String)signature).toUpperCase());
+            ((Map<String, Object>)query).put("signature", signature.toUpperCase());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

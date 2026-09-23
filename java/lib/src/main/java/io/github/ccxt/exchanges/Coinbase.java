@@ -3841,8 +3841,8 @@ public class Coinbase extends CoinbaseApi
                             throw new InvalidOrder((this.id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             String costRequest = Precise.stringMul(amountString, priceString);
                             total = this.costToPrecision(symbol, costRequest);
                         }
@@ -4717,7 +4717,7 @@ public class Coinbase extends CoinbaseApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             int duration = this.parseTimeframe(timeframe);
             Object requestedDuration = Helpers.multiply(limit, duration);
-            Object sinceString = null;
+            String sinceString = null;
             if (!java.util.Objects.equals(since, null))
             {
                 sinceString = this.numberToString(this.parseToInt(Helpers.divide(since, 1000)));
@@ -6489,7 +6489,7 @@ public class Coinbase extends CoinbaseApi
                     Long timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
                     Object timestampString = String.valueOf(timestamp);
                     Object auth = Helpers.add(Helpers.add(Helpers.add(timestampString, method), savedPath), payload);
-                    Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                    String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                     final Object finalTimestampString = timestampString;
                     headers = new HashMap<String, Object>() {{
                         put( "CB-ACCESS-KEY", Coinbase.this.apiKey );

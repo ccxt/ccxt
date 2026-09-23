@@ -844,8 +844,8 @@ public class Paymium extends PaymiumApi
             {
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
-                    Object queryString = this.urlencode(query);
-                    auth = Helpers.add(auth, queryString);
+                    String queryString = this.urlencode(query);
+                    auth = (auth + queryString);
                     url = (url + ("?" + queryString));
                 }
             }

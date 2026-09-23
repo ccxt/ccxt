@@ -2093,7 +2093,7 @@ public class Luno extends LunoApi
         if ((java.util.Objects.equals(api, "private")) || (java.util.Objects.equals(api, "exchangePrivate")))
         {
             this.checkRequiredCredentials();
-            Object auth = this.stringToBase64(((this.apiKey + ":") + this.secret));
+            String auth = this.stringToBase64(((this.apiKey + ":") + this.secret));
             headers = new HashMap<String, Object>() {{
                 put( "Authorization", ("Basic " + auth) );
             }};

@@ -4164,7 +4164,7 @@ public class Hitbtc extends HitbtcApi
                     throw new ArgumentsRequired((this.id + " modifyMarginHelper() requires a leverage parameter for swap markets")) ;
                 }
             }
-            Object stringAmount = this.numberToString(amount);
+            String stringAmount = this.numberToString(amount);
             if (!java.util.Objects.equals(stringAmount, "0"))
             {
                 amount = this.amountToPrecision(symbol, stringAmount);
@@ -4702,8 +4702,8 @@ public class Hitbtc extends HitbtcApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object query = this.omit(parameters, this.extractParams(path));
-        Object implodedPath = this.implodeParams(path, parameters);
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), implodedPath);
+        String implodedPath = (String) this.implodeParams(path, parameters);
+        Object url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/") + implodedPath);
         String getRequest = null;
         List<Object> keys = Helpers.objectKeys(query);
         Object queryLength = ((List<?>)keys).size();
@@ -4741,9 +4741,9 @@ public class Hitbtc extends HitbtcApi
             }
             ((List<Object>)payload).add(timestamp);
             Object payloadString = String.join("", (List<String>)payload);
-            Object signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
-            String secondPayload = ((Helpers.add((this.apiKey + ":"), signature) + ":") + timestamp);
-            Object encoded = this.stringToBase64(secondPayload);
+            String signature = (String) this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
+            String secondPayload = ((((this.apiKey + ":") + signature) + ":") + timestamp);
+            String encoded = this.stringToBase64(secondPayload);
             ((Map<String, Object>)headers).put("Authorization", ("HS256 " + encoded));
         }
         final Object finalUrl = url;

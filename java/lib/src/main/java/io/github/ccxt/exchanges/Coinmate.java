@@ -1639,13 +1639,13 @@ public class Coinmate extends CoinmateApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             Object auth = Helpers.add(Helpers.add(nonce, this.uid), this.apiKey);
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalNonce = nonce;
             body = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "clientId", Coinmate.this.uid );
                 put( "nonce", finalNonce );
                 put( "publicKey", Coinmate.this.apiKey );
-                put( "signature", ((String)signature).toUpperCase() );
+                put( "signature", signature.toUpperCase() );
             }}, parameters));
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );

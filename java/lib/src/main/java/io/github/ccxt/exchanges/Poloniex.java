@@ -2575,8 +2575,8 @@ public class Poloniex extends PoloniexApi
                         throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
@@ -4475,7 +4475,7 @@ public class Poloniex extends PoloniexApi
             ((Map<String, Object>)parameters).put("symbol", this.encodeURIComponent(((Map<String, Object>)parameters).get("symbol"))); // handle symbols like 索拉拉/USDT'
         }
         Object query = this.omit(parameters, this.extractParams(path));
-        Object implodedPath = this.implodeParams(path, parameters);
+        String implodedPath = (String) this.implodeParams(path, parameters);
         if (java.util.Objects.equals(api, "public") || java.util.Objects.equals(api, "swapPublic"))
         {
             url = Helpers.add(url, ("/" + implodedPath));
@@ -4511,7 +4511,7 @@ public class Poloniex extends PoloniexApi
                     url = Helpers.add(url, ("?" + this.urlencode(query)));
                 }
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "key", Poloniex.this.apiKey );

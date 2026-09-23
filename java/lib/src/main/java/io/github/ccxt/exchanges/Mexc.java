@@ -2902,8 +2902,8 @@ public class Mexc extends MexcApi
                     ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
                 } else
                 {
-                    Object amountString = this.numberToString(amount);
-                    Object priceString = this.numberToString(price);
+                    String amountString = this.numberToString(amount);
+                    String priceString = this.numberToString(price);
                     String quoteAmount = Precise.stringMul(amountString, priceString);
                     amount = quoteAmount;
                     ((Map<String, Object>)request).put("quoteOrderQty", this.costToPrecision(symbol, amount));
@@ -7399,8 +7399,8 @@ final Object finalRiskIncrVol = riskIncrVol;
             if (java.util.Objects.equals(access, "private"))
             {
                 this.checkRequiredCredentials();
-                Object signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256());
-                url = Helpers.add(url, Helpers.add(("&" + "signature="), signature));
+                String signature = (String) this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256());
+                url = Helpers.add(url, (("&" + "signature=") + signature));
                 headers = new HashMap<String, Object>() {{
                     put( "X-MEXC-APIKEY", Mexc.this.apiKey );
                     put( "source", Mexc.this.safeString(Mexc.this.options, "broker", "CCXT") );
@@ -7446,7 +7446,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                     }
                 }
                 auth = Helpers.add(Helpers.add(this.apiKey, timestamp), auth);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 ((Map<String, Object>)headers).put("Signature", signature);
             }
         }

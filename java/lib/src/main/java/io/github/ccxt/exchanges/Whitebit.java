@@ -5360,8 +5360,8 @@ public class Whitebit extends WhitebitApi
                 put( "nonce", nonce );
                 put( "nonceWindow", nonceWindow );
             }}, requestParams));
-            Object payload = this.stringToBase64(body);
-            Object signature = this.hmac(this.encode(payload), secret, sha512());
+            String payload = this.stringToBase64(body);
+            String signature = (String) this.hmac(this.encode(payload), secret, sha512());
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-TXC-APIKEY", Whitebit.this.apiKey );

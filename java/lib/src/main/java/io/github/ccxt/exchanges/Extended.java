@@ -3116,7 +3116,7 @@ public class Extended extends ExtendedApi
     public Object getExtendedStarkAmount(Object amount, Object resolution, Object... optionalArgs)
     {
         Object roundUp = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
-        Object resolutionString = this.numberToString(resolution);
+        String resolutionString = this.numberToString(resolution);
         String precise = Precise.stringMul(amount, resolutionString);
         Object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (Helpers.isTrue(roundUp) && Precise.stringGt(precise, result))
@@ -3336,7 +3336,7 @@ public class Extended extends ExtendedApi
             Long now = this.milliseconds();
             Long expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis", (now + 3600000L));
             Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(this.parseToInt(Helpers.divide(((expiryEpochMillis + 999L)), 1000)), 1209600));
-            Object nonce = this.numberToString(this.nonce());
+            String nonce = this.numberToString(this.nonce());
             Object account = (this.fetchExtendedAccount()).join();
             String starkKey = this.safeString(account, "l2Key");
             String collateralPosition = this.safeString(account, "l2Vault");
@@ -4277,7 +4277,7 @@ public class Extended extends ExtendedApi
     {
         // Cairo prime offset for i64 negative encoding.
         String prime = "3618502788666131213697322783095070105623107215331596699973092056135872020481";
-        Object valueString = this.numberToString(value);
+        String valueString = this.numberToString(value);
         if (Precise.stringLt(valueString, "0"))
         {
             return Precise.stringAdd(prime, valueString);

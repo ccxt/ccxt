@@ -341,7 +341,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public Object createWSAuth(Object name, Object productIds)
     {
         Map<String, Object> subscribe = new HashMap<String, Object>() {{}};
-        Object timestamp = this.numberToString(this.seconds());
+        String timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
         Boolean isCloudAPiKey = (((String)this.apiKey).indexOf("organizations/") >= 0) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
         Object auth = Helpers.add(Helpers.add(timestamp, name), String.join(",", (List<String>)productIds));

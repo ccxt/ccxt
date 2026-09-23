@@ -592,7 +592,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String auth = (("CONNECT" + "/stream") + expires);
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalExpires = expires;
             Map<String, Object> authParams = new HashMap<String, Object>() {{
                 put( "api-key", Hollaex.this.apiKey );

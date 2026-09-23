@@ -1187,7 +1187,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         String errorCode = this.safeString(error, "code");
         if (!java.util.Objects.equals(errorCode, null))
         {
-            Object body = this.json(response);
+            String body = this.json(response);
             String feedback = ((this.id + " ") + body);
             String message = this.safeString(error, "message");
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);

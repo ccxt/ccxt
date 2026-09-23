@@ -2334,7 +2334,7 @@ public class Dydx extends DydxApi
                 denom = ((Map<String, Object>)feeDenom).get("CHAINTOKEN_DENOM");
             }
             Object gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
-            Object feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
+            String feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
             if (java.util.Objects.equals(feeAmount, null))
             {
                 throw new ExchangeError((this.id + " estimateTxFee() missing feeAmount")) ;
@@ -3102,7 +3102,7 @@ public class Dydx extends DydxApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object pathWithParams = this.implodeParams(path, parameters);
+        String pathWithParams = (String) this.implodeParams(path, parameters);
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section);
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);

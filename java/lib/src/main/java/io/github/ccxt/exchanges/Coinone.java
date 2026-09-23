@@ -1610,7 +1610,7 @@ public class Coinone extends CoinoneApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object request = this.implodeParams(path, parameters);
+        String request = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/");
         if (java.util.Objects.equals(api, "v2Public"))
@@ -1626,7 +1626,7 @@ public class Coinone extends CoinoneApi
         }
         if (java.util.Objects.equals(api, "public"))
         {
-            url = Helpers.add(url, request);
+            url = (url + request);
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
@@ -1634,7 +1634,7 @@ public class Coinone extends CoinoneApi
         } else
         {
             this.checkRequiredCredentials();
-            url = Helpers.add(url, request);
+            url = (url + request);
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             Object nonce = null;
             if (java.util.Objects.equals(api, "v2_1Private"))
@@ -1645,14 +1645,14 @@ public class Coinone extends CoinoneApi
                 nonce = String.valueOf(this.nonce());
             }
             final Object finalNonce = nonce;
-            Object json = this.json(this.extend(new HashMap<String, Object>() {{
+            String json = this.json(this.extend(new HashMap<String, Object>() {{
                 put( "access_token", Coinone.this.apiKey );
                 put( "nonce", finalNonce );
             }}, parameters));
-            Object payload = this.stringToBase64(json);
+            String payload = this.stringToBase64(json);
             body = payload;
             Object secret = this.secret.toUpperCase();
-            Object signature = this.hmac(this.encode(payload), this.encode(secret), sha512());
+            String signature = (String) this.hmac(this.encode(payload), this.encode(secret), sha512());
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-COINONE-PAYLOAD", payload );

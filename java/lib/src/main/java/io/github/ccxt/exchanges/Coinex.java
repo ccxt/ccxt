@@ -2940,8 +2940,8 @@ public class Coinex extends CoinexApi
                         throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         Object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
                         Object costRequest = (((!java.util.Objects.equals(cost, null)))) ? cost : quoteAmount;
                         ((Map<String, Object>)request).put("amount", this.costToPrecision(symbol, costRequest));
@@ -6509,7 +6509,7 @@ final Object finalI = i;
                 put( "timestamp", finalNonce );
             }}, query);
             query = this.keysort(query);
-            Object urlencoded = this.rawencode(query);
+            String urlencoded = this.rawencode(query);
             Object signature = this.hash(this.encode(((urlencoded + "&secret_key=") + this.secret)), sha256());
             headers = new HashMap<String, Object>() {{
                 put( "Authorization", ((String)signature).toLowerCase() );
@@ -6540,7 +6540,7 @@ final Object finalI = i;
                     put( "tonce", finalNonce_2 );
                 }}, query);
                 query = this.keysort(query);
-                Object urlencoded = this.rawencode(query);
+                String urlencoded = this.rawencode(query);
                 Object signature = this.hash(this.encode(((urlencoded + "&secret_key=") + this.secret)), md5());
                 headers = new HashMap<String, Object>() {{
                     put( "Authorization", ((String)signature).toUpperCase() );
@@ -6557,7 +6557,7 @@ final Object finalI = i;
             {
                 this.checkRequiredCredentials();
                 query = this.keysort(query);
-                Object urlencoded = this.rawencode(query);
+                String urlencoded = this.rawencode(query);
                 Object preparedString = Helpers.add((Helpers.add(Helpers.add(method, "/"), version) + "/"), path);
                 if (java.util.Objects.equals(method, "POST"))
                 {

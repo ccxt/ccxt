@@ -1714,13 +1714,13 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 put( "id", requestId );
                 put( "future", messageHash );
             }};
-            Object hmac = this.hmac(this.encode(timestamp), this.encode(this.secret), sha256(), "hex");
+            String hmac = (String) this.hmac(this.encode(timestamp), this.encode(this.secret), sha256(), "hex");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "method", "server.sign" );
                 put( "params", new HashMap<String, Object>() {{
                     put( "access_id", Coinex.this.apiKey );
-                    put( "signed_str", ((String)hmac).toLowerCase() );
+                    put( "signed_str", hmac.toLowerCase() );
                     put( "timestamp", time );
                 }} );
             }};

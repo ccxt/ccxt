@@ -231,7 +231,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "rejected"))
         {
-            Object jsonMessage = this.json(message);
+            String jsonMessage = this.json(message);
             throw new ExchangeError(((this.id + " ") + jsonMessage)) ;
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {

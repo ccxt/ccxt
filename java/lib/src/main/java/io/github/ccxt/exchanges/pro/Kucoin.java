@@ -2731,10 +2731,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         if ((java.util.Objects.equals(rawType, "match")) && (!java.util.Objects.equals(matchPrice, null)) && (!java.util.Objects.equals(matchSize, null)))
         {
             String matchCost = Precise.stringMul(matchPrice, matchSize);
-            Object previousCost = (((java.util.Objects.equals(order, null)))) ? "0" : this.numberToString(this.safeNumber(order, "cost", 0));
+            String previousCost = (((java.util.Objects.equals(order, null)))) ? "0" : this.numberToString(this.safeNumber(order, "cost", 0));
             String costString = Precise.stringAdd(previousCost, matchCost);
             Helpers.addElementToObject(parsed, "cost", this.parseNumber(costString));
-            Object filledString = this.numberToString(((Map<String, Object>)parsed).get("filled"));
+            String filledString = this.numberToString(((Map<String, Object>)parsed).get("filled"));
             if ((!java.util.Objects.equals(filledString, null)) && (Precise.stringGt(filledString, "0")))
             {
                 Helpers.addElementToObject(parsed, "average", this.parseNumber(Precise.stringDiv(costString, filledString)));

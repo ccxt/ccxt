@@ -1825,7 +1825,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 Long expiryDelta = this.safeInteger(this.options, "expires", 120);
                 Object expiration = (this.seconds() + expiryDelta);
                 Object payload = Helpers.add(this.apiKey, String.valueOf(expiration));
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 String method = "user.auth";
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "method", method );

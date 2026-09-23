@@ -1864,13 +1864,13 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 this.checkRequiredCredentials();
                 Object nonce = String.valueOf(this.seconds());
                 Object auth = Helpers.add(nonce, this.apiKey);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalNonce = nonce;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "e", "auth" );
                     put( "auth", new HashMap<String, Object>() {{
                         put( "key", Cex.this.apiKey );
-                        put( "signature", ((String)signature).toUpperCase() );
+                        put( "signature", signature.toUpperCase() );
                         put( "timestamp", finalNonce );
                     }} );
                 }};

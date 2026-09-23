@@ -1007,7 +1007,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     ((Map<String, Object>)previousOrder).put("average", Precise.stringDiv(totalCost, totalAmount));
                 }
                 ((Map<String, Object>)previousOrder).put("cost", totalCost);
-                Object filledString = this.numberToString(((Map<String, Object>)trade).get("amount"));
+                String filledString = this.numberToString(((Map<String, Object>)trade).get("amount"));
                 String stringOrderFilled = this.safeString(previousOrder, "filled", "0");
                 String totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
                 ((Map<String, Object>)previousOrder).put("filled", totalFilled);
@@ -1024,8 +1024,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
                 if ((!java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"), null)) && (!java.util.Objects.equals(this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost"), null)))
                 {
-                    Object stringOrderCost = this.numberToString(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"));
-                    Object stringTradeCost = this.numberToString(this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost"));
+                    String stringOrderCost = this.numberToString(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"));
+                    String stringTradeCost = this.numberToString(this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost"));
                     Helpers.addElementToObject(previousOrder.get("fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                 }
                 // update the newUpdates count
@@ -2023,7 +2023,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object challenge = this.safeValue(message, "message");
             Object hashedChallenge = this.hash(this.encode(challenge), sha256(), "binary");
             Object base64Secret = this.base64ToBinary(this.secret);
-            Object signature = this.hmac(hashedChallenge, base64Secret, sha512(), "base64");
+            String signature = (String) this.hmac(hashedChallenge, base64Secret, sha512(), "base64");
             Helpers.addElementToObject(this.options, "challenge", challenge);
             Helpers.addElementToObject(this.options, "signedChallenge", signature);
             Object future = this.safeValue(client.futures, messageHash);

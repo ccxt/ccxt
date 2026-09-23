@@ -3710,7 +3710,7 @@ public class Bydfi extends BydfiApi
             if (java.util.Objects.equals(method, "GET"))
             {
                 Object payload = Helpers.add(Helpers.add(this.apiKey, timestamp), query);
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 headers = new HashMap<String, Object>() {{
                     put( "X-API-KEY", Bydfi.this.apiKey );
                     put( "X-API-TIMESTAMP", timestamp );
@@ -3720,7 +3720,7 @@ public class Bydfi extends BydfiApi
             {
                 body = this.json(sortedParams);
                 Object payload = Helpers.add(Helpers.add(this.apiKey, timestamp), body);
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 headers = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
                     put( "X-API-KEY", Bydfi.this.apiKey );

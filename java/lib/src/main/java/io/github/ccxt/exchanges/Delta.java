@@ -4741,7 +4741,7 @@ public class Delta extends DeltaApi
                 auth = Helpers.add(auth, body);
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             ((Map<String, Object>)headers).put("signature", signature);
         }
         final Object finalUrl = url;

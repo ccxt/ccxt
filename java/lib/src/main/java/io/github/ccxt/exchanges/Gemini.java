@@ -2602,9 +2602,9 @@ public class Gemini extends GeminiApi
                 put( "request", finalUrl );
                 put( "nonce", nonce );
             }}, query);
-            Object payload = this.json(request);
+            String payload = this.json(request);
             payload = this.stringToBase64(payload);
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
             final Object finalPayload = payload;
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "text/plain" );

@@ -1890,8 +1890,8 @@ public class Bigone extends BigoneApi
                             throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             Object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
                             Object costRequest = (((!java.util.Objects.equals(cost, null)))) ? cost : quoteAmount;
                             ((Map<String, Object>)request).put("amount", this.costToPrecision(symbol, costRequest));

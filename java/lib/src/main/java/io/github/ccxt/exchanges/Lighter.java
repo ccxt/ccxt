@@ -630,7 +630,7 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " requires accountIndex or account_index")) ;
             }
-            Object strAccountIndex = this.numberToString(accountIndex);
+            String strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             this.initAuthObject(strAccountIndex, strApiKeyIndex);
             Object signer = this.safeDict(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.options).get("auths"), strAccountIndex), strApiKeyIndex), "signer");
@@ -898,8 +898,8 @@ public class Lighter extends LighterApi
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            String strAccountIndex = this.numberToString(accountIndex);
+            String strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "skipNonce", false );

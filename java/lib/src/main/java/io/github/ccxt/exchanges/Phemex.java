@@ -1631,8 +1631,8 @@ public class Phemex extends PhemexApi
         {
             return null;
         }
-        Object stringN = this.numberToString(n);
-        var precise = new Precise(((String)stringN));
+        String stringN = this.numberToString(n);
+        var precise = new Precise(stringN);
         precise.decimals = Helpers.subtract(precise.decimals, scale);
         precise.reduce();
         Object preciseString = String.valueOf(precise);
@@ -3208,7 +3208,7 @@ public class Phemex extends PhemexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object requestSide = this.capitalize(side);
+            String requestSide = this.capitalize(side);
             type = this.capitalize(type);
             final Object finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3276,8 +3276,8 @@ public class Phemex extends PhemexApi
                     {
                         if (!java.util.Objects.equals(price, null))
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             String quoteAmount = Precise.stringMul(amountString, priceString);
                             cost = this.parseNumber(quoteAmount);
                         } else if (java.util.Objects.equals(cost, null))
@@ -3418,7 +3418,7 @@ public class Phemex extends PhemexApi
                     ((Map<String, Object>)request).put("priceRp", this.priceToPrecision(symbol, price));
                 } else
                 {
-                    Object priceString = this.numberToString(price);
+                    String priceString = this.numberToString(price);
                     ((Map<String, Object>)request).put("priceEp", this.toEp(priceString, market));
                 }
             }
@@ -4938,7 +4938,7 @@ public class Phemex extends PhemexApi
         String markPriceString = this.safeString2(position, "markPrice", "markPriceRp");
         String contracts = this.safeStringN(position, new ArrayList<Object>(Arrays.asList("size", "sizeRq", "closedSizeRq")));
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         Double leverage = this.parseNumber(Precise.stringAbs((this.safeString2(position, "leverage", "leverageRr"))));
         String entryPriceString = this.safeStringN(position, new ArrayList<Object>(Arrays.asList("avgEntryPrice", "avgEntryPriceRp", "openPrice")));
         String rawSide = this.safeString(position, "side");

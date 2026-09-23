@@ -3287,7 +3287,7 @@ public class Blofin extends BlofinApi
             }
         }
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         String markPriceString = this.safeString(position, "markPrice");
         String notionalString = this.safeString(position, "notionalUsd");
         if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
@@ -3319,7 +3319,7 @@ public class Blofin extends BlofinApi
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         } else if (java.util.Objects.equals(initialMarginString, null))
         {
-            Object initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+            String initialMarginPercentageString = this.numberToString(initialMarginPercentage);
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         String rounder = "0.00005"; // round to closest 0.01%
@@ -4036,7 +4036,7 @@ public class Blofin extends BlofinApi
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
             Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(request, method), timestamp), timestamp), sign_body);
-            Object signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
+            String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
             ((Map<String, Object>)headers).put("ACCESS-SIGN", signature);
         }
         final Object finalUrl = url;

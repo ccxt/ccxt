@@ -2466,7 +2466,7 @@ public class Hollaex extends HollaexApi
                     auth = Helpers.add(auth, body);
                 }
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             ((Map<String, Object>)headers).put("api-signature", signature);
         }
         final Object finalMethod = method;

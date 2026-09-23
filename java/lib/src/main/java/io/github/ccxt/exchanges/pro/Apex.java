@@ -1103,7 +1103,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String request_path = "/ws/accounts";
             String http_method = "GET";
             String messageString = (((timestamp + http_method) + request_path));
-            Object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
             String messageHash = "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);

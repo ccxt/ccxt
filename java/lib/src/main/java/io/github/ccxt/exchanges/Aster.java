@@ -3536,8 +3536,8 @@ public class Aster extends AsterApi
                         ((Map<String, Object>)request).put("quoteOrderQty", this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode));
                     } else if (!java.util.Objects.equals(price, null))
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String quoteOrderQuantity = Precise.stringMul(amountString, priceString);
                         ((Map<String, Object>)request).put("quoteOrderQty", this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode));
                     } else
@@ -4456,7 +4456,7 @@ public class Aster extends AsterApi
         String entryPriceString = this.safeString(position, "entryPrice");
         Double entryPrice = this.parseNumber(entryPriceString);
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         Boolean linear = (position.containsKey("notional"));
         if (java.util.Objects.equals(marginMode, "cross"))
@@ -4843,7 +4843,7 @@ public class Aster extends AsterApi
         String liquidationPriceStringRaw = null;
         Object liquidationPrice = null;
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         if (Precise.stringEquals(notionalString, "0"))
         {
             entryPrice = null;
@@ -5258,7 +5258,7 @@ public class Aster extends AsterApi
             {
                 throw new ArgumentsRequired((this.id + " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
             }
-            Object defaultClientTranId = this.numberToString(this.milliseconds());
+            String defaultClientTranId = this.numberToString(this.milliseconds());
             String clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
             ((Map<String, Object>)request).put("kindType", type);
             ((Map<String, Object>)request).put("clientTranId", clientTranId);
@@ -5456,7 +5456,7 @@ public class Aster extends AsterApi
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = (dict == null || key == null ? null : dict.get(key));
-            Object capitalizedKey = this.capitalize(key);
+            String capitalizedKey = this.capitalize(key);
             ((Map<String, Object>)capitalized).put((String)capitalizedKey, value);
         }
         return capitalized;

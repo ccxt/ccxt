@@ -1084,7 +1084,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object timestamp = String.valueOf(milliseconds);
             String nonce = ("n_" + timestamp);
             String auth = (((("/users/self/verify" + "GET") + timestamp) + "") + nonce);
-            Object signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
+            String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "login" );
                 put( "args", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{

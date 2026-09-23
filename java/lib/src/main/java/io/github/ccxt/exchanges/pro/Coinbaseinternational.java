@@ -146,7 +146,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             Object timestamp = String.valueOf(this.nonce());
             String auth = ((Helpers.add(timestamp, this.apiKey) + "CBINTLMD") + this.password);
-            Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalName = name;
             final Object finalTimestamp = timestamp;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -213,9 +213,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 throw new NotSupported((this.id + " is not supported in sandbox environment")) ;
             }
-            Object timestamp = this.numberToString(this.seconds());
+            String timestamp = this.numberToString(this.seconds());
             String auth = ((Helpers.add(timestamp, this.apiKey) + "CBINTLMD") + this.password);
-            Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalTimestamp = timestamp;
             final Object finalName = name;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{

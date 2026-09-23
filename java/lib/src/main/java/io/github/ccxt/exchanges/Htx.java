@@ -6675,8 +6675,8 @@ public class Htx extends HtxApi
                         // https://github.com/ccxt/ccxt/pull/4395
                         // https://github.com/ccxt/ccxt/issues/7611
                         // we use amountToPrecision here because the exchange requires cost in base precision
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         quoteAmount = this.amountToPrecision(symbol, Precise.stringMul(amountString, priceString));
                     }
                 } else
@@ -8596,7 +8596,7 @@ public class Htx extends HtxApi
                 // fee needs to be deducted from whole amount
                 Object feeString = this.currencyToPrecision((String) (code), fee, networkCode);
                 parameters = this.omit(parameters, "fee");
-                Object amountString = this.numberToString(amount);
+                String amountString = this.numberToString(amount);
                 String amountSubtractedString = Precise.stringSub(amountString, feeString);
                 String amountSubtractedParsed = amountSubtractedString;
                 if (java.util.Objects.equals(amountSubtractedParsed, null))
@@ -9497,11 +9497,11 @@ public class Htx extends HtxApi
                     request = this.extend(request, query);
                 }
                 Map<String, Object> sortedRequest = this.keysort(request);
-                Object auth = this.urlencode(sortedRequest, true); // true is a go only requirement
+                String auth = this.urlencode(sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content = new ArrayList<Object>(Arrays.asList(method, this.hostname, url, auth));
                 Object payload = String.join("\n", (List<String>)content); // eslint-disable-line quotes
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = (auth + ("&" + this.urlencode(new HashMap<String, Object>() {{
     put( "Signature", signature );
 }})));
@@ -9608,7 +9608,7 @@ public class Htx extends HtxApi
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content2 = new ArrayList<Object>(Arrays.asList(method, hostname, url, auth));
                 Object payload = String.join("\n", (List<String>)content2); // eslint-disable-line quotes
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = (auth + ("&" + this.urlencode(new HashMap<String, Object>() {{
     put( "Signature", signature );
 }})));
@@ -9983,7 +9983,7 @@ public class Htx extends HtxApi
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String contracts = this.safeString(position, "volume");
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         Double entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price");
         String initialMargin = this.safeString2(position, "position_margin", "initial_margin");
         String rawSide = this.safeString(position, "direction");

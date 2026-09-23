@@ -2256,7 +2256,7 @@ public class Cex extends CexApi
             Object seconds = String.valueOf(this.seconds());
             body = this.json(query);
             Object auth = Helpers.add(Helpers.add(path, seconds), body);
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-AGGR-KEY", Cex.this.apiKey );

@@ -2279,8 +2279,8 @@ final Object finalJ = j;
             if (java.util.Objects.equals(method, "POST") || java.util.Objects.equals(method, "PUT"))
             {
                 body = this.json(parameters);
-                Object payload = this.stringToBase64(body);
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+                String payload = this.stringToBase64(body);
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
                 ((Map<String, Object>)headers).put("X-BITOPRO-APIKEY", this.apiKey);
                 ((Map<String, Object>)headers).put("X-BITOPRO-PAYLOAD", payload);
                 ((Map<String, Object>)headers).put("X-BITOPRO-SIGNATURE", signature);
@@ -2294,9 +2294,9 @@ final Object finalJ = j;
                 Map<String, Object> rawData = new HashMap<String, Object>() {{
                     put( "nonce", nonce );
                 }};
-                Object data = this.json(rawData);
-                Object payload = this.stringToBase64(data);
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+                String data = this.json(rawData);
+                String payload = this.stringToBase64(data);
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
                 ((Map<String, Object>)headers).put("X-BITOPRO-APIKEY", this.apiKey);
                 ((Map<String, Object>)headers).put("X-BITOPRO-PAYLOAD", payload);
                 ((Map<String, Object>)headers).put("X-BITOPRO-SIGNATURE", signature);

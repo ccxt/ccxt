@@ -4447,13 +4447,13 @@ public class Woofipro extends WoofiproApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object version = Helpers.GetValue(section, 0);
         Object access = Helpers.GetValue(section, 1);
-        Object pathWithParams = this.implodeParams(path, parameters);
-        Object url = (Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), access), "/"), version) + "/");
+        String pathWithParams = (String) this.implodeParams(path, parameters);
+        String url = (Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), access), "/"), version) + "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         if (java.util.Objects.equals(access, "public"))
         {
-            url = Helpers.add(url, pathWithParams);
+            url = (url + pathWithParams);
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
@@ -4483,7 +4483,7 @@ public class Woofipro extends WoofiproApi
             }
             Object auth = "";
             Object ts = String.valueOf(this.nonce());
-            url = Helpers.add(url, pathWithParams);
+            url = (url + pathWithParams);
             String apiKey = this.apiKey;
             if (((String)apiKey).indexOf("ed25519:") < 0)
             {

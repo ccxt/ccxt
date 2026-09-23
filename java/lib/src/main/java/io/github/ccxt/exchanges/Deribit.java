@@ -4918,10 +4918,10 @@ public class Deribit extends DeribitApi
             }
             String requestData = (((((method + "\n") + request) + "\n") + requestBody) + "\n"); // eslint-disable-line quotes
             String auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{
-                put( "Authorization", (((Helpers.add((((("deri-hmac-sha256 id=" + Deribit.this.apiKey) + ",ts=") + finalTimestamp) + ",sig="), signature) + ",") + "nonce=") + nonce) );
+                put( "Authorization", (((((((("deri-hmac-sha256 id=" + Deribit.this.apiKey) + ",ts=") + finalTimestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) );
             }};
         }
         Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), request);

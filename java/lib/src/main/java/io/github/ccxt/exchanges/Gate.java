@@ -6136,8 +6136,8 @@ final Object finalPointFee = pointFee;
                             throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             String costRequest = Precise.stringMul(amountString, priceString);
                             quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
@@ -7950,7 +7950,7 @@ final Object finalRebate = rebate;
             String defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
             String crossLeverageLimit = this.safeString(query, "cross_leverage_limit");
             String marginMode = this.safeString(query, "marginMode", defaultMarginMode);
-            Object stringifiedMargin = this.numberToString(leverage);
+            String stringifiedMargin = this.numberToString(leverage);
             if (!java.util.Objects.equals(crossLeverageLimit, null))
             {
                 marginMode = "cross";
@@ -9150,7 +9150,7 @@ final Object finalI = i;
             Object payloadArray = new ArrayList<Object>(Arrays.asList(((String)method).toUpperCase(), signaturePath, rawQueryString, bodySignature, timestampString));
             // eslint-disable-next-line quotes
             Object payload = String.join("\n", (List<String>)payloadArray);
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512());
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha512());
             headers = new HashMap<String, Object>() {{
                 put( "KEY", Gate.this.apiKey );
                 put( "Timestamp", timestampString );

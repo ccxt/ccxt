@@ -2453,7 +2453,7 @@ public class Zebpay extends ZebpayApi
             if (java.util.Objects.equals(method, "GET") || (java.util.Objects.equals(method, "DELETE") && Boolean.TRUE.equals(isSpot)))
             {
                 // For GET/DELETE: Append params to URL and sign the query string
-                Object queryString = this.urlencode(parameters);
+                String queryString = this.urlencode(parameters);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256(), "hex");
                 url = Helpers.add(url, ("?" + queryString));
             } else

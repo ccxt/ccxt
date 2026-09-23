@@ -2741,25 +2741,25 @@ public class Bitteam extends BitteamApi
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), endpoint);
-        Object query = this.urlencode(request);
+        String query = this.urlencode(request);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(method, "POST"))
             {
                 body = this.json(request);
-            } else if ((((String)query).length() != 0))
+            } else if ((query.length() != 0))
             {
                 url = (url + ("?" + query));
             }
             String auth = ((this.apiKey + ":") + this.secret);
-            Object auth64 = this.stringToBase64(auth);
+            String auth64 = this.stringToBase64(auth);
             String signature = ("Basic " + auth64);
             headers = new HashMap<String, Object>() {{
                 put( "Authorization", signature );
                 put( "Content-Type", "application/json" );
             }};
-        } else if ((((String)query).length() != 0))
+        } else if ((query.length() != 0))
         {
             url = (url + ("?" + query));
         }

@@ -1847,7 +1847,7 @@ public class Cryptocom extends CryptocomApi
         if (Boolean.TRUE.equals(isTrigger))
         {
             ((Map<String, Object>)request).put("ref_price", this.priceToPrecision(symbol, triggerPrice));
-            Object priceString = this.numberToString(price);
+            String priceString = this.numberToString(price);
             if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
             {
                 if (java.util.Objects.equals(side, "buy"))
@@ -2123,7 +2123,7 @@ public class Cryptocom extends CryptocomApi
         Boolean isTakeProfitTrigger = (!java.util.Objects.equals(takeProfitPrice, null));
         if (Boolean.TRUE.equals(isTrigger))
         {
-            Object priceString = this.numberToString(price);
+            String priceString = this.numberToString(price);
             if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
             {
                 if (java.util.Objects.equals(side, "buy"))
@@ -2209,8 +2209,8 @@ public class Cryptocom extends CryptocomApi
                     throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                 } else
                 {
-                    Object amountString = this.numberToString(amount);
-                    Object priceString = this.numberToString(price);
+                    String amountString = this.numberToString(amount);
+                    String priceString = this.numberToString(price);
                     String costRequest = Precise.stringMul(amountString, priceString);
                     quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
@@ -4533,7 +4533,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> paramsKeys = new ArrayList<Object>(requestParams.keySet());
             Object strSortKey = this.paramsToString(requestParams, 0);
             Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(path, nonce), this.apiKey), strSortKey), nonce);
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             Object paramsKeysLength = ((List<?>)paramsKeys).size();
             final Object finalPath = path;
             body = this.json(new HashMap<String, Object>() {{

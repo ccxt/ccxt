@@ -3795,14 +3795,14 @@ public class Toobit extends ToobitApi
             {
                 payload = Helpers.add(body, payload);
             }
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
             if (!java.util.Objects.equals(queryString, ""))
             {
-                queryString = Helpers.add(queryString, Helpers.add("&signature=", signature));
+                queryString = Helpers.add(queryString, ("&signature=" + signature));
                 url = (url + ("?" + queryString));
             } else
             {
-                body = Helpers.add(body, Helpers.add("&signature=", signature));
+                body = Helpers.add(body, ("&signature=" + signature));
             }
             headers = new HashMap<String, Object>() {{
                 put( "Referrer", "CCXT" );

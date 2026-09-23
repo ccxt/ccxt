@@ -4581,8 +4581,8 @@ public class Okx extends OkxApi
                         {
                             if (java.util.Objects.equals(notional, null))
                             {
-                                Object amountString = this.numberToString(amount);
-                                Object priceString = this.numberToString(price);
+                                String amountString = this.numberToString(amount);
+                                String priceString = this.numberToString(price);
                                 String quoteAmount = Precise.stringMul(amountString, priceString);
                                 notional = this.parseNumber(quoteAmount);
                             }
@@ -8127,7 +8127,7 @@ public class Okx extends OkxApi
             }
         }
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         String markPriceString = this.safeString(position, "markPx");
         String notionalString = this.safeString(position, "notionalUsd");
         if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
@@ -8161,7 +8161,7 @@ public class Okx extends OkxApi
         {
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                Object initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+                String initialMarginPercentageString = this.numberToString(initialMarginPercentage);
                 initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
             } else
             {
@@ -8584,7 +8584,7 @@ public class Okx extends OkxApi
                 }
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             ((Map<String, Object>)headers).put("OK-ACCESS-SIGN", signature);
         }
         final Object finalUrl = url;

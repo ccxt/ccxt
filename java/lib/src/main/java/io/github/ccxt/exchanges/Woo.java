@@ -1917,8 +1917,8 @@ public class Woo extends WooApi
                         quoteAmount = this.costToPrecision(symbol, cost);
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
@@ -4193,7 +4193,7 @@ public class Woo extends WooApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object version = Helpers.GetValue(section, 0);
         Object access = Helpers.GetValue(section, 1);
-        Object pathWithParams = this.implodeParams(path, parameters);
+        String pathWithParams = (String) this.implodeParams(path, parameters);
         Object url = this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), access));
         url = (url + (("/" + version) + "/"));
         parameters = this.omit(parameters, this.extractParams(path));
@@ -4207,7 +4207,7 @@ public class Woo extends WooApi
             }
         } else if (java.util.Objects.equals(access, "pub"))
         {
-            url = Helpers.add(url, pathWithParams);
+            url = (url + pathWithParams);
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
@@ -4235,7 +4235,7 @@ public class Woo extends WooApi
             }
             Object auth = "";
             Object ts = String.valueOf(this.nonce());
-            url = Helpers.add(url, pathWithParams);
+            url = (url + pathWithParams);
             final Object finalTs = ts;
             headers = new HashMap<String, Object>() {{
                 put( "x-api-key", Woo.this.apiKey );
@@ -4253,7 +4253,7 @@ public class Woo extends WooApi
                 {
                     if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
                     {
-                        Object query = this.urlencode(parameters);
+                        String query = this.urlencode(parameters);
                         url = (url + ("?" + query));
                         auth = (auth + ("?" + query));
                     }

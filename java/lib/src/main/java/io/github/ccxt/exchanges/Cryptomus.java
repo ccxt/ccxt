@@ -909,8 +909,8 @@ public class Cryptomus extends CryptomusApi
                 ((Map<String, Object>)request).put("client_order_id", clientOrderId);
             }
             Boolean sideBuy = java.util.Objects.equals(side, "buy");
-            Object amountToString = this.numberToString(amount);
-            Object priceToString = this.numberToString(price);
+            String amountToString = this.numberToString(amount);
+            String priceToString = this.numberToString(price);
             Object cost = null;
             List<Object> costparametersVariable = (List<Object>) this.handleParamString(parameters, "cost");
             cost = ((List<Object>) costparametersVariable).get(0);
@@ -1417,9 +1417,9 @@ public class Cryptomus extends CryptomusApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object endpoint = this.implodeParams(path, parameters);
+        String endpoint = (String) this.implodeParams(path, parameters);
         parameters = this.omit(parameters, this.extractParams(path));
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), endpoint);
+        String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/") + endpoint);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -1434,20 +1434,20 @@ public class Cryptomus extends CryptomusApi
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             } else
             {
-                Object query = this.urlencode(parameters);
-                if ((((String)query).length() != 0))
+                String query = this.urlencode(parameters);
+                if ((query.length() != 0))
                 {
                     url = (url + ("?" + query));
                 }
             }
-            Object jsonParamsBase64 = this.stringToBase64(jsonParams);
-            Object stringToSign = Helpers.add(jsonParamsBase64, this.secret);
+            String jsonParamsBase64 = this.stringToBase64(jsonParams);
+            String stringToSign = (jsonParamsBase64 + this.secret);
             Object signature = this.hash(this.encode(stringToSign), md5());
             ((Map<String, Object>)headers).put("sign", signature);
         } else
         {
-            Object query = this.urlencode(parameters);
-            if ((((String)query).length() != 0))
+            String query = this.urlencode(parameters);
+            if ((query.length() != 0))
             {
                 url = (url + ("?" + query));
             }

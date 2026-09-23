@@ -3299,8 +3299,8 @@ public class Xt extends XtApi
                             throw new InvalidOrder((this.id + " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             String costCalculated = null;
                             if (!java.util.Objects.equals(price, null))
                             {
@@ -7185,7 +7185,7 @@ final Object finalMarket = market;
         }
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), endpoint), payload);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object urlencoded = this.urlencode(this.keysort(query));
+        String urlencoded = this.urlencode(this.keysort(query));
         headers = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
@@ -7194,7 +7194,7 @@ final Object finalMarket = market;
             this.checkRequiredCredentials();
             String defaultRecvWindow = this.safeString(this.options, "recvWindow");
             String recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
-            Object timestamp = this.numberToString(this.nonce());
+            String timestamp = this.numberToString(this.nonce());
             body = query;
             if ((java.util.Objects.equals(payload, "/v4/order")) || (java.util.Objects.equals(payload, "/future/trade/v1/order/create")) || (java.util.Objects.equals(payload, "/future/trade/v1/entrust/create-plan")) || (java.util.Objects.equals(payload, "/future/trade/v1/entrust/create-profit")) || (java.util.Objects.equals(payload, "/future/trade/v1/order/create-batch")))
             {
@@ -7259,7 +7259,7 @@ final Object finalMarket = market;
                     payloadString = Helpers.add(payloadString, Helpers.add((("#" + payload) + "#"), body));
                 }
             }
-            Object signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(payloadString), this.encode(this.secret), sha256());
             ((Map<String, Object>)headers).put("xt-validate-appkey", this.apiKey);
             ((Map<String, Object>)headers).put("xt-validate-timestamp", timestamp);
             ((Map<String, Object>)headers).put("xt-validate-signature", signature);

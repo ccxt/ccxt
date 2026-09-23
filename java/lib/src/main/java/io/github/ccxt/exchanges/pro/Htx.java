@@ -3467,9 +3467,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     }};
                 }
                 signatureParams = this.keysort(signatureParams);
-                Object auth = this.urlencode(signatureParams, true); // true required in go
+                String auth = this.urlencode(signatureParams, true); // true required in go
                 Object payload = String.join("\n", (List<String>)(List)new ArrayList<Object>(Arrays.asList("GET", hostname, relativePath, auth))); // eslint-disable-line quotes
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 Object request = null;
                 if (java.util.Objects.equals(type, "spot"))
                 {
