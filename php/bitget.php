@@ -67,7 +67,7 @@ class bitget extends Exchange {
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
-                'fetchDeposit' => false,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
@@ -125,7 +125,7 @@ class bitget extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawAddresses' => false,
-                'fetchWithdrawal' => false,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'repayCrossMargin' => true,
@@ -3105,6 +3105,25 @@ class bitget extends Exchange {
         return $this->parse_transactions($rawTransactions, null, $since, $limit);
     }
 
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): array {
+        /**
+         * fetch data on a currency deposit via the deposit $id, looks back 30 days for uta accounts and 90 days otherwise
+         *
+         * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-deposit-records
+         *
+         * @param {string} $id deposit $id
+         * @param {string} [$code] unified currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
+         */
+        $request = array(
+            'orderId' => $id,
+        );
+        $deposits = $this->fetch_deposits($code, null, null, $this->extend($request, $params));
+        return $this->safe_dict($deposits, 0, array());
+    }
+
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
@@ -3292,6 +3311,25 @@ class bitget extends Exchange {
         return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
     }
 
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
+        /**
+         * fetch data on a currency withdrawal via the withdrawal $id, looks back 30 days for uta accounts and 90 days otherwise
+         *
+         * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-withdrawal-records
+         *
+         * @param {string} $id withdrawal $id
+         * @param {string} [$code] unified currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
+         */
+        $request = array(
+            'orderId' => $id,
+        );
+        $withdrawals = $this->fetch_withdrawals($code, null, null, $this->extend($request, $params));
+        return $this->safe_dict($withdrawals, 0, array());
+    }
+
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
@@ -3334,7 +3372,7 @@ class bitget extends Exchange {
         // fetchDeposits & fetchWithdrawals uta rows use the same fields, except
         //
         //     {
-        //         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        //         "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
         //         "createdTime": "1787913850359",
         //         "updatedTime": "1787913880178"
         //     }
