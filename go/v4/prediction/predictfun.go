@@ -410,7 +410,7 @@ func (this *Predictfun) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		fetchCap = userLimit
 	}
 	var slug *string = this.SafeString2(params, "slug", "eventId")
-	var rest any = this.Omit(params, []any{"status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"}))
 	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
@@ -702,7 +702,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan any, queries any, op
 		includeResolved = "true"
 	}
 	// marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-	var rest any = this.Omit(params, []any{"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"}))
 	var queriesLength int = ccxt.GetArrayLength(queries)
 	var result []any = []any{}
 	// the venue answers every term separately and the same category comes back for each term
@@ -1278,9 +1278,9 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolved bool = (status != nil && *status == "RESOLVED") || (status != nil && *status == "SETTLED")
 	var endDate *string = this.SafeString(rawTopic, "endsAt")
 	var feeRateBps *string = this.SafeString(rawMarket, "feeRateBps", "200") // todo check
-	var feeRate any = this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000"))
+	var feeRate *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")))
 	var decimalPrecision *string = this.SafeString(rawMarket, "decimalPrecision", "2")
-	var pricePrecision any = this.ParseNumber(this.ParsePrecision(decimalPrecision))
+	var pricePrecision *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.ParsePrecision(decimalPrecision)))
 	var precision map[string]any = map[string]any{
 		"amount": 0.01,
 		"price":  pricePrecision,
@@ -1474,8 +1474,8 @@ func (this *Predictfun) fetchOrderBookBody(ch chan any, outcome any, optionalArg
 				return nil
 			}()
 			var bidPrice *string = this.SafeString(bid, 0)
-			var bidSize any = this.ParseNumber(this.SafeString(bid, 1))
-			var complementPrice any = this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice))
+			var bidSize *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.SafeString(bid, 1)))
+			var complementPrice *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice)))
 			noAsks = append(noAsks, []any{complementPrice, bidSize})
 		}
 		for i := 0; i < len(asks); i++ {
@@ -1486,8 +1486,8 @@ func (this *Predictfun) fetchOrderBookBody(ch chan any, outcome any, optionalArg
 				return nil
 			}()
 			var askPrice *string = this.SafeString(ask, 0)
-			var askSize any = this.ParseNumber(this.SafeString(ask, 1))
-			var complementPrice any = this.ParseNumber(ccxt.Precise.StringSub("1", askPrice))
+			var askSize *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.SafeString(ask, 1)))
+			var complementPrice *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", askPrice)))
 			noBids = append(noBids, []any{complementPrice, askSize})
 		}
 		var noOrderbook map[string]any = map[string]any{
@@ -1709,7 +1709,7 @@ func (this *Predictfun) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		request["marketId"] = this.SafeString(info, "marketId")
 	}
-	var query any = this.Omit(params, "signerAddress")
+	var query map[string]any = ccxt.MapTyped(this.Omit(params, "signerAddress"))
 	// the endpoint carries no time filter, it pages back from the most recent match, so
 	// since is applied client side by parsePredictionTrades
 
@@ -2469,7 +2469,7 @@ func (this *Predictfun) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 		var request map[string]any = map[string]any{
 			"address": address,
 		}
-		var rest any = this.Omit(params, "address")
+		var rest map[string]any = ccxt.MapTyped(this.Omit(params, "address"))
 
 		response = (<-this.PredictfunGetV1PositionsAddress(this.Extend(request, rest))).Raw
 		ccxt.PanicOnError(response)
@@ -4159,7 +4159,7 @@ func (this *Predictfun) HandleOrderBook(client any, message any) {
 			return nil
 		}()
 		var bidPrice *string = this.SafeString(bid, 0)
-		var bidSize any = this.ParseNumber(this.SafeString(bid, 1))
+		var bidSize *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.SafeString(bid, 1)))
 		yesBids = append(yesBids, []any{this.ParseNumber(bidPrice), bidSize})
 		// a bid for yes at p is an offer of no at 1 - p
 		noAsks = append(noAsks, []any{this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice)), bidSize})
@@ -4173,7 +4173,7 @@ func (this *Predictfun) HandleOrderBook(client any, message any) {
 			return nil
 		}()
 		var askPrice *string = this.SafeString(ask, 0)
-		var askSize any = this.ParseNumber(this.SafeString(ask, 1))
+		var askSize *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.SafeString(ask, 1)))
 		yesAsks = append(yesAsks, []any{this.ParseNumber(askPrice), askSize})
 		noBids = append(noBids, []any{this.ParseNumber(ccxt.Precise.StringSub("1", askPrice)), askSize})
 	}

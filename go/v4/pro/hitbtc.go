@@ -525,8 +525,8 @@ func (this *Hitbtc) HandleTicker(client any, message map[string]any) {
 	var topic string = "tickers"
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data[marketId], market))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		result = append(result, ticker)
@@ -672,8 +672,8 @@ func (this *Hitbtc) HandleBidAsk(client any, message map[string]any) {
 	var topic string = "bidask"
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		var ticker any = this.ParseWsBidAsk(data[marketId], market)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		result = append(result, ticker)
@@ -797,9 +797,9 @@ func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market any = this.SafeMarket(marketId)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var symbol any = market["symbol"]
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
 			stored = ccxt.NewArrayCache(tradesLimit)
@@ -962,8 +962,8 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {

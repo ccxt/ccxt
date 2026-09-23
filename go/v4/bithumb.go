@@ -1546,7 +1546,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		} else {
 			var timeframeInteger *int64 = this.SafeInteger(this.Timeframes, timeframe)
 			if timeframeInteger == nil {
-				panic(BadRequest(Add(this.Id+" fetchOHLCV() unsupported timeframe ", timeframe)))
+				panic(BadRequest(this.Id + " fetchOHLCV() unsupported timeframe " + timeframe))
 			}
 			request["unit"] = timeframeInteger
 

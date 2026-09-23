@@ -384,7 +384,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	// maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
 	// markets — then flatten those markets.
 	if queriesLength > 0 {
-		var eventParams any = this.Omit(params, []any{"limit"})
+		var eventParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
 
 		events := (<-this.FetchEventsAsync(eventParams))
 		ccxt.PanicOnError(events)
@@ -406,7 +406,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		ch <- queryMarkets
 		return nil
 	}
-	var rest any = this.Omit(params, []any{"query", "queries", "limit"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "limit"}))
 	// no query: page the markets listing directly. Cap the total collected so an unscoped
 	// loadMarkets cannot run away through every kalshi market via the cursor.
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "maxFetchMarketsLimit", 1000))
@@ -1657,7 +1657,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 		// hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
 		var tfKeys []string = ccxt.ObjectKeys(this.Timeframes)
 		var supported string = strings.Join(tfKeys, ", ")
-		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" fetchOHLCV() does not support the ", timeframe), " timeframe (supported: "), supported), ")")))
+		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() does not support the " + timeframe + " timeframe (supported: " + supported + ")"))
 	}
 	var request map[string]any = map[string]any{
 		"series_ticker":   seriesTicker,
@@ -3085,7 +3085,7 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		status = "settled"
 	}
 	// anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-	var rest any = this.Omit(params, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"}))
 	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
@@ -3138,7 +3138,7 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	// scoping already happened server-side, so strip the resolved scopes before the client-side
 	// pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
 	// and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-	var postParams any = this.Omit(params, []any{"tags", "category", "series_ticker"})
+	var postParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"tags", "category", "series_ticker"}))
 
 	ch <- this.ApplyEventFetchParams(result, postParams, []any{})
 	return nil
@@ -3718,7 +3718,7 @@ func (this *Kalshi) Sign(path any, optionalArgs ...any) any {
 		}()
 		var versionPrefix string = ccxt.Slice(baseUrl, tradeApiIndex, nil)
 		var pathForSigning any = ccxt.Add(versionPrefix+"/", implodedPath)
-		var payload any = ccxt.Add(ccxt.Add(timestamp, method), pathForSigning)
+		var payload any = ccxt.Add(timestamp+method, pathForSigning)
 		// RSA-PSS SHA-256 signature with the private key PEM
 		var keyParts []string = ccxt.Split(this.PrivateKey, "\\n")
 		var cleanPrivateKey string = strings.Join(keyParts, "\n")

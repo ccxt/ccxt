@@ -4726,7 +4726,7 @@ func (this *Poloniex) Sign(path any, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
-		var auth any = Add(method, "\n") // eslint-disable-line quotes
+		var auth any = method + "\n" // eslint-disable-line quotes
 		url = Add(url, Add("/", implodedPath))
 		auth = Add(auth, Add("/", implodedPath))
 		if (method == "POST") || (method == "PUT") || (method == "DELETE") {

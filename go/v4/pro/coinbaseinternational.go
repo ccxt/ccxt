@@ -624,8 +624,8 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message any) {
 	//
 	var messageHash *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(message, "product_id")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var timeframe *string = this.FindTimeframe(messageHash)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	if ccxt.IsEqual(this.SafeDict(ccxt.GetValue(this.Ohlcvs, symbol), timeframe), nil) {

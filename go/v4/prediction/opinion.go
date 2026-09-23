@@ -178,7 +178,7 @@ func (this *Opinion) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var rest any = this.Omit(params, []any{"limit"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
 	var userLimit *int64 = this.SafeInteger(params, "limit")
 	var pageLimit *int64 = this.SafeInteger(this.Options, "marketsPageLimit", 20)
 	var maxPages *int64 = this.SafeInteger(this.Options, "maxMarketsPages", 50)
@@ -474,7 +474,7 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var eventId *string = this.SafeString(params, "eventId")
 	var slug *string = this.SafeString(params, "slug")
 	if (eventId != nil) || (slug != nil) {
-		var singleRest any = this.Omit(params, []any{"eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit"})
+		var singleRest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit"}))
 		var singleResponse any = nil
 		if slug != nil {
 
@@ -497,7 +497,7 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		ch <- this.ApplyEventFetchParams([]any{single}, params, queries)
 		return nil
 	}
-	var rest any = this.Omit(params, []any{"query", "queries", "tags", "status", "sort", "searchIn", "limit"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "tags", "status", "sort", "searchIn", "limit"}))
 	var pageLimit *int64 = this.SafeInteger(this.Options, "defaultFetchEventsLimit", 20)
 	var userLimit *int64 = this.SafeInteger(params, "limit")
 	// bound how many events are actually FETCHED: the user limit when given, otherwise
@@ -1019,7 +1019,7 @@ func (this *Opinion) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...an
 	_ = params
 	if !(ccxt.InOp(this.Timeframes, timeframe)) {
 		var supportedKeys []string = ccxt.ObjectKeys(this.Timeframes)
-		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" fetchOHLCV() unsupported timeframe ", timeframe), ", supported timeframes are "), strings.Join(supportedKeys, ", "))))
+		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() unsupported timeframe " + timeframe + ", supported timeframes are " + strings.Join(supportedKeys, ", ")))
 	}
 
 	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
@@ -1331,7 +1331,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 	}()
 	var salt *string = this.NumberToString(this.Milliseconds())
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
-	var rest any = this.Omit(params, []any{"postOnly"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"postOnly"}))
 
 	maker := (<-this.LoadMultiSignAddressAsync())
 	ccxt.PanicOnError(maker)

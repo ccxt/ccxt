@@ -5732,9 +5732,9 @@ func (this *Mexc) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	}
 	for Precise.StringLt(floor, maxVol) {
 		var cap *string = Precise.StringAdd(floor, riskIncrVol)
-		var minNotional any = this.ParseNumber(floor)
-		var mainMarginRate any = this.ParseNumber(maintenanceMarginRate)
-		var maxLev any = this.ParseNumber(Precise.StringDiv("1", initialMarginRate))
+		var minNotional *float64 = Float64PtrTyped(this.ParseNumber(floor))
+		var mainMarginRate *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginRate))
+		var maxLev *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv("1", initialMarginRate)))
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.ParseNumber(Precise.StringDiv(cap, riskIncrVol)),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "contract"),

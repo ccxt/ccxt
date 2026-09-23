@@ -567,12 +567,12 @@ func (this *Woo) HandleTicker(client any, message map[string]any) any {
 	var data any = this.SafeValue(message, "data")
 	var topic any = this.SafeValue(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ccxt.AddElementToObject(data, "date", timestamp)
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
-	ticker["symbol"] = ccxt.GetValue(market, "symbol")
-	ccxt.AddElementToObject(this.Tickers, ccxt.GetValue(market, "symbol"), ticker)
+	ticker["symbol"] = market["symbol"]
+	ccxt.AddElementToObject(this.Tickers, market["symbol"], ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, topic)
 	return message
 }
@@ -688,11 +688,11 @@ func (this *Woo) HandleTickers(client any, message map[string]any) {
 	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var marketId *string = this.SafeString(ccxt.GetValue(data, i), "symbol")
-		var market any = this.SafeMarket(marketId)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(this.Extend(ccxt.GetValue(data, i), map[string]any{
 			"date": timestamp,
 		}), market))
-		ccxt.AddElementToObject(this.Tickers, ccxt.GetValue(market, "symbol"), ticker)
+		ccxt.AddElementToObject(this.Tickers, market["symbol"], ticker)
 		result = append(result, ticker)
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
@@ -1062,8 +1062,8 @@ func (this *Woo) HandleTrade(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var data any = this.SafeDict(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(this.Extend(data, map[string]any{
 		"timestamp": timestamp,
 	}), market))
@@ -1779,12 +1779,12 @@ func (this *Woo) HandlePositions(client any, message map[string]any) {
 	var newPositions []any = []any{}
 	for i := 0; i < len(postitionsIds); i++ {
 		var marketId string = ccxt.GetValue(postitionsIds, i).(string)
-		var market any = this.SafeMarket(marketId)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 		var rawPosition any = rawPositions[marketId]
 		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition, market))
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
-		var messageHash any = ccxt.Add("positions::", ccxt.GetValue(market, "symbol"))
+		var messageHash any = ccxt.Add("positions::", market["symbol"])
 		client.(ccxt.ClientInterface).Resolve(position, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")

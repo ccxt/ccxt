@@ -331,9 +331,9 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	var marketId *string = key
 	marketId = ccxt.SafeStringPtr(ccxt.Replace(marketId, "trade:", ""))
 	marketId = ccxt.SafeStringPtr(ccxt.Replace(marketId, ccxt.Add(interval, ":"), ""))
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var timeframe *string = this.FindTimeframe(interval)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol any = market["symbol"]
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channel, ":"), interval), ":"), marketId)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -575,10 +575,10 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 	//
 	var channel *string = this.SafeString(subscription, "channel")
 	var marketId *string = this.SafeString(subscription, "symbol")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol any = market["symbol"]
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		stored = ccxt.NewArrayCache(tradesLimit)
@@ -710,9 +710,9 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, createdKey)
 	var price *string = this.SafeString(trade, priceKey)
 	var amountString *string = this.SafeString(trade, amountKey)
-	var amount any = this.ParseNumber(ccxt.Precise.StringAbs(amountString))
+	var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringAbs(amountString)))
 	var side any = nil
-	if !ccxt.IsEqual(amount, nil) {
+	if amount != nil {
 		side = func() string {
 			if ccxt.Precise.StringGt(amountString, "0") {
 				return "buy"
@@ -777,7 +777,7 @@ func (this *Bitfinex) HandleTicker(client any, message []any, subscription map[s
 	//
 	var ticker any = this.SafeValue(message, 1)
 	var marketId *string = this.SafeString(subscription, "symbol")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = this.SafeSymbol(marketId)
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, market))
 	var channel string = "ticker"

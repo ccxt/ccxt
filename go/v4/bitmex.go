@@ -771,7 +771,7 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 	var networks map[string]any = map[string]any{}
 	var scale *string = this.SafeString(currency, "scale")
 	var precisionString any = this.ParsePrecision(scale)
-	var precision any = this.ParseNumber(precisionString)
+	var precision *float64 = Float64PtrTyped(this.ParseNumber(precisionString))
 	for j := 0; j < len(chains); j++ {
 		var chain any = func() any {
 			if j >= 0 && j < len(chains) {
@@ -782,7 +782,7 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 		var networkId *string = this.SafeString(chain, "asset")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		var withdrawalFeeRaw *string = this.SafeString(chain, "withdrawalFee")
-		var withdrawalFee any = this.ParseNumber(Precise.StringMul(withdrawalFeeRaw, precisionString))
+		var withdrawalFee *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(withdrawalFeeRaw, precisionString)))
 		var isDepositEnabled *bool = this.SafeBool(chain, "depositEnabled", false)
 		var isWithdrawEnabled *bool = this.SafeBool(chain, "withdrawalEnabled", false)
 		var active bool = ((isDepositEnabled != nil && *isDepositEnabled == true) && (isWithdrawEnabled != nil && *isWithdrawEnabled == true))
@@ -818,11 +818,11 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 	var currencyEnabled *bool = this.SafeBool(currency, "enabled")
 	var currencyActive bool = (currencyEnabled != nil && *currencyEnabled == true) || (depositEnabled || withdrawEnabled)
 	var minWithdrawalString *string = this.SafeString(currency, "minWithdrawalAmount")
-	var minWithdrawal any = this.ParseNumber(Precise.StringMul(minWithdrawalString, precisionString))
+	var minWithdrawal *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(minWithdrawalString, precisionString)))
 	var maxWithdrawalString *string = this.SafeString(currency, "maxWithdrawalAmount")
-	var maxWithdrawal any = this.ParseNumber(Precise.StringMul(maxWithdrawalString, precisionString))
+	var maxWithdrawal *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(maxWithdrawalString, precisionString)))
 	var minDepositString *string = this.SafeString(currency, "minDepositAmount")
-	var minDeposit any = this.ParseNumber(Precise.StringMul(minDepositString, precisionString))
+	var minDeposit *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(minDepositString, precisionString)))
 	var isCrypto bool = (this.SafeString(currency, "currencyType") != nil && *this.SafeString(currency, "currencyType") == "Crypto")
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
@@ -1181,7 +1181,7 @@ func (this *Bitmex) ParseMarket(market any) any {
 	var positionIsQuote bool = (position == quote || (position != nil && quote != nil && *position == *quote))
 	var maxOrderQty *float64 = this.SafeNumber(market, "maxOrderQty")
 	var initMargin *string = this.SafeString(market, "initMargin", "1")
-	var maxLeverage any = this.ParseNumber(Precise.StringDiv("1", initMargin))
+	var maxLeverage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv("1", initMargin)))
 	// subtype should be undefined for spot markets
 	if spot {
 		isInverse = nil
@@ -1883,7 +1883,7 @@ func (this *Bitmex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	if !IsEqual(after, nil) {
 		after = this.ConvertToRealAmount(code, after)
 	}
-	var before any = this.ParseNumber(Precise.StringSub(this.NumberToString(after), this.NumberToString(amount)))
+	var before *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringSub(this.NumberToString(after), this.NumberToString(amount))))
 	var direction string
 	if Precise.StringLt(amountString, "0") {
 		direction = "out"
@@ -3474,7 +3474,7 @@ func (this *Bitmex) ParsePosition(position any, optionalArgs ...any) any {
 	var settleCurrencyCode *string = this.SafeString(market, "settle")
 	var maintenanceMargin any = this.ConvertToRealAmount(settleCurrencyCode, this.SafeString(position, "maintMargin"))
 	var unrealisedPnl any = this.ConvertToRealAmount(settleCurrencyCode, this.SafeString(position, "unrealisedPnl"))
-	var contracts any = this.ParseNumber(Precise.StringAbs(this.SafeString(position, "currentQty")))
+	var contracts *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(this.SafeString(position, "currentQty"))))
 	var contractSize *float64 = this.SafeNumber(market, "contractSize")
 	var side any = nil
 	var homeNotional *string = this.SafeString(position, "homeNotional")
@@ -3987,7 +3987,7 @@ func (this *Bitmex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
 			var withdrawalFeeId *string = this.SafeString(network, "withdrawalFee")
-			var withdrawalFee any = this.ParseNumber(Precise.StringMul(withdrawalFeeId, precision))
+			var withdrawalFee *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(withdrawalFeeId, precision)))
 			if networkCode != nil {
 				AddElementToObject(result["networks"], networkCode, map[string]any{
 					"deposit": map[string]any{

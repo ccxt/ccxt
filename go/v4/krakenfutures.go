@@ -589,7 +589,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var settle any = nil
 		var settleId any = nil
 		var cvtp *string = this.SafeString(market, "contractValueTradePrecision")
-		var amountPrecision any = this.ParseNumber(this.IntegerPrecisionToAmount(cvtp))
+		var amountPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.IntegerPrecisionToAmount(cvtp)))
 		var pricePrecision *float64 = this.SafeNumber(market, "tickSize")
 		var contract bool = (swap || future || index)
 		var swapOrFutures bool = (swap || future)
@@ -3658,7 +3658,7 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan any, optionalArgs ...an
 				continue
 			}
 		}
-		var market any = this.SafeMarket(entry_symbol)
+		var market map[string]any = MapTyped(this.SafeMarket(entry_symbol))
 		var parsed any = this.ParseFundingRate(entry, market)
 		fundingRates = append(fundingRates, parsed)
 	}

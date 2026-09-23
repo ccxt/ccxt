@@ -533,8 +533,8 @@ func (this *Paradex) HandleTicker(client any, message map[string]any) any {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var channel *string = this.SafeString(params, "channel")
 	var messageHash any = ccxt.Add(ccxt.Add(channel, "."), symbol)
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data, market))

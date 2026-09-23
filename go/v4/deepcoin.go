@@ -702,7 +702,7 @@ func (this *Deepcoin) ParseMarket(market any) any {
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
 	var maxMarketSize *string = this.SafeString(market, "maxMktSz")
 	var maxLimitSize *string = this.SafeString(market, "maxLmtSz")
-	var maxAmount any = this.ParseNumber(Precise.StringMax(maxMarketSize, maxLimitSize))
+	var maxAmount *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMax(maxMarketSize, maxLimitSize)))
 	var state *string = this.SafeString(market, "state")
 	var isMargin bool = spot && (Precise.StringGt(maxLeverage, "1"))
 	var isInverse any = func() any {

@@ -173,7 +173,7 @@ func (this *Coinex) HandleTicker(client any, message map[string]any) {
 		}()
 		var marketId *string = this.SafeString(entry, "market")
 		var symbol *string = this.SafeSymbol(marketId, nil, nil, defaultType)
-		var market any = this.SafeMarket(marketId, nil, nil, defaultType)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
 		var parsedTicker any = this.ParseWSTicker(entry, market)
 		ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
 		ccxt.AddElementToObject(newTickers, symbol, parsedTicker)
@@ -556,10 +556,10 @@ func (this *Coinex) HandleMyTrades(client any, message map[string]any) {
 		}
 		return "swap"
 	}()
-	var market any = this.SafeMarket(marketId, nil, nil, defaultType)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
+	var symbol any = market["symbol"]
 	var messageHash any = ccxt.Add("myTrades:", symbol)
-	var messageWithType any = ccxt.Add("myTrades:", ccxt.GetValue(market, "type"))
+	var messageWithType any = ccxt.Add("myTrades:", market["type"])
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -622,8 +622,8 @@ func (this *Coinex) HandleTrades(client any, message map[string]any) {
 		}
 		return "swap"
 	}()
-	var market any = this.SafeMarket(marketId, nil, nil, defaultType)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
+	var symbol any = market["symbol"]
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {

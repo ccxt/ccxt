@@ -1075,8 +1075,8 @@ func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
 		}
 		return "contract"
 	}()
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol any = market["symbol"]
 	var ohlcvsByTimeframe any = this.SafeDict(this.Ohlcvs, symbol)
 	if ccxt.IsEqual(ohlcvsByTimeframe, nil) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
@@ -1348,8 +1348,8 @@ func (this *Bybit) HandleOrderBook(client any, message any) {
 		}
 		return "contract"
 	}()
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol any = market["symbol"]
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -1578,8 +1578,8 @@ func (this *Bybit) HandleTrades(client any, message map[string]any) {
 		return "contract"
 	}()
 	var marketId *string = this.SafeString(parts, 1)
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol any = market["symbol"]
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

@@ -130,7 +130,7 @@ func (this *Bittrade) HandleTicker(client any, message map[string]any) any {
 	}
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(tick, market))
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ticker["timestamp"] = timestamp
@@ -228,8 +228,8 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
 	}
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesCache, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -334,8 +334,8 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 	}
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe *string = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))

@@ -740,7 +740,7 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 	var numericId *int64 = this.SafeInteger(currency, "id")
 	var code *string = this.SafeCurrencyCode(id)
 	var active *bool = this.SafeBool(currency, "active", false)
-	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "precision")))
+	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "precision"))))
 	var txLimits map[string]any = SafeMapTyped(currency, "txLimits")
 	var minWithdraw *string = this.SafeString(txLimits, "minWithdraw")
 	var maxWithdraw *string = this.SafeString(txLimits, "maxWithdraw")
@@ -761,7 +761,7 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 	var withdraw *bool = this.SafeBool(statuses, "withdrawStatus")
 	var networkIds []string = ObjectKeys(feesByNetworkId)
 	var networks map[string]any = map[string]any{}
-	var networkPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals")))
+	var networkPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals"))))
 	var typeRaw *string = this.SafeString(currency, "type")
 	for j := 0; j < len(networkIds); j++ {
 		var networkId string = GetValue(networkIds, j).(string)

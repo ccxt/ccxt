@@ -883,7 +883,7 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
-	var market any = this.SafeMarket(symbol)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(symbol))
 	remains = this.CurrencyFromPrecision(base, remains)
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -1076,7 +1076,7 @@ func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var market any = this.SafeMarket(symbol)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(symbol))
 		var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder, market))
 		order["status"] = "open"
 		myOrders.(ccxt.Appender).Append(order)
@@ -1316,7 +1316,7 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
-	var market any = this.SafeMarket(symbol)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(symbol))
 	var messageHash any = ccxt.Add("ohlcv:", symbol)
 	var data any = this.SafeList(message, "data", []any{})
 	var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)

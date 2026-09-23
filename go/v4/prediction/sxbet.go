@@ -216,7 +216,7 @@ func (this *Sxbet) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var rest any = this.Omit(params, []any{"limit"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
 	var userLimit *int64 = this.SafeInteger(params, "limit")
 
 	rawMarkets := (<-this.FetchRawMarketsPagedAsync(rest, userLimit))
@@ -509,7 +509,7 @@ func (this *Sxbet) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}())
 	}
-	var rest any = this.Omit(params, []any{"eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"}))
 	var rawMarkets any = nil
 	if eventId != nil {
 
@@ -605,7 +605,7 @@ func (this *Sxbet) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	}
 	this.PopulateOutcomes()
 	this.SetEvents(result)
-	var postParams any = this.Omit(params, []any{"leagueId", "sportId", "query", "queries", "tags"})
+	var postParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"leagueId", "sportId", "query", "queries", "tags"}))
 
 	ch <- this.ApplyEventFetchParams(result, postParams, []any{})
 	return nil
@@ -1055,7 +1055,7 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 		"deadline":     this.NumberToString(deadline),
 		"signature":    signature,
 	}
-	var rest any = this.Omit(params, []any{"amount", "tokenAddress", "deadline", "rpcUrl"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"amount", "tokenAddress", "deadline", "rpcUrl"}))
 
 	response := (<-this.SxbetPrivatePostUserTransferToProxy(this.Extend(request, rest)))
 	ccxt.PanicOnError(response)
@@ -1243,7 +1243,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 		orderItem["externalUserId"] = externalUserId
 	}
 	var waitForOutcome *bool = this.SafeBool(params, "waitForOutcome", true)
-	var rest any = this.Omit(params, []any{"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"}))
 	var request map[string]any = map[string]any{
 		"orders":         []any{orderItem},
 		"waitForOutcome": waitForOutcome,
@@ -1503,7 +1503,7 @@ func (this *Sxbet) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var eventId *string = this.SafeString2(params, "eventId", "sportXeventId")
-	var rest any = this.Omit(params, []any{"eventId", "sportXeventId"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"eventId", "sportXeventId"}))
 	var isEventScoped bool = (eventId != nil)
 	var response any = nil
 	if isEventScoped {
@@ -1599,9 +1599,9 @@ func (this *Sxbet) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	var totalBetSize *string = this.SafeString(order, "totalBetSize", "0")
 	var remainingSize *string = this.SafeString(order, "remainingSize", totalBetSize)
 	var filledRaw *string = ccxt.Precise.StringSub(totalBetSize, remainingSize)
-	var amount any = this.ParseNumber(ccxt.Precise.StringDiv(totalBetSize, usdcDecimals, 6))
-	var filled any = this.ParseNumber(ccxt.Precise.StringDiv(filledRaw, usdcDecimals, 6))
-	var remaining any = this.ParseNumber(ccxt.Precise.StringDiv(remainingSize, usdcDecimals, 6))
+	var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(totalBetSize, usdcDecimals, 6)))
+	var filled *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(filledRaw, usdcDecimals, 6)))
+	var remaining *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(remainingSize, usdcDecimals, 6)))
 	var orderStatus *string = this.SafeStringUpper(order, "status")
 	var inactiveReason *string = this.SafeStringUpper(order, "inactiveReason")
 	var status string = "open"
@@ -1967,7 +1967,7 @@ func (this *Sxbet) ParseSxbetV3Fill(fill any, optionalArgs ...any) any {
 		return nil
 	}()
 	var fillAmount *string = this.SafeString(fill, "fillAmount", "0")
-	var amount any = this.ParseNumber(ccxt.Precise.StringDiv(fillAmount, usdcDecimals, 6))
+	var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(fillAmount, usdcDecimals, 6)))
 	var timestamp *int64 = this.Parse8601(this.SafeString(fill, "createdAt"))
 	// isMaker: true when the account's order was the resting one - absent on older rows
 	var isMaker *bool = this.SafeBool(fill, "isMaker")
@@ -2112,7 +2112,7 @@ func (this *Sxbet) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"status": this.SafeString(params, "status", "MATCHED,LOCKED"),
 	}
-	var rest any = this.Omit(params, []any{"status"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"status"}))
 
 	response := (<-this.SxbetPrivateGetPositionsV3(this.Extend(request, rest)))
 	ccxt.PanicOnError(response)
@@ -2794,8 +2794,8 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne any) map[str
 		var level any = ccxt.GetValue(ownLevels, i)
 		var percentageOdds *string = this.SafeString(level, "percentageOdds")
 		var size *string = this.SafeString(level, "size", "0")
-		var price any = this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom))
-		var amount any = this.ParseNumber(ccxt.Precise.StringDiv(size, usdcDecimals, 6))
+		var price *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom)))
+		var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(size, usdcDecimals, 6)))
 		bids = append(bids, []any{price, amount})
 	}
 	var asks []any = []any{}
@@ -2806,10 +2806,10 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne any) map[str
 		var size *string = this.SafeString(level, "size", "0")
 		// the opposite side's resting stake mirrors into this outcome's ask - the price is the
 		// complement, and the takeable amount follows the remaining-taker-space formula
-		var price any = this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(percentageOdds, oneDenom)))
+		var price *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(percentageOdds, oneDenom))))
 		var ratio *string = ccxt.Precise.StringDiv(oneDenom, percentageOdds, 12)
 		var remainingTaker *string = ccxt.Precise.StringSub(ccxt.Precise.StringMul(size, ratio), size)
-		var amount any = this.ParseNumber(ccxt.Precise.StringDiv(remainingTaker, usdcDecimals, 6))
+		var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(remainingTaker, usdcDecimals, 6)))
 		asks = append(asks, []any{price, amount})
 	}
 	return map[string]any{
@@ -3392,7 +3392,7 @@ func (this *Sxbet) ParseSxbetV3PublicTrade(trade any) any {
 		return nil
 	}()
 	var stake *string = this.SafeString(trade, "totalStake", "0")
-	var amount any = this.ParseNumber(ccxt.Precise.StringDiv(stake, usdcDecimals, 6))
+	var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(stake, usdcDecimals, 6)))
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "betTime"))
 	return this.SafePredictionTrade(map[string]any{
 		"id":           this.SafeString(trade, "tradeId"),

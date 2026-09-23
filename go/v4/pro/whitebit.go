@@ -154,8 +154,8 @@ func (this *Whitebit) HandleOHLCV(client any, message map[string]any) any {
 			return nil
 		}()
 		var marketId *string = this.SafeString(data, 7)
-		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		var messageHash any = ccxt.Add("candles"+":", symbol)
 		var parsed any = this.ParseOHLCV(data, market)
 		// this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol)
@@ -395,8 +395,8 @@ func (this *Whitebit) HandleTicker(client any, message map[string]any) any {
 	//
 	var tickers any = this.SafeList(message, "params", []any{})
 	var marketId *string = this.SafeString(tickers, 0)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var rawTicker any = this.SafeDict(tickers, 1, map[string]any{})
 	var messageHash any = ccxt.Add("ticker"+":", symbol)
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(rawTicker, market))
@@ -494,8 +494,8 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	//
 	var params any = this.SafeList(message, "params", []any{})
 	var marketId *string = this.SafeString(params, 0)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -507,7 +507,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
 	}
-	var messageHash any = ccxt.Add("trades:", ccxt.GetValue(market, "symbol"))
+	var messageHash any = ccxt.Add("trades:", market["symbol"])
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 

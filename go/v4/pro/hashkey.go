@@ -176,7 +176,7 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "symbol")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = this.SafeSymbol(marketId, market)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
@@ -355,8 +355,8 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "symbol")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))

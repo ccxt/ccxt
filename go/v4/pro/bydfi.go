@@ -883,8 +883,8 @@ func (this *Bydfi) HandleOrder(client any, message any) {
 	//
 	var rawOrder any = this.SafeDict(message, "o", map[string]any{})
 	var marketId *string = this.SafeString(rawOrder, "s")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var messageHash string = "orders"
 	var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
 	if ccxt.IsEqual(this.Orders, nil) {
@@ -1065,8 +1065,8 @@ func (this *Bydfi) HandlePositions(client any, message any) {
 	var positionsData any = this.SafeList(data, "p", []any{})
 	var rawPosition any = this.SafeDict(positionsData, 0, map[string]any{})
 	var marketId *string = this.SafeString(rawPosition, "s")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var messageHash string = "positions"
 	var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
 	if ccxt.IsEqual(this.Positions, nil) {

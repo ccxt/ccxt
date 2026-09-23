@@ -1311,7 +1311,7 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " fetchBalance() type parameter must be one of " + strings.Join(keys, ", ")))
 	}
 	var isDerivative bool = (requestedType != nil && *requestedType == "derivatives")
-	var query any = this.Omit(params, "type")
+	var query map[string]any = MapTyped(this.Omit(params, "type"))
 
 	response := (<-this.PrivatePostAuthRWallets(query))
 	PanicOnError(response)

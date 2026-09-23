@@ -293,10 +293,10 @@ func (this *Derive) HandleTicker(client any, message map[string]any) any {
 		// so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
 		var parts []string = ccxt.Split(topic, ".")
 		var marketId *string = this.SafeString(parts, 1)
-		var market any = this.SafeMarket(marketId)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 		var stats map[string]any = ccxt.SafeMapTyped(data, "stats")
 		ticker = this.SafeTicker(map[string]any{
-			"symbol":      ccxt.GetValue(market, "symbol"),
+			"symbol":      market["symbol"],
 			"timestamp":   this.SafeInteger(data, "t"),
 			"datetime":    this.Iso8601(this.SafeInteger(data, "t")),
 			"bid":         this.SafeString(data, "b"),

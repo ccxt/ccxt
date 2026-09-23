@@ -1219,7 +1219,7 @@ func (this *Gate) HandleTickerAndBidAsk(objectName any, client any, message map[
 	for i := 0; i < ccxt.GetArrayLength(results); i++ {
 		var rawTicker any = ccxt.GetValue(results, i)
 		var marketId *string = this.SafeString(rawTicker, "s")
-		var market any = this.SafeMarket(marketId, nil, "_", marketType)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_", marketType))
 		var parsedItem map[string]any = ccxt.MapTyped(this.ParseTicker(rawTicker, market))
 		var symbol any = parsedItem["symbol"]
 		if isTicker {

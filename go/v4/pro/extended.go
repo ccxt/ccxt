@@ -779,8 +779,8 @@ func (this *Extended) HandleMarkPrice(client any, message any) {
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "m")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	if (timestamp == nil) || (timestamp != nil && *timestamp == 0) {
 		timestamp = this.SafeInteger(message, "ts")
@@ -871,8 +871,8 @@ func (this *Extended) HandleTrades(client any, message any) {
 		return
 	}
 	var marketId *string = this.SafeString(first, "m")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
 	var stored any = this.SafeValue(this.Trades, symbol)

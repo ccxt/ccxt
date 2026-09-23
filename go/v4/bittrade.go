@@ -1160,8 +1160,8 @@ func (this *Bittrade) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}(), "symbol")
-		var market any = this.SafeMarket(marketId)
-		var symbol any = GetValue(market, "symbol")
+		var market map[string]any = MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
 			if i >= 0 && i < len(tickers) {
 				return DerefScalar(tickers[i])
@@ -1622,7 +1622,7 @@ func (this *Bittrade) ParseCurrency(currency any) any {
 	var state *string = this.SafeString(currency, "state")
 	var active bool = (visible != nil && *visible == true) && (depositEnabled != nil && *depositEnabled == true) && (withdrawEnabled != nil && *withdrawEnabled == true) && (state != nil && *state == "online") && (countryDisabled == nil || *countryDisabled != true)
 	var name *string = this.SafeString(currency, "display-name")
-	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "withdraw-precision")))
+	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "withdraw-precision"))))
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"code":      code,
@@ -2009,7 +2009,7 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan any, optionalArgs ...any) an
 	if limit != nil {
 		request["size"] = limit
 	}
-	var omitted any = this.Omit(params, "account-id")
+	var omitted map[string]any = MapTyped(this.Omit(params, "account-id"))
 
 	response := (<-this.PrivateGetOrderOpenOrders(this.Extend(request, omitted)))
 	PanicOnError(response)

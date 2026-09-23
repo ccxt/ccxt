@@ -1448,8 +1448,8 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 			}
 			return "contract"
 		}()
-		var market any = this.SafeMarket(marketId, nil, nil, tradeType)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, tradeType))
+		var symbol any = market["symbol"]
 		var parsed any = this.ParseOHLCV(data, market)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -1844,7 +1844,7 @@ func (this *Xt) HandleOrder(client any, message map[string]any) any {
 			}
 			return "spot"
 		}()
-		var market any = this.SafeMarket(marketId, nil, nil, tradeType)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, tradeType))
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order, market))
 		orders.(ccxt.Appender).Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(orders, "order::"+tradeType)

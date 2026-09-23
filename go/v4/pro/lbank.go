@@ -383,7 +383,7 @@ func (this *Lbank) HandleTicker(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var symbol *string = this.SafeSymbol(marketId)
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var parsedTicker map[string]any = ccxt.MapTyped(this.ParseWsTicker(message, market))
 	ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
 	var messageHash string = "ticker:" + *symbol
@@ -568,7 +568,7 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var symbol *string = this.SafeSymbol(marketId)
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

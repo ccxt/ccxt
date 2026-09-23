@@ -3302,9 +3302,9 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		}()
 	}
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
-	var feeCost any = this.ParseNumber(this.SafeString(item, "fee"))
+	var feeCost *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(item, "fee")))
 	var fee map[string]any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,
@@ -3396,9 +3396,9 @@ func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) an
 	if movementDirection != nil && *movementDirection == "withdraw" {
 		movementDirection = SafeStringPtr("withdrawal")
 	}
-	var feeCost any = this.ParseNumber(this.SafeString(transaction, "fee"))
+	var feeCost *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(transaction, "fee")))
 	var fee map[string]any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,
@@ -4098,7 +4098,7 @@ func (this *Modetrade) Sign(path any, optionalArgs ...any) any {
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
 		}
-		auth = Add(Add(Add(Add(Add(ts, method), "/"), version), "/"), pathWithParams)
+		auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
 		if (method == "POST") || (method == "PUT") {
 			body = this.Json(params)
 			auth = Add(auth, body)

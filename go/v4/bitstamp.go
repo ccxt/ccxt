@@ -1305,7 +1305,7 @@ func (this *Bitstamp) ConstructCurrencyObject(id any, code any, name any, precis
 	if EvalTruthy(this.IsFiat(code)) {
 		currencyType = "fiat"
 	}
-	var tickSize any = this.ParseNumber(this.ParsePrecision(this.NumberToString(precision)))
+	var tickSize *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.NumberToString(precision))))
 	return map[string]any{
 		"id":        id,
 		"code":      code,

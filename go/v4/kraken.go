@@ -782,8 +782,8 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var leverageBuy []any = SafeListTypedDefault(market, "leverage_buy", []any{})
 		var leverageBuyLength int = len(leverageBuy)
-		var precisionPrice any = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pair_decimals")))
-		var precisionAmount any = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "lot_decimals")))
+		var precisionPrice *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pair_decimals"))))
+		var precisionAmount *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "lot_decimals"))))
 		var spot bool = true
 		// fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
 		if base == nil {
@@ -802,7 +802,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			if currencyPrecision == nil {
 				panic(ExchangeError(this.Id + " method() missing currencyPrecision"))
 			}
-			if IsGreaterThan(currencyPrecision, precisionAmount) {
+			if currencyPrecision != nil && (precisionAmount == nil || *currencyPrecision > *precisionAmount) {
 				precisionAmount = currencyPrecision
 			}
 		}

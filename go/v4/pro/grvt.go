@@ -330,8 +330,8 @@ func (this *Grvt) HandleTicker(client any, message map[string]any) {
 	var selector *string = this.SafeString(message, "selector", "")
 	var parts []string = ccxt.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add("ticker::", symbol))
@@ -598,8 +598,8 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 	var selector *string = this.SafeString(message, "selector", "")
 	var parts []string = ccxt.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var secondPart *string = this.SafeString(parts, 1, "")
 	var timeframeId string = ccxt.Replace(secondPart, "-TRADE", "")
 	var timeframe *string = this.FindTimeframe(timeframeId)

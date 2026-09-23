@@ -503,7 +503,7 @@ func (this *Poloniex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var channel *string = this.SafeString(timeframes, timeframe, timeframe)
 	if channel == nil {
-		panic(ccxt.BadRequest(ccxt.Add(this.Id+" watchOHLCV cannot take a timeframe of ", timeframe)))
+		panic(ccxt.BadRequest(this.Id + " watchOHLCV cannot take a timeframe of " + timeframe))
 	}
 
 	ohlcv := (<-this.SubscribeAsync(channel, channel, false, []any{symbol}, params))
@@ -897,7 +897,7 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	var channel *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var market any = this.SafeMarket(symbol)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(symbol))
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var messageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)

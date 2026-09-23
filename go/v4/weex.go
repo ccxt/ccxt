@@ -1485,7 +1485,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		var rawTicker any = GetValue(response, i)
 		// book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
 		var marketId *string = this.SafeString(rawTicker, "symbol")
-		var tickerMarket any = this.SafeMarket(marketId, nil, nil, marketType)
+		var tickerMarket map[string]any = MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 		results = append(results, this.ParseTicker(rawTicker, tickerMarket))
 	}
 
@@ -4436,7 +4436,7 @@ func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var amountRaw *string = this.SafeString2(item, "deltaAmount", "income")
 	var after *string = this.SafeString2(item, "afterAmount", "balance")
 	var before *string = Precise.StringSub(after, amountRaw)
-	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
+	var amount *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountRaw)))
 	var direction string = "in"
 	if amountRaw == nil {
 		panic(ExchangeError(this.Id + " parseLedgerEntry() missing amountRaw"))
@@ -5593,7 +5593,7 @@ func (this *Weex) Sign(path any, optionalArgs ...any) any {
 		}
 		this.CheckRequiredCredentials()
 		var timestamp *string = this.NumberToString(this.Nonce())
-		var payload any = Add(Add(Add(timestamp, method), "/"), endpoint)
+		var payload any = Add(*timestamp+method+"/", endpoint)
 		if (method == "POST") || isBatch {
 			body = this.Json(query)
 			payload = Add(payload, body)

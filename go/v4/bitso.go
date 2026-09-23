@@ -624,8 +624,8 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var flatRate map[string]any = SafeMapTyped(fees, "flat_rate")
 		var takerString *string = this.SafeString(flatRate, "taker")
 		var makerString *string = this.SafeString(flatRate, "maker")
-		var taker any = this.ParseNumber(Precise.StringDiv(takerString, "100"))
-		var maker any = this.ParseNumber(Precise.StringDiv(makerString, "100"))
+		var taker *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(takerString, "100")))
+		var maker *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(makerString, "100")))
 		var feeTiers []any = SafeListTyped(fees, "structure")
 		var fee map[string]any = map[string]any{
 			"taker":      taker,
@@ -2270,7 +2270,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 		var currencyId string = GetValue(withdrawalKeys, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (InOp(codes, code))) {
-			var withdrawFee any = this.ParseNumber(GetValue(withdrawalResponse, currencyId))
+			var withdrawFee *float64 = Float64PtrTyped(this.ParseNumber(GetValue(withdrawalResponse, currencyId)))
 			var resultValue any = this.SafeDict(result, code)
 			if IsEqual(resultValue, nil) {
 				AddElementToObject(result, code, this.DepositWithdrawFee(map[string]any{}))

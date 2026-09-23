@@ -370,7 +370,7 @@ func (this *Backpack) HandleTicker(client any, message any) {
 	//
 	var ticker any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(ticker, "s")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var parsedTicker map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, market))
 	var messageHash string = "ticker" + ":" + *symbol
@@ -521,7 +521,7 @@ func (this *Backpack) HandleBidAsk(client any, message any) {
 	//     }
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var parsedBidAsk any = this.ParseWsBidAsk(data, market)
 	var messageHash string = "bidask" + ":" + *symbol
@@ -1380,8 +1380,8 @@ func (this *Backpack) HandleOrder(client any, message any) {
 	var messageHash string = "orders"
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(data, market))
 	var orders any = this.Orders
 	if ccxt.IsEqual(orders, nil) {
@@ -1653,13 +1653,13 @@ func (this *Backpack) ParseWsPosition(position any, optionalArgs ...any) any {
 	//         s: 'ETH_USDC_PERP'
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(position, "i")
 	var marketId *string = this.SafeString(position, "s")
-	var marketResolved any = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	market = marketResolved
-	var symbol any = ccxt.GetValue(marketResolved, "symbol")
+	var symbol any = marketResolved["symbol"]
 	var notional *string = this.SafeString(position, "n")
 	var liquidationPrice *string = this.SafeString(position, "l")
 	var entryPrice *string = this.SafeString(position, "b")

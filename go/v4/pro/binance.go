@@ -362,7 +362,7 @@ func (this *Binance) watchStockMarketStreamBody(ch chan any, streams any, messag
 	_ = params
 	var url any = this.GetStockWsUrl("market")
 	var requestId any = this.RequestId(url)
-	var query any = this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"})
+	var query map[string]any = ccxt.MapTyped(this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"}))
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": streams,
@@ -534,8 +534,8 @@ func (this *Binance) HandleLiquidation(client any, message map[string]any) {
 	//
 	var rawLiquidation any = this.SafeDict(message, "o", map[string]any{})
 	var marketId *string = this.SafeString(rawLiquidation, "s")
-	var market any = this.SafeMarket(marketId, nil, "", "contract")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "", "contract"))
+	var symbol any = market["symbol"]
 	var liquidation any = this.ParseWsLiquidation(rawLiquidation, market)
 	if ccxt.IsEqual(this.Liquidations, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
@@ -790,7 +790,7 @@ func (this *Binance) HandleMyLiquidation(client any, message any) {
 		return
 	}
 	var marketId *string = this.SafeString(message, "s")
-	var market any = this.SafeMarket(marketId, nil, nil, "swap")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, "swap"))
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var liquidation any = this.ParseWsLiquidation(message, market)
 	var cache any = this.MyLiquidations
@@ -1540,7 +1540,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 			subParams = append(subParams, rawHash)
 		}
 	}
-	var query any = this.Omit(params, "type")
+	var query map[string]any = ccxt.MapTyped(this.Omit(params, "type"))
 	var subParamsLength int = len(subParams)
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, subParamsLength))
 	var requestId any = this.RequestId(url)
@@ -1649,7 +1649,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 			subParams = append(subParams, rawHash)
 		}
 	}
-	var query any = this.Omit(params, "type")
+	var query map[string]any = ccxt.MapTyped(this.Omit(params, "type"))
 	var subParamsLength int = len(subParams)
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, subParamsLength))
 	var requestId any = this.RequestId(url)
@@ -1931,8 +1931,8 @@ func (this *Binance) HandleTrade(client any, message any) {
 		}
 		return "contract"
 	}()
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol any = market["symbol"]
 	var messageHash any = ccxt.Add("trade::", symbol)
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, market))
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
@@ -3297,7 +3297,7 @@ func (this *Binance) ParseWsTicker(message any, marketType any) any {
 		// take the timestamp of the closing price for candlestick streams
 		timestamp = this.SafeIntegerN(message, []any{"C", "E", "time"})
 	}
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var last *string = this.SafeString2(message, "c", "price")
 	// A coin-margined stream counts `v` in contracts and puts the
 	// base asset in `q`, one field over from a linear stream, and
@@ -3305,7 +3305,7 @@ func (this *Binance) ParseWsTicker(message any, marketType any) any {
 	// carries `w`, so a miniTicker uses the contract size.
 	var baseVolume *string = this.SafeString(message, "v")
 	var quoteVolume *string = this.SafeString(message, "q")
-	if ccxt.GetValue(market, "inverse") == true {
+	if market["inverse"] == true {
 		var contracts *string = baseVolume
 		baseVolume = quoteVolume
 		var weightedAverage *string = this.SafeString(message, "w")
@@ -5507,7 +5507,7 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			"params": []any{stockStreamName},
 			"id":     stockRequestId,
 		}
-		var stockQuery any = this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"})
+		var stockQuery map[string]any = ccxt.MapTyped(this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"}))
 		var stockSubscribe map[string]any = map[string]any{
 			"id": stockRequestId,
 		}

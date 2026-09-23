@@ -735,7 +735,7 @@ func (this *Gemini) ParseCurrency(rawCurrency any) any {
 		}
 		return "crypto"
 	}()
-	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, 5)))
+	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, 5))))
 	var networks map[string]any = map[string]any{}
 	var networkId *string = this.SafeString(rawCurrency, 9)
 	var networkCode any = nil
@@ -1790,8 +1790,8 @@ func (this *Gemini) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var takerBps *string = this.SafeString(response, "api_taker_fee_bps")
 	var makerString *string = Precise.StringDiv(makerBps, "10000")
 	var takerString *string = Precise.StringDiv(takerBps, "10000")
-	var maker any = this.ParseNumber(makerString)
-	var taker any = this.ParseNumber(takerString)
+	var maker *float64 = Float64PtrTyped(this.ParseNumber(makerString))
+	var taker *float64 = Float64PtrTyped(this.ParseNumber(takerString))
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {

@@ -795,8 +795,8 @@ func (this *Foxbit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var marketId *string = this.SafeString(entry, "market_symbol")
-		var market any = this.SafeMarket(marketId)
-		var symbol any = GetValue(market, "symbol")
+		var market map[string]any = MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		AddElementToObject(result, symbol, this.ParseTradingFee(entry, market))
 	}
 

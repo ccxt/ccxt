@@ -941,10 +941,10 @@ func (this *Kucoin) HandleContractTicker(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
-	var market any = this.SafeMarket(marketId, nil, "-")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-"))
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data, market))
-	ccxt.AddElementToObject(this.Tickers, ccxt.GetValue(market, "symbol"), ticker)
-	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
+	ccxt.AddElementToObject(this.Tickers, market["symbol"], ticker)
+	var messageHash any = ccxt.Add("ticker:", market["symbol"])
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Kucoin) HandleUtaTicker(client any, message map[string]any) {
@@ -982,10 +982,10 @@ func (this *Kucoin) HandleUtaTicker(client any, message map[string]any) {
 	//
 	var data any = this.SafeDict(message, "d", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var ticker any = this.ParseWsUtaTicker(data, market)
-	ccxt.AddElementToObject(this.Tickers, ccxt.GetValue(market, "symbol"), ticker)
-	var messageHash any = ccxt.Add("uta:ticker:", ccxt.GetValue(market, "symbol"))
+	ccxt.AddElementToObject(this.Tickers, market["symbol"], ticker)
+	var messageHash any = ccxt.Add("uta:ticker:", market["symbol"])
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Kucoin) ParseWsUtaTicker(ticker any, optionalArgs ...any) any {
@@ -1707,7 +1707,7 @@ func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(data, market))
 	var symbol any = trade["symbol"]
 	var messageHash any = ccxt.Add("trades:", symbol)
@@ -1738,7 +1738,7 @@ func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
 	//
 	var data any = this.SafeDict(message, "d", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var trade any = this.ParseWsUtaTrade(data, market)
 	var symbol any = ccxt.GetValue(trade, "symbol")
 	var messageHash any = ccxt.Add("uta:trades:", symbol)
@@ -3089,7 +3089,7 @@ func (this *Kucoin) HandleUtaMyTrade(client any, message map[string]any) {
 	//
 	var data any = this.SafeDict(message, "d", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var trade any = this.ParseWsUtaTrade(data, market)
 	var symbol any = ccxt.GetValue(trade, "symbol")
 	if ccxt.IsEqual(this.MyTrades, nil) {

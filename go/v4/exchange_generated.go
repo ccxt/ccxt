@@ -2851,9 +2851,9 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	if datetime == nil {
 		datetime = this.Iso8601(timestamp)
 	}
-	var triggerPrice any = this.ParseNumber(this.SafeString2(order, "triggerPrice", "stopPrice"))
-	var takeProfitPrice any = this.ParseNumber(this.SafeString(order, "takeProfitPrice"))
-	var stopLossPrice any = this.ParseNumber(this.SafeString(order, "stopLossPrice"))
+	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString2(order, "triggerPrice", "stopPrice")))
+	var takeProfitPrice *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(order, "takeProfitPrice")))
+	var stopLossPrice *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(order, "stopLossPrice")))
 	return this.Extend(order, map[string]any{
 		"id":                  this.SafeString(order, "id"),
 		"clientOrderId":       this.SafeString(order, "clientOrderId"),
@@ -3369,7 +3369,7 @@ func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) any {
 	}
 	// timestamp and symbol operations don't belong in safeTicker
 	// they should be done in the derived classes
-	var closeParsed any = this.ParseNumber(this.OmitZero(close))
+	var closeParsed *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(close)))
 	return this.Extend(ticker, map[string]any{
 		"bid":           this.ParseNumber(this.OmitZero(this.SafeString(ticker, "bid"))),
 		"bidVolume":     this.SafeNumber(ticker, "bidVolume"),
@@ -6780,7 +6780,7 @@ func (this *BaseExchange) ParseLastPrices(pricesData any, optionalArgs ...any) a
 		for i := 0; i < len(marketIds); i++ {
 			var marketId string = GetValue(marketIds, i).(string)
 
-			var market any = this.DerivedExchange.SafeMarket(marketId)
+			var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId))
 			PanicOnError(market)
 			var priceData map[string]any = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, marketId), market), params)
 			results = append(results, priceData)
@@ -6830,7 +6830,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 		for i := 0; i < len(marketIds); i++ {
 			var marketId string = GetValue(marketIds, i).(string)
 
-			var market any = this.DerivedExchange.SafeMarket(marketId)
+			var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId))
 			PanicOnError(market)
 
 			var parsed map[string]any = MapTyped(this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market))
@@ -8441,7 +8441,7 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) any {
 		for i := 0; i < len(marketIds); i++ {
 			var marketId string = GetValue(marketIds, i).(string)
 
-			var market any = this.DerivedExchange.SafeMarket(marketId)
+			var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId))
 			PanicOnError(market)
 
 			var parsed any = this.DerivedExchange.ParseGreeks(GetValue(greeks, marketId), market)
@@ -8482,9 +8482,9 @@ func (this *BaseExchange) ParseOptionChain(response any, optionalArgs ...any) an
 			return this.SafeString(info, symbolKey)
 		}()
 
-		var market any = this.DerivedExchange.SafeMarket(marketId, nil, nil, "option")
+		var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId, nil, nil, "option"))
 		PanicOnError(market)
-		AddElementToObject(optionStructures, GetValue(market, "symbol"), this.DerivedExchange.ParseOption(info, currency, market))
+		AddElementToObject(optionStructures, market["symbol"], this.DerivedExchange.ParseOption(info, currency, market))
 	}
 	return optionStructures
 }
@@ -8508,10 +8508,10 @@ func (this *BaseExchange) ParseMarginModes(response any, optionalArgs ...any) an
 			return this.SafeString(info, symbolKey)
 		}()
 
-		var market any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType)
+		var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType))
 		PanicOnError(market)
-		if (symbols == nil) || this.InArray(GetValue(market, "symbol"), symbols) {
-			AddElementToObject(marginModeStructures, GetValue(market, "symbol"), this.DerivedExchange.ParseMarginMode(info, market))
+		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
+			AddElementToObject(marginModeStructures, market["symbol"], this.DerivedExchange.ParseMarginMode(info, market))
 		}
 	}
 	return marginModeStructures
@@ -8541,10 +8541,10 @@ func (this *BaseExchange) ParseLeverages(response any, optionalArgs ...any) any 
 			return this.SafeString(info, symbolKey)
 		}()
 
-		var market any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType)
+		var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType))
 		PanicOnError(market)
-		if (symbols == nil) || this.InArray(GetValue(market, "symbol"), symbols) {
-			AddElementToObject(leverageStructures, GetValue(market, "symbol"), this.DerivedExchange.ParseLeverage(info, market))
+		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
+			AddElementToObject(leverageStructures, market["symbol"], this.DerivedExchange.ParseLeverage(info, market))
 		}
 	}
 	return leverageStructures
@@ -8746,9 +8746,9 @@ func (this *BaseExchange) ParseMarginModifications(response any, optionalArgs ..
 			return this.SafeString(info, symbolKey)
 		}()
 
-		var market any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType)
+		var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType))
 		PanicOnError(market)
-		if (symbols == nil) || this.InArray(GetValue(market, "symbol"), symbols) {
+		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
 			marginModifications = append(marginModifications, this.DerivedExchange.ParseMarginModification(info, market))
 		}
 	}

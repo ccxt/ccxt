@@ -2960,7 +2960,7 @@ func (this *Kucoin) ParseCurrency(currency any) any {
 	}
 	// kucoin has determined 'fiat' currencies with below logic
 	var rawPrecision *string = this.SafeString(entry, "precision")
-	var precision any = this.ParseNumber(this.ParsePrecision(rawPrecision))
+	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(rawPrecision)))
 	var isFiat bool = (chainsLength == 0)
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":   id,
@@ -14619,7 +14619,7 @@ func (this *Kucoin) Sign(path any, optionalArgs ...any) any {
 		} else {
 			AddElementToObject(headers, "KC-API-PASSPHRASE", this.Password)
 		}
-		var payload any = Add(Add(Add(timestamp, method), endpoint), endpart)
+		var payload any = Add(Add(timestamp+method, endpoint), endpart)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		AddElementToObject(headers, "KC-API-SIGN", signature)
 		var partner any = this.SafeDict(this.Options, "partner", map[string]any{})

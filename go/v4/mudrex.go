@@ -260,7 +260,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 	if brokerId != nil {
 		requestHeaders["Partner-Id"] = brokerId
 	}
-	var methodUpper string = ToUpper(method)
+	var methodUpper string = strings.ToUpper(method)
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		requestHeaders["X-Authentication"] = this.Secret
@@ -553,8 +553,8 @@ func (this *Mudrex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if sym == nil {
 			continue
 		}
-		var m any = this.SafeMarket(sym)
-		var symbol any = GetValue(m, "symbol")
+		var m map[string]any = MapTyped(this.SafeMarket(sym))
+		var symbol any = m["symbol"]
 		if (symbols != nil) && !this.InArray(symbol, symbols) {
 			continue
 		}
@@ -1462,7 +1462,7 @@ func (this *Mudrex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var symRaw *string = this.SafeString(p, "symbol")
-		var m any = this.SafeMarket(symRaw)
+		var m map[string]any = MapTyped(this.SafeMarket(symRaw))
 		var pos map[string]any = MapTyped(this.ParsePosition(p, m))
 		outPos = append(outPos, pos)
 	}

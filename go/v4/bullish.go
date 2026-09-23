@@ -3809,7 +3809,7 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Microseconds())
 		var timestamp string = ToString(this.GetTimestamp())
 		if method == "GET" {
-			var payload any = Add(Add(Add(timestamp+nonce, method), "/trading-api/"), path)
+			var payload any = Add(timestamp+nonce+method+"/trading-api/", path)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
 				"BX-TIMESTAMP": timestamp,
@@ -3818,7 +3818,7 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 			}
 		} else if method == "POST" {
 			body = this.Json(params)
-			var payload any = Add(Add(Add(Add(timestamp+nonce, method), "/trading-api/"), path), body)
+			var payload any = Add(Add(timestamp+nonce+method+"/trading-api/", path), body)
 			var digest any = this.Hash(this.Encode(payload), sha256, "hex")
 			var signature string = this.Hmac(this.Encode(digest), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{

@@ -2269,7 +2269,7 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}(), "symbol")
-		var safeMarket any = this.SafeMarket(marketId, nil, nil, marketType)
+		var safeMarket map[string]any = MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 		var priceData map[string]any = this.Extend(this.ParseLastPrice(func() any {
 			if i >= 0 && i < len(rows) {
 				return DerefScalar(rows[i])
@@ -3002,7 +3002,7 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) any {
 	var statusId *string = this.SafeStringUpper(order, "status")
 	var rawType *string = this.SafeStringUpper(order, "type")
 	var stopPriceString *string = this.SafeString(order, "stopPrice")
-	var triggerPrice any = this.ParseNumber(this.OmitZero(stopPriceString))
+	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(stopPriceString)))
 	return this.SafeOrder(map[string]any{
 		"info":                info,
 		"id":                  this.SafeString(order, "orderId"),
@@ -3718,7 +3718,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		params = MapTyped(GetValue(tifparamsVariable, 1))
 		request["timeInForce"] = tif
 	}
-	var requestParams any = this.Omit(params, []any{"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"})
+	var requestParams map[string]any = MapTyped(this.Omit(params, []any{"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"}))
 	if (IsEqual(this.SafeBool(this.Options, "builderFee"), true)) && (GetValue(market, "swap") == true) {
 		request["builder"] = this.SafeString(this.Options, "builder")
 		request["feeRate"] = this.SafeString(this.Options, "builderRate")
@@ -4590,13 +4590,13 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		}
 		maintenanceMarginPercentageString = GetValue(bracket, 1)
 	}
-	var notional any = this.ParseNumber(notionalStringAbs)
+	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalStringAbs))
 	var contractsAbs *string = Precise.StringAbs(this.SafeString(position, "positionAmt"))
-	var contracts any = this.ParseNumber(contractsAbs)
+	var contracts *float64 = Float64PtrTyped(this.ParseNumber(contractsAbs))
 	var unrealizedPnlString *string = this.SafeString(position, "unRealizedProfit")
-	var unrealizedPnl any = this.ParseNumber(unrealizedPnlString)
+	var unrealizedPnl *float64 = Float64PtrTyped(this.ParseNumber(unrealizedPnlString))
 	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liquidationPrice"))
-	var liquidationPrice any = this.ParseNumber(liquidationPriceString)
+	var liquidationPrice *float64 = Float64PtrTyped(this.ParseNumber(liquidationPriceString))
 	var collateralString any = nil
 	var marginMode *string = this.SafeString(position, "marginType")
 	if (marginMode == nil) && (isolatedMarginString != nil) {
@@ -4614,7 +4614,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		side = "short"
 	}
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
-	var entryPrice any = this.ParseNumber(entryPriceString)
+	var entryPrice *float64 = Float64PtrTyped(this.ParseNumber(entryPriceString))
 	var contractSize *float64 = this.SafeNumber(market, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
 	// as oppose to notionalValue
@@ -4669,19 +4669,19 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		}
 		return collateralString
 	}()
-	var collateral any = this.ParseNumber(collateralString)
-	var markPrice any = this.ParseNumber(this.OmitZero(this.SafeString(position, "markPrice")))
+	var collateral *float64 = Float64PtrTyped(this.ParseNumber(collateralString))
+	var markPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.SafeString(position, "markPrice"))))
 	var timestamp *int64 = this.SafeInteger(position, "updateTime")
 	if timestamp != nil && *timestamp == 0 {
 		timestamp = nil
 	}
-	var maintenanceMarginPercentage any = this.ParseNumber(maintenanceMarginPercentageString)
+	var maintenanceMarginPercentage *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginPercentageString))
 	var maintenanceMarginString *string = Precise.StringMul(maintenanceMarginPercentageString, notionalStringAbs)
 	if maintenanceMarginString == nil {
 		// for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
 		maintenanceMarginString = this.SafeString(position, "maintMargin")
 	}
-	var maintenanceMargin any = this.ParseNumber(maintenanceMarginString)
+	var maintenanceMargin *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginString))
 	var initialMarginString *string = nil
 	var initialMarginPercentageString *string = nil
 	var leverageString *string = this.SafeString(position, "leverage")
@@ -4889,12 +4889,12 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 			return nil
 		}()
 		var marketId *string = this.SafeString(position, "symbol")
-		var market any = this.SafeMarket(marketId, nil, nil, "contract")
+		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, nil, "contract"))
 		var code any = func() any {
-			if GetValue(market, "linear") == true {
-				return GetValue(market, "quote")
+			if market["linear"] == true {
+				return market["quote"]
 			}
-			return GetValue(market, "base")
+			return market["base"]
 		}()
 		var maintenanceMargin *string = this.SafeString(position, "maintMargin")
 		// check for maintenance margin so empty positions are not returned
@@ -4926,7 +4926,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		return nil
 	}()
 	var initialMarginString *string = this.SafeString(position, "initialMargin")
-	var initialMargin any = this.ParseNumber(initialMarginString)
+	var initialMargin *float64 = Float64PtrTyped(this.ParseNumber(initialMarginString))
 	var initialMarginPercentageString *string = nil
 	if leverageString != nil {
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
@@ -4941,12 +4941,12 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	// as oppose to notionalValue
 	var usdm bool = (func() bool { _, ok := position["notional"]; return ok }())
 	var maintenanceMarginString *string = this.SafeString(position, "maintMargin")
-	var maintenanceMargin any = this.ParseNumber(maintenanceMarginString)
+	var maintenanceMargin *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginString))
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
-	var entryPrice any = this.ParseNumber(entryPriceString)
+	var entryPrice *float64 = Float64PtrTyped(this.ParseNumber(entryPriceString))
 	var notionalString *string = this.SafeString2(position, "notional", "notionalValue")
 	var notionalStringAbs *string = Precise.StringAbs(notionalString)
-	var notional any = this.ParseNumber(notionalStringAbs)
+	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalStringAbs))
 	var contractsString *string = this.SafeString(position, "positionAmt")
 	var contractsStringAbs *string = Precise.StringAbs(contractsString)
 	if contractsString == nil {
@@ -4955,7 +4955,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		contractsString = Precise.StringDiv(entryNotional, contractSizeNew)
 		contractsStringAbs = Precise.StringDiv(Precise.StringAdd(contractsString, "0.5"), "1", 0)
 	}
-	var contracts any = this.ParseNumber(contractsStringAbs)
+	var contracts *float64 = Float64PtrTyped(this.ParseNumber(contractsStringAbs))
 	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
 	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
 	var maintenanceMarginPercentageString any = nil
@@ -4971,9 +4971,9 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		}
 		maintenanceMarginPercentageString = GetValue(bracket, 1)
 	}
-	var maintenanceMarginPercentage any = this.ParseNumber(maintenanceMarginPercentageString)
+	var maintenanceMarginPercentage *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginPercentageString))
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedProfit")
-	var unrealizedPnl any = this.ParseNumber(unrealizedPnlString)
+	var unrealizedPnl *float64 = Float64PtrTyped(this.ParseNumber(unrealizedPnlString))
 	var timestamp *int64 = this.SafeInteger(position, "updateTime")
 	if timestamp != nil && *timestamp == 0 {
 		timestamp = nil
@@ -4995,7 +4995,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		walletBalance = this.SafeString(position, "crossWalletBalance")
 		collateralString = this.SafeString(position, "crossMargin")
 	}
-	var collateral any = this.ParseNumber(collateralString)
+	var collateral *float64 = Float64PtrTyped(this.ParseNumber(collateralString))
 	var marginRatio any = nil
 	var side any = nil
 	var percentage any = nil

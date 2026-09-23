@@ -1000,8 +1000,8 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) any {
 			return nil
 		}()
 		var marketId *string = this.SafeString(info, "symbol")
-		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol any = market["symbol"]
 		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(info, market))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		parsedTickers = append(parsedTickers, ticker)
@@ -1416,7 +1416,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 			"interval": timeframe,
 		},
 	}
-	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
+	var subMessageHash any = ccxt.Add("candles:"+timeframe+":", symbol)
 	var messagehash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var message map[string]any = this.Extend(request, params)
 

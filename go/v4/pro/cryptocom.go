@@ -575,8 +575,8 @@ func (this *Cryptocom) HandleTrades(client any, message any) {
 	}
 	var marketId *string = this.SafeString(message, "instrument_name")
 	var symbolSpecificMessageHash *string = this.SafeString(message, "subscription")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -835,7 +835,7 @@ func (this *Cryptocom) HandleTicker(client any, message map[string]any) {
 	this.HandleBidAsk(client, message)
 	var messageHash *string = this.SafeString(message, "subscription")
 	var marketId *string = this.SafeString(message, "instrument_name")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var ticker any = func() any {
@@ -1091,8 +1091,8 @@ func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "subscription")
 	var marketId *string = this.SafeString(message, "instrument_name")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var interval *string = this.SafeString(message, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))

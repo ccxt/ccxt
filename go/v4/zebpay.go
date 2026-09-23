@@ -547,7 +547,7 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
-	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision")))
+	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision"))))
 	var chains []any = SafeListTyped(rawCurrency, "chains")
 	var networks map[string]any = map[string]any{}
 	var minWithdrawFeeString any = nil

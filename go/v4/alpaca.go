@@ -1323,7 +1323,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var marketIds []string = ObjectKeys(snapshots)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
-		var market any = this.SafeMarket(marketId)
+		var market map[string]any = MapTyped(this.SafeMarket(marketId))
 		var entry any = this.SafeDict(snapshots, marketId)
 		var dailyBar map[string]any = SafeMapTyped(entry, "dailyBar")
 		var prevDailyBar map[string]any = SafeMapTyped(entry, "prevDailyBar")
@@ -1332,7 +1332,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var datetime *string = this.SafeString(latestQuote, "t")
 		var ticker any = this.SafeTicker(map[string]any{
 			"info":          entry,
-			"symbol":        GetValue(market, "symbol"),
+			"symbol":        market["symbol"],
 			"timestamp":     this.Parse8601(datetime),
 			"datetime":      datetime,
 			"high":          this.SafeString(dailyBar, "h"),
@@ -1699,7 +1699,7 @@ func (this *Alpaca) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	order := (<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(order)
 	var marketId *string = this.SafeString(order, "symbol")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = MapTyped(this.SafeMarket(marketId))
 
 	ch <- this.ParseOrder(order, market)
 	return nil

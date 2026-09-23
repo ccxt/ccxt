@@ -933,7 +933,7 @@ func (this *Paradex) ParseMarket(market any) any {
 	var expiry *int64 = this.SafeInteger(market, "expiry_at")
 	var optionType *string = this.SafeString(market, "option_type")
 	var strikePrice *string = this.SafeString(market, "strike_price")
-	var takerFee any = this.ParseNumber("0.0003")
+	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0003"))
 	var makerFee any = this.ParseNumber("-0.00005")
 	if isOption {
 		var optionTypeSuffix string = func() string {
@@ -2821,7 +2821,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 			return nil
 		}()
 		var marketId *string = this.SafeString(result, "market")
-		var market any = this.SafeMarket(marketId)
+		var market map[string]any = MapTyped(this.SafeMarket(marketId))
 		var status *string = this.SafeString(result, "status")
 		var orderStatus any = nil
 		if status != nil && *status == "QUEUED_FOR_CANCELLATION" {
@@ -2836,7 +2836,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 			"id":            this.SafeString(result, "id"),
 			"clientOrderId": this.SafeString(result, "client_id"),
 			"status":        orderStatus,
-			"symbol":        GetValue(market, "symbol"),
+			"symbol":        market["symbol"],
 		}, market))
 	}
 
@@ -3435,7 +3435,7 @@ func (this *Paradex) ParsePosition(position any, optionalArgs ...any) any {
 		quantity = Precise.StringMul("-1", quantity)
 	}
 	var timestamp *int64 = this.SafeInteger(position, "time")
-	var liquidationPrice any = this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidation_price")))
+	var liquidationPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidation_price"))))
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),

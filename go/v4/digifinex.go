@@ -2431,7 +2431,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 				} else {
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
-					var costRequest any = this.ParseNumber(Precise.StringMul(amountString, priceString))
+					var costRequest *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(amountString, priceString)))
 					quantity = this.CostToPrecision(symbol, costRequest)
 				}
 			} else {

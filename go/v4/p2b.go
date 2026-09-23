@@ -1255,7 +1255,7 @@ func (this *P2b) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = this.SafeMarket(symbol)
+	var market map[string]any = MapTyped(this.SafeMarket(symbol))
 	var request map[string]any = map[string]any{
 		"orderId": id,
 	}

@@ -269,7 +269,7 @@ func (this *Htx) HandleTicker(client any, message map[string]any) any {
 	}
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(tick, market))
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ticker["timestamp"] = timestamp
@@ -393,8 +393,8 @@ func (this *Htx) HandleTrades(client any, message map[string]any) any {
 	}
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesCache, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -525,8 +525,8 @@ func (this *Htx) HandleOHLCV(client any, message map[string]any) {
 	}
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol any = market["symbol"]
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe *string = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -1467,7 +1467,7 @@ func (this *Htx) HandleOrder(client any, message any) {
 	if marketId == nil {
 		marketId = this.SafeString2(data, "contract_code", "symbol")
 	}
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var parsedOrder any = nil
 	if !ccxt.IsEqual(data, nil) {
 		// spot updates
@@ -1487,7 +1487,7 @@ func (this *Htx) HandleOrder(client any, message any) {
 				"trades":             trades,
 				"status":             status,
 				"lastTradeTimestamp": this.SafeInteger(data, "tradeTime"),
-				"symbol":             ccxt.GetValue(market, "symbol"),
+				"symbol":             market["symbol"],
 				"filled":             this.ParseNumber(filled),
 				"remaining":          this.ParseNumber(remaining),
 				"price":              this.SafeNumber(data, "orderPrice"),
@@ -1537,7 +1537,7 @@ func (this *Htx) HandleOrder(client any, message any) {
 	if messageHash == nil {
 		return
 	}
-	var genericMessageHash string = ccxt.Replace(messageHash, ccxt.Add(".", ccxt.GetValue(market, "lowercaseId")), "")
+	var genericMessageHash string = ccxt.Replace(messageHash, ccxt.Add(".", market["lowercaseId"]), "")
 	var lowerCaseBaseId *string = this.SafeStringLower(market, "baseId")
 	genericMessageHash = ccxt.Replace(genericMessageHash, ccxt.Add(".", lowerCaseBaseId), "")
 	client.(ccxt.ClientInterface).Resolve(this.Orders, genericMessageHash)
@@ -1795,11 +1795,11 @@ func (this *Htx) ParseOrderTrade(trade any, optionalArgs ...any) any {
 	//         "orderId": 509835753860328
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketResolved any = this.SafeMarket(nil, market)
+	var marketResolved map[string]any = ccxt.MapTyped(this.SafeMarket(nil, market))
 	market = marketResolved
-	var symbol any = ccxt.GetValue(marketResolved, "symbol")
+	var symbol any = marketResolved["symbol"]
 	var tradeId *string = this.SafeString(trade, "tradeId")
 	var price *string = this.SafeString(trade, "tradePrice")
 	var amount *string = this.SafeString(trade, "tradeVolume")
