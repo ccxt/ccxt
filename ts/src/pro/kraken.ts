@@ -129,55 +129,53 @@ export default class kraken extends krakenRest {
             request['params']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
         }
         const isMarket = (type === 'market');
-        let postOnly: Bool = undefined;
-        [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
+        const [ postOnly, paramsPostOnly ]: [ boolean, Dict ] = this.handlePostOnly (isMarket, false, params);
         if (postOnly === true) {
             request['params']['post_only'] = true;
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (paramsPostOnly, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['params']['cl_ord_id'] = clientOrderId;
         }
-        const cost = this.safeString (params, 'cost');
+        const cost = this.safeString (paramsPostOnly, 'cost');
         if (cost !== undefined) {
             request['params']['order_qty'] = this.parseToNumeric (this.costToPrecision (symbol, cost));
         }
-        const stopLoss = this.safeDict (params, 'stopLoss', {});
-        const takeProfit = this.safeDict (params, 'takeProfit', {});
+        const stopLoss = this.safeDict (paramsPostOnly, 'stopLoss', {});
+        const takeProfit = this.safeDict (paramsPostOnly, 'takeProfit', {});
         const presetStopLoss = this.safeString (stopLoss, 'triggerPrice');
         const presetTakeProfit = this.safeString (takeProfit, 'triggerPrice');
         const presetStopLossLimit = this.safeString (stopLoss, 'price');
         const presetTakeProfitLimit = this.safeString (takeProfit, 'price');
         const isPresetStopLoss = presetStopLoss !== undefined;
         const isPresetTakeProfit = presetTakeProfit !== undefined;
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const stopLossPrice = this.safeString (paramsPostOnly, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (paramsPostOnly, 'takeProfitPrice');
         const isStopLossPriceOrder = stopLossPrice !== undefined;
         const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
-        const trailingAmount = this.safeString (params, 'trailingAmount');
-        const trailingPercent = this.safeString (params, 'trailingPercent');
-        const trailingLimitAmount = this.safeString (params, 'trailingLimitAmount');
-        const trailingLimitPercent = this.safeString (params, 'trailingLimitPercent');
+        const trailingAmount = this.safeString (paramsPostOnly, 'trailingAmount');
+        const trailingPercent = this.safeString (paramsPostOnly, 'trailingPercent');
+        const trailingLimitAmount = this.safeString (paramsPostOnly, 'trailingLimitAmount');
+        const trailingLimitPercent = this.safeString (paramsPostOnly, 'trailingLimitPercent');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailingLimitAmountOrder = trailingLimitAmount !== undefined;
         const isTrailingLimitPercentOrder = trailingLimitPercent !== undefined;
-        const offset = this.safeString (params, 'offset', ''); // can set this to - for minus
+        const offset = this.safeString (paramsPostOnly, 'offset', ''); // can set this to - for minus
         const trailingAmountString = (trailingAmount !== undefined) ? offset + this.numberToString (trailingAmount) : undefined;
         const trailingPercentString = (trailingPercent !== undefined) ? offset + this.numberToString (trailingPercent) : undefined;
         const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString (trailingLimitAmount) : undefined;
         const trailingLimitPercentString = (trailingLimitPercent !== undefined) ? offset + this.numberToString (trailingLimitPercent) : undefined;
         const priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if (method === 'createOrderWs') {
-            const reduceOnly = this.safeBool (params, 'reduceOnly');
+            const reduceOnly = this.safeBool (paramsPostOnly, 'reduceOnly');
             if (reduceOnly === true) {
                 request['params']['reduce_only'] = true;
             }
-            const timeInForce = this.safeStringLower (params, 'timeInForce');
+            const timeInForce = this.safeStringLower (paramsPostOnly, 'timeInForce');
             if (timeInForce !== undefined) {
                 request['params']['time_in_force'] = timeInForce;
             }
-            params = this.omit (params, [ 'reduceOnly', 'timeInForce' ]);
             if (isStopLossPriceOrder || isTakeProfitPriceOrder || isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
                 request['params']['triggers'] = {};
             }
@@ -197,7 +195,6 @@ export default class kraken extends krakenRest {
                     request['params']['conditional']['order_type'] = 'take-profit-limit';
                     request['params']['conditional']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetTakeProfitLimit));
                 }
-                params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
             } else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 if (isStopLossPriceOrder) {
                     request['params']['triggers']['price'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
@@ -262,8 +259,11 @@ export default class kraken extends krakenRest {
                 }
             }
         }
-        params = this.omit (params, [ 'clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
-        return [ request, params ];
+        const isCreateOrder = (method === 'createOrderWs');
+        const paramsCreate: Dict = isCreateOrder ? this.omit (paramsPostOnly, [ 'reduceOnly', 'timeInForce' ]) : paramsPostOnly;
+        const paramsPreset: Dict = (isCreateOrder && (isPresetStopLoss || isPresetTakeProfit)) ? this.omit (paramsCreate, [ 'stopLoss', 'takeProfit' ]) : paramsCreate;
+        const paramsOmitted: Dict = this.omit (paramsPreset, [ 'clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
+        return [ request, paramsOmitted ];
     }
 
     /**
@@ -739,12 +739,13 @@ export default class kraken extends krakenRest {
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
             const first = this.safeList (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -815,10 +816,8 @@ export default class kraken extends krakenRest {
         };
         const request = this.deepExtend (subscribe, params);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 'timestamp', true);
     }
 
     override async loadMarkets (reload = false, params: Dict = {}) {
@@ -1137,9 +1136,9 @@ export default class kraken extends krakenRest {
         const token = await this.authenticate ();
         const subscriptionHash = 'executions';
         let messageHash = name;
-        if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
+        if (symbolResolved !== undefined) {
+            messageHash += ':' + symbolResolved;
         }
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
@@ -1155,10 +1154,8 @@ export default class kraken extends krakenRest {
             subscribe['params'] = this.deepExtend (subscribe['params'], params);
         }
         const result = await this.watch (url, messageHash, subscribe, subscriptionHash);
-        if (this.newUpdates) {
-            limit = result.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? result.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (result, symbolResolved, since, limitResolved, true);
     }
 
     /**

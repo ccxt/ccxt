@@ -757,6 +757,8 @@ export default class coinspot extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = headers;
+        let requestBody: Str = body;
         const isVersionedApi = Array.isArray (api);
         const version = isVersionedApi ? api[0] : undefined;
         const accessType = isVersionedApi ? api[1] : api;
@@ -766,13 +768,13 @@ export default class coinspot extends Exchange {
         if (accessType === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
-            body = this.json (this.extend ({ 'nonce': nonce }, params));
-            headers = {
+            requestBody = this.json (this.extend ({ 'nonce': nonce }, params));
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
-                'sign': this.hmac (this.encode (body), this.encode (this.secret), sha512),
+                'sign': this.hmac (this.encode (requestBody), this.encode (this.secret), sha512),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }

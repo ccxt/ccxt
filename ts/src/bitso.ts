@@ -1145,19 +1145,14 @@ export default class bitso extends Exchange {
             throw new ExchangeError (this.id + ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
-        if (markerInParams) {
-            const marker = parseInt (params['marker']);
-            params = this.extend (params, {
-                'marker': marker,
-            });
-        }
+        const paramsMarker: Dict = markerInParams ? this.extend (params, { 'marker': parseInt (params['marker']) }) : params;
         const request: Dict = {
             'book': market['id'],
             'limit': limit, // default = 25, max = 100
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetUserTrades (this.extend (request, params));
+        const response = await this.privateGetUserTrades (this.extend (request, paramsMarker));
         const payload = this.safeList (response, 'payload', []);
         return this.parseTrades (payload, market, since, limit);
     }
@@ -1380,19 +1375,14 @@ export default class bitso extends Exchange {
             throw new ExchangeError (this.id + ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
-        if (markerInParams) {
-            const marker = parseInt (params['marker']);
-            params = this.extend (params, {
-                'marker': marker,
-            });
-        }
+        const paramsMarker: Dict = markerInParams ? this.extend (params, { 'marker': parseInt (params['marker']) }) : params;
         const request: Dict = {
             'book': market['id'],
             'limit': limit, // default = 25, max = 100
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetOpenOrders (this.extend (request, params));
+        const response = await this.privateGetOpenOrders (this.extend (request, paramsMarker));
         const payload = this.safeList (response, 'payload', []);
         const orders = this.parseOrders (payload, market, since, limit);
         return orders;
@@ -1969,6 +1959,8 @@ export default class bitso extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = headers;
+        let requestBody: Str = body;
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET' || method === 'DELETE') {
@@ -1985,18 +1977,18 @@ export default class bitso extends Exchange {
             let request = content.join ('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys (query).length > 0) {
-                    body = this.json (query);
-                    request += body;
+                    requestBody = this.json (query);
+                    request += requestBody;
                 }
             }
             const signature = this.hmac (this.encode (request), this.encode (this.secret), sha256);
             const auth = this.apiKey + ':' + nonce + ':' + signature;
-            headers = {
+            requestHeaders = {
                 'Authorization': 'Bitso ' + auth,
                 // 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

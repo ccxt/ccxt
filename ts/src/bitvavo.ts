@@ -1124,16 +1124,13 @@ export default class bitvavo extends Exchange {
             // https://github.com/ccxt/ccxt/issues/9227
             const duration = this.parseTimeframe (timeframe);
             request['start'] = since;
-            if (limit === undefined) {
-                limit = 1440;
-            } else {
-                limit = Math.min (limit, 1440);
-            }
-            request['end'] = this.sum (since, limit * duration * 1000);
+            const sinceLimit: Int = (limit === undefined) ? 1440 : Math.min (limit, 1440);
+            request['end'] = this.sum (since, sinceLimit * duration * 1000);
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
-        if (limit !== undefined) {
-            requestUntil['limit'] = Math.min (limit, 1440); // default 1440, max 1440
+        const limitResolved: Int = ((since !== undefined) && (limit === undefined)) ? 1440 : limit;
+        if (limitResolved !== undefined) {
+            requestUntil['limit'] = Math.min (limitResolved, 1440); // default 1440, max 1440
         }
         return this.extend (requestUntil, paramsUntil);
     }
@@ -1512,7 +1509,8 @@ export default class bitvavo extends Exchange {
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const stopLossPrice = this.safeString (params, 'stopLossPrice'); // trigger when price crosses from above to below this value
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
-        params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const paramsCost: Dict = isMarketOrder ? this.omit (paramsOmitted, [ 'cost' ]) : paramsOmitted;
         if (isMarketOrder) {
             let cost: Num = undefined;
             if (price !== undefined) {
@@ -1521,7 +1519,7 @@ export default class bitvavo extends Exchange {
                 const quoteAmount = Precise.stringMul (amountString, priceString);
                 cost = this.parseNumber (quoteAmount);
             } else {
-                cost = this.safeNumber (params, 'cost');
+                cost = this.safeNumber (paramsOmitted, 'cost');
             }
             if (cost !== undefined) {
                 const precision = this.currency (market['quote'])['precision'];
@@ -1529,7 +1527,6 @@ export default class bitvavo extends Exchange {
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
-            params = this.omit (params, [ 'cost' ]);
         } else if (isLimitOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
             request['amount'] = this.amountToPrecision (symbol, amount);
@@ -1558,15 +1555,13 @@ export default class bitvavo extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        let operatorId: Str = undefined;
-        [ operatorId, params ] = this.handleOptionAndParams (params, 'createOrder', 'operatorId');
+        const [ operatorId, paramsOperatorId ]: [ Str, Dict ] = this.handleOptionAndParams (paramsCost, 'createOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
             throw new ArgumentsRequired (this.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
-        let selfTradePrevention: Str = undefined;
-        [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
+        const [ selfTradePrevention, paramsSelfTradePrevention ]: [ Str, Dict ] = this.handleOptionAndParams (paramsOperatorId, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (selfTradePrevention === 'EXPIRE_BOTH') {
                 request['selfTradePrevention'] = 'cancelBoth';
@@ -1574,7 +1569,7 @@ export default class bitvavo extends Exchange {
                 request['selfTradePrevention'] = selfTradePrevention;
             }
         }
-        return this.extend (request, params);
+        return this.extend (request, paramsSelfTradePrevention);
     }
 
     /**
@@ -2683,6 +2678,8 @@ export default class bitvavo extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = headers;
+        let requestBody: Str = body;
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
@@ -2696,26 +2693,26 @@ export default class bitvavo extends Exchange {
             let payload = '';
             if (!getOrDelete) {
                 if (Object.keys (query).length > 0) {
-                    body = this.json (query);
-                    payload = body;
+                    requestBody = this.json (query);
+                    payload = requestBody;
                 }
             }
             const timestamp = this.milliseconds ().toString ();
             const auth = timestamp + method + url + payload;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             const accessWindow = this.safeString2 (this.options, 'recvWindow', 'BITVAVO-ACCESS-WINDOW', '10000');
-            headers = {
+            requestHeaders = {
                 'BITVAVO-ACCESS-KEY': this.apiKey,
                 'BITVAVO-ACCESS-SIGNATURE': signature,
                 'BITVAVO-ACCESS-TIMESTAMP': timestamp,
                 'BITVAVO-ACCESS-WINDOW': accessWindow,
             };
             if (!getOrDelete) {
-                headers['Content-Type'] = 'application/json';
+                requestHeaders['Content-Type'] = 'application/json';
             }
         }
         url = this.urls['api'][api] + url;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

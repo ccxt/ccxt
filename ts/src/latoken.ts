@@ -889,9 +889,8 @@ export default class latoken extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        if ((this.markets !== undefined) && (symbol in this.markets)) {
-            market = this.market (symbol);
-        }
+        const symbolKnown = (this.markets !== undefined) && (symbol in this.markets);
+        const marketResolved: Market = symbolKnown ? this.market (symbol) : market;
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
         const feeCost = this.safeString (trade, 'fee');
@@ -916,7 +915,7 @@ export default class latoken extends Exchange {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1167,13 +1166,10 @@ export default class latoken extends Exchange {
         const quoteId = this.safeString (order, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        let symbol: Str = undefined;
-        if ((base !== undefined) && (quote !== undefined)) {
-            symbol = base + '/' + quote;
-            if ((this.markets !== undefined) && (symbol in this.markets)) {
-                market = this.market (symbol);
-            }
-        }
+        const hasBaseAndQuote = (base !== undefined) && (quote !== undefined);
+        const symbol: Str = hasBaseAndQuote ? (base + '/' + quote) : undefined;
+        const symbolKnown = (symbol !== undefined) && (this.markets !== undefined) && (symbol in this.markets);
+        const marketResolved: Market = symbolKnown ? this.market (symbol) : market;
         const orderSide = this.safeString (order, 'side');
         let side: Str = undefined;
         if (orderSide !== undefined) {
@@ -1219,7 +1215,7 @@ export default class latoken extends Exchange {
             'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1861,6 +1857,8 @@ export default class latoken extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = headers;
+        let requestBody: Str = body;
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let requestString = request;
         const query = this.omit (params, this.extractParams (path));
@@ -1874,18 +1872,18 @@ export default class latoken extends Exchange {
             this.checkRequiredCredentials ();
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512);
-            headers = {
+            requestHeaders = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,
                 'X-LA-DIGEST': 'HMAC-SHA512', // HMAC-SHA384, HMAC-SHA512, optional
             };
             if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json (query);
+                requestHeaders['Content-Type'] = 'application/json';
+                requestBody = this.json (query);
             }
         }
         const url = this.urls['api']['rest'] + requestString;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
