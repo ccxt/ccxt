@@ -3670,8 +3670,6 @@ export const CCXT_GO_ASYNC_ELEM_TYPES = {
     // R1 concrete container send in the body
     'FetchDepositAddressSupplementAsync': 'map[string]any',
     // R1 concrete container send in the body
-    'FetchDepositAddressesAsync': 'map[string]any',
-    // R1 concrete container send in the body
     'FetchDepositAddressesByNetworkAsync': 'map[string]any',
     // R2 TS annotations ['Promise<Transaction>'] -> map[string]any
     'FetchDepositAsync': 'map[string]any',
@@ -4001,8 +3999,6 @@ export const CCXT_GO_ASYNC_ELEM_TYPES = {
     'FetchTransactionsAsync': '[]any',
     // R2 TS annotations ['Promise<Transaction[]>'] -> []any
     'FetchTransactionsByTypeAsync': '[]any',
-    // R1 concrete container send in the body
-    'FetchTransactionsHelperAsync': '[]any',
     // R2 TS annotations ['Promise<Transaction[]>'] -> []any
     'FetchTransactionsWithMethodAsync': '[]any',
     // R2 TS annotations ['Promise<TransferEntry>'] -> map[string]any
@@ -4404,6 +4400,30 @@ function ccxtGoAsyncReceiveDeclaration (awaitNode) {
     return undefined;
 }
 
+// false when the callee's own declaration (the override the checker resolves) names a Promise<T>
+// of the other container shape; unannotated, `any` or union declarations defer to the table
+function ccxtGoAsyncDeclaredShapeAgrees (goTranspiler, callee, goType) {
+    let declaration = undefined;
+    try {
+        declaration = goTranspiler.getChecker ().getSymbolAtLocation (callee.name)?.valueDeclaration;
+    } catch (e) {
+        return true;
+    }
+    const text = declaration?.type?.getText?. ();
+    const m = /^Promise<\s*([\s\S]*)\s*>$/.exec ((text ?? '').trim ());
+    if (m === null) {
+        return true;
+    }
+    const inner = m[1].trim ();
+    if (inner.includes ('|') || (inner === 'any')) {
+        return true;
+    }
+    const isList = inner.startsWith ('[') || inner.endsWith ('[]') || /^(List|Array<[\s\S]*>)$/.test (inner);
+    const isMap = !isList && /^(Dict|Dictionary<[\s\S]*>|[A-Z]\w*)$/.test (inner)
+        && !/^(Str|Num|Int|Bool|Strings)$/.test (inner);
+    return (goType === '[]any') ? !isMap : !isList;
+}
+
 // The hook the printer consults for all three await shapes.  Fail closed: undefined keeps the
 // boxed `x := (<-...)` + `PanicOnError(x)` emission byte-for-byte.
 export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitializer) {
@@ -4427,12 +4447,16 @@ export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitial
         return undefined;                       // this.DerivedExchange.x() / ccxt.x(): keep the box
     }
     const method = callee.name?.escapedText;
-    if (method !== printed[1]) {
+    // the table is keyed by the printed Go core name: `loadMarkets` prints `LoadMarketsAsync`
+    if ((typeof method !== 'string') || (printed[1] !== method.charAt (0).toUpperCase () + method.slice (1) + 'Async')) {
         return undefined;                       // the printer's suffix logic disagrees: keep the box
     }
-    const goType = CCXT_GO_ASYNC_ELEM_TYPES[method];
+    const goType = CCXT_GO_ASYNC_ELEM_TYPES[printed[1]];
     if (goType === undefined) {
         return undefined;
+    }
+    if (!ccxtGoAsyncDeclaredShapeAgrees (goTranspiler, callee, goType)) {
+        return undefined;                       // a declared Promise<T> of the other shape: keep the box
     }
     const conv = CCXT_GO_ASYNC_UNBOX[goType];
     if (conv === undefined) {
@@ -4451,6 +4475,8 @@ export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitial
         if (safe === undefined) {
             return undefined;
         }
+    } else if (awaitNode.parent?.kind === ts.SyntaxKind.ExpressionStatement) {
+        return undefined;                       // discarded value: a named typed local is never read
     } else if (awaitNode.parent?.kind === ts.SyntaxKind.ReturnStatement) {
         // `return await this.X()` forwards the value through `ch <- retResNNN`: refused until
         // the inner value is proven never-absent for this method
