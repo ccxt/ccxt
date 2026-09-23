@@ -157,9 +157,7 @@ func (this *Bingx) unWatchBody(ch chan any, messageHash any, subMessageHash any,
 		params = ccxt.MapTyped(this.Omit(params, "symbolsAndTimeframes"))
 	}
 
-	retRes13715 := (<-this.Watch(url, messageHash, this.Extend(request, params), subscribeHash, subscription))
-	ccxt.PanicOnError(retRes13715)
-	ch <- retRes13715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), subscribeHash, subscription)))
 	return nil
 }
 
@@ -218,9 +216,7 @@ func (this *Bingx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		"id":          uuid,
 	}
 
-	retRes18015 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes18015)
-	ch <- retRes18015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))
 	return nil
 }
 
@@ -256,9 +252,7 @@ func (this *Bingx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	var topic string = "ticker"
 	var methodName string = "unWatchTicker"
 
-	retRes20415 := (<-this.UnWatchAsync(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params))
-	ccxt.PanicOnError(retRes20415)
-	ch <- retRes20415
+	ch <- ccxt.PanicOnError((<-this.UnWatchAsync(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params)))
 	return nil
 }
 func (this *Bingx) HandleTicker(client any, message any) {
@@ -552,9 +546,7 @@ func (this *Bingx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var topic string = "trades"
 	var methodName string = "unWatchTrades"
 
-	retRes44115 := (<-this.UnWatchAsync(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params))
-	ccxt.PanicOnError(retRes44115)
-	ch <- retRes44115
+	ch <- ccxt.PanicOnError((<-this.UnWatchAsync(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params)))
 	return nil
 }
 func (this *Bingx) HandleTrades(client any, message any) {
@@ -781,9 +773,7 @@ func (this *Bingx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var topic string = "orderbook"
 	var methodName string = "unWatchOrderBook"
 
-	retRes63315 := (<-this.UnWatchAsync(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params))
-	ccxt.PanicOnError(retRes63315)
-	ch <- retRes63315
+	ch <- ccxt.PanicOnError((<-this.UnWatchAsync(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params)))
 	return nil
 }
 func (this *Bingx) HandleDelta(bookside any, delta any) {
@@ -1180,9 +1170,7 @@ func (this *Bingx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var symbolsAndTimeframes []any = []any{[]any{market["symbol"], timeframe}}
 	ccxt.AddElementToObject(params, "symbolsAndTimeframes", symbolsAndTimeframes)
 
-	retRes98115 := (<-this.UnWatchAsync(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params))
-	ccxt.PanicOnError(retRes98115)
-	ch <- retRes98115
+	ch <- ccxt.PanicOnError((<-this.UnWatchAsync(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params)))
 	return nil
 }
 
@@ -1474,9 +1462,7 @@ func (this *Bingx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"id":          uuid,
 	}
 
-	retRes117115 := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
-	ccxt.PanicOnError(retRes117115)
-	ch <- retRes117115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash, subscription)))
 	return nil
 }
 func (this *Bingx) SetBalanceCache(client any, typeVar any, subType any, subscriptionHash any, params any) {

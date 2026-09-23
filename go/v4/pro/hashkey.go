@@ -77,9 +77,7 @@ func (this *Hashkey) wathPublicBody(ch chan any, market any, topic any, messageH
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 
-	retRes6115 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-	ccxt.PanicOnError(retRes6115)
-	ch <- retRes6115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)))
 	return nil
 }
 func (this *Hashkey) WatchPrivateAsync(messageHash any) <-chan any {
@@ -95,9 +93,7 @@ func (this *Hashkey) watchPrivateBody(ch chan any, messageHash any) any {
 	ccxt.PanicOnError(listenKey)
 	var url any = this.GetPrivateUrl(listenKey)
 
-	retRes6715 := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(retRes6715)
-	ch <- retRes6715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash)))
 	return nil
 }
 func (this *Hashkey) GetPrivateUrl(listenKey any) any {
@@ -249,9 +245,7 @@ func (this *Hashkey) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	var topic string = "realtimes"
 	var messageHash any = ccxt.Add("ticker:", symbol)
 
-	retRes19515 := (<-this.WathPublicAsync(market, topic, messageHash, params))
-	ccxt.PanicOnError(retRes19515)
-	ch <- retRes19515
+	ch <- ccxt.PanicOnError((<-this.WathPublicAsync(market, topic, messageHash, params)))
 	return nil
 }
 func (this *Hashkey) HandleTicker(client any, message any) {
@@ -940,9 +934,7 @@ func (this *Hashkey) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))))
 	}
 
-	retRes75215 := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(retRes75215)
-	ch <- retRes75215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash)))
 	return nil
 }
 func (this *Hashkey) SetBalanceCache(client any, typeVar any, subscribeHash any) {

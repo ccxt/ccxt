@@ -1639,9 +1639,8 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes125019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
-		PanicOnError(retRes125019)
-		ch <- retRes125019
+		var retRes125019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))))
+		ch <- BoxAbsent(retRes125019)
 		return nil
 	}
 	var tf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -4449,9 +4448,7 @@ func (this *Pacifica) bindAgentWalletBody(ch chan any, agentAddress any, optiona
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes342815 := (<-this.PrivatePostAgentBind(this.Extend(request, params))).Raw
-	PanicOnError(retRes342815)
-	ch <- retRes342815
+	ch <- PanicOnError((<-this.PrivatePostAgentBind(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) CreateApiKeyAsync(optionalArgs ...any) <-chan any {
@@ -4468,9 +4465,7 @@ func (this *Pacifica) createApiKeyBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes343515 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params))).Raw
-	PanicOnError(retRes343515)
-	ch <- retRes343515
+	ch <- PanicOnError((<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) RevokeApiKeyAsync(apiKey any, optionalArgs ...any) <-chan any {
@@ -4489,9 +4484,7 @@ func (this *Pacifica) revokeApiKeyBody(ch chan any, apiKey any, optionalArgs ...
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes344415 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params))).Raw
-	PanicOnError(retRes344415)
-	ch <- retRes344415
+	ch <- PanicOnError((<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) FetchApiKeysAsync(optionalArgs ...any) <-chan any {
@@ -4508,9 +4501,7 @@ func (this *Pacifica) fetchApiKeysBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes345115 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params))).Raw
-	PanicOnError(retRes345115)
-	ch <- retRes345115
+	ch <- PanicOnError((<-this.PrivatePostAccountApiKeys(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) ApproveBuilderCodeAsync(builderCode any, maxFeeRate any, optionalArgs ...any) <-chan any {
@@ -4530,9 +4521,7 @@ func (this *Pacifica) approveBuilderCodeBody(ch chan any, builderCode any, maxFe
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes346115 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params))).Raw
-	PanicOnError(retRes346115)
-	ch <- retRes346115
+	ch <- PanicOnError((<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) FetchBuilderApprovalsAsync(address any) <-chan any {
@@ -4547,9 +4536,7 @@ func (this *Pacifica) fetchBuilderApprovalsBody(ch chan any, address any) any {
 		"account": address,
 	}
 
-	retRes346815 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request))).Raw
-	PanicOnError(retRes346815)
-	ch <- retRes346815
+	ch <- PanicOnError((<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request))).Raw)
 	return nil
 }
 func (this *Pacifica) RevokeBuilderCodeAsync(builderCode any, optionalArgs ...any) <-chan any {
@@ -4568,9 +4555,7 @@ func (this *Pacifica) revokeBuilderCodeBody(ch chan any, builderCode any, option
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes347715 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params))).Raw
-	PanicOnError(retRes347715)
-	ch <- retRes347715
+	ch <- PanicOnError((<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) HandleOriginAndSingleAddress(methodName any, params any) any {

@@ -86,9 +86,7 @@ func (this *Paradex) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)
 	}
 
-	retRes6815 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes6815)
-	ch <- retRes6815
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
@@ -339,9 +337,7 @@ func (this *Paradex) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var messageHash any = ccxt.Add(channel+".", symbol)
 
-	retRes27515 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-	ccxt.PanicOnError(retRes27515)
-	ch <- retRes27515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)))
 	return nil
 }
 
@@ -583,9 +579,7 @@ func (this *Paradex) watchFundingRateBody(ch chan any, symbol any, optionalArgs 
 	}
 	var messageHash any = ccxt.Add(channel+".", symbol)
 
-	retRes46815 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-	ccxt.PanicOnError(retRes46815)
-	ch <- retRes46815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)))
 	return nil
 }
 

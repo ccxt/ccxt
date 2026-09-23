@@ -889,9 +889,8 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 			"calculateUntil": true,
 		})
 
-		retRes67419 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-		PanicOnError(retRes67419)
-		ch <- retRes67419
+		var retRes67419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
+		ch <- BoxAbsent(retRes67419)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))

@@ -3032,9 +3032,7 @@ func (this *Bydfi) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 		"wallet":       wallet,
 	}
 
-	retRes242415 := (<-this.PrivatePostV1FapiUserDataMarginType(this.Extend(request, params))).Raw
-	PanicOnError(retRes242415)
-	ch <- retRes242415
+	ch <- PanicOnError((<-this.PrivatePostV1FapiUserDataMarginType(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -3095,8 +3093,6 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 		"settleCoin":   settleCoin,
 	}
 
-	retRes246715 := (<-this.PrivatePostV1FapiUserDataPositionSideDual(this.Extend(request, params))).Raw
-	PanicOnError(retRes246715)
 	//
 	//     {
 	//         "code": 200,
@@ -3104,7 +3100,7 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	//         "success": true
 	//     }
 	//
-	ch <- retRes246715
+	ch <- PanicOnError((<-this.PrivatePostV1FapiUserDataPositionSideDual(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -3539,9 +3535,7 @@ func (this *Bydfi) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes280415 := (<-this.FetchTransactionsHelperAsync("deposit", code, since, limit, params))
-	PanicOnError(retRes280415)
-	ch <- retRes280415
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("deposit", code, since, limit, params)))
 	return nil
 }
 
@@ -3573,9 +3567,7 @@ func (this *Bydfi) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes281915 := (<-this.FetchTransactionsHelperAsync("withdrawal", code, since, limit, params))
-	PanicOnError(retRes281915)
-	ch <- retRes281915
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("withdrawal", code, since, limit, params)))
 	return nil
 }
 func (this *Bydfi) FetchTransactionsHelperAsync(typeVar any, code any, since any, limit any, params any) <-chan any {

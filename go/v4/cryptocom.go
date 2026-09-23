@@ -1552,9 +1552,8 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes112119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
-		PanicOnError(retRes112119)
-		ch <- retRes112119
+		var retRes112119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))))
+		ch <- BoxAbsent(retRes112119)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4086,9 +4085,8 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes319619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-		PanicOnError(retRes319619)
-		ch <- retRes319619
+		var retRes319619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
+		ch <- BoxAbsent(retRes319619)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))

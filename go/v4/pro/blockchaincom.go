@@ -89,9 +89,7 @@ func (this *Blockchaincom) watchBalanceBody(ch chan any, optionalArgs ...any) an
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	retRes7215 := (<-this.Watch(url, messageHash, request, messageHash, request))
-	ccxt.PanicOnError(retRes7215)
-	ch <- retRes7215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request)))
 	return nil
 }
 func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
@@ -287,9 +285,7 @@ func (this *Blockchaincom) watchTickerBody(ch chan any, symbol any, optionalArgs
 	}
 	request = this.DeepExtend(request, params)
 
-	retRes23115 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes23115)
-	ch <- retRes23115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Blockchaincom) HandleTicker(client any, message map[string]any) {
@@ -927,9 +923,7 @@ func (this *Blockchaincom) authenticateBody(ch chan any, optionalArgs ...any) an
 		return nil
 	}
 
-	retRes80015 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes80015)
-	ch <- retRes80015
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 

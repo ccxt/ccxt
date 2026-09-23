@@ -2409,9 +2409,7 @@ func (this *Bybit) upgradeUnifiedTradeAccountBody(ch chan any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes158415 := (<-this.PrivatePostV5AccountUpgradeToUta(params)).Raw
-	PanicOnError(retRes158415)
-	ch <- retRes158415
+	ch <- PanicOnError((<-this.PrivatePostV5AccountUpgradeToUta(params)).Raw)
 	return nil
 }
 func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
@@ -3881,9 +3879,8 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes282819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-		PanicOnError(retRes282819)
-		ch <- retRes282819
+		var retRes282819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
+		ch <- BoxAbsent(retRes282819)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4925,7 +4922,7 @@ func (this *Bybit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabledAsync())
+	var enableUnifiedMarginenableUnifiedAccountVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
@@ -6662,7 +6659,7 @@ func (this *Bybit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabledAsync())
+	var enableUnifiedMarginenableUnifiedAccountVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
@@ -6821,7 +6818,7 @@ func (this *Bybit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabledAsync())
+	var enableUnifiedMarginenableUnifiedAccountVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
@@ -9122,7 +9119,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabledAsync())
+	var enableUnifiedMarginenableUnifiedAccountVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
@@ -11977,7 +11974,7 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var accountType any = nil
-	enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabledAsync())
+	var enableUnifiedMarginenableUnifiedAccountVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
@@ -12109,7 +12106,7 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var accountType any = nil
-	enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabledAsync())
+	var enableUnifiedMarginenableUnifiedAccountVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
@@ -12240,7 +12237,7 @@ func (this *Bybit) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var accountType any = nil
-	enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabledAsync())
+	var enableUnifiedMarginenableUnifiedAccountVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))

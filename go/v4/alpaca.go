@@ -2486,9 +2486,7 @@ func (this *Alpaca) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes192815 := (<-this.FetchTransactionsHelperAsync("BOTH", code, since, limit, params))
-	PanicOnError(retRes192815)
-	ch <- retRes192815
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("BOTH", code, since, limit, params)))
 	return nil
 }
 
@@ -2520,9 +2518,7 @@ func (this *Alpaca) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes194315 := (<-this.FetchTransactionsHelperAsync("INCOMING", code, since, limit, params))
-	PanicOnError(retRes194315)
-	ch <- retRes194315
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("INCOMING", code, since, limit, params)))
 	return nil
 }
 
@@ -2554,9 +2550,7 @@ func (this *Alpaca) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes195815 := (<-this.FetchTransactionsHelperAsync("OUTGOING", code, since, limit, params))
-	PanicOnError(retRes195815)
-	ch <- retRes195815
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("OUTGOING", code, since, limit, params)))
 	return nil
 }
 func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {

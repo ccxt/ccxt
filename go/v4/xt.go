@@ -1277,7 +1277,7 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promisesRaw []any = []any{EndpointRaw(this.PublicSpotGetWalletSupportCurrency(params)), EndpointRaw(this.PublicSpotGetCurrencies(params))}
-	chainsResponsecurrenciesResponseVariable := (<-promiseAll(promisesRaw))
+	var chainsResponsecurrenciesResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promisesRaw))))
 	chainsResponse := GetValue(chainsResponsecurrenciesResponseVariable, 0)
 	currenciesResponse := GetValue(chainsResponsecurrenciesResponseVariable, 1)
 	//
@@ -1917,9 +1917,8 @@ func (this *Xt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes149019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-		PanicOnError(retRes149019)
-		ch <- retRes149019
+		var retRes149019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
+		ch <- BoxAbsent(retRes149019)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -6729,7 +6728,7 @@ func (this *Xt) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) 
 		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionList(this.Extend(request, params))))
 		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionBreakList(this.Extend(request, params))))
 	}
-	responsebreakResponseVariable := (<-promiseAll(promisesUnresolved))
+	var responsebreakResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	response := GetValue(responsebreakResponseVariable, 0)
 	breakResponse := GetValue(responsebreakResponseVariable, 1)
 	//
@@ -6834,7 +6833,7 @@ func (this *Xt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionList(params)))
 		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionBreakList(params)))
 	}
-	responsebreakResponseVariable := (<-promiseAll(promisesUnresolved))
+	var responsebreakResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	response := GetValue(responsebreakResponseVariable, 0)
 	breakResponse := GetValue(responsebreakResponseVariable, 1)
 	//

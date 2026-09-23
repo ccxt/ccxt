@@ -132,9 +132,7 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = this.DeepExtend(message, params)
 	var requestId any = this.RequestId()
 
-	retRes11015 := (<-this.Watch(url, messageHash, request, requestId, request))
-	ccxt.PanicOnError(retRes11015)
-	ch <- retRes11015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, requestId, request)))
 	return nil
 }
 
@@ -320,9 +318,7 @@ func (this *Lbank) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = this.DeepExtend(message, params)
 	var requestId any = this.RequestId()
 
-	retRes27915 := (<-this.Watch(url, messageHash, request, requestId, request))
-	ccxt.PanicOnError(retRes27915)
-	ch <- retRes27915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, requestId, request)))
 	return nil
 }
 
@@ -360,9 +356,7 @@ func (this *Lbank) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	retRes30515 := (<-this.Watch(url, messageHash, request, messageHash, request))
-	ccxt.PanicOnError(retRes30515)
-	ch <- retRes30515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request)))
 	return nil
 }
 func (this *Lbank) HandleTicker(client any, message map[string]any) {
@@ -494,9 +488,7 @@ func (this *Lbank) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = this.DeepExtend(message, params)
 	var requestId any = this.RequestId()
 
-	retRes42115 := (<-this.Watch(url, messageHash, request, requestId, request))
-	ccxt.PanicOnError(retRes42115)
-	ch <- retRes42115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, requestId, request)))
 	return nil
 }
 
@@ -887,9 +879,7 @@ func (this *Lbank) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	retRes73915 := (<-this.Watch(url, messageHash, request, messageHash, request))
-	ccxt.PanicOnError(retRes73915)
-	ch <- retRes73915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request)))
 	return nil
 }
 func (this *Lbank) HandleBalance(client any, message map[string]any) {

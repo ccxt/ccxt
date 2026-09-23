@@ -2849,9 +2849,8 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes195719 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-		PanicOnError(retRes195719)
-		ch <- retRes195719
+		var retRes195719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
+		ch <- BoxAbsent(retRes195719)
 		return nil
 	}
 	if this.Markets == nil {

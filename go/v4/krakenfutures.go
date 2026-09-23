@@ -1117,9 +1117,8 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes91519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 2000))
-		PanicOnError(retRes91519)
-		ch <- retRes91519
+		var retRes91519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 2000))))
+		ch <- BoxAbsent(retRes91519)
 		return nil
 	}
 	var priceType *string = this.SafeString(params, "price", "trade")
@@ -4436,12 +4435,10 @@ func (this *Krakenfutures) setLeverageBody(ch chan any, leverage any, optionalAr
 		"symbol":      ToUpper(marketIdUpper),
 	}
 
-	retRes371015 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params))).Raw
-	PanicOnError(retRes371015)
 	//
 	// { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
 	//
-	ch <- retRes371015
+	ch <- PanicOnError((<-this.PrivatePutLeveragepreferences(this.Extend(request, params))).Raw)
 	return nil
 }
 

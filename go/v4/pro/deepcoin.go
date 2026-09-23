@@ -155,9 +155,7 @@ func (this *Deepcoin) watchPublicBody(ch chan any, market any, messageHash any, 
 		"id":      requestId,
 	}
 
-	retRes14515 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes14515)
-	ch <- retRes14515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)))
 	return nil
 }
 func (this *Deepcoin) UnWatchPublicAsync(market any, messageHash any, topicID any, optionalArgs ...any) <-chan any {
@@ -191,9 +189,7 @@ func (this *Deepcoin) unWatchPublicBody(ch chan any, market any, messageHash any
 		"id":        requestId,
 	})
 
-	retRes16515 := (<-this.Watch(url, unsubHash, this.DeepExtend(request, params), unsubHash, subscription))
-	ccxt.PanicOnError(retRes16515)
-	ch <- retRes16515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, unsubHash, this.DeepExtend(request, params), unsubHash, subscription)))
 	return nil
 }
 func (this *Deepcoin) WatchPrivateAsync(messageHash any, optionalArgs ...any) <-chan any {
@@ -211,9 +207,7 @@ func (this *Deepcoin) watchPrivateBody(ch chan any, messageHash any, optionalArg
 	ccxt.PanicOnError(listenKey)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "?listenKey="), listenKey)
 
-	retRes17115 := (<-this.Watch(url, messageHash, nil, "private", params))
-	ccxt.PanicOnError(retRes17115)
-	ch <- retRes17115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, "private", params)))
 	return nil
 }
 func (this *Deepcoin) AuthenticateAsync(optionalArgs ...any) <-chan any {
@@ -341,9 +335,7 @@ func (this *Deepcoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("ticker"+"::", market["symbol"])
 
-	retRes25715 := (<-this.WatchPublicAsync(market, messageHash, "7", params))
-	ccxt.PanicOnError(retRes25715)
-	ch <- retRes25715
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(market, messageHash, "7", params)))
 	return nil
 }
 
@@ -376,9 +368,7 @@ func (this *Deepcoin) unWatchTickerBody(ch chan any, symbol any, optionalArgs ..
 		"topic": "ticker",
 	}
 
-	retRes27815 := (<-this.UnWatchPublicAsync(market, messageHash, "7", params, subscription))
-	ccxt.PanicOnError(retRes27815)
-	ch <- retRes27815
+	ch <- ccxt.PanicOnError((<-this.UnWatchPublicAsync(market, messageHash, "7", params, subscription)))
 	return nil
 }
 func (this *Deepcoin) HandleTicker(client any, message any) {
@@ -557,9 +547,7 @@ func (this *Deepcoin) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 		"topic": "trades",
 	}
 
-	retRes42715 := (<-this.UnWatchPublicAsync(market, messageHash, "2", params, subscription))
-	ccxt.PanicOnError(retRes42715)
-	ch <- retRes42715
+	ch <- ccxt.PanicOnError((<-this.UnWatchPublicAsync(market, messageHash, "2", params, subscription)))
 	return nil
 }
 func (this *Deepcoin) HandleTrades(client any, message any) {
@@ -765,9 +753,7 @@ func (this *Deepcoin) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		"symbolsAndTimeframes": []any{[]any{symbol, timeframe}},
 	}
 
-	retRes60115 := (<-this.UnWatchPublicAsync(market, messageHash, "11", params, subscription, suffix))
-	ccxt.PanicOnError(retRes60115)
-	ch <- retRes60115
+	ch <- ccxt.PanicOnError((<-this.UnWatchPublicAsync(market, messageHash, "11", params, subscription, suffix)))
 	return nil
 }
 func (this *Deepcoin) HandleOHLCV(client any, message any) {
@@ -910,9 +896,7 @@ func (this *Deepcoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 		"topic": "orderbook",
 	}
 
-	retRes72015 := (<-this.UnWatchPublicAsync(market, messageHash, "25", params, subscription, suffix))
-	ccxt.PanicOnError(retRes72015)
-	ch <- retRes72015
+	ch <- ccxt.PanicOnError((<-this.UnWatchPublicAsync(market, messageHash, "25", params, subscription, suffix)))
 	return nil
 }
 func (this *Deepcoin) OrderBookSuffix(market any, methodName any, optionalArgs ...any) any {

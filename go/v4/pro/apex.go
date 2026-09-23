@@ -91,9 +91,7 @@ func (this *Apex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes6915 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes6915)
-	ch <- retRes6915
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -261,9 +259,7 @@ func (this *Apex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes20615 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes20615)
-	ch <- retRes20615
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -351,9 +347,7 @@ func (this *Apex) watchTopicsBody(ch chan any, url any, messageHashes any, topic
 		message = this.Extend(request, params)
 	}
 
-	retRes26915 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-	ccxt.PanicOnError(retRes26915)
-	ch <- retRes26915
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes)))
 	return nil
 }
 func (this *Apex) GetWsPublicUrl() any {
@@ -478,9 +472,7 @@ func (this *Apex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	var topic any = ccxt.Add("instrumentInfo"+".H.", market["id2"])
 	var topics []any = []any{topic}
 
-	retRes38715 := (<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params))
-	ccxt.PanicOnError(retRes38715)
-	ch <- retRes38715
+	ch <- ccxt.PanicOnError((<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params)))
 	return nil
 }
 
@@ -1162,9 +1154,7 @@ func (this *Apex) authenticateBody(ch chan any, url any, optionalArgs ...any) an
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	retRes91915 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes91915)
-	ch <- retRes91915
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Apex) HandleErrorMessage(client any, message any) any {

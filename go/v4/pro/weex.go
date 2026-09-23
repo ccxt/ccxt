@@ -131,9 +131,7 @@ func (this *Weex) subscribePublicBody(ch chan any, messageHashes any, channels a
 	}()
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar), "/public")
 
-	retRes10615 := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(message, params), messageHashes, subscription))
-	ccxt.PanicOnError(retRes10615)
-	ch <- retRes10615
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(message, params), messageHashes, subscription)))
 	return nil
 }
 func (this *Weex) SubscribePrivateAsync(messageHash any, subscribeHash any, channel any, optionalArgs ...any) <-chan any {
@@ -173,9 +171,7 @@ func (this *Weex) subscribePrivateBody(ch chan any, messageHash any, subscribeHa
 		"id": id,
 	})
 
-	retRes12515 := (<-this.Watch(url, messageHash, this.DeepExtend(message, params), subscribeHash, subscription))
-	ccxt.PanicOnError(retRes12515)
-	ch <- retRes12515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(message, params), subscribeHash, subscription)))
 	return nil
 }
 func (this *Weex) Authenticate(url any) {
@@ -326,9 +322,7 @@ func (this *Weex) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes23515 := (<-this.UnWatchTickersAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes23515)
-	ch <- retRes23515
+	ch <- ccxt.PanicOnError((<-this.UnWatchTickersAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -383,9 +377,7 @@ func (this *Weex) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		"topic":            topic,
 	}
 
-	retRes27615 := (<-this.SubscribePublicAsync(unSubHashes, channels, isContract, params, subscription))
-	ccxt.PanicOnError(retRes27615)
-	ch <- retRes27615
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicAsync(unSubHashes, channels, isContract, params, subscription)))
 	return nil
 }
 func (this *Weex) HandleTicker(client any, message any) {
@@ -508,9 +500,7 @@ func (this *Weex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes37915 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes37915)
-	ch <- retRes37915
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -592,9 +582,7 @@ func (this *Weex) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes43215 := (<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes43215)
-	ch <- retRes43215
+	ch <- ccxt.PanicOnError((<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -647,9 +635,7 @@ func (this *Weex) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 		"topic":            "trades",
 	}
 
-	retRes47315 := (<-this.SubscribePublicAsync(unSubHashes, channels, isContract, params, subscription))
-	ccxt.PanicOnError(retRes47315)
-	ch <- retRes47315
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicAsync(unSubHashes, channels, isContract, params, subscription)))
 	return nil
 }
 func (this *Weex) HandleTrade(client any, message any) {
@@ -886,9 +872,7 @@ func (this *Weex) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "unWatchOHLCV")
 
-	retRes64315 := (<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params))
-	ccxt.PanicOnError(retRes64315)
-	ch <- retRes64315
+	ch <- ccxt.PanicOnError((<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)))
 	return nil
 }
 
@@ -956,9 +940,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 		"topic":                "ohlcv",
 	}
 
-	retRes69715 := (<-this.SubscribePublicAsync(unSubHashes, channels, isContract, params, subscription))
-	ccxt.PanicOnError(retRes69715)
-	ch <- retRes69715
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicAsync(unSubHashes, channels, isContract, params, subscription)))
 	return nil
 }
 func (this *Weex) HandleOHLCV(client any, message any) {
@@ -1066,9 +1048,7 @@ func (this *Weex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"callerMethodName": "watchOrderBook",
 	})
 
-	retRes79915 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes79915)
-	ch <- retRes79915
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -1152,9 +1132,7 @@ func (this *Weex) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"callerMethodName": "unWatchOrderBook",
 	})
 
-	retRes85515 := (<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes85515)
-	ch <- retRes85515
+	ch <- ccxt.PanicOnError((<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -1212,9 +1190,7 @@ func (this *Weex) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		"topic":            "orderbook",
 	}
 
-	retRes89915 := (<-this.SubscribePublicAsync(unSubHashes, channels, isContract, params, subscription))
-	ccxt.PanicOnError(retRes89915)
-	ch <- retRes89915
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicAsync(unSubHashes, channels, isContract, params, subscription)))
 	return nil
 }
 func (this *Weex) HandleOrderBook(client any, message any) {
@@ -1376,9 +1352,7 @@ func (this *Weex) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		"topic":            "bidsasks",
 	}
 
-	retRes103115 := (<-this.SubscribePublicAsync(unSubHashes, channels, false, params, subscription))
-	ccxt.PanicOnError(retRes103115)
-	ch <- retRes103115
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicAsync(unSubHashes, channels, false, params, subscription)))
 	return nil
 }
 func (this *Weex) HandleBidAsk(client any, message any) {
@@ -1540,9 +1514,7 @@ func (this *Weex) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"subHashIsPrefix":  true,
 	}
 
-	retRes114115 := (<-this.SubscribePrivateAsync(unSubHash, unSubHash, channel, isContract, params, subscription))
-	ccxt.PanicOnError(retRes114115)
-	ch <- retRes114115
+	ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(unSubHash, unSubHash, channel, isContract, params, subscription)))
 	return nil
 }
 func (this *Weex) HandleMyTrades(client any, message any) {
@@ -1796,9 +1768,7 @@ func (this *Weex) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"subHashIsPrefix":  true,
 	}
 
-	retRes134815 := (<-this.SubscribePrivateAsync(unSubHash, unSubHash, channel, isContract, params, subscription))
-	ccxt.PanicOnError(retRes134815)
-	ch <- retRes134815
+	ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(unSubHash, unSubHash, channel, isContract, params, subscription)))
 	return nil
 }
 func (this *Weex) HandleOrders(client any, message any) {
@@ -2080,9 +2050,7 @@ func (this *Weex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = ccxt.Add(ccxt.Add(typeVar, ":"), "balance")
 
-	retRes161015 := (<-this.SubscribePrivateAsync(messageHash, typeVar, "account", isContract, params))
-	ccxt.PanicOnError(retRes161015)
-	ch <- retRes161015
+	ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(messageHash, typeVar, "account", isContract, params)))
 	return nil
 }
 func (this *Weex) SetBalanceCache(client any, typeVar any) {
@@ -2350,9 +2318,7 @@ func (this *Weex) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"subHashIsPrefix":  true,
 	}
 
-	retRes182215 := (<-this.SubscribePrivateAsync(unSubHash, unSubHash, channel, true, params, subscription))
-	ccxt.PanicOnError(retRes182215)
-	ch <- retRes182215
+	ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(unSubHash, unSubHash, channel, true, params, subscription)))
 	return nil
 }
 func (this *Weex) HandlePositions(client any, message any) {

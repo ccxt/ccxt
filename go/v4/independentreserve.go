@@ -436,7 +436,7 @@ func (this *Independentreserve) fetchMarketsBody(ch chan any, optionalArgs ...an
 	var quoteCurrenciesPromise any = EndpointRaw(this.PublicGetGetValidSecondaryCurrencyCodes(params))
 	//     ['Aud', 'Usd', 'Nzd', 'Sgd']
 	var limitsPromise any = EndpointRaw(this.PublicGetGetOrderMinimumVolumes(params))
-	baseCurrenciesquoteCurrencieslimitsVariable := (<-promiseAll([]any{baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise}))
+	var baseCurrenciesquoteCurrencieslimitsVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise}))))
 	baseCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 0)
 	quoteCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 1)
 	limits := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 2)

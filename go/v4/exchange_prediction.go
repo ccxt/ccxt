@@ -451,9 +451,7 @@ func (this *PredictionExchange) loadEventsBody(ch chan any, optionalArgs ...any)
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes39415 := (<-this.LoadEventsHelperAsync(reload, params))
-	PanicOnError(retRes39415)
-	ch <- retRes39415
+	ch <- PanicOnError((<-this.LoadEventsHelperAsync(reload, params)))
 	return nil
 }
 func (this *PredictionExchange) GetEvent(eventIdOrSlug any) any {
@@ -926,9 +924,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
 		}
 	}
 
-	retRes79215 := <-this.DerivedExchange.FetchOutcomeAsync(outcomeSymbol)
-	PanicOnError(retRes79215)
-	ch <- retRes79215
+	ch <- PanicOnError(<-this.DerivedExchange.FetchOutcomeAsync(outcomeSymbol))
 	return nil
 }
 func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
@@ -1132,9 +1128,7 @@ func (this *PredictionExchange) fetchOHLCVBody(ch chan any, outcome any, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes92115 := (<-this.BaseExchange.FetchOHLCVAsync(outcome, timeframe, since, limit, params))
-	PanicOnError(retRes92115)
-	ch <- retRes92115
+	ch <- PanicOnError((<-this.BaseExchange.FetchOHLCVAsync(outcome, timeframe, since, limit, params)))
 	return nil
 }
 
@@ -1588,9 +1582,7 @@ func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, ou
 	_ = params
 	if (this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false) != nil && *this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || (this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false) != nil && *this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false)) {
 
-		retRes116319 := <-this.DerivedExchange.CreateOrderAsync(outcome, "market", "buy", cost, 1, params)
-		PanicOnError(retRes116319)
-		ch <- retRes116319
+		ch <- PanicOnError(<-this.DerivedExchange.CreateOrderAsync(outcome, "market", "buy", cost, 1, params))
 		return nil
 	}
 	panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() is not supported yet"))
@@ -1617,9 +1609,7 @@ func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan any, o
 	_ = params
 	if (this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false) != nil && *this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || (this.SafeBool(this.Has, "createMarketSellOrderWithCost", false) != nil && *this.SafeBool(this.Has, "createMarketSellOrderWithCost", false)) {
 
-		retRes117919 := <-this.DerivedExchange.CreateOrderAsync(outcome, "market", "sell", cost, 1, params)
-		PanicOnError(retRes117919)
-		ch <- retRes117919
+		ch <- PanicOnError(<-this.DerivedExchange.CreateOrderAsync(outcome, "market", "sell", cost, 1, params))
 		return nil
 	}
 	panic(NotSupported(this.Id + " createMarketSellOrderWithCost() is not supported yet"))
@@ -2387,9 +2377,7 @@ func (this *PredictionExchange) sendEvmTransactionBody(ch chan any, rpcUrl any, 
 	var signed any = this.DerivedExchange.SignEvmTransaction(tx, this.PrivateKey)
 	PanicOnError(signed)
 
-	retRes178015 := (<-this.EthRpcAsync(rpcUrl, "eth_sendRawTransaction", []any{signed}))
-	PanicOnError(retRes178015)
-	ch <- retRes178015
+	ch <- PanicOnError((<-this.EthRpcAsync(rpcUrl, "eth_sendRawTransaction", []any{signed})))
 	return nil
 }
 func (this *PredictionExchange) WaitForTransactionReceiptAsync(rpcUrl any, txHash any, optionalArgs ...any) <-chan any {

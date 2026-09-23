@@ -124,9 +124,7 @@ func (this *Deribit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	retRes10615 := (<-this.Watch(url, messageHash, request, messageHash, request))
-	ccxt.PanicOnError(retRes10615)
-	ch <- retRes10615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request)))
 	return nil
 }
 func (this *Deribit) HandleBalance(client any, message map[string]any) {
@@ -233,9 +231,7 @@ func (this *Deribit) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	retRes20015 := (<-this.Watch(url, channel, request, channel, request))
-	ccxt.PanicOnError(retRes20015)
-	ch <- retRes20015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, channel, request, channel, request)))
 	return nil
 }
 
@@ -473,9 +469,7 @@ func (this *Deribit) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
 
-	retRes38615 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes38615)
-	ch <- retRes38615
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -706,9 +700,7 @@ func (this *Deribit) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchOrderBook")
 
-	retRes56015 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes56015)
-	ch <- retRes56015
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -1218,9 +1210,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, chan
 		panic(ccxt.ExchangeError(this.Id + " requested subscription length over limit, try to reduce symbols amount"))
 	}
 
-	retRes96315 := (<-this.WatchMultiple(url, messageHashes, extendedRequest, rawSubscriptions))
-	ccxt.PanicOnError(retRes96315)
-	ch <- retRes96315
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, extendedRequest, rawSubscriptions)))
 	return nil
 }
 func (this *Deribit) HandleMessage(client any, message any) {

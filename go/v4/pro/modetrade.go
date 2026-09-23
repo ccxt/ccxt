@@ -103,9 +103,7 @@ func (this *Modetrade) watchPublicBody(ch chan any, messageHash any, message any
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	retRes9215 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
-	ccxt.PanicOnError(retRes9215)
-	ch <- retRes9215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscribe)))
 	return nil
 }
 
@@ -219,9 +217,7 @@ func (this *Modetrade) watchTickerBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes18015 := (<-this.WatchPublicAsync(topic, message))
-	ccxt.PanicOnError(retRes18015)
-	ch <- retRes18015
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message)))
 	return nil
 }
 func (this *Modetrade) ParseWsTicker(ticker any, optionalArgs ...any) any {
@@ -791,9 +787,7 @@ func (this *Modetrade) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	retRes65415 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes65415)
-	ch <- retRes65415
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Modetrade) WatchPrivateAsync(messageHash any, message any, optionalArgs ...any) <-chan any {
@@ -815,9 +809,7 @@ func (this *Modetrade) watchPrivateBody(ch chan any, messageHash any, message an
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	retRes66515 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
-	ccxt.PanicOnError(retRes66515)
-	ch <- retRes66515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscribe)))
 	return nil
 }
 func (this *Modetrade) WatchPrivateMultipleAsync(messageHashes any, message any, optionalArgs ...any) <-chan any {
@@ -839,9 +831,7 @@ func (this *Modetrade) watchPrivateMultipleBody(ch chan any, messageHashes any, 
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	retRes67615 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe))
-	ccxt.PanicOnError(retRes67615)
-	ch <- retRes67615
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe)))
 	return nil
 }
 
@@ -1510,9 +1500,7 @@ func (this *Modetrade) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes122915 := (<-this.WatchPrivateAsync(messageHash, message))
-	ccxt.PanicOnError(retRes122915)
-	ch <- retRes122915
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, message)))
 	return nil
 }
 func (this *Modetrade) HandleBalance(client any, message map[string]any) {

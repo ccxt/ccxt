@@ -124,9 +124,7 @@ func (this *Dydx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"id":      market["id"],
 	}
 
-	retRes8815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes8815)
-	ch <- retRes8815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 func (this *Dydx) HandleTrades(client any, message map[string]any) {
@@ -276,9 +274,7 @@ func (this *Dydx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"id":      market["id"],
 	}
 
-	retRes21115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes21115)
-	ch <- retRes21115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
@@ -423,9 +419,7 @@ func (this *Dydx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		"id":      ccxt.Add(ccxt.Add(market["id"], "/"), resolution),
 	}
 
-	retRes32415 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes32415)
-	ch <- retRes32415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 func (this *Dydx) HandleOHLCV(client any, message map[string]any) {

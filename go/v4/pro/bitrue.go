@@ -115,9 +115,7 @@ func (this *Bitrue) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	retRes8915 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes8915)
-	ch <- retRes8915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Bitrue) HandleBalance(client any, message map[string]any) {
@@ -415,9 +413,7 @@ func (this *Bitrue) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	retRes34915 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes34915)
-	ch <- retRes34915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Bitrue) HandleOrderBook(client any, message any) {
@@ -841,9 +837,7 @@ func (this *Bitrue) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	retRes71715 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes71715)
-	ch <- retRes71715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Bitrue) HandleTicker(client any, message any) {

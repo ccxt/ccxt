@@ -5017,9 +5017,7 @@ func (this *Digifinex) setLeverageBody(ch chan any, leverage any, optionalArgs .
 		}
 	}
 
-	retRes394615 := (<-this.PrivateSwapPostAccountLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes394615)
-	ch <- retRes394615
+	ch <- PanicOnError((<-this.PrivateSwapPostAccountLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -5713,9 +5711,7 @@ func (this *Digifinex) setMarginModeBody(ch chan any, marginMode any, optionalAr
 		"margin_mode":   marginMode,
 	}
 
-	retRes448715 := (<-this.PrivateSwapPostAccountPositionMode(this.Extend(request, params))).Raw
-	PanicOnError(retRes448715)
-	ch <- retRes448715
+	ch <- PanicOnError((<-this.PrivateSwapPostAccountPositionMode(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Digifinex) Sign(path any, optionalArgs ...any) any {

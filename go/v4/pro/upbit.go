@@ -96,9 +96,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan any, symbols any, channel any
 		finalMessage = append(finalMessage, ccxt.GetValue(subscriptions, key))
 	}
 
-	retRes8315 := (<-this.WatchMultiple(url, messageHashes, finalMessage, messageHashes))
-	ccxt.PanicOnError(retRes8315)
-	ch <- retRes8315
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, finalMessage, messageHashes)))
 	return nil
 }
 
@@ -122,9 +120,7 @@ func (this *Upbit) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes9615 := (<-this.WatchPublicMultipleAsync([]any{symbol}, "ticker"))
-	ccxt.PanicOnError(retRes9615)
-	ch <- retRes9615
+	ch <- ccxt.PanicOnError((<-this.WatchPublicMultipleAsync([]any{symbol}, "ticker")))
 	return nil
 }
 
@@ -190,9 +186,7 @@ func (this *Upbit) watchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes13015 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes13015)
-	ch <- retRes13015
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -297,9 +291,7 @@ func (this *Upbit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var timeFrameOHLCV string = "candle." + timeframe
 
-	retRes18715 := (<-this.WatchPublicMultipleAsync([]any{symbol}, timeFrameOHLCV))
-	ccxt.PanicOnError(retRes18715)
-	ch <- retRes18715
+	ch <- ccxt.PanicOnError((<-this.WatchPublicMultipleAsync([]any{symbol}, timeFrameOHLCV)))
 	return nil
 }
 func (this *Upbit) HandleTicker(client any, message map[string]any) {
@@ -553,9 +545,7 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel any, messag
 		}())
 	}
 
-	retRes41515 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes41515)
-	ch <- retRes41515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 
@@ -855,9 +845,7 @@ func (this *Upbit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var channel string = "myAsset"
 	var messageHash string = "myAsset"
 
-	retRes65515 := (<-this.WatchPrivateAsync(nil, channel, messageHash))
-	ccxt.PanicOnError(retRes65515)
-	ch <- retRes65515
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(nil, channel, messageHash)))
 	return nil
 }
 func (this *Upbit) HandleBalance(client any, message map[string]any) {

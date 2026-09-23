@@ -2952,9 +2952,7 @@ func (this *Limitless) approveBody(ch chan any, optionalArgs ...any) any {
 	txHash := (<-this.SendEvmTransactionAsync(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit))
 	ccxt.PanicOnError(txHash)
 
-	retRes230915 := (<-this.WaitForTransactionReceiptAsync(rpcUrl, txHash))
-	ccxt.PanicOnError(retRes230915)
-	ch <- retRes230915
+	ch <- ccxt.PanicOnError((<-this.WaitForTransactionReceiptAsync(rpcUrl, txHash)))
 	return nil
 }
 
@@ -3134,8 +3132,7 @@ func (this *Limitless) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 	var slug *string = this.SafeString(params, "slug")
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		request["slug"] = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
 	} else if slug == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelAllOrders requires either an outcome argument or a slug parameter"))
@@ -3186,8 +3183,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var outcomeSymbol any = outcome
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		outcomeSymbol = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	}
 	var paginate any = false

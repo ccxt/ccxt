@@ -117,9 +117,7 @@ func (this *Onetrading) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	retRes10415 := (<-this.Watch(url, messageHash, request, subscribeHash, request))
-	ccxt.PanicOnError(retRes10415)
-	ch <- retRes10415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscribeHash, request)))
 	return nil
 }
 func (this *Onetrading) HandleBalanceSnapshot(client any, message map[string]any) {
@@ -191,9 +189,7 @@ func (this *Onetrading) watchTickerBody(ch chan any, symbol any, optionalArgs ..
 		}},
 	}
 
-	retRes16715 := (<-this.WatchManyAsync(messageHash, request, subscriptionHash, []any{symbol}, params))
-	ccxt.PanicOnError(retRes16715)
-	ch <- retRes16715
+	ch <- ccxt.PanicOnError((<-this.WatchManyAsync(messageHash, request, subscriptionHash, []any{symbol}, params)))
 	return nil
 }
 
@@ -377,9 +373,7 @@ func (this *Onetrading) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var numTrades int = ccxt.GetArrayLength(trades)
 	if ccxt.IsEqual(numTrades, 0) {
 
-		retRes31319 := (<-this.WatchMyTradesAsync(symbol, since, limit, params))
-		ccxt.PanicOnError(retRes31319)
-		ch <- retRes31319
+		ch <- ccxt.PanicOnError((<-this.WatchMyTradesAsync(symbol, since, limit, params)))
 		return nil
 	}
 
@@ -577,9 +571,7 @@ func (this *Onetrading) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var numOrders int = ccxt.GetArrayLength(orders)
 	if ccxt.IsEqual(numOrders, 0) {
 
-		retRes48019 := (<-this.WatchOrdersAsync(symbol, since, limit, params))
-		ccxt.PanicOnError(retRes48019)
-		ch <- retRes48019
+		ch <- ccxt.PanicOnError((<-this.WatchOrdersAsync(symbol, since, limit, params)))
 		return nil
 	}
 
@@ -1503,9 +1495,7 @@ func (this *Onetrading) watchManyBody(ch chan any, messageHash any, request any,
 	ccxt.AddElementToObject(request, "type", typeVar)
 	ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(request, "channels"), 0), "instrument_codes", ccxt.ObjectKeys(subscription))
 
-	retRes137615 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscription))
-	ccxt.PanicOnError(retRes137615)
-	ch <- retRes137615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscription)))
 	return nil
 }
 func (this *Onetrading) AuthenticateAsync(optionalArgs ...any) <-chan any {
@@ -1532,9 +1522,7 @@ func (this *Onetrading) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, this.Extend(request, params), messageHash)
 	}
 
-	retRes139315 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes139315)
-	ch <- retRes139315
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 

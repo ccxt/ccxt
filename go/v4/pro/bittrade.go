@@ -102,9 +102,7 @@ func (this *Bittrade) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		"params":      params,
 	}
 
-	retRes8315 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes8315)
-	ch <- retRes8315
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))
 	return nil
 }
 func (this *Bittrade) HandleTicker(client any, message map[string]any) any {

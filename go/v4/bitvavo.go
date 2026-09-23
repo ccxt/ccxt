@@ -1394,9 +1394,8 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes116319 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
-		PanicOnError(retRes116319)
-		ch <- retRes116319
+		var retRes116319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))))
+		ch <- BoxAbsent(retRes116319)
 		return nil
 	}
 	var request any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, params)

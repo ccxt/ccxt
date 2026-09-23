@@ -628,12 +628,10 @@ func (this *Kalshi) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 		}
 	}
 
-	retRes39015 := (<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol))
-	ccxt.PanicOnError(retRes39015)
 	// free-text fallback: the base derives a search query from the handle's words, resolves it
 	// through fetchEvents({query}) and re-checks the cache, throwing a guidance-rich ccxt.BadSymbol
 	// on a genuine miss
-	ch <- retRes39015
+	ch <- ccxt.PanicOnError((<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol)))
 	return nil
 }
 

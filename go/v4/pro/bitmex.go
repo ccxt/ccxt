@@ -433,9 +433,7 @@ func (this *Bitmex) watchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes38215 := (<-this.WatchLiquidationsForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes38215)
-	ch <- retRes38215
+	ch <- ccxt.PanicOnError((<-this.WatchLiquidationsForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -584,9 +582,7 @@ func (this *Bitmex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"args": []any{messageHash},
 	}
 
-	retRes49615 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes49615)
-	ch <- retRes49615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 func (this *Bitmex) HandleBalance(client any, message map[string]any) {
@@ -803,9 +799,7 @@ func (this *Bitmex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes70015 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes70015)
-	ch <- retRes70015
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 func (this *Bitmex) AuthenticateAsync(optionalArgs ...any) <-chan any {
@@ -836,9 +830,7 @@ func (this *Bitmex) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	retRes72515 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes72515)
-	ch <- retRes72515
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Bitmex) HandleAuthenticationMessage(client any, message any) {
@@ -1522,9 +1514,7 @@ func (this *Bitmex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes132815 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes132815)
-	ch <- retRes132815
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -1814,9 +1804,7 @@ func (this *Bitmex) watchHeartbeatBody(ch chan any, optionalArgs ...any) any {
 	var event string = "heartbeat"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 
-	retRes155915 := (<-this.Watch(url, event))
-	ccxt.PanicOnError(retRes155915)
-	ch <- retRes155915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, event)))
 	return nil
 }
 func (this *Bitmex) HandleOrderBook(client any, message map[string]any) {

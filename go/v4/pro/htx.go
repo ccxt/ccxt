@@ -187,9 +187,7 @@ func (this *Htx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	})
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"])
 
-	retRes16815 := (<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))
-	ccxt.PanicOnError(retRes16815)
-	ch <- retRes16815
+	ch <- ccxt.PanicOnError((<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params)))
 	return nil
 }
 
@@ -228,9 +226,7 @@ func (this *Htx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		"marketId": market["id"],
 	})
 
-	retRes19315 := (<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params))
-	ccxt.PanicOnError(retRes19315)
-	ch <- retRes19315
+	ch <- ccxt.PanicOnError((<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params)))
 	return nil
 }
 func (this *Htx) HandleTicker(client any, message map[string]any) any {
@@ -365,9 +361,7 @@ func (this *Htx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		"marketId": market["id"],
 	})
 
-	retRes29715 := (<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params))
-	ccxt.PanicOnError(retRes29715)
-	ch <- retRes29715
+	ch <- ccxt.PanicOnError((<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params)))
 	return nil
 }
 func (this *Htx) HandleTrades(client any, message map[string]any) any {
@@ -505,9 +499,7 @@ func (this *Htx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var topic string = "ohlcv"
 	ccxt.AddElementToObject(params, "symbolsAndTimeframes", []any{[]any{market["symbol"], timeframe}})
 
-	retRes39715 := (<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params))
-	ccxt.PanicOnError(retRes39715)
-	ch <- retRes39715
+	ch <- ccxt.PanicOnError((<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params)))
 	return nil
 }
 func (this *Htx) HandleOHLCV(client any, message map[string]any) {
@@ -654,9 +646,7 @@ func (this *Htx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		ccxt.AddElementToObject(params, "data_type", "incremental")
 	}
 
-	retRes51815 := (<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params))
-	ccxt.PanicOnError(retRes51815)
-	ch <- retRes51815
+	ch <- ccxt.PanicOnError((<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params)))
 	return nil
 }
 func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, subscription map[string]any) {
@@ -2242,13 +2232,11 @@ func (this *Htx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"isV5":    isV5Linear,
 	}
 
-	retRes189615 := (<-this.SubscribePrivateAsync(channel, messageHash, typeVar, subType, params, subscriptionParams))
-	ccxt.PanicOnError(retRes189615)
 	// we are differentiating the channel from the messageHash for global subscriptions (*)
 	// because huobi returns a different topic than the topic sent. Example: we send
 	// "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
 	// messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
-	ch <- retRes189615
+	ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(channel, messageHash, typeVar, subType, params, subscriptionParams)))
 	return nil
 }
 func (this *Htx) HandleBalance(client any, message any) {
@@ -3365,9 +3353,7 @@ func (this *Htx) subscribePublicBody(ch chan any, url any, symbol any, messageHa
 		subscription["method"] = method
 	}
 
-	retRes287515 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes287515)
-	ch <- retRes287515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))
 	return nil
 }
 func (this *Htx) UnsubscribePublicAsync(market any, subMessageHash any, topic any, optionalArgs ...any) <-chan any {
@@ -3405,9 +3391,7 @@ func (this *Htx) unsubscribePublicBody(ch chan any, market any, subMessageHash a
 		params = ccxt.MapTyped(this.Omit(params, "symbolsAndTimeframes"))
 	}
 
-	retRes290315 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes290315)
-	ch <- retRes290315
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))
 	return nil
 }
 func (this *Htx) SubscribePrivateAsync(channel any, messageHash any, typeVar any, subtype any, optionalArgs ...any) <-chan any {
@@ -3459,9 +3443,7 @@ func (this *Htx) subscribePrivateBody(ch chan any, channel any, messageHash any,
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(authParams)))
 
-	retRes293715 := (<-this.Watch(url, messageHash, this.Extend(request, params), channel, extendedSubsription))
-	ccxt.PanicOnError(retRes293715)
-	ch <- retRes293715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), channel, extendedSubsription)))
 	return nil
 }
 func (this *Htx) AuthenticateAsync(optionalArgs ...any) <-chan any {
@@ -3543,9 +3525,7 @@ func (this *Htx) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, request, messageHash, subscription)
 	}
 
-	retRes300915 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes300915)
-	ch <- retRes300915
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 

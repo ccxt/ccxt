@@ -1551,7 +1551,7 @@ func (this *Woo) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//     "success": true
 	// }
 	//
-	tokenResponsetokenNetworkResponseVariable := (<-promiseAll([]any{tokenResponsePromise, tokenNetworkResponsePromise}))
+	var tokenResponsetokenNetworkResponseVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{tokenResponsePromise, tokenNetworkResponsePromise}))))
 	tokenResponse := GetValue(tokenResponsetokenNetworkResponseVariable, 0)
 	tokenNetworkResponse := GetValue(tokenResponsetokenNetworkResponseVariable, 1)
 	var tokenRows []any = SafeListTyped(tokenResponse, "rows")
@@ -2418,9 +2418,8 @@ func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes193919 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes193919)
-		ch <- retRes193919
+		var retRes193919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes193919)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3196,9 +3195,8 @@ func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes263619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes263619)
-		ch <- retRes263619
+		var retRes263619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes263619)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3321,7 +3319,7 @@ func (this *Woo) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1721295317627
 	//     }
 	//
-	mainAccountResponsesubAccountResponseVariable := (<-promiseAll([]any{mainAccountPromise, subAccountPromise}))
+	var mainAccountResponsesubAccountResponseVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{mainAccountPromise, subAccountPromise}))))
 	mainAccountResponse := GetValue(mainAccountResponsesubAccountResponseVariable, 0)
 	subAccountResponse := GetValue(mainAccountResponsesubAccountResponseVariable, 1)
 	var mainData map[string]any = MapTyped(this.SafeDict(mainAccountResponse, "data", map[string]any{}))
@@ -4456,9 +4454,8 @@ func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes363319 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes363319)
-		ch <- retRes363319
+		var retRes363319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes363319)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -4744,9 +4741,8 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes385519 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-		PanicOnError(retRes385519)
-		ch <- retRes385519
+		var retRes385519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))))
+		ch <- BoxAbsent(retRes385519)
 		return nil
 	}
 	if symbol == nil {
@@ -4983,9 +4979,7 @@ func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 	}
 	if (symbol == nil) || (IsEqual(this.SafeBool(market, "spot"), true)) {
 
-		retRes410319 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params))).Raw
-		PanicOnError(retRes410319)
-		ch <- retRes410319
+		ch <- PanicOnError((<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params))).Raw)
 		return nil
 	} else if IsEqual(this.SafeBool(market, "swap"), true) {
 		request["symbol"] = this.SafeString(market, "id")
@@ -4995,9 +4989,7 @@ func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		request["marginMode"] = this.EncodeMarginMode(marginMode)
 
-		retRes410919 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params))).Raw
-		PanicOnError(retRes410919)
-		ch <- retRes410919
+		ch <- PanicOnError((<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params))).Raw)
 		return nil
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" fetchLeverage() is not supported for ", this.SafeString(market, "type")), " markets")))
@@ -5079,9 +5071,7 @@ func (this *Woo) modifyMarginHelperBody(ch chan any, symbol any, amount any, typ
 		"action":        typeVar,
 	}
 
-	retRes415615 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params))).Raw
-	PanicOnError(retRes415615)
-	ch <- retRes415615
+	ch <- PanicOnError((<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params))).Raw)
 	return nil
 }
 

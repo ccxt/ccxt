@@ -3908,9 +3908,8 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes272019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 200))
-		PanicOnError(retRes272019)
-		ch <- retRes272019
+		var retRes272019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 200))))
+		ch <- BoxAbsent(retRes272019)
 		return nil
 	}
 	var priceType *string = this.SafeString(params, "price")
@@ -4064,9 +4063,8 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes283019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-		PanicOnError(retRes283019)
-		ch <- retRes283019
+		var retRes283019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))))
+		ch <- BoxAbsent(retRes283019)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))

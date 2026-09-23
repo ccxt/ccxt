@@ -1222,7 +1222,7 @@ func (this *Coinbase) fetchTransactionsWithMethodBody(ch chan any, method any, o
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var request any = nil
-	requestparamsVariable := (<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, params))
+	var requestparamsVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, params))))
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	if this.Markets == nil {
@@ -3331,7 +3331,7 @@ func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = MapTyped(this.Currency(code))
 	}
 	var request any = nil
-	requestparamsVariable := (<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, params))
+	var requestparamsVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, params))))
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	// for pagination use parameter 'starting_after'
@@ -4915,9 +4915,8 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes391919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit-1))
-		PanicOnError(retRes391919)
-		ch <- retRes391919
+		var retRes391919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit-1))))
+		ch <- BoxAbsent(retRes391919)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -5462,7 +5461,7 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code any, 
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request any = nil
-	requestparamsVariable := (<-this.PrepareAccountRequestWithCurrencyCodeAsync(currency["code"], nil, params))
+	var requestparamsVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(currency["code"], nil, params))))
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 

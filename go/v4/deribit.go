@@ -1988,9 +1988,8 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes150219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))
-		PanicOnError(retRes150219)
-		ch <- retRes150219
+		var retRes150219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))))
+		ch <- BoxAbsent(retRes150219)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4244,9 +4243,8 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 			"isDeribitPaginationCall": true,
 		})
 
-		retRes332819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest))
-		PanicOnError(retRes332819)
-		ch <- retRes332819
+		var retRes332819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest))))
+		ch <- BoxAbsent(retRes332819)
 		return nil
 	}
 	var duration int64 = this.ParseTimeframe(eachItemDuration) * 1000

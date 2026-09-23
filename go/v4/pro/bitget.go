@@ -190,9 +190,7 @@ func (this *Bitget) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	args[topicOrChannel] = "ticker"
 	args[symbolOrInstId] = market["id"]
 
-	retRes15515 := (<-this.WatchPublicAsync(uta, messageHash, args, params))
-	ccxt.PanicOnError(retRes15515)
-	ch <- retRes15515
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(uta, messageHash, args, params)))
 	return nil
 }
 
@@ -217,9 +215,7 @@ func (this *Bitget) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes16915 := (<-this.UnWatchChannelAsync(symbol, "ticker", "ticker", "watchTicker", params))
-	ccxt.PanicOnError(retRes16915)
-	ch <- retRes16915
+	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(symbol, "ticker", "ticker", "watchTicker", params)))
 	return nil
 }
 
@@ -765,9 +761,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		messageHash = ccxt.Add("candles:", interval)
 	}
 
-	retRes59215 := (<-this.UnWatchChannelAsync(symbol, channel, messageHash, "watchOHLCV", params))
-	ccxt.PanicOnError(retRes59215)
-	ch <- retRes59215
+	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(symbol, channel, messageHash, "watchOHLCV", params)))
 	return nil
 }
 func (this *Bitget) HandleOHLCV(client any, message any) {
@@ -938,9 +932,7 @@ func (this *Bitget) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes74715 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes74715)
-	ch <- retRes74715
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -978,9 +970,7 @@ func (this *Bitget) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		channel += ccxt.ToString(limit)
 	}
 
-	retRes77315 := (<-this.UnWatchChannelAsync(symbol, channel, "orderbook", "watchOrderBook", params))
-	ccxt.PanicOnError(retRes77315)
-	ch <- retRes77315
+	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(symbol, channel, "orderbook", "watchOrderBook", params)))
 	return nil
 }
 func (this *Bitget) UnWatchChannelAsync(symbol any, channel any, messageHashTopic any, methodName any, optionalArgs ...any) <-chan any {
@@ -1023,9 +1013,7 @@ func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, mes
 		args["instId"] = market["id"]
 	}
 
-	retRes79915 := (<-this.UnWatchPublicAsync(uta, messageHash, args, params))
-	ccxt.PanicOnError(retRes79915)
-	ch <- retRes79915
+	ch <- ccxt.PanicOnError((<-this.UnWatchPublicAsync(uta, messageHash, args, params)))
 	return nil
 }
 
@@ -1298,9 +1286,7 @@ func (this *Bitget) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes101515 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes101515)
-	ch <- retRes101515
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -1441,9 +1427,7 @@ func (this *Bitget) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		return "trade"
 	}()
 
-	retRes109415 := (<-this.UnWatchChannelAsync(symbol, channelTopic, "trade", "watchTrades", params))
-	ccxt.PanicOnError(retRes109415)
-	ch <- retRes109415
+	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(symbol, channelTopic, "trade", "watchTrades", params)))
 	return nil
 }
 func (this *Bitget) HandleTrades(client any, message map[string]any) {
@@ -2886,9 +2870,7 @@ func (this *Bitget) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}()
 	var messageHash string = "balance:" + instTypeLower
 
-	retRes233515 := (<-this.WatchPrivateAsync(uta, messageHash, messageHash, args, params))
-	ccxt.PanicOnError(retRes233515)
-	ch <- retRes233515
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(uta, messageHash, messageHash, args, params)))
 	return nil
 }
 func (this *Bitget) HandleBalance(client any, message map[string]any) {
@@ -3083,9 +3065,7 @@ func (this *Bitget) watchPublicBody(ch chan any, uta any, messageHash any, args 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes250115 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes250115)
-	ch <- retRes250115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Bitget) UnWatchPublicAsync(uta any, messageHash any, args any, optionalArgs ...any) <-chan any {
@@ -3121,9 +3101,7 @@ func (this *Bitget) unWatchPublicBody(ch chan any, uta any, messageHash any, arg
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes252215 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes252215)
-	ch <- retRes252215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Bitget) WatchPublicMultipleAsync(uta any, messageHashes any, argsArray any, optionalArgs ...any) <-chan any {
@@ -3161,9 +3139,7 @@ func (this *Bitget) watchPublicMultipleBody(ch chan any, uta any, messageHashes 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes254015 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-	ccxt.PanicOnError(retRes254015)
-	ch <- retRes254015
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes)))
 	return nil
 }
 func (this *Bitget) AuthenticateAsync(optionalArgs ...any) <-chan any {
@@ -3200,9 +3176,7 @@ func (this *Bitget) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	retRes256915 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes256915)
-	ch <- retRes256915
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Bitget) WatchPrivateAsync(uta any, messageHash any, subscriptionHash any, args any, optionalArgs ...any) <-chan any {
@@ -3242,9 +3216,7 @@ func (this *Bitget) watchPrivateBody(ch chan any, uta any, messageHash any, subs
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes259115 := (<-this.Watch(url, messageHash, message, subscriptionHash))
-	ccxt.PanicOnError(retRes259115)
-	ch <- retRes259115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, subscriptionHash)))
 	return nil
 }
 func (this *Bitget) HandleAuthenticate(client any, message any) {

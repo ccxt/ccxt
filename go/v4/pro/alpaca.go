@@ -108,9 +108,7 @@ func (this *Alpaca) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		"quotes": []any{market["id"]},
 	}
 
-	retRes8815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes8815)
-	ch <- retRes8815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 func (this *Alpaca) HandleTicker(client any, message map[string]any) {
@@ -780,9 +778,7 @@ func (this *Alpaca) authenticateBody(ch chan any, url any, optionalArgs ...any) 
 		this.Watch(url, messageHash, request, messageHash, future)
 	}
 
-	retRes64715 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes64715)
-	ch <- retRes64715
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Alpaca) HandleErrorMessage(client any, message map[string]any) any {

@@ -198,9 +198,7 @@ func (this *Extended) watchPrivateBody(ch chan any, messageHash any, optionalArg
 		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "options", originalOptions)
 	}
 
-	retRes16715 := (<-this.Watch(url, messageHash, nil, messageHash, subscription))
-	ccxt.PanicOnError(retRes16715)
-	ch <- retRes16715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash, subscription)))
 	return nil
 }
 
@@ -278,9 +276,7 @@ func (this *Extended) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	retRes21315 := (<-this.WatchPrivateAsync("balance", params))
-	ccxt.PanicOnError(retRes21315)
-	ch <- retRes21315
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync("balance", params)))
 	return nil
 }
 func (this *Extended) HandleBalance(client any, message any) {

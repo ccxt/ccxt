@@ -413,9 +413,7 @@ func (this *Hyperliquid) unWatchOrderBookBody(ch chan any, symbol any, optionalA
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes28115 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes28115)
-	ch <- retRes28115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
@@ -510,9 +508,7 @@ func (this *Hyperliquid) watchTickerBody(ch chan any, symbol any, optionalArgs .
 		},
 	}
 
-	retRes36315 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes36315)
-	ch <- retRes36315
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 
@@ -557,9 +553,7 @@ func (this *Hyperliquid) unWatchTickerBody(ch chan any, symbol any, optionalArgs
 		},
 	}
 
-	retRes39115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes39115)
-	ch <- retRes39115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 
@@ -662,9 +656,7 @@ func (this *Hyperliquid) unWatchTickersBody(ch chan any, optionalArgs ...any) an
 		},
 	}
 
-	retRes46215 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes46215)
-	ch <- retRes46215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 
@@ -777,9 +769,7 @@ func (this *Hyperliquid) unWatchMyTradesBody(ch chan any, optionalArgs ...any) a
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes54115 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes54115)
-	ch <- retRes54115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) any {
@@ -1023,9 +1013,7 @@ func (this *Hyperliquid) unWatchTradesBody(ch chan any, symbol any, optionalArgs
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes74215 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes74215)
-	ch <- retRes74215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
@@ -1250,9 +1238,7 @@ func (this *Hyperliquid) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	var messagehash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var message map[string]any = this.Extend(request, params)
 
-	retRes91515 := (<-this.Watch(url, messagehash, message, messagehash))
-	ccxt.PanicOnError(retRes91515)
-	ch <- retRes91515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messagehash, message, messagehash)))
 	return nil
 }
 func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
@@ -1374,9 +1360,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes101915 := (<-this.Watch(url, messageHash, message, topic))
-	ccxt.PanicOnError(retRes101915)
-	ch <- retRes101915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, topic)))
 	return nil
 }
 
@@ -1434,9 +1418,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan any, optionalArgs ...any) an
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes105715 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes105715)
-	ch <- retRes105715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
@@ -1753,9 +1735,7 @@ func (this *Hyperliquid) unWatchPositionsBody(ch chan any, optionalArgs ...any) 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes132815 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes132815)
-	ch <- retRes132815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 
@@ -1876,9 +1856,7 @@ func (this *Hyperliquid) unWatchOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes141515 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes141515)
-	ch <- retRes141515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Hyperliquid) HandleOrder(client any, message map[string]any) {

@@ -2017,9 +2017,7 @@ func (this *Gate) upgradeUnifiedTradeAccountBody(ch chan any, optionalArgs ...an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes127415 := (<-this.PrivateUnifiedPutUnifiedMode(params))
-	PanicOnError(retRes127415)
-	ch <- retRes127415
+	ch <- PanicOnError((<-this.PrivateUnifiedPutUnifiedMode(params)))
 	return nil
 }
 
@@ -2214,7 +2212,7 @@ func (this *Gate) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var marginPromise any = EndpointRaw(this.PublicMarginGetCurrencyPairs(params))
 	var spotMarketsPromise any = EndpointRaw(this.PublicSpotGetCurrencyPairs(params))
-	marginResponsespotMarketsResponseVariable := (<-promiseAll([]any{marginPromise, spotMarketsPromise}))
+	var marginResponsespotMarketsResponseVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{marginPromise, spotMarketsPromise}))))
 	marginResponse := GetValue(marginResponsespotMarketsResponseVariable, 0)
 	spotMarketsResponse := GetValue(marginResponsespotMarketsResponseVariable, 1)
 	var marginMarkets map[string]any = this.IndexBy(marginResponse, "id")
@@ -4735,9 +4733,8 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		retRes348719 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-		PanicOnError(retRes348719)
-		ch <- retRes348719
+		var retRes348719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
+		ch <- BoxAbsent(retRes348719)
 		return nil
 	}
 	if GetValue(market, "option") == true {
@@ -4889,9 +4886,8 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		retRes357619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-		PanicOnError(retRes357619)
-		ch <- retRes357619
+		var retRes357619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
+		ch <- BoxAbsent(retRes357619)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -9589,9 +9585,8 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan any, symbol any, optional
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes735319 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 100))
-		PanicOnError(retRes735319)
-		ch <- retRes735319
+		var retRes735319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 100))))
+		ch <- BoxAbsent(retRes735319)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -10270,9 +10265,7 @@ func (this *Gate) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	query := GetValue(requestqueryVariable, 1)
 	AddElementToObject(request, "dual_mode", hedged)
 
-	retRes791515 := (<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query))).Raw
-	PanicOnError(retRes791515)
-	ch <- retRes791515
+	ch <- PanicOnError((<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query))).Raw)
 	return nil
 }
 

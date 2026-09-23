@@ -1733,9 +1733,8 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes121619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-		PanicOnError(retRes121619)
-		ch <- retRes121619
+		var retRes121619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
+		ch <- BoxAbsent(retRes121619)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -2526,9 +2525,8 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes187619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-		PanicOnError(retRes187619)
-		ch <- retRes187619
+		var retRes187619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
+		ch <- BoxAbsent(retRes187619)
 		return nil
 	}
 	var request any = map[string]any{
@@ -2640,9 +2638,8 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes195519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingHistory", symbol, since, limit, "24h", params))
-		PanicOnError(retRes195519)
-		ch <- retRes195519
+		var retRes195519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingHistory", symbol, since, limit, "24h", params))))
+		ch <- BoxAbsent(retRes195519)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -6609,15 +6606,11 @@ func (this *Bingx) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	if IsEqual(subType, "inverse") {
 
-		retRes582219 := (<-this.CswapV1PrivatePostTradeMarginType(this.Extend(request, params))).Raw
-		PanicOnError(retRes582219)
-		ch <- retRes582219
+		ch <- PanicOnError((<-this.CswapV1PrivatePostTradeMarginType(this.Extend(request, params))).Raw)
 		return nil
 	} else {
 
-		retRes582419 := (<-this.SwapV2PrivatePostTradeMarginType(this.Extend(request, params))).Raw
-		PanicOnError(retRes582419)
-		ch <- retRes582419
+		ch <- PanicOnError((<-this.SwapV2PrivatePostTradeMarginType(this.Extend(request, params))).Raw)
 		return nil
 	}
 }
@@ -6867,15 +6860,11 @@ func (this *Bingx) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	}
 	if GetValue(market, "inverse") == true {
 
-		retRes603519 := (<-this.CswapV1PrivatePostTradeLeverage(this.Extend(request, params))).Raw
-		PanicOnError(retRes603519)
-		ch <- retRes603519
+		ch <- PanicOnError((<-this.CswapV1PrivatePostTradeLeverage(this.Extend(request, params))).Raw)
 		return nil
 	} else {
 
-		retRes605319 := (<-this.SwapV2PrivatePostTradeLeverage(this.Extend(request, params))).Raw
-		PanicOnError(retRes605319)
-		ch <- retRes605319
+		ch <- PanicOnError((<-this.SwapV2PrivatePostTradeLeverage(this.Extend(request, params))).Raw)
 		return nil
 	}
 }
@@ -7578,8 +7567,6 @@ func (this *Bingx) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 		"dualSidePosition": dualSidePosition,
 	}
 
-	retRes672315 := (<-this.SwapV1PrivatePostPositionSideDual(this.Extend(request, params))).Raw
-	PanicOnError(retRes672315)
 	//
 	//     {
 	//         code: '0',
@@ -7588,7 +7575,7 @@ func (this *Bingx) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	//         data: { dualSidePosition: 'false' }
 	//     }
 	//
-	ch <- retRes672315
+	ch <- PanicOnError((<-this.SwapV1PrivatePostPositionSideDual(this.Extend(request, params))).Raw)
 	return nil
 }
 

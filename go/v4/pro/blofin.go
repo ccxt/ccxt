@@ -109,9 +109,7 @@ func (this *Blofin) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
 
-	retRes9415 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes9415)
-	ch <- retRes9415
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -221,9 +219,7 @@ func (this *Blofin) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchOrderBook")
 
-	retRes17315 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes17315)
-	ch <- retRes17315
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -677,9 +673,7 @@ func (this *Blofin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var request any = this.GetSubscriptionRequest([]any{sub})
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "private")
 
-	retRes49415 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-	ccxt.PanicOnError(retRes49415)
-	ch <- retRes49415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)))
 	return nil
 }
 func (this *Blofin) HandleBalance(client any, message map[string]any) {
@@ -740,9 +734,7 @@ func (this *Blofin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return []any{}
 	}()
 
-	retRes53515 := (<-this.WatchOrdersForSymbolsAsync(symbolsArray, since, limit, params))
-	ccxt.PanicOnError(retRes53515)
-	ch <- retRes53515
+	ch <- ccxt.PanicOnError((<-this.WatchOrdersForSymbolsAsync(symbolsArray, since, limit, params)))
 	return nil
 }
 
@@ -954,9 +946,7 @@ func (this *Blofin) watchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	var request any = this.GetSubscriptionRequest([]any{requestParams})
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "public")
 
-	retRes67615 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-	ccxt.PanicOnError(retRes67615)
-	ch <- retRes67615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)))
 	return nil
 }
 func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
@@ -1072,9 +1062,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 	}()
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), privateOrPublic)
 
-	retRes76215 := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
-	ccxt.PanicOnError(retRes76215)
-	ch <- retRes76215
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes)))
 	return nil
 }
 func (this *Blofin) GetSubscriptionRequest(args any) any {

@@ -111,9 +111,7 @@ func (this *Woo) watchPublicBody(ch chan any, messageHash any, message any) any 
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	retRes9415 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
-	ccxt.PanicOnError(retRes9415)
-	ch <- retRes9415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscribe)))
 	return nil
 }
 func (this *Woo) UnwatchPublicAsync(subHash any, symbol any, topic any, optionalArgs ...any) <-chan any {
@@ -154,9 +152,7 @@ func (this *Woo) unwatchPublicBody(ch chan any, subHash any, symbol any, topic a
 		params = ccxt.MapTyped(this.Omit(params, "symbolsAndTimeframes"))
 	}
 
-	retRes12015 := (<-this.Watch(url, unsubHash, this.Extend(message, params), unsubHash, subscription))
-	ccxt.PanicOnError(retRes12015)
-	ch <- retRes12015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, unsubHash, this.Extend(message, params), unsubHash, subscription)))
 	return nil
 }
 
@@ -256,9 +252,7 @@ func (this *Woo) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var subHash any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var topic string = "orderbook"
 
-	retRes18415 := (<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params))
-	ccxt.PanicOnError(retRes18415)
-	ch <- retRes18415
+	ch <- ccxt.PanicOnError((<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params)))
 	return nil
 }
 func (this *Woo) HandleOrderBook(client any, message map[string]any) {
@@ -478,9 +472,7 @@ func (this *Woo) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes35615 := (<-this.WatchPublicAsync(topic, message))
-	ccxt.PanicOnError(retRes35615)
-	ch <- retRes35615
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message)))
 	return nil
 }
 
@@ -514,9 +506,7 @@ func (this *Woo) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	var subHash any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var topic string = "ticker"
 
-	retRes37615 := (<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params))
-	ccxt.PanicOnError(retRes37615)
-	ch <- retRes37615
+	ch <- ccxt.PanicOnError((<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params)))
 	return nil
 }
 func (this *Woo) ParseWsTicker(ticker any, optionalArgs ...any) any {
@@ -659,9 +649,7 @@ func (this *Woo) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var topic string = "ticker"
 	var subHash string = "tickers"
 
-	retRes48915 := (<-this.UnwatchPublicAsync(subHash, nil, topic, params))
-	ccxt.PanicOnError(retRes48915)
-	ch <- retRes48915
+	ch <- ccxt.PanicOnError((<-this.UnwatchPublicAsync(subHash, nil, topic, params)))
 	return nil
 }
 func (this *Woo) HandleTickers(client any, message map[string]any) {
@@ -787,9 +775,7 @@ func (this *Woo) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var subHash string = "bbos"
 	var topic string = "bidsasks"
 
-	retRes58215 := (<-this.UnwatchPublicAsync(subHash, nil, topic, params))
-	ccxt.PanicOnError(retRes58215)
-	ch <- retRes58215
+	ch <- ccxt.PanicOnError((<-this.UnwatchPublicAsync(subHash, nil, topic, params)))
 	return nil
 }
 func (this *Woo) HandleBidAsk(client any, message map[string]any) {
@@ -937,9 +923,7 @@ func (this *Woo) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var subHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@"), name), "_"), interval)
 	ccxt.AddElementToObject(params, "symbolsAndTimeframes", []any{[]any{market["symbol"], timeframe}})
 
-	retRes69615 := (<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params))
-	ccxt.PanicOnError(retRes69615)
-	ch <- retRes69615
+	ch <- ccxt.PanicOnError((<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params)))
 	return nil
 }
 func (this *Woo) HandleOHLCV(client any, message map[string]any) {
@@ -1057,9 +1041,7 @@ func (this *Woo) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var topic string = "trades"
 	var subHash any = ccxt.Add(market["id"], "@trade")
 
-	retRes79215 := (<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params))
-	ccxt.PanicOnError(retRes79215)
-	ch <- retRes79215
+	ch <- ccxt.PanicOnError((<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params)))
 	return nil
 }
 func (this *Woo) HandleTrade(client any, message map[string]any) {
@@ -1224,9 +1206,7 @@ func (this *Woo) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, message, messageHash, message)
 	}
 
-	retRes93915 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes93915)
-	ch <- retRes93915
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 func (this *Woo) WatchPrivateAsync(messageHash any, message any, optionalArgs ...any) <-chan any {
@@ -1248,9 +1228,7 @@ func (this *Woo) watchPrivateBody(ch chan any, messageHash any, message any, opt
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	retRes95015 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
-	ccxt.PanicOnError(retRes95015)
-	ch <- retRes95015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscribe)))
 	return nil
 }
 func (this *Woo) WatchPrivateMultipleAsync(messageHashes any, message any, optionalArgs ...any) <-chan any {
@@ -1272,9 +1250,7 @@ func (this *Woo) watchPrivateMultipleBody(ch chan any, messageHashes any, messag
 	}
 	var request map[string]any = this.Extend(subscribe, message)
 
-	retRes96115 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe))
-	ccxt.PanicOnError(retRes96115)
-	ch <- retRes96115
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe)))
 	return nil
 }
 
@@ -1844,9 +1820,7 @@ func (this *Woo) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes143615 := (<-this.WatchPrivateAsync(messageHash, message))
-	ccxt.PanicOnError(retRes143615)
-	ch <- retRes143615
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, message)))
 	return nil
 }
 func (this *Woo) HandleBalance(client any, message map[string]any) {
@@ -1938,9 +1912,7 @@ func (this *Woo) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes151715 := (<-this.WatchPublicAsync(topic, message))
-	ccxt.PanicOnError(retRes151715)
-	ch <- retRes151715
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message)))
 	return nil
 }
 func (this *Woo) HandleFundingRate(client any, message map[string]any) {

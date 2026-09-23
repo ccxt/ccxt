@@ -1739,9 +1739,8 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes136819 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-		PanicOnError(retRes136819)
-		ch <- retRes136819
+		var retRes136819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
+		ch <- BoxAbsent(retRes136819)
 		return nil
 	}
 	var request any = map[string]any{
@@ -3921,9 +3920,7 @@ func (this *Bullish) handleTokenBody(ch chan any, optionalArgs ...any) any {
 	var tokenExpires *int64 = this.SafeInteger(this.Options, "tokenExpires")
 	if (token == nil) || (tokenExpires == nil) || (now > *tokenExpires) {
 
-		retRes306319 := (<-this.SignInAsync())
-		PanicOnError(retRes306319)
-		ch <- retRes306319
+		ch <- PanicOnError((<-this.SignInAsync()))
 		return nil
 	} else {
 

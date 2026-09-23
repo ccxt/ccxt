@@ -2835,15 +2835,13 @@ func (this *Aster) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 		"dualSidePosition": strValue,
 	}
 
-	retRes217815 := (<-this.FapiPrivatePostV3PositionSideDual(this.Extend(request, params))).Raw
-	PanicOnError(retRes217815)
 	//
 	//     {
 	//         "code": 200,
 	//         "msg": "success"
 	//     }
 	//
-	ch <- retRes217815
+	ch <- PanicOnError((<-this.FapiPrivatePostV3PositionSideDual(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Aster) ParseTradingFee(fee any, optionalArgs ...any) any {

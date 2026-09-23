@@ -119,9 +119,7 @@ func (this *Mexc) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	if ccxt.GetValue(market, "spot") == true {
 		var channel any = ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"])
 
-		retRes10219 := (<-this.WatchSpotPublicAsync(channel, messageHash, params))
-		ccxt.PanicOnError(retRes10219)
-		ch <- retRes10219
+		ch <- ccxt.PanicOnError((<-this.WatchSpotPublicAsync(channel, messageHash, params)))
 		return nil
 	} else {
 		var channel string = "sub.ticker"
@@ -129,9 +127,7 @@ func (this *Mexc) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 			"symbol": market["id"],
 		}
 
-		retRes10819 := (<-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params))
-		ccxt.PanicOnError(retRes10819)
-		ch <- retRes10819
+		ch <- ccxt.PanicOnError((<-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params)))
 		return nil
 	}
 }
@@ -588,9 +584,7 @@ func (this *Mexc) watchSpotPublicBody(ch chan any, channel any, messageHash any,
 		"params": []any{channel},
 	}
 
-	retRes51715 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes51715)
-	ch <- retRes51715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 func (this *Mexc) WatchSpotPrivateAsync(channel any, messageHash any, optionalArgs ...any) <-chan any {
@@ -613,9 +607,7 @@ func (this *Mexc) watchSpotPrivateBody(ch chan any, channel any, messageHash any
 		"params": []any{channel},
 	}
 
-	retRes52815 := (<-this.Watch(url, messageHash, this.Extend(request, params), channel))
-	ccxt.PanicOnError(retRes52815)
-	ch <- retRes52815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), channel)))
 	return nil
 }
 func (this *Mexc) WatchSwapPublicAsync(channel any, messageHash any, requestParams any, optionalArgs ...any) <-chan any {
@@ -635,9 +627,7 @@ func (this *Mexc) watchSwapPublicBody(ch chan any, channel any, messageHash any,
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes53815 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes53815)
-	ch <- retRes53815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Mexc) WatchSwapPrivateAsync(messageHash any, optionalArgs ...any) <-chan any {
@@ -666,9 +656,7 @@ func (this *Mexc) watchSwapPrivateBody(ch chan any, messageHash any, optionalArg
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes55715 := (<-this.Watch(url, messageHash, message, channel))
-	ccxt.PanicOnError(retRes55715)
-	ch <- retRes55715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, channel)))
 	return nil
 }
 
@@ -1835,15 +1823,11 @@ func (this *Mexc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(typeVar, "spot") {
 		var channel string = "spot@private.account.v3.api.pb"
 
-		retRes158119 := (<-this.WatchSpotPrivateAsync(channel, messageHash, params))
-		ccxt.PanicOnError(retRes158119)
-		ch <- retRes158119
+		ch <- ccxt.PanicOnError((<-this.WatchSpotPrivateAsync(channel, messageHash, params)))
 		return nil
 	} else {
 
-		retRes158319 := (<-this.WatchSwapPrivateAsync(messageHash, params))
-		ccxt.PanicOnError(retRes158319)
-		ch <- retRes158319
+		ch <- ccxt.PanicOnError((<-this.WatchSwapPrivateAsync(messageHash, params)))
 		return nil
 	}
 }
@@ -1941,9 +1925,7 @@ func (this *Mexc) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": market["id"],
 	}
 
-	retRes166515 := (<-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params))
-	ccxt.PanicOnError(retRes166515)
-	ch <- retRes166515
+	ch <- ccxt.PanicOnError((<-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params)))
 	return nil
 }
 

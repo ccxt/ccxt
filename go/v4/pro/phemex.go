@@ -367,9 +367,7 @@ func (this *Phemex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		return ccxt.Add(typeVar, messageHash)
 	}()
 
-	retRes33115 := (<-this.SubscribePrivateAsync(typeVar, messageHash, params))
-	ccxt.PanicOnError(retRes33115)
-	ch <- retRes33115
+	ch <- ccxt.PanicOnError((<-this.SubscribePrivateAsync(typeVar, messageHash, params)))
 	return nil
 }
 func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
@@ -599,9 +597,7 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	retRes54715 := (<-this.Watch(url, messageHash, request, subscriptionHash))
-	ccxt.PanicOnError(retRes54715)
-	ch <- retRes54715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash)))
 	return nil
 }
 
@@ -1822,9 +1818,7 @@ func (this *Phemex) subscribePrivateBody(ch chan any, typeVar any, messageHash a
 	}
 	request = this.Extend(request, params)
 
-	retRes159015 := (<-this.Watch(url, messageHash, request, channel))
-	ccxt.PanicOnError(retRes159015)
-	ch <- retRes159015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, channel)))
 	return nil
 }
 func (this *Phemex) AuthenticateAsync(optionalArgs ...any) <-chan any {

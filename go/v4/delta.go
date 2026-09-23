@@ -3796,8 +3796,6 @@ func (this *Delta) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 		"leverage":   leverage,
 	}
 
-	retRes319615 := (<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes319615)
 	//
 	//     {
 	//         "result": {
@@ -3809,7 +3807,7 @@ func (this *Delta) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	//         "success": true
 	//     }
 	//
-	ch <- retRes319615
+	ch <- PanicOnError((<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -4335,9 +4333,7 @@ func (this *Delta) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 		"margin_mode": marginMode,
 	}
 
-	retRes364715 := (<-this.PrivatePutUsersMarginMode(this.Extend(request, params))).Raw
-	PanicOnError(retRes364715)
-	ch <- retRes364715
+	ch <- PanicOnError((<-this.PrivatePutUsersMarginMode(this.Extend(request, params))).Raw)
 	return nil
 }
 

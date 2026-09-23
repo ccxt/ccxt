@@ -98,9 +98,7 @@ func (this *P2b) subscribeBody(ch chan any, name any, messageHash any, request a
 	}
 	var query map[string]any = this.Extend(subscribe, params)
 
-	retRes8115 := (<-this.Watch(url, messageHash, query, messageHash))
-	ccxt.PanicOnError(retRes8115)
-	ch <- retRes8115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, query, messageHash)))
 	return nil
 }
 
@@ -192,9 +190,7 @@ func (this *P2b) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	var request []string = ccxt.ObjectKeys(tickerSubs)
 	var messageHash any = ccxt.Add(ccxt.Add(name, "::"), market["symbol"])
 
-	retRes14215 := (<-this.SubscribeAsync(ccxt.Add(name, ".subscribe"), messageHash, request, params))
-	ccxt.PanicOnError(retRes14215)
-	ch <- retRes14215
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync(ccxt.Add(name, ".subscribe"), messageHash, request, params)))
 	return nil
 }
 
@@ -277,9 +273,7 @@ func (this *P2b) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes19315 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes19315)
-	ch <- retRes19315
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 

@@ -4129,9 +4129,8 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		retRes300019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-		PanicOnError(retRes300019)
-		ch <- retRes300019
+		var retRes300019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
+		ch <- BoxAbsent(retRes300019)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))

@@ -201,9 +201,7 @@ func (this *Toobit) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes17415 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes17415)
-	ch <- retRes17415
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -672,9 +670,7 @@ func (this *Toobit) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes53915 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes53915)
-	ch <- retRes53915
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -905,9 +901,7 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	this.SetBalanceCache(client, marketType, subscriptionHash, params)
 	client.(ccxt.ClientInterface).Future(typeVar + ":fetchBalanceSnapshot")
 
-	retRes71715 := (<-this.Watch(url, messageHash, params, subscriptionHash))
-	ccxt.PanicOnError(retRes71715)
-	ch <- retRes71715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, params, subscriptionHash)))
 	return nil
 }
 func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...any) {

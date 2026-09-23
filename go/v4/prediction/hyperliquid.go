@@ -2252,8 +2252,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	var outcomeHandle any = nil
 	if outcome != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(outcomeObj)
+		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 		outcomeHandle = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	} else {
 		// fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
@@ -2778,9 +2777,7 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan any, builder any, maxFeeR
 		"vaultAddress": nil,
 	}
 
-	retRes218215 := (<-this.PrivatePostExchange(request)).Raw
-	ccxt.PanicOnError(retRes218215)
-	ch <- retRes218215
+	ch <- ccxt.PanicOnError((<-this.PrivatePostExchange(request)).Raw)
 	return nil
 }
 func (this *Hyperliquid) InitializeClientAsync() <-chan any {

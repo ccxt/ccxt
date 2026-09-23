@@ -317,9 +317,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
 	}
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType), "/"), tail)
 
-	retRes23515 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-	ccxt.PanicOnError(retRes23515)
-	ch <- retRes23515
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
 	return nil
 }
 
@@ -418,9 +416,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access a
 		subscriptionParams = ccxt.MapTyped(this.Omit(subscriptionParams, "symbolsAndTimeframes"))
 	}
 
-	retRes29815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, this.Extend(subscription, subscriptionParams)))
-	ccxt.PanicOnError(retRes29815)
-	ch <- retRes29815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, this.Extend(subscription, subscriptionParams))))
 	return nil
 }
 
@@ -455,9 +451,7 @@ func (this *Xt) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) an
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	var name any = ccxt.Add(*method+"@", market["id"])
 
-	retRes32115 := (<-this.SubscribeAsync(name, "public", "watchTicker", market, nil, params))
-	ccxt.PanicOnError(retRes32115)
-	ch <- retRes32115
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync(name, "public", "watchTicker", market, nil, params)))
 	return nil
 }
 
@@ -493,9 +487,7 @@ func (this *Xt) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	var name any = ccxt.Add(*method+"@", market["id"])
 	var messageHash any = ccxt.Add("unsubscribe::", name)
 
-	retRes34515 := (<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchTicker", defaultMethod, market, nil, params))
-	ccxt.PanicOnError(retRes34515)
-	ch <- retRes34515
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchTicker", defaultMethod, market, nil, params)))
 	return nil
 }
 
@@ -750,9 +742,7 @@ func (this *Xt) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var name any = ccxt.Add("trade@", market["id"])
 	var messageHash any = ccxt.Add("unsubscribe::", name)
 
-	retRes49615 := (<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchTrades", "trades", market, []any{symbol}, params))
-	ccxt.PanicOnError(retRes49615)
-	ch <- retRes49615
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchTrades", "trades", market, []any{symbol}, params)))
 	return nil
 }
 
@@ -836,9 +826,7 @@ func (this *Xt) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var messageHash any = ccxt.Add("unsubscribe::", name)
 
-	retRes55315 := (<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, []any{symbol}, params))
-	ccxt.PanicOnError(retRes55315)
-	ch <- retRes55315
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, []any{symbol}, params)))
 	return nil
 }
 
@@ -963,9 +951,7 @@ func (this *Xt) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var name string = "balance"
 
-	retRes62615 := (<-this.SubscribeAsync(name, "private", "watchBalance", nil, nil, params))
-	ccxt.PanicOnError(retRes62615)
-	ch <- retRes62615
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync(name, "private", "watchBalance", nil, nil, params)))
 	return nil
 }
 
@@ -1057,9 +1043,7 @@ func (this *Xt) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var name any = ccxt.Add("fund_rate@", market["id"])
 
-	retRes68015 := (<-this.SubscribeAsync(name, "public", "watchFundingRate", market, nil, params))
-	ccxt.PanicOnError(retRes68015)
-	ch <- retRes68015
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync(name, "public", "watchFundingRate", market, nil, params)))
 	return nil
 }
 
@@ -1093,9 +1077,7 @@ func (this *Xt) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	var name any = ccxt.Add("fund_rate@", market["id"])
 	var messageHash any = ccxt.Add("unsubscribe::", name)
 
-	retRes70215 := (<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, nil, params))
-	ccxt.PanicOnError(retRes70215)
-	ch <- retRes70215
+	ch <- ccxt.PanicOnError((<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, nil, params)))
 	return nil
 }
 func (this *Xt) HandleFundingRate(client any, message map[string]any) any {

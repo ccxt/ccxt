@@ -1300,7 +1300,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var v1ProductsPromise any = EndpointRaw(this.V1GetExchangePublicProducts(params))
-	v2Productsv1ProductsVariable := (<-promiseAll([]any{v2ProductsPromise, v1ProductsPromise}))
+	var v2Productsv1ProductsVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{v2ProductsPromise, v1ProductsPromise}))))
 	v2Products := GetValue(v2Productsv1ProductsVariable, 0)
 	v1Products := GetValue(v2Productsv1ProductsVariable, 1)
 	var v1ProductsData []any = SafeListTyped(v1Products, "data")
@@ -5389,9 +5389,7 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 			return Precise.StringAbs(currentLeverage)
 		}()
 
-		retRes455419 := (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params))).Raw
-		PanicOnError(retRes455419)
-		ch <- retRes455419
+		ch <- PanicOnError((<-this.PrivatePutGPositionsLeverage(this.Extend(request, params))).Raw)
 		return nil
 	}
 	var leverage any = DerefScalar(this.SafeInteger(params, "leverage"))
@@ -5403,9 +5401,7 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	}
 	request["leverage"] = leverage
 
-	retRes456415 := (<-this.PrivatePutPositionsLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes456415)
-	ch <- retRes456415
+	ch <- PanicOnError((<-this.PrivatePutPositionsLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -5449,9 +5445,7 @@ func (this *Phemex) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 		request["targetPosMode"] = "OneWay"
 	}
 
-	retRes459415 := (<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params))).Raw
-	PanicOnError(retRes459415)
-	ch <- retRes459415
+	ch <- PanicOnError((<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -6039,9 +6033,8 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes506919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-		PanicOnError(retRes506919)
-		ch <- retRes506919
+		var retRes506919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))))
+		ch <- BoxAbsent(retRes506919)
 		return nil
 	}
 	var customSymbol any = nil

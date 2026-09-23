@@ -884,9 +884,8 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes69219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 500))
-		PanicOnError(retRes69219)
-		ch <- retRes69219
+		var retRes69219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 500))))
+		ch <- BoxAbsent(retRes69219)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
