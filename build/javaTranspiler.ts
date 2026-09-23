@@ -176,7 +176,7 @@ const RETYPE_AUDITED_USE_SHAPES = [
     /^\s*(?:final\s+)?Object\s+[A-Za-z_$][\w$]*\s*=\s*NAME\s*;$/,
 ];
 
-// SPEC-copy-cascade: the plain copy shape `Object x = y;` (the async-param inside-wrapper
+// the plain copy shape `Object x = y;` (the async-param inside-wrapper
 // `Object symbol = symbol3;` is its dominant instance) and the extended, still cast-free audits.
 const RETYPE_COPY_LINE = /^(\s*)Object ([A-Za-z_$][A-Za-z0-9_$]*) = ([A-Za-z_$][A-Za-z0-9_$]*);$/;
 // every one of these callees declares an `Object` parameter at the position the hoisted name can
@@ -186,7 +186,6 @@ const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.equals|Boolean\.TR
 // callees whose Java return type is String (BaseExchange.java:8623 symbol, :10911 safeSymbol,
 // :1080 numberToString, :1264 iso8601, :1101 safeString, :10697 safeCurrencyCode, :1232 capitalize,
 // Helpers.java:521 toString, :797 replace, Precise.stringMul/stringAdd/stringAbs): a write whose
-// right side is one of these can carry a String token.
 const RETYPE_STRING_RETURN_CALLEES = new Set ([
     'this.symbol', 'this.safeSymbol', 'this.numberToString', 'this.iso8601', 'this.safeString',
     'this.safeCurrencyCode', 'this.capitalize', 'Helpers.toString', 'Helpers.replace',
@@ -249,7 +248,7 @@ function retypeParameterType (signature: string, name: string): string | undefin
     return undefined;
 }
 
-// SPEC-copy-cascade: a name mention inside a string/char literal or a comment is not a use —
+// a name mention inside a string/char literal or a comment is not a use —
 // `throw new ArgumentsRequired((this.id + " requires a symbol argument"))` must not block.
 function retypeCodeOnly (line: string): string {
     let out = '';
@@ -290,8 +289,6 @@ function retypeCodeOnly (line: string): string {
 // every occurrence of the name must sit in a proven cast-free context: an argument of an
 // Object-parameter callee, an operand of a native `+` chain carrying a string literal (the
 // printer only emits a native `+` for a proven string concatenation, and JLS 15.18.1 keeps the
-// meaning for any operand type once one operand is a String), or the operand of a cast to the
-// very type being declared (or Object).
 function retypeMentionContextsOk (code: string, name: string, token: string | undefined, line: string): boolean {
     const re = new RegExp (`\\b${name}\\b`, 'g');
     let m: RegExpExecArray | null;
@@ -334,7 +331,7 @@ function retypeWrittenValueMatches (rhs: string, token: string): boolean {
     return false;
 }
 
-// SPEC-copy-cascade: a later declaration of the same name is a DIFFERENT variable (Java forbids
+// a later declaration of the same name is a DIFFERENT variable (Java forbids
 // redeclaring a name in one scope), so its LHS is not a use of the hoisted name.
 function retypeDeclaresName (code: string, name: string): boolean {
     return new RegExp (`^\s*(?:final\s+)?[A-Za-z_$][\w$.]*(?:<[^;=]*>)?(?:\[\])*\s+${name}\s*(?:=|;)`).test (code);
@@ -350,10 +347,9 @@ function retypeUseIsAudited (line: string, name: string, token?: string): boolea
     return retypeMentionContextsOk (code, name, token, line);
 }
 
-// SPEC-copy-cascade: the text indentation of the printer's spliced wrappers does not track block
+// the text indentation of the printer's spliced wrappers does not track block
 // nesting, so the indent guard keeps missing declarations that ARE in scope (240 sites at the pin).
 // The lookup below replaces it with a real brace-depth test; the scanner carries the block-comment
-// state across lines because the generated javadoc carries `{`/`}` in its example blocks.
 function retypeDepthScan (lines: string[]): number[] {
     const depths: number[] = [];
     let depth = 0;
@@ -4260,7 +4256,7 @@ class NewTranspiler {
                     const decl = lines[j].match (new RegExp (`^(\\s*)(?:final\\s+)?([A-Za-z_$][\\w$.]*(?:<[^;=]*>)?)\\s+${sourceName}\\s*=`));
                     if (decl !== null) {
                         sawDeclaration = true;
-                        // SPEC-copy-cascade: in scope = the declaration's block is still open at the
+                        // in scope = the declaration's block is still open at the
                         // hoist (brace depth never drops below it), not the printer's text indent.
                         let inScope = true;
                         for (let k = j; k < i; k++) {
@@ -4271,7 +4267,7 @@ class NewTranspiler {
                         break;
                     }
                 }
-                // SPEC-copy-cascade: the source may be a fixed parameter (the printed signature
+                // the source may be a fixed parameter (the printed signature
                 // carries its own type) even when no declaration exists in the member.
                 if (typeToken === undefined && !sawDeclaration) {
                     const signature = retypeSignatureLine (lines, start, i - 1);
@@ -4292,7 +4288,7 @@ class NewTranspiler {
             let audited = true;
             for (let j = i + 1; j <= end; j++) {
                 if (isCopy) {
-                    // SPEC-copy-cascade: the copy is not final, so every later write is audited too
+                    // the copy is not final, so every later write is audited too
                     const write = lines[j].match (new RegExp (`^\\s*${hoistedName}\\s*=\\s*(?!=)(.+)$`));
                     if (write !== null) {
                         if (!retypeWrittenValueMatches (write[1], reference)) { audited = false; break; }

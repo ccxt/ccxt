@@ -457,7 +457,6 @@ const LOCAL_THIS_RETURN_TYPES = {
     // `safeBool2(a, k1, k2[, default])` / `safeBoolN(a, keys[, default])` are the same box
     // (BaseExchange.safeBool2/safeBoolN return `value instanceof Boolean ? value : defaultValue`,
     // with `defaultValue = optionalArgs.length > 0 ? optionalArgs[0] : null`), the default
-    // merely sits at a different fixed index — the same default-argument guard proves both
     'safeBool2': { type: 'Boolean', cast: '(Boolean)', defaultArg: 3, safeBool: true },
     'safeBoolN': { type: 'Boolean', cast: '(Boolean)', defaultArg: 2, safeBool: true },
     // JAVA-RE-6 string/crypto/url helpers — see the section-4 header. `plain` entries are
@@ -1559,7 +1558,6 @@ const MATH_LOCAL_ENTRIES = {
 // ast-transpiler printJavaLength also emits `((java.util.List<?>)x).size()` (its List branch);
 // List.size() returns a primitive int on every path, so the local is an Integer box. The `match`
 // regex is REQUIRED — a bare `((List<?>)` prefix would also accept `((List<?>)x).get(i)` /
-// `.isEmpty()` / `.indexOf(..)`, which are NOT ints.
 const LENGTH_LOCAL_ENTRY = {
     type: 'Integer',
     prefixes: [ 'Helpers.getArrayLength(', '((String)' ],
@@ -1959,8 +1957,6 @@ const JAVA_LIST_PRODUCER_LOCAL_TYPES = {
     // `x.split(sep)` prints EITHER `Helpers.split(x, sep)` (the helper is declared Object ->
     // the narrowed declaration needs the checkcast) OR the printer's native list print
     // `new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)x).split(
-    // java.util.regex.Pattern.quote(sep))))` (a plain-string receiver + a literal separator —
-    // ast-transpiler javaNativeSplitCall) -> already a List<Object>, cast-free
     'split': { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST,
                castFreePrefixes: [ JAVA_ARRAY_NATIVE_OPENING ],
                valuePrefixes: [ 'Helpers.split(', JAVA_ARRAY_NATIVE_OPENING ] },
@@ -5234,7 +5230,6 @@ const dataflowClassifyInProgress = new Set ();
 // JAVA_STRUCTURE_TYPE declarations typed by the DATAFLOW engine (not by the surviving tables).
 // The write-cast hook in installJavaLocalTypes only knows its own `narrowed` WeakMap, so a
 // dataflow-typed null accumulator would print `Map<String, Object> x = null; x = this.market (...);`
-// -- an incompatible-types error. This set hands the write-cast hook the same decision.
 const javaDataflowStructureDeclarations = new WeakSet ();
 
 // the pre-mutation name of an identifier. finalVarMutations records (node, previous
@@ -5406,12 +5401,6 @@ function dataflowThisCallType (printer, node) {
     // ---- structure locals (section 3, STRUCTURE_THIS_RETURN_TYPES) ----
     // market () / currency () / safeMarket () / safeCurrency () / safeMarketStructure () /
     // safeCurrencyStructure () / account () / getMarketFromSymbols () print `Object` in the
-    // generated BaseExchange (the printer erases every non-boolean return annotation) but box a
-    // market/currency row -- a java.util.Map<String, Object> -- on every return path (or throw):
-    // the same contract the initializer hook (localInitializerType) already names. A null
-    // accumulator written ONLY by these calls takes the same type. The write keeps the
-    // `(java.util.Map<String, Object>)` checkcast the write-cast hook injects; see
-    // javaDataflowStructureDeclarations below.
     const structure = STRUCTURE_THIS_RETURN_TYPES[name];
     if (structure !== undefined && resolvesToMethodNamed (printer, node, name)) {
         return structure;
@@ -6320,17 +6309,6 @@ const LITERAL_NULLISH = { nullish: true, type: undefined, nonNull: false };
 // ===== LIT-W: values whose PRINTED Java is already one of this family's types =====
 //
 // The value typer below is deliberately reduced to literal-shaped nodes; every residual
-// site of this family declines because one value of the local is provably the family type
-// in the PRINT but is not a literal in the AST. Each class names the hand-written Java
-// proof of the printed type; none of them needs a checkcast.
-//   * `<x>.length`        -> Helpers.getArrayLength(x) (Helpers.java:353, primitive int) /
-//                            ((String)x).length() / ((List<?>)x).size()  => Integer
-//   * `Array.isArray(x)`  -> the printer folds a provably-scalar identifier operand to the
-//                            literal `false` (ast-transpiler/dist/transpiler.js:18066), and
-//                            otherwise prints `(x instanceof java.util.List)` or
-//                            Helpers.isArray(x) (Helpers.java:183, primitive boolean) => Boolean
-//   * `this.<m>(...)`     -> the hand-written BaseExchange methods below are declared String
-//                            on every path and no generated venue class redeclares them => String
 const LITERAL_PRINTED_STRING_ACCESSORS = new Set ([ 'urlencode', 'json', 'numberToString', 'safeString', 'safeString2', 'safeStringN' ]);
 
 function literalLengthReadValue (node) {
@@ -6668,12 +6646,6 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                         // LIT-W: `x += <rhs>` on a String local. The printer lowers it to the
                         // native concat `x = (x + rhs)` or `x = Helpers.add(x, rhs)`, and with x
                         // statically a String Java picks add(String,String) (Helpers.java:284,
-                        // `a + b` -> String) — identical to the Object overload for every
-                        // provably-non-null String right operand — or the String concat, both
-                        // statically String and assignable to the local with no checkcast. The
-                        // right operand must be provably a non-null String for the same reason as
-                        // the `x + y` arm below: a Double-typed right operand would take
-                        // add(Object,Object)'s numeric branch in the baseline and diverge.
                         if (op === ts.SyntaxKind.PlusEqualsToken && isString
                             && literalIsProvablyStringValue (printer, parent.right)) {
                             literalRecordPlusLeftAccepted (declaration, n, parent.right);
