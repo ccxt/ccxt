@@ -1939,6 +1939,14 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     // hx3 B-15: `this.safeDict (...) as Dict` — an assertion the printer drops (bare
     // operand for every asserted type outside any/string/T[]). The safeDict / market
     // families prove the inner call; every other family keeps the un-asserted shape.
+    // the receiver-method / Math / `x.length` table: the printer lowers these calls and
+    // property reads to the fixed Java shapes the entries name, and no entry matches a
+    // `this.`/`super.` receiver, so the `this.`-call gate below keeps its precedence
+    const receiverMethod = receiverMethodLocalType (initializer);
+    if (receiverMethod !== undefined) {
+        return receiverMethod;
+    }
+
     const assertedCall = unwrapNoCastAssertion (initializer);
     const asserted = assertedCall !== initializer;
     if (!isThisCall (initializer) && !(asserted && isThisCall (assertedCall))) {
@@ -4240,7 +4248,13 @@ export function installJavaLocalTypes (transpiler) {
             // the guarded native field read (javaTranspiler JAVA_FIELD_TYPES) wraps the
             // accessor in a null test, so it matches no prefix but is still the ws map read
             const nativeFieldRead = /\(\(java\.util\.Map<\?, \?>\)this\.|\(\(Map<\?, \?>\)this\./;
-            if (!prefixes.some ((prefix) => value.startsWith (prefix)) && !nativeFieldRead.test (value)) {
+            // the receiver-method / Math / `x.length` entries carry their printed shape as a
+            // prefix LIST or a regex (printedValueMatches) instead of valuePrefix/valuePrefixes,
+            // so those entries validate through it
+            const shapeMatches = (info.prefixes !== undefined || info.match !== undefined)
+                ? printedValueMatches (info, value)
+                : prefixes.some ((prefix) => value.startsWith (prefix));
+            if (!shapeMatches && !nativeFieldRead.test (value)) {
                 return printed; // unexpected shape — leave it as the printer emitted it
             }
         }
@@ -4760,6 +4774,12 @@ function dataflowUnifyArms (a, b) {
 function dataflowSurvivingType (printer, declaration) {
     const info = javaLocalTypeOf (printer, declaration);
     if (info === undefined) {
+        return undefined;
+    }
+    // the table's printed shape is validated at its emit site (printedValueMatches) and this
+    // engine holds no printed text, so decline instead of believing a type the wrapper may
+    // not have emitted
+    if (info.prefixes !== undefined || info.match !== undefined) {
         return undefined;
     }
     // the surviving wrapper rewrites only when the printed value starts with `this.`;
