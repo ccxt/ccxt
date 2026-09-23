@@ -1292,7 +1292,10 @@ export default class binance extends binanceRest {
         const trades = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -1680,7 +1683,10 @@ export default class binance extends binanceRest {
             }
             const stockRes = await this.watchStockMarketStream (stockStreams, stockMessageHashes, paramsStock);
             const [ stockSymbol, stockTimeframe, stockCandles ] = stockRes;
-            const stockLimit: Int = (this.newUpdates) ? stockCandles.getLimit (stockSymbol, limit) : limit;
+            let stockLimit: Int = limit;
+            if (this.newUpdates) {
+                stockLimit = stockCandles.getLimit (stockSymbol, limit);
+            }
             const stockFiltered = this.filterBySinceLimit (stockCandles, since, stockLimit, 0, true);
             return this.createOHLCVObject (stockSymbol, stockTimeframe, stockFiltered);
         }
@@ -1735,7 +1741,10 @@ export default class binance extends binanceRest {
         const paramsOmitted: Dict = this.omit (paramsTimezone, 'callerMethodName');
         const res = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes, subscribe);
         const [ symbol, timeframe, candles ] = res;
-        const limitResolved: Int = (this.newUpdates) ? candles.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = candles.getLimit (symbol, limit);
+        }
         const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
@@ -2130,7 +2139,10 @@ export default class binance extends binanceRest {
      */
     override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         const [ stock, paramsStock ] = this.handleOptionAndParams (params, 'watchTickers', 'stock', false);
-        const symbolsNormalized: Strings = (stock) ? this.marketSymbols (symbols, undefined, false, false, true) : symbols;
+        let symbolsNormalized: Strings = symbols;
+        if (stock) {
+            symbolsNormalized = this.marketSymbols (symbols, undefined, false, false, true);
+        }
         if (stock) {
             if (symbols === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchTickers() with stock stream requires symbols');
@@ -4295,7 +4307,10 @@ export default class binance extends binanceRest {
                 'id': stockRequestId,
             };
             const stockOrders = await this.watch (stockUrl, stockMessageHash, this.extend (stockRequest, stockQuery), stockMessageHash, stockSubscribe);
-            const stockLimit: Int = (this.newUpdates) ? stockOrders.getLimit (symbol, limit) : limit;
+            let stockLimit: Int = limit;
+            if (this.newUpdates) {
+                stockLimit = stockOrders.getLimit (symbol, limit);
+            }
             return this.filterBySymbolSinceLimit (stockOrders, symbol, since, stockLimit, true);
         }
         let messageHash = 'orders';
@@ -4335,7 +4350,10 @@ export default class binance extends binanceRest {
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, type);
-        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
@@ -4715,7 +4733,10 @@ export default class binance extends binanceRest {
             this.handleOrder (client, message);
             return;
         }
-        const messageValue: any = ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) ? this.safeDict (message, 'o', message) : message;
+        let messageValue: any = message;
+        if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
+            messageValue = this.safeDict (message, 'o', message);
+        }
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
             const oField = this.safeValue (message, 'o');
             if (Array.isArray (oField)) {
@@ -5381,7 +5402,10 @@ export default class binance extends binanceRest {
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, type);
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 

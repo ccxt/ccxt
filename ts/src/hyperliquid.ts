@@ -3500,7 +3500,12 @@ export default class hyperliquid extends Exchange {
         if (coin !== undefined) {
             marketId = this.coinToMarketId (coin);
         }
-        const marketResolved: Market = (this.safeString (entry, 'id') === undefined) ? this.safeMarket (marketId) : this.safeMarket (marketId, market);
+        let marketResolved: Market = undefined;
+        if (this.safeString (entry, 'id') === undefined) {
+            marketResolved = this.safeMarket (marketId);
+        } else {
+            marketResolved = this.safeMarket (marketId, market);
+        }
         const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (entry, 'timestamp');
         const status = this.safeString2 (order, 'status', 'ccxtStatus');
@@ -5007,7 +5012,10 @@ export default class hyperliquid extends Exchange {
             return coin; // spot
         }
         // hip3
-        const coinId = (coin.indexOf (':') > -1) ? coin.replace (':', '-') : coin;
+        let coinId = coin;
+        if (coin.indexOf (':') > -1) {
+            coinId = coin.replace (':', '-');
+        }
         return this.safeCurrencyCode (coinId) + '/USDC:USDC';
     }
 
@@ -5070,8 +5078,14 @@ export default class hyperliquid extends Exchange {
         const postHeaders: Dict = {
             'Content-Type': 'application/json',
         };
-        const requestHeaders: NullableDict = isPost ? postHeaders : headers;
-        const requestBody: Str = isPost ? this.json (params) : body;
+        let requestHeaders: NullableDict = headers;
+        if (isPost) {
+            requestHeaders = postHeaders;
+        }
+        let requestBody: Str = body;
+        if (isPost) {
+            requestBody = this.json (params);
+        }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

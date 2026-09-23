@@ -579,7 +579,10 @@ export default class bithumb extends bithumbRest {
             request = this.extend (request, paramsGeneration);
         }
         const trades = await this.watch (url, messageHash, request, messageHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -909,7 +912,10 @@ export default class bithumb extends bithumbRest {
             messageHash = messageHash + ':' + symbolResolved;
         }
         const orders = await this.watch (url, messageHash, request, messageHash);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 

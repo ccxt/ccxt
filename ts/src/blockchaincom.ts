@@ -1279,9 +1279,15 @@ export default class blockchaincom extends Exchange {
         const privateHeaders: Dict = {
             'X-API-Token': this.secret,
         };
-        const requestHeaders = isPrivate ? privateHeaders : headers;
+        let requestHeaders = headers;
+        if (isPrivate) {
+            requestHeaders = privateHeaders;
+        }
         const isPrivatePost = isPrivate && (method !== 'GET');
-        const requestBody: Str = isPrivatePost ? this.json (query) : body;
+        let requestBody: Str = body;
+        if (isPrivatePost) {
+            requestBody = this.json (query);
+        }
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);

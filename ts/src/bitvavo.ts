@@ -1130,7 +1130,10 @@ export default class bitvavo extends Exchange {
             request['end'] = this.sum (since, sinceLimit * duration * 1000);
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
-        const limitResolved: Int = ((since !== undefined) && (limit === undefined)) ? 1440 : limit;
+        let limitResolved: Int = limit;
+        if ((since !== undefined) && (limit === undefined)) {
+            limitResolved = 1440;
+        }
         if (limitResolved !== undefined) {
             requestUntil['limit'] = Math.min (limitResolved, 1440); // default 1440, max 1440
         }
@@ -1514,7 +1517,10 @@ export default class bitvavo extends Exchange {
         const stopLossPrice = this.safeString (params, 'stopLossPrice'); // trigger when price crosses from above to below this value
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
         const paramsOmitted: Dict = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        const paramsCost: Dict = isMarketOrder ? this.omit (paramsOmitted, [ 'cost' ]) : paramsOmitted;
+        let paramsCost: Dict = paramsOmitted;
+        if (isMarketOrder) {
+            paramsCost = this.omit (paramsOmitted, [ 'cost' ]);
+        }
         if (isMarketOrder) {
             let cost: Num = undefined;
             if (price !== undefined) {

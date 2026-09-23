@@ -2896,7 +2896,10 @@ export default class aster extends Exchange {
         if (tifIsMissing) {
             request['timeInForce'] = tifAndParams[0];
         }
-        const paramsTif: Dict = tifIsMissing ? tifAndParams[1] : params;
+        let paramsTif: Dict = params;
+        if (tifIsMissing) {
+            paramsTif = tifAndParams[1];
+        }
         const requestParams = this.omit (paramsTif, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if ((this.safeBool (this.options, 'builderFee') === true) && (market['swap'] === true)) {
             request['builder'] = this.safeString (this.options, 'builder');
@@ -4138,7 +4141,8 @@ export default class aster extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag: Dict = tagAndParams[1];
         this.checkAddress (address);
         await this.loadMarketsAndSignIn ();
         const currency = this.currency (code);

@@ -386,7 +386,10 @@ export default class deepcoin extends Exchange {
         const instType = this.safeString (params, 'instType');
         const paramsOmitted = this.omit (params, 'instType');
         const type = this.safeString (paramsOmitted, 'type');
-        const paramsExtended = ((type === undefined) && (instType !== undefined)) ? this.extend (paramsOmitted, { 'type': instType }) : paramsOmitted;
+        let paramsExtended = paramsOmitted;
+        if ((type === undefined) && (instType !== undefined)) {
+            paramsExtended = this.extend (paramsOmitted, { 'type': instType });
+        }
         return super.handleMarketTypeAndParams (methodName, market, paramsExtended, defaultValue);
     }
 
@@ -1400,7 +1403,12 @@ export default class deepcoin extends Exchange {
      */
     override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         const [ userIdOption, paramsUserId ] = this.handleOptionAndParams (params, 'transfer', 'userId');
-        const userId = (userIdOption !== undefined && userIdOption !== '') ? userIdOption : this.safeString (paramsUserId, 'uid');
+        let userId = undefined;
+        if (userIdOption !== undefined && userIdOption !== '') {
+            userId = userIdOption;
+        } else {
+            userId = this.safeString (paramsUserId, 'uid');
+        }
         if (userId === undefined) {
             throw new ArgumentsRequired (this.id + ' transfer() requires a userId parameter');
         }
@@ -1763,10 +1771,16 @@ export default class deepcoin extends Exchange {
 
     handleTypePostOnlyAndTimeInForce (type: Str, params: Dict): [Str, Dict] {
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
-        const typePostOnly: Str = (postOnly) ? 'post_only' : type;
+        let typePostOnly: Str = type;
+        if (postOnly) {
+            typePostOnly = 'post_only';
+        }
         const timeInForce = this.handleTimeInForce (paramsPostOnly);
         const paramsOmitted: Dict = this.omit (paramsPostOnly, 'timeInForce');
-        const typeValue: Str = ((timeInForce !== undefined) && (timeInForce === 'IOC')) ? 'ioc' : typePostOnly;
+        let typeValue: Str = typePostOnly;
+        if ((timeInForce !== undefined) && (timeInForce === 'IOC')) {
+            typeValue = 'ioc';
+        }
         return [ typeValue, paramsOmitted ];
     }
 

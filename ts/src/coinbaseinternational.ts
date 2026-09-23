@@ -2344,7 +2344,8 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag: Dict = tagAndParams[1];
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2390,8 +2391,14 @@ export default class coinbaseinternational extends Exchange {
         }
         const url = this.urls['api']['rest'] + fullPath;
         const hasSignedBody = signed && (method !== 'GET') && (Object.keys (query).length > 0);
-        const signedBody: string = hasSignedBody ? this.json (query) : '';
-        const requestBody: Str = hasSignedBody ? signedBody : body;
+        let signedBody: string = '';
+        if (hasSignedBody) {
+            signedBody = this.json (query);
+        }
+        let requestBody: Str = body;
+        if (hasSignedBody) {
+            requestBody = signedBody;
+        }
         let signedHeaders: NullableDict = undefined;
         if (signed) {
             this.checkRequiredCredentials ();
@@ -2406,7 +2413,10 @@ export default class coinbaseinternational extends Exchange {
                 'CB-ACCESS-KEY': this.apiKey,
             };
         }
-        const requestHeaders: NullableDict = signed ? signedHeaders : headers;
+        let requestHeaders: NullableDict = headers;
+        if (signed) {
+            requestHeaders = signedHeaders;
+        }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

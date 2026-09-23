@@ -2295,7 +2295,10 @@ export default class deribit extends Exchange {
         }
         const trailingAmount = this.safeString2 (params, 'trailingAmount', 'trigger_offset');
         const isTrailingAmountOrder = trailingAmount !== undefined;
-        const paramsOmitted: Dict = (isTrailingAmountOrder) ? this.omit (params, 'trigger_offset') : params;
+        let paramsOmitted: Dict = params;
+        if (isTrailingAmountOrder) {
+            paramsOmitted = this.omit (params, 'trigger_offset');
+        }
         if (isTrailingAmountOrder) {
             request['trigger_offset'] = this.parseToNumeric (trailingAmount);
         }
@@ -3178,7 +3181,8 @@ export default class deribit extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag: Dict = tagAndParams[1];
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -3346,7 +3350,10 @@ export default class deribit extends Exchange {
             request['end_timestamp'] = time;
         }
         const isPaginationCall = ('isDeribitPaginationCall' in paramsUntil);
-        const paramsOmitted: Dict = (isPaginationCall) ? this.omit (paramsUntil, 'isDeribitPaginationCall') : paramsUntil;
+        let paramsOmitted: Dict = paramsUntil;
+        if (isPaginationCall) {
+            paramsOmitted = this.omit (paramsUntil, 'isDeribitPaginationCall');
+        }
         if (isPaginationCall) {
             if (limit === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a limit argument');

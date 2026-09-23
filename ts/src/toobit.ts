@@ -3257,7 +3257,10 @@ export default class toobit extends Exchange {
             } else {
                 queryString = this.urlencode (queryExtended);
             }
-            const payloadBody = (isPost || isDelete) ? privateBody : body;
+            let payloadBody = body;
+            if (isPost || isDelete) {
+                payloadBody = privateBody;
+            }
             let payload = queryString;
             if (payloadBody !== undefined) {
                 payload = payloadBody + payload;
@@ -3275,7 +3278,10 @@ export default class toobit extends Exchange {
                 'X-BB-API-PLATFORM': this.safeString (this.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-            const requestBody = (isPost || isDelete) ? privateBody : body;
+            let requestBody = body;
+            if (isPost || isDelete) {
+                requestBody = privateBody;
+            }
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

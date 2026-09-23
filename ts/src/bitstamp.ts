@@ -2426,7 +2426,10 @@ export default class bitstamp extends Exchange {
             const parsedTransaction = this.parseTransaction (item, currency);
             let direction: Str = undefined;
             const hasTransactionCurrency = !('amount' in item) && ('currency' in parsedTransaction) && (parsedTransaction['currency'] !== undefined);
-            const currencyResolved = hasTransactionCurrency ? this.currency (this.safeString (parsedTransaction, 'currency')) : currency;
+            let currencyResolved = currency;
+            if (hasTransactionCurrency) {
+                currencyResolved = this.currency (this.safeString (parsedTransaction, 'currency'));
+            }
             if ('amount' in item) {
                 const amount = this.safeString (item, 'amount');
                 direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
@@ -2764,8 +2767,14 @@ export default class bitstamp extends Exchange {
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
         const emptyPostBody = this.urlencode ({ 'foo': 'bar' });
-        const postBody = (Object.keys (query).length > 0) ? this.urlencode (query) : emptyPostBody;
-        const requestBody: Str = isPrivatePost ? postBody : body;
+        let postBody = emptyPostBody;
+        if (Object.keys (query).length > 0) {
+            postBody = this.urlencode (query);
+        }
+        let requestBody: Str = body;
+        if (isPrivatePost) {
+            requestBody = postBody;
+        }
         let privateHeaders: NullableDict = undefined;
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
@@ -2788,7 +2797,10 @@ export default class bitstamp extends Exchange {
                 contentType = 'application/x-www-form-urlencoded';
                 privateHeaders['Content-Type'] = contentType;
             }
-            const authBody = (requestBody !== undefined && requestBody !== '') ? requestBody : '';
+            let authBody = '';
+            if (requestBody !== undefined && requestBody !== '') {
+                authBody = requestBody;
+            }
             const auth = xAuth + method + url.replace ('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             privateHeaders['X-Auth-Signature'] = signature;

@@ -413,7 +413,10 @@ export default class weex extends weexRest {
         const trades = await this.subscribePublic (messageHashes, channels, isContract, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -620,7 +623,10 @@ export default class weex extends weexRest {
             messageHashes.push (messageHash);
         }
         const [ symbol, timeframe, stored ] = await this.subscribePublic (messageHashes, channels, isContract, paramsPriceType);
-        const limitResolved: Int = (this.newUpdates) ? stored.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = stored.getLimit (symbol, limit);
+        }
         const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
@@ -1099,7 +1105,10 @@ export default class weex extends weexRest {
         }
         const channel = 'fill';
         const trades = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
@@ -1299,7 +1308,10 @@ export default class weex extends weexRest {
         }
         const channel = 'orders';
         const orders = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
-        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 

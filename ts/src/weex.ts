@@ -1629,7 +1629,10 @@ export default class weex extends Exchange {
             if ((since === undefined) || (until === undefined)) {
                 const now = this.milliseconds ();
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                const numberOfCandles = (limitResolved !== undefined && limitResolved !== null && limitResolved !== 0) ? limitResolved : maxHistoricalLimit;
+                let numberOfCandles = maxHistoricalLimit;
+                if (limitResolved !== undefined && limitResolved !== null && limitResolved !== 0) {
+                    numberOfCandles = limitResolved;
+                }
                 const timeDelta = numberOfCandles * duration;
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
@@ -2009,7 +2012,10 @@ export default class weex extends Exchange {
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
-        const type = ((sandboxMode === true) && (requestedType === undefined)) ? 'swap' : marketType;
+        let type = marketType;
+        if ((sandboxMode === true) && (requestedType === undefined)) {
+            type = 'swap';
+        }
         let response = undefined;
         if (type === 'spot') {
             if (sandboxMode === true) {
@@ -4348,7 +4354,10 @@ export default class weex extends Exchange {
         }
         const isPrivate = (api === 'private') || (api === 'contractPrivate');
         const hasJsonBody = isPrivate && ((method === 'POST') || isBatch);
-        const requestBody: Str = hasJsonBody ? this.json (query) : body;
+        let requestBody: Str = body;
+        if (hasJsonBody) {
+            requestBody = this.json (query);
+        }
         let requestHeaders: NullableDict = undefined;
         if (isPrivate) {
             const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);

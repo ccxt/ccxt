@@ -992,7 +992,10 @@ export default class backpack extends Exchange {
             request['endTime'] = this.parseToInt (until / 1000); // convert milliseconds to seconds
         }
         const defaultLimit = 100;
-        const limitResolved: Int = ((since === undefined) && (limit === undefined)) ? defaultLimit : limit;
+        let limitResolved: Int = limit;
+        if ((since === undefined) && (limit === undefined)) {
+            limitResolved = defaultLimit;
+        }
         if (since === undefined) {
             const duration = this.parseTimeframe (timeframe);
             const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt (until / 1000) : this.seconds ();
@@ -2397,7 +2400,10 @@ export default class backpack extends Exchange {
         }
         url += endpoint;
         const headersResolved = (api === 'private') ? headersSigned : headers;
-        const bodyResolved = ((api === 'private') && (method !== 'GET')) ? bodySigned : body;
+        let bodyResolved = body;
+        if ((api === 'private') && (method !== 'GET')) {
+            bodyResolved = bodySigned;
+        }
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

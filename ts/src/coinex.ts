@@ -2279,7 +2279,10 @@ export default class coinex extends Exchange {
             const isMarketBuy = (type === 'market') && (side === 'buy');
             const requiresPriceAndParams = this.handleOptionAndParams (paramsMarginMode, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeNumber (requiresPriceAndParams[1], 'cost');
-            const paramsSpot: Dict = isMarketBuy ? this.omit (requiresPriceAndParams[1], 'cost') : paramsMarginMode;
+            let paramsSpot: Dict = paramsMarginMode;
+            if (isMarketBuy) {
+                paramsSpot = this.omit (requiresPriceAndParams[1], 'cost');
+            }
             requestParams = this.omit (paramsSpot, omitKeys);
             if (isMarketBuy) {
                 const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
@@ -5238,7 +5241,10 @@ export default class coinex extends Exchange {
             'from_account_type': fromId,
             'to_account_type': toId,
         };
-        const paramsOmitted: Dict = ((fromAccount === 'margin') || (toAccount === 'margin')) ? this.omit (params, 'symbol') : params;
+        let paramsOmitted: Dict = params;
+        if ((fromAccount === 'margin') || (toAccount === 'margin')) {
+            paramsOmitted = this.omit (params, 'symbol');
+        }
         if ((fromAccount === 'margin') || (toAccount === 'margin')) {
             const symbol = this.safeString (params, 'symbol');
             if (symbol === undefined) {

@@ -1368,7 +1368,10 @@ export default class bigone extends Exchange {
         const untilIsDefined = (until !== undefined);
         const sinceIsDefined = (since !== undefined);
         // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
-        const defaultLimit = (sinceIsDefined && untilIsDefined) ? 500 : 100;
+        let defaultLimit = 100;
+        if (sinceIsDefined && untilIsDefined) {
+            defaultLimit = 500;
+        }
         const limitResolved: Int = (limit === undefined) ? defaultLimit : limit;
         const request: Dict = {
             'asset_pair_name': market['id'],

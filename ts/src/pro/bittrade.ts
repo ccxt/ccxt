@@ -153,7 +153,10 @@ export default class bittrade extends bittradeRest {
             'params': params,
         };
         const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        const limitResolved: Int = this.newUpdates ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -237,7 +240,10 @@ export default class bittrade extends bittradeRest {
             'params': params,
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        const limitResolved: Int = this.newUpdates ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 

@@ -1050,7 +1050,10 @@ export default class hitbtc extends Exchange {
                 request['currency'] = parsedNetwork;
             }
         }
-        const paramsOmitted = ((network !== undefined) && (code === 'USDT')) ? this.omit (params, 'network') : params;
+        let paramsOmitted = params;
+        if ((network !== undefined) && (code === 'USDT')) {
+            paramsOmitted = this.omit (params, 'network');
+        }
         const response = await this.privatePostWalletCryptoAddress (this.extend (request, paramsOmitted));
         //
         //  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
@@ -1090,7 +1093,10 @@ export default class hitbtc extends Exchange {
                 request['currency'] = parsedNetwork;
             }
         }
-        const paramsOmitted = ((network !== undefined) && (code === 'USDT')) ? this.omit (params, 'network') : params;
+        let paramsOmitted = params;
+        if ((network !== undefined) && (code === 'USDT')) {
+            paramsOmitted = this.omit (params, 'network');
+        }
         const response = await this.privateGetWalletCryptoAddress (this.extend (request, paramsOmitted));
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
@@ -2844,7 +2850,10 @@ export default class hitbtc extends Exchange {
                 request['network_code'] = parsedNetwork;
             }
         }
-        const paramsOmitted = ((network !== undefined) && (code === 'USDT')) ? this.omit (paramsWithdrawTag, 'network') : paramsWithdrawTag;
+        let paramsOmitted = paramsWithdrawTag;
+        if ((network !== undefined) && (code === 'USDT')) {
+            paramsOmitted = this.omit (paramsWithdrawTag, 'network');
+        }
         const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
         if (includeFee === true) {
@@ -3827,7 +3836,10 @@ export default class hitbtc extends Exchange {
         const isMargin = this.safeBool (params, 'margin', false);
         const [ marginMode, paramsMarginMode ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         const isIsolatedDefault = (marginMode === undefined) && ((defaultType === 'margin') || (isMargin === true));
-        const marginModeResolved = (isIsolatedDefault) ? 'isolated' : marginMode;
+        let marginModeResolved = marginMode;
+        if (isIsolatedDefault) {
+            marginModeResolved = 'isolated';
+        }
         return [ marginModeResolved, paramsMarginMode ];
     }
 

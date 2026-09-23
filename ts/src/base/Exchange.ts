@@ -876,7 +876,10 @@ export class BaseExchange {
             throw new NotSupported (this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
         }
         // browser case: ArrayBuffer -> Uint8Array
-        const dataBytes = (data instanceof ArrayBuffer) ? new Uint8Array (data) : data;
+        let dataBytes = data;
+        if (data instanceof ArrayBuffer) {
+            dataBytes = new Uint8Array (data);
+        }
         if (dataBytes instanceof Uint8Array) {
             const decoded = (protobufMexc.default as any).PushDataV3ApiWrapper.decode (dataBytes);
             const dict = decoded.toJSON ();
@@ -1432,8 +1435,8 @@ export class BaseExchange {
         if (typeof headers.forEach === 'function') {
             // fetch Headers object
             headers.forEach ((value: any, key: string) => {
-                key = key.split ('-').map ((word: string) => this.capitalize (word)).join ('-');
-                result[key] = value;
+                const headerName = key.split ('-').map ((word: string) => this.capitalize (word)).join ('-');
+                result[headerName] = value;
             });
             return result;
         }
@@ -7357,11 +7360,20 @@ export class BaseExchange {
 
     handleWithdrawTagAndParams (tag: any, params: any): any {
         const tagIsDict = this.isDictionary (tag);
-        const paramsExtended = tagIsDict ? this.extend (tag, params) : params;
-        const tagValue = tagIsDict ? undefined : tag;
+        let paramsExtended = params;
+        if (tagIsDict) {
+            paramsExtended = this.extend (tag, params);
+        }
+        let tagValue = tag;
+        if (tagIsDict) {
+            tagValue = undefined;
+        }
         const tagResolved = (tagValue === undefined) ? this.safeString (paramsExtended, 'tag') : tagValue;
         const tagFromParams = (tagValue === undefined) && (tagResolved !== undefined);
-        const paramsOmitted = tagFromParams ? this.omit (paramsExtended, 'tag') : paramsExtended;
+        let paramsOmitted = paramsExtended;
+        if (tagFromParams) {
+            paramsOmitted = this.omit (paramsExtended, 'tag');
+        }
         return [ tagResolved, paramsOmitted ];
     }
 
@@ -7867,7 +7879,12 @@ export class BaseExchange {
             } else if (isMarketOrder) {
                 throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
             } else {
-                const keysToOmit = po ? [ 'timeInForce', 'postOnly' ] : [ 'postOnly' ];
+                let keysToOmit = undefined;
+                if (po) {
+                    keysToOmit = [ 'timeInForce', 'postOnly' ];
+                } else {
+                    keysToOmit = [ 'postOnly' ];
+                }
                 const paramsOmitted = this.omit (params, keysToOmit);
                 return [ true, paramsOmitted ];
             }

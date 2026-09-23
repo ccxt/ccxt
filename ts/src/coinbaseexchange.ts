@@ -1612,7 +1612,10 @@ export default class coinbaseexchange extends Exchange {
         const paramsOmitted: Dict = this.omit (params, [ 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ]);
         const costParam = this.safeNumber2 (paramsOmitted, 'cost', 'funds');
         const omitCost = (type === 'market') && (costParam !== undefined);
-        const paramsCost: Dict = omitCost ? this.omit (paramsOmitted, [ 'cost', 'funds' ]) : paramsOmitted;
+        let paramsCost: Dict = paramsOmitted;
+        if (omitCost) {
+            paramsCost = this.omit (paramsOmitted, [ 'cost', 'funds' ]);
+        }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['size'] = this.amountToPrecision (symbol, amount);

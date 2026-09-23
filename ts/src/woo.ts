@@ -1437,7 +1437,10 @@ export default class woo extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const isMarketNotConditional = isMarket && !isConditional;
-        const paramsCost = (isMarketNotConditional) ? this.omit (paramsMarginMode, [ 'cost', 'order_amount', 'orderAmount' ]) : paramsMarginMode;
+        let paramsCost = paramsMarginMode;
+        if (isMarketNotConditional) {
+            paramsCost = this.omit (paramsMarginMode, [ 'cost', 'order_amount', 'orderAmount' ]);
+        }
         if (isMarketNotConditional) {
             // for market buy it requires the amount of quote currency to spend
             const cost = this.safeStringN (paramsMarginMode, [ 'cost', 'order_amount', 'orderAmount' ]);

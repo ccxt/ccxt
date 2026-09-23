@@ -1058,8 +1058,14 @@ export default class mercado extends Exchange {
                 'TAPI-MAC': this.hmac (this.encode (auth), this.encode (this.secret), sha512),
             };
         }
-        const requestBody: Str = isPublic ? body : privateBody;
-        const requestHeaders: NullableDict = isPublic ? headers : privateHeaders;
+        let requestBody: Str = privateBody;
+        if (isPublic) {
+            requestBody = body;
+        }
+        let requestHeaders: NullableDict = privateHeaders;
+        if (isPublic) {
+            requestHeaders = headers;
+        }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

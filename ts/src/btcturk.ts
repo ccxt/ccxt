@@ -724,7 +724,10 @@ export default class btcturk extends Exchange {
         if (since !== undefined) {
             request['from'] = this.parseToInt (since / 1000);
         }
-        const limitDefaulted = ((since === undefined) && (limit === undefined)) ? 100 : limit; // default value
+        let limitDefaulted = limit;
+        if ((since === undefined) && (limit === undefined)) {
+            limitDefaulted = 100;
+        } // default value
         const limitResolved = (limitDefaulted !== undefined) ? Math.min (limitDefaulted, 11000) : undefined; // max 11000 candles diapason can be covered
         if (limitResolved !== undefined) {
             if (timeframe === '1y') { // difficult with leap years
@@ -1085,7 +1088,12 @@ export default class btcturk extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        const requestBody = isQueryMethod ? body : this.json (params);
+        let requestBody = undefined;
+        if (isQueryMethod) {
+            requestBody = body;
+        } else {
+            requestBody = this.json (params);
+        }
         let privateHeaders: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();

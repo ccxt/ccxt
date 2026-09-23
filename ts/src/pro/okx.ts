@@ -243,7 +243,10 @@ export default class okx extends okxRest {
         const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -1065,7 +1068,10 @@ export default class okx extends okxRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candle' + interval;
         const ohlcv = await this.subscribe ('public', name, name, symbolValue, params);
-        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -1124,7 +1130,10 @@ export default class okx extends okxRest {
         };
         const url = this.getUrl ('candle', 'public');
         const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, messageHashes);
-        const limitResolved: Int = (this.newUpdates) ? candles.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = candles.getLimit (symbol, limit);
+        }
         const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
@@ -1818,7 +1827,10 @@ export default class okx extends okxRest {
             'instType': uppercaseType,
         };
         const orders = await this.subscribe ('private', messageHash, channel, undefined, this.extend (request, paramsMarginMode));
-        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
@@ -2013,7 +2025,10 @@ export default class okx extends okxRest {
         };
         const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         const orders = await this.subscribe ('private', channel, channel, symbolResolved, this.extend (request, paramsMarginMode));
-        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 

@@ -456,7 +456,10 @@ export default class coinex extends coinexRest {
         };
         const request = this.deepExtend (message, paramsMarketType);
         const trades = await this.watch (url, messageHash, request, messageHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
@@ -959,7 +962,10 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         const request = this.deepExtend (message, paramsMarketType);
         const orders = await this.watch (url, messageHash, request, messageHash, request);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 

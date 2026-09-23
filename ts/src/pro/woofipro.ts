@@ -408,7 +408,10 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watchPublic (topic, message);
-        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (market['symbol'], limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (market['symbol'], limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -483,7 +486,10 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watchPublic (topic, message);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (market['symbol'], limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (market['symbol'], limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
     }
 
@@ -702,7 +708,10 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
@@ -738,7 +747,10 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 

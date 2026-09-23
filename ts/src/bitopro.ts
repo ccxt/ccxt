@@ -1819,7 +1819,10 @@ export default class bitopro extends Exchange {
             'address': address,
         };
         const hasNetwork = ('network' in paramsWithdrawTag);
-        const paramsOmitted: Dict = hasNetwork ? this.omit (paramsWithdrawTag, [ 'network' ]) : paramsWithdrawTag;
+        let paramsOmitted: Dict = paramsWithdrawTag;
+        if (hasNetwork) {
+            paramsOmitted = this.omit (paramsWithdrawTag, [ 'network' ]);
+        }
         if (hasNetwork) {
             const networks = this.safeDict (this.options, 'networks', {});
             const requestedNetwork = this.safeStringUpper (paramsWithdrawTag, 'network');
@@ -1915,7 +1918,10 @@ export default class bitopro extends Exchange {
         const requestHeaders: Dict = (headers === undefined) ? {} : headers;
         const isSignedBody = (api === 'private') && ((method === 'POST') || (method === 'PUT'));
         const signedBody: string = this.json (params);
-        const requestBody: Str = isSignedBody ? signedBody : body;
+        let requestBody: Str = body;
+        if (isSignedBody) {
+            requestBody = signedBody;
+        }
         requestHeaders['X-BITOPRO-API'] = 'ccxt';
         if (api === 'private') {
             this.checkRequiredCredentials ();

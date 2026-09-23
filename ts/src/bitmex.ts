@@ -618,7 +618,10 @@ export default class bitmex extends Exchange {
         const market = this.market (symbolValue);
         const oldPrecision = this.safeBool (this.options, 'oldPrecision');
         const isRealAmount = (market['spot'] === true) && (oldPrecision !== true);
-        const amountResolved = isRealAmount ? this.convertFromRealAmount (market['base'], amount) : amount;
+        let amountResolved = amount;
+        if (isRealAmount) {
+            amountResolved = this.convertFromRealAmount (market['base'], amount);
+        }
         return super.amountToPrecision (symbolValue, amountResolved);
     }
 
@@ -2787,7 +2790,8 @@ export default class bitmex extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag: Dict = tagAndParams[1];
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -3785,7 +3789,10 @@ export default class bitmex extends Exchange {
                 query += '?' + this.urlencode ({ '_format': format });
             }
         }
-        const bodyParams = ((method !== 'GET') && (format !== undefined)) ? this.omit (params, '_format') : params;
+        let bodyParams = params;
+        if ((method !== 'GET') && (format !== undefined)) {
+            bodyParams = this.omit (params, '_format');
+        }
         const url = this.urls['api'][api] + query;
         const isAuthenticated = this.checkRequiredCredentials (false);
         if (api === 'private' || (api === 'public' && isAuthenticated)) {

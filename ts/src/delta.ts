@@ -1654,7 +1654,10 @@ export default class delta extends Exchange {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
-        const limitValue: Int = (limit !== undefined && limit !== null && limit !== 0) ? limit : 2000; // max 2000
+        let limitValue: Int = 2000;
+        if (limit !== undefined && limit !== null && limit !== 0) {
+            limitValue = limit;
+        } // max 2000
         let until = this.safeIntegerProduct (params, 'until', 0.001);
         const untilIsDefined = (until !== undefined);
         if (untilIsDefined) {

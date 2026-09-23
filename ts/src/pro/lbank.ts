@@ -142,7 +142,10 @@ export default class lbank extends lbankRest {
         };
         const request = this.deepExtend (subscribe, params);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 

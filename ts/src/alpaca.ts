@@ -1792,7 +1792,10 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const addressValue: string = ((tagWithdrawTag !== undefined) && (tagWithdrawTag !== '')) ? address + ':' + tagWithdrawTag : address;
+        let addressValue: string = address;
+        if ((tagWithdrawTag !== undefined) && (tagWithdrawTag !== '')) {
+            addressValue = address + ':' + tagWithdrawTag;
+        }
         const request: Dict = {
             'asset': currency['id'],
             'address': addressValue,

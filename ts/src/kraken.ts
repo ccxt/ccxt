@@ -1491,7 +1491,10 @@ export default class kraken extends Exchange {
         let fee: FeeString = undefined;
         let symbol: Str = undefined;
         const isOrderTrade = (!Array.isArray (trade)) && (typeof trade !== 'string') && ('ordertxid' in trade);
-        const marketResolved = (isOrderTrade) ? this.resolveMarketByAltnameOrId (this.safeString (trade, 'pair'), market) : market;
+        let marketResolved = market;
+        if (isOrderTrade) {
+            marketResolved = this.resolveMarketByAltnameOrId (this.safeString (trade, 'pair'), market);
+        }
         if (Array.isArray (trade)) {
             timestamp = this.safeTimestamp (trade, 2);
             side = (trade[3] === 's') ? 'sell' : 'buy';
@@ -3346,7 +3349,10 @@ export default class kraken extends Exchange {
         const networks = this.safeDict (this.options, 'networks', {});
         network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
         const paramsOmitted: Dict = this.omit (params, 'network');
-        const codeResolved = ((code === 'USDT') && (network === 'TRC20')) ? (code + '-' + network) : code;
+        let codeResolved = code;
+        if ((code === 'USDT') && (network === 'TRC20')) {
+            codeResolved = code + '-' + network;
+        }
         const defaultDepositMethods = this.safeDict (this.options, 'depositMethods', {});
         const defaultDepositMethod = this.safeString (defaultDepositMethods, codeResolved);
         let depositMethod = this.safeString (paramsOmitted, 'method', defaultDepositMethod);
@@ -3428,7 +3434,8 @@ export default class kraken extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag: Dict = tagAndParams[1];
         if ('key' in paramsWithdrawTag) {
             await this.loadMarkets ();
             const currency = this.currency (code);
@@ -3690,7 +3697,12 @@ export default class kraken extends Exchange {
             const nonce = this.nonce ().toString ();
             const isJsonBody = isCancelOrderBatch || isTriggerPercent || isBatchOrder;
             // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-            const bodySigned = (isJsonBody) ? this.json (this.extend ({ 'nonce': nonce }, params)) : this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
+            let bodySigned = undefined;
+            if (isJsonBody) {
+                bodySigned = this.json (this.extend ({ 'nonce': nonce }, params));
+            } else {
+                bodySigned = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
+            }
             const auth = this.encode (nonce + bodySigned);
             const hash = this.hash (auth, sha256, 'binary');
             const binary = this.encode (url);

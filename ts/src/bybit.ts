@@ -2704,7 +2704,10 @@ export default class bybit extends Exchange {
             // 'baseCoin': '', // Base coin. For option only
             // 'expDate': '', // Expiry date. e.g., 25DEC22. For option only
         };
-        const paramsOmitted = (hasOptionSymbol) ? this.omit (params, [ 'code', 'currency' ]) : params;
+        let paramsOmitted = params;
+        if (hasOptionSymbol) {
+            paramsOmitted = this.omit (params, [ 'code', 'currency' ]);
+        }
         const [ category, paramsCategory ] = this.getBybitType ('fetchTickers', market, paramsOmitted);
         request['category'] = category;
         if (category === 'option') {
@@ -4322,7 +4325,10 @@ export default class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
         // workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
-        const amountValue = (Precise.stringGt (this.numberToString (amount), '0')) ? amount : undefined;
+        let amountValue = undefined;
+        if (Precise.stringGt (this.numberToString (amount), '0')) {
+            amountValue = amount;
+        }
         const amountString = (amountValue !== undefined) ? this.getAmount (symbolValue, amountValue) : undefined;
         const priceString = (price !== undefined) ? this.getPrice (symbolValue, this.numberToString (price)) : undefined;
         if (endpointIsTradingStop) {

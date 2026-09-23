@@ -758,7 +758,10 @@ export default class cryptomus extends Exchange {
         let response: Dict;
         if (type === 'market') {
             const requiresPriceAndParams = this.handleOptionAndParams (paramsCost, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const paramsMarket = sideBuy ? requiresPriceAndParams[1] : paramsCost;
+            let paramsMarket = paramsCost;
+            if (sideBuy) {
+                paramsMarket = requiresPriceAndParams[1];
+            }
             if (sideBuy) {
                 const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
                 if (createMarketBuyOrderRequiresPrice) {

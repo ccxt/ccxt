@@ -95,7 +95,10 @@ export default class hashkey extends hashkeyRest {
         const topic = 'kline_' + interval;
         const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
         const ohlcv = await this.wathPublic (market, topic, messageHash, params);
-        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -252,7 +255,10 @@ export default class hashkey extends hashkeyRest {
         const topic = 'trade';
         const messageHash = 'trades:' + symbolValue;
         const trades = await this.wathPublic (market, topic, messageHash, params);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -392,7 +398,10 @@ export default class hashkey extends hashkeyRest {
             messageHash = messageHash + ':' + symbolResolved;
         }
         const orders = await this.watchPrivate (messageHash);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
@@ -514,7 +523,10 @@ export default class hashkey extends hashkeyRest {
             messageHash += ':' + symbolResolved;
         }
         const trades = await this.watchPrivate (messageHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -888,7 +900,10 @@ export default class hashkey extends hashkeyRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        const messageInner = (Array.isArray (message)) ? this.safeDict (message, 0, {}) : message;
+        let messageInner = message;
+        if (Array.isArray (message)) {
+            messageInner = this.safeDict (message, 0, {});
+        }
         const topic = this.safeString2 (messageInner, 'topic', 'e');
         if (topic === 'kline') {
             this.handleOHLCV (client, messageInner);

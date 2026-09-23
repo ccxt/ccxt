@@ -260,8 +260,14 @@ export default class kraken extends krakenRest {
             }
         }
         const isCreateOrder = (method === 'createOrderWs');
-        const paramsCreate: Dict = isCreateOrder ? this.omit (paramsPostOnly, [ 'reduceOnly', 'timeInForce' ]) : paramsPostOnly;
-        const paramsPreset: Dict = (isCreateOrder && (isPresetStopLoss || isPresetTakeProfit)) ? this.omit (paramsCreate, [ 'stopLoss', 'takeProfit' ]) : paramsCreate;
+        let paramsCreate: Dict = paramsPostOnly;
+        if (isCreateOrder) {
+            paramsCreate = this.omit (paramsPostOnly, [ 'reduceOnly', 'timeInForce' ]);
+        }
+        let paramsPreset: Dict = paramsCreate;
+        if (isCreateOrder && (isPresetStopLoss || isPresetTakeProfit)) {
+            paramsPreset = this.omit (paramsCreate, [ 'stopLoss', 'takeProfit' ]);
+        }
         const paramsOmitted: Dict = this.omit (paramsPreset, [ 'clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
         return [ request, paramsOmitted ];
     }
@@ -816,7 +822,10 @@ export default class kraken extends krakenRest {
         };
         const request = this.deepExtend (subscribe, params);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 'timestamp', true);
     }
 
@@ -1154,7 +1163,10 @@ export default class kraken extends krakenRest {
             subscribe['params'] = this.deepExtend (subscribe['params'], params);
         }
         const result = await this.watch (url, messageHash, subscribe, subscriptionHash);
-        const limitResolved: Int = (this.newUpdates) ? result.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = result.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (result, symbolResolved, since, limitResolved, true);
     }
 

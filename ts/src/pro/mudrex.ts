@@ -150,7 +150,10 @@ export default class mudrex extends mudrexRest {
         };
         const request = this.extend (subscribe, paramsOmitted);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 

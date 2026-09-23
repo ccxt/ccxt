@@ -1586,7 +1586,10 @@ export default class bullish extends Exchange {
     handleSinceAndUntil (since: Int = undefined, params: Dict = {}, sinceKey: Str = 'createdAtDatetime[gte]', untilKey: Str = 'createdAtDatetime[lte]'): Dict {
         let until = this.safeInteger (params, 'until');
         const sinceFromUntil = (since === undefined) && (until !== undefined);
-        const paramsResult: Dict = sinceFromUntil ? this.omit (params, 'until') : params;
+        let paramsResult: Dict = params;
+        if (sinceFromUntil) {
+            paramsResult = this.omit (params, 'until');
+        }
         if ((since !== undefined) || (until !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             const sinceResolved: Int = (since === undefined) ? (until as number) - timeDelta : since;
@@ -1781,7 +1784,10 @@ export default class bullish extends Exchange {
         };
         const isMarketOrder = ((type === 'market') || type === 'MARKET');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarketOrder, type === 'POST_ONLY', params);
-        let orderType: string = (postOnly) ? 'POST_ONLY' : type;
+        let orderType: string = type;
+        if (postOnly) {
+            orderType = 'POST_ONLY';
+        }
         const [ timeInForce, paramsTimeInForce ] = this.handleOptionAndParams (paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
         paramsTimeInForce['timeInForce'] = timeInForce.toUpperCase ();
         if (!isMarketOrder) {
@@ -2665,7 +2671,10 @@ export default class bullish extends Exchange {
         const until = this.safeInteger (paramsPaginate, 'until');
         // since and until are mandatory for this endpoint, set until to now if both are undefined
         const untilMissing = (since === undefined) && (until === undefined);
-        const paramsUntil: Dict = untilMissing ? this.extend (paramsPaginate, { 'until': this.milliseconds () }) : paramsPaginate;
+        let paramsUntil: Dict = paramsPaginate;
+        if (untilMissing) {
+            paramsUntil = this.extend (paramsPaginate, { 'until': this.milliseconds () });
+        }
         const paramsSinceAndUntil: Dict = this.handleSinceAndUntil (since, paramsUntil);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);

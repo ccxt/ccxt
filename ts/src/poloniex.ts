@@ -2095,7 +2095,10 @@ export default class poloniex extends Exchange {
         const [ marginMode, paramsMarginMode ] = this.handleParamString (params, 'marginMode');
         const [ hedged, paramsHedged ] = this.handleParamString (paramsMarginMode, 'hedged');
         // marginMode and hedged are consumed for contract markets only
-        const query = isContract ? paramsHedged : params;
+        let query = params;
+        if (isContract) {
+            query = paramsHedged;
+        }
         if (isContract) {
             if (marginMode !== undefined) {
                 this.checkRequiredArgument ('createOrder', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
@@ -3227,14 +3230,20 @@ export default class poloniex extends Exchange {
         //     }
         //
         // if it's being parsed from "withdraw()" method, get the original response
-        const transactionValue: Dict = ('withdrawNetworkEntry' in transaction) ? transaction['response'] : transaction;
+        let transactionValue: Dict = transaction;
+        if ('withdrawNetworkEntry' in transaction) {
+            transactionValue = transaction['response'];
+        }
         const timestamp = this.safeTimestamp (transactionValue, 'timestamp');
         const currencyId = this.safeString (transactionValue, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         let status = this.safeString (transactionValue, 'status', 'pending');
         status = this.parseTransactionStatus (status) as string;
         const txid = this.safeString (transactionValue, 'txid');
-        const type = ('withdrawalRequestsId' in transactionValue) ? 'withdrawal' : 'deposit';
+        let type = 'deposit';
+        if ('withdrawalRequestsId' in transactionValue) {
+            type = 'withdrawal';
+        }
         const id = this.safeString2 (transactionValue, 'withdrawalRequestsId', 'depositNumber');
         const address = this.safeString (transactionValue, 'address');
         const tag = this.safeString (transactionValue, 'paymentID');

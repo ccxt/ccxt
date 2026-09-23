@@ -1126,7 +1126,10 @@ export default class cryptocom extends Exchange {
             'instrument_name': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const limitResolved: Int = ((limit !== undefined) && (limit > 300)) ? 300 : limit;
+        let limitResolved: Int = limit;
+        if ((limit !== undefined) && (limit > 300)) {
+            limitResolved = 300;
+        }
         if (limitResolved !== undefined) {
             request['count'] = limitResolved;
         }

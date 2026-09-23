@@ -257,7 +257,10 @@ export default class krakenfutures extends krakenfuturesRest {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
         const first = this.safeList (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -460,7 +463,10 @@ export default class krakenfutures extends krakenfuturesRest {
             messageHash += ':' + market['symbol'];
         }
         const orders = await this.subscribePrivate (name, messageHash, paramsVerbose);
-        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 
@@ -486,7 +492,10 @@ export default class krakenfutures extends krakenfuturesRest {
             messageHash += ':' + market['symbol'];
         }
         const trades = await this.subscribePrivate (name, messageHash, params);
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 

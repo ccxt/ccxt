@@ -286,7 +286,10 @@ export default class coinone extends coinoneRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, messageHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (market['symbol'], limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (market['symbol'], limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 

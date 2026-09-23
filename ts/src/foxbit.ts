@@ -1825,7 +1825,10 @@ export default class foxbit extends Exchange {
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
         let symbol = this.safeString (order, 'market_symbol');
-        const marketResolved: Market = ((market === undefined) && (symbol !== undefined)) ? this.market (symbol) : market;
+        let marketResolved: Market = market;
+        if ((market === undefined) && (symbol !== undefined)) {
+            marketResolved = this.market (symbol);
+        }
         if (marketResolved !== undefined) {
             symbol = marketResolved['symbol'];
         }
@@ -2070,7 +2073,10 @@ export default class foxbit extends Exchange {
                 }
             }
         }
-        const requestBody = (method === 'POST' || method === 'PUT') ? this.json (paramsOmitted) : body;
+        let requestBody = body;
+        if (method === 'POST' || method === 'PUT') {
+            requestBody = this.json (paramsOmitted);
+        }
         let bodyToSignature = '';
         if (requestBody !== undefined) {
             bodyToSignature = requestBody;

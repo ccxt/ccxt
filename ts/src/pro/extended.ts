@@ -194,7 +194,10 @@ export default class extended extends extendedRest {
             'symbol': symbolResolved,
             'limit': limit,
         });
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
@@ -305,7 +308,10 @@ export default class extended extends extendedRest {
             'symbol': symbolResolved,
             'limit': limit,
         });
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
@@ -684,7 +690,10 @@ export default class extended extends extendedRest {
             'symbol': symbolValue,
             'limit': limit,
         });
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -780,7 +789,10 @@ export default class extended extends extendedRest {
             'limit': limit,
             'messageHash': messageHash,
         });
-        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 

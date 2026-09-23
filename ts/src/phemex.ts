@@ -1473,7 +1473,10 @@ export default class phemex extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []) as List;
         // the from/to endpoint works in seconds and the parser receives that value
-        const sinceResolved: Int = usesSpecialFromToEndpoint ? sinceSeconds : since;
+        let sinceResolved: Int = since;
+        if (usesSpecialFromToEndpoint) {
+            sinceResolved = sinceSeconds;
+        }
         return this.parseOHLCVs (rows, market, timeframe, sinceResolved, userLimit);
     }
 
@@ -2782,7 +2785,10 @@ export default class phemex extends Exchange {
             // a hedged reduceOnly order without posSide closes the opposite side
             const flipSide = (posSide === undefined) && (hedged === true) && (this.safeBool (orderParams, 'reduceOnly') === true);
             const oppositeSide = (side === 'buy') ? 'sell' : 'buy';
-            const sideResolved = flipSide ? oppositeSide : side;
+            let sideResolved = side;
+            if (flipSide) {
+                sideResolved = oppositeSide;
+            }
             if (posSide === undefined) {
                 if (hedged === true) {
                     if (flipSide) {
@@ -4768,7 +4774,10 @@ export default class phemex extends Exchange {
         }
         url = this.implodeHostname (this.urls['api'][api]) + url;
         const isPrivatePost = (api === 'private') && (method === 'POST');
-        const bodyResolved: Str = isPrivatePost ? requestBody : body;
+        let bodyResolved: Str = body;
+        if (isPrivatePost) {
+            bodyResolved = requestBody;
+        }
         const requestHeaders: NullableDict = (api === 'private') ? privateHeaders : headers;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': requestHeaders };
     }

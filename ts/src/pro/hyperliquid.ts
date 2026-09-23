@@ -502,7 +502,10 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase ();
         const trades = await this.watch (url, messageHash, message, subscribeHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
@@ -706,7 +709,10 @@ export default class hyperliquid extends hyperliquidRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, messageHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -875,7 +881,10 @@ export default class hyperliquid extends hyperliquidRest {
         const messageHash = 'candles:' + timeframe + ':' + symbolValue;
         const message = this.extend (request, params);
         const ohlcv = await this.watch (url, messageHash, message, messageHash);
-        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -1221,7 +1230,10 @@ export default class hyperliquid extends hyperliquidRest {
         const topic = 'clearinghouseState';
         let messageHash = topic + '::positions';
         const hasSymbols = (symbols !== undefined) && !this.isEmpty (symbols);
-        const symbolsNormalized = hasSymbols ? this.marketSymbols (symbols) : symbols;
+        let symbolsNormalized = symbols;
+        if (hasSymbols) {
+            symbolsNormalized = this.marketSymbols (symbols);
+        }
         if (hasSymbols && (symbolsNormalized !== undefined)) {
             messageHash += '::' + symbolsNormalized.join (',');
         }
@@ -1369,7 +1381,10 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const subscribeHash = 'subscribe:orderUpdates::' + userAddress.toLowerCase ();
         const orders = await this.watch (url, messageHash, message, subscribeHash);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 

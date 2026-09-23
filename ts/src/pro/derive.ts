@@ -441,7 +441,10 @@ export default class derive extends deriveRest {
             'params': params,
         };
         const trades = await this.watchPublic (topic, request, subscription);
-        const limitResolved: Int = this.newUpdates ? trades.getLimit (market['symbol'], limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (market['symbol'], limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
     }
 
@@ -551,7 +554,10 @@ export default class derive extends deriveRest {
         };
         const message = this.extend (request, paramsDeriveSubaccountId);
         const orders = await this.watchPrivate (messageHash, message, subscription);
-        const limitResolved: Int = this.newUpdates ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
@@ -671,7 +677,10 @@ export default class derive extends deriveRest {
         };
         const message = this.extend (request, paramsDeriveSubaccountId);
         const trades = await this.watchPrivate (messageHash, message, subscription);
-        const limitResolved: Int = this.newUpdates ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 

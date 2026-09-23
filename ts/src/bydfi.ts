@@ -1283,7 +1283,10 @@ export default class bydfi extends Exchange {
         const isTailingStopOrder = (trailingPercent !== undefined);
         let stopPrice: Str = undefined;
         const isStopOrTakeProfit = isStopLossOrder || isTakeProfitOrder;
-        let query: Dict = (isStopOrTakeProfit) ? this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]) : params;
+        let query: Dict = params;
+        if (isStopOrTakeProfit) {
+            query = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
+        }
         if (isStopOrTakeProfit) {
             stopPrice = isStopLossOrder ? stopLossPrice : takeProfitPrice;
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);

@@ -1810,7 +1810,8 @@ export default class gemini extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ , paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag: Dict = tagAndParams[1];
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2053,7 +2054,10 @@ export default class gemini extends Exchange {
         }
         url = this.urls['api'][api] + url;
         const headersResolved = (api === 'private') ? headersSigned : headers;
-        const bodyResolved = ((method === 'POST') || (method === 'DELETE')) ? this.json (query) : body;
+        let bodyResolved = body;
+        if ((method === 'POST') || (method === 'DELETE')) {
+            bodyResolved = this.json (query);
+        }
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

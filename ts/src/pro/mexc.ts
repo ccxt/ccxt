@@ -591,7 +591,10 @@ export default class mexc extends mexcRest {
             ohlcv = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         ohlcv = this.requireValue (ohlcv, 'watchOHLCV() ohlcv is required');
-        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -997,7 +1000,10 @@ export default class mexc extends mexcRest {
             trades = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         trades = this.requireValue (trades, 'watchTrades() trades is required');
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -1110,7 +1116,10 @@ export default class mexc extends mexcRest {
             trades = await this.watchSwapPrivate (messageHash, paramsMarketType);
         }
         trades = this.requireValue (trades, 'watchMyTrades() trades is required');
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
@@ -1290,7 +1299,10 @@ export default class mexc extends mexcRest {
             orders = await this.watchSwapPrivate (messageHash, paramsMarketType);
         }
         orders = this.requireValue (orders, 'watchOrders() orders is required');
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 

@@ -143,7 +143,12 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         this.checkRequiredCredentials ();
-        const symbolsResolved: Strings = (this.isEmpty (symbols)) ? this.symbols : this.marketSymbols (symbols);
+        let symbolsResolved: Strings = undefined;
+        if (this.isEmpty (symbols)) {
+            symbolsResolved = this.symbols;
+        } else {
+            symbolsResolved = this.marketSymbols (symbols);
+        }
         const messageHashes: string[] = [];
         const productIds: any[] = [];
         for (let i = 0; i < (symbolsResolved as string[]).length; i++) {
@@ -469,7 +474,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const options = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeString (options, timeframe, timeframe);
         const ohlcv = await this.subscribe (interval, [ symbolValue ], params);
-        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 

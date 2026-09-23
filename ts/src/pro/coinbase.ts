@@ -545,7 +545,10 @@ export default class coinbase extends coinbaseRest {
         const symbolValue: string = this.symbol (symbol);
         const name = 'market_trades';
         const trades = await this.subscribe (name, false, symbolValue, params);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -585,7 +588,10 @@ export default class coinbase extends coinbaseRest {
         const trades = await this.subscribeMultiple (name, false, symbols, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -623,7 +629,10 @@ export default class coinbase extends coinbaseRest {
         }
         const name = 'user';
         const orders = await this.subscribe (name, true, symbol, params);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 

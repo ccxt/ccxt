@@ -72,7 +72,10 @@ export default class gemini extends geminiRest {
         const subscribeHash = 'l2:' + market['symbol'];
         const url = this.urls['api']['ws'] + '/v2/marketdata';
         const trades = await this.watch (url, messageHash, request, subscribeHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (market['symbol'], limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (market['symbol'], limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -91,7 +94,10 @@ export default class gemini extends geminiRest {
         const trades = await this.helperForWatchMultipleConstruct ('trades', symbols, params);
         const first = this.safeList (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -298,7 +304,10 @@ export default class gemini extends geminiRest {
         const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
         const url = this.urls['api']['ws'] + '/v2/marketdata';
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -669,7 +678,10 @@ export default class gemini extends geminiRest {
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         const messageHash = 'orders';
         const orders = await this.watch (url, messageHash, undefined, messageHash);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 

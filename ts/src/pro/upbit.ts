@@ -142,7 +142,10 @@ export default class upbit extends upbitRest {
         const trades = await this.watchPublicMultiple (symbols, 'trade');
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -429,7 +432,10 @@ export default class upbit extends upbitRest {
         const channel = 'myOrder';
         const messageHash = 'myOrder';
         const orders = await this.watchPrivate (symbol, channel, messageHash);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbol, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
     }
 
@@ -451,7 +457,10 @@ export default class upbit extends upbitRest {
         const channel = 'myOrder';
         const messageHash = 'myTrades';
         const trades = await this.watchPrivate (symbol, channel, messageHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbol, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
     }
 

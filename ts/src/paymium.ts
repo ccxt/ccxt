@@ -647,7 +647,10 @@ export default class paymium extends Exchange {
                 'Api-Nonce': nonce,
             };
             const hasQuery = Object.keys (query).length > 0;
-            const signedBody: Str = (method === 'POST' && hasQuery) ? this.json (query) : body;
+            let signedBody: Str = body;
+            if (method === 'POST' && hasQuery) {
+                signedBody = this.json (query);
+            }
             if (method === 'POST') {
                 if (hasQuery) {
                     auth += signedBody;

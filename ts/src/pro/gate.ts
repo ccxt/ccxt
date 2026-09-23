@@ -433,7 +433,10 @@ export default class gate extends gateRest {
         const messageType = this.getTypeByMarket (market);
         const messageHash = 'orderbook' + ':' + symbolValue;
         // max 100 atm, max 50 for options
-        const defaultLimit = ((market['spot'] === true) || (messageType === 'options')) ? 50 : 100;
+        let defaultLimit = 100;
+        if ((market['spot'] === true) || (messageType === 'options')) {
+            defaultLimit = 50;
+        }
         let limitResolved: Int = (limit === undefined) ? defaultLimit : limit;
         if (market['spot'] === true) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
@@ -938,7 +941,10 @@ export default class gate extends gateRest {
         const trades = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -1050,7 +1056,10 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket (market);
         const payload = [ interval, marketId ];
         const ohlcv = await this.subscribePublic (url, messageHash, payload, channel, params);
-        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -1157,7 +1166,10 @@ export default class gate extends gateRest {
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const trades = await this.subscribePrivate (url, messageHash, payload, channel, paramsSubType, requiresUid);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbol, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
     }
 
@@ -1585,7 +1597,10 @@ export default class gate extends gateRest {
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const orders = await this.subscribePrivate (url, messageHash, payload, channel, query, requiresUid);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 
@@ -2341,7 +2356,10 @@ export default class gate extends gateRest {
         }
         const idArray = [ this.uid ];
         const payloadWithUid = (payload === undefined) ? idArray : this.arrayConcat (idArray, payload);
-        const payloadValue = (requiresUid) ? payloadWithUid : payload;
+        let payloadValue = payload;
+        if (requiresUid) {
+            payloadValue = payloadWithUid;
+        }
         const time = this.seconds ();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString ();

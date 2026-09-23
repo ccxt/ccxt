@@ -2187,7 +2187,10 @@ export default class okx extends Exchange {
         const requestedLimit = (limit === undefined) ? defaultLimit : limit;
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
-        const limitResolved = (rpi && (requestedLimit > 400)) ? 400 : requestedLimit;
+        let limitResolved = requestedLimit;
+        if (rpi && (requestedLimit > 400)) {
+            limitResolved = 400;
+        }
         if (limitResolved !== undefined) {
             request['sz'] = limitResolved; // max 400
         }
@@ -2722,7 +2725,10 @@ export default class okx extends Exchange {
         const timezone = this.safeString (options, 'timezone', 'UTC');
         const limitIsUndefined = (limit === undefined);
         // default 100, max 300, only 100 if 'mark' or 'index'
-        const requestMaxLimit = isMarkOrIndex ? 100 : 300;
+        let requestMaxLimit = 300;
+        if (isMarkOrIndex) {
+            requestMaxLimit = 100;
+        }
         let limitResolved = (limit === undefined) ? 100 : Math.min (limit, requestMaxLimit);
         const duration = this.parseTimeframe (timeframe);
         let bar = this.safeString (this.timeframes, timeframe, timeframe);
@@ -3261,12 +3267,21 @@ export default class okx extends Exchange {
         // position side / hedged options only apply to swap and future orders
         const isSwapOrFuture = (contract === true) && ((market['swap'] === true) || (market['future'] === true));
         const [ positionSide, paramsPositionSide ] = this.handleOptionAndParams (params, 'createOrder', 'positionSide');
-        const paramsSwapOrFuture: Dict = isSwapOrFuture ? paramsPositionSide : params;
+        let paramsSwapOrFuture: Dict = params;
+        if (isSwapOrFuture) {
+            paramsSwapOrFuture = paramsPositionSide;
+        }
         const usesHedged = isSwapOrFuture && (positionSide === undefined);
         const [ hedged, paramsHedgedOption ] = this.handleOptionAndParams (paramsSwapOrFuture, 'createOrder', 'hedged');
-        const paramsHedged: Dict = usesHedged ? paramsHedgedOption : paramsSwapOrFuture;
+        let paramsHedged: Dict = paramsSwapOrFuture;
+        if (usesHedged) {
+            paramsHedged = paramsHedgedOption;
+        }
         const omitReduceOnly = usesHedged && (hedged === true) && isReduceOnly;
-        const paramsReduceOnly: Dict = omitReduceOnly ? this.omit (paramsHedged, 'reduceOnly') : paramsHedged;
+        let paramsReduceOnly: Dict = paramsHedged;
+        if (omitReduceOnly) {
+            paramsReduceOnly = this.omit (paramsHedged, 'reduceOnly');
+        }
         if (spot === true) {
             if (margin === true) {
                 const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
@@ -5592,7 +5607,10 @@ export default class okx extends Exchange {
         }
         const currency = this.currency (code);
         const hasTag = (tagWithdrawTag !== undefined) && (tagWithdrawTag.length > 0);
-        const addressWithTag = hasTag ? (address + ':' + tagWithdrawTag) : address;
+        let addressWithTag = address;
+        if (hasTag) {
+            addressWithTag = address + ':' + tagWithdrawTag;
+        }
         const request: Dict = {
             'ccy': currency['id'],
             'toAddr': addressWithTag,
@@ -6789,7 +6807,10 @@ export default class okx extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             privateHeaders['OK-ACCESS-SIGN'] = signature;
         }
-        const requestBody: Str = hasJsonBody ? jsonBody : body;
+        let requestBody: Str = body;
+        if (hasJsonBody) {
+            requestBody = jsonBody;
+        }
         const requestHeaders: NullableDict = (api === 'private') ? privateHeaders : headers;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
@@ -8482,7 +8503,10 @@ export default class okx extends Exchange {
         }
         const [ marketTypeOption, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchUnderlyingAssets', undefined, params);
         const isSpotOrUndefined = (marketTypeOption === undefined) || (marketTypeOption === 'spot');
-        const marketType = isSpotOrUndefined ? 'option' : marketTypeOption;
+        let marketType = marketTypeOption;
+        if (isSpotOrUndefined) {
+            marketType = 'option';
+        }
         if ((marketType !== 'option') && (marketType !== 'swap') && (marketType !== 'future')) {
             throw new NotSupported (this.id + ' fetchUnderlyingAssets() supports contract markets only');
         }

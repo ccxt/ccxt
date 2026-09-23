@@ -2664,7 +2664,10 @@ export default class tokocrypto extends Exchange {
                 'X-MBX-APIKEY': this.apiKey,
             };
             const queryInUrl = (method === 'GET') || (method === 'DELETE') || (api === 'wapi');
-            const bodySigned = (queryInUrl) ? body : query;
+            let bodySigned: Str = query;
+            if (queryInUrl) {
+                bodySigned = body;
+            }
             if (queryInUrl) {
                 url += '?' + query;
             } else {

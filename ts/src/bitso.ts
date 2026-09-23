@@ -1145,7 +1145,10 @@ export default class bitso extends Exchange {
             throw new ExchangeError (this.id + ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
-        const paramsMarker: Dict = markerInParams ? this.extend (params, { 'marker': parseInt (params['marker']) }) : params;
+        let paramsMarker: Dict = params;
+        if (markerInParams) {
+            paramsMarker = this.extend (params, { 'marker': parseInt (params['marker']) });
+        }
         const request: Dict = {
             'book': market['id'],
             'limit': limit, // default = 25, max = 100
@@ -1375,7 +1378,10 @@ export default class bitso extends Exchange {
             throw new ExchangeError (this.id + ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
-        const paramsMarker: Dict = markerInParams ? this.extend (params, { 'marker': parseInt (params['marker']) }) : params;
+        let paramsMarker: Dict = params;
+        if (markerInParams) {
+            paramsMarker = this.extend (params, { 'marker': parseInt (params['marker']) });
+        }
         const request: Dict = {
             'book': market['id'],
             'limit': limit, // default = 25, max = 100

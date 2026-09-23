@@ -3519,7 +3519,10 @@ export default class gate extends Exchange {
             if (isMark || isIndex) {
                 request['contract'] = price + '_' + market['id'];
             }
-            const paramsContract = (isMark || isIndex) ? this.omit (paramsOmitted, 'price') : paramsOmitted;
+            let paramsContract = paramsOmitted;
+            if (isMark || isIndex) {
+                paramsContract = this.omit (paramsOmitted, 'price');
+            }
             if (market['future'] === true) {
                 response = await this.publicDeliveryGetSettleCandlesticks (this.extend (request, paramsContract));
             } else if (market['swap'] === true) {
@@ -4640,7 +4643,10 @@ export default class gate extends Exchange {
                 }
             }
         }
-        const priceResolved: Num = (isMarketOrder && (contract === true)) ? 0 : price;
+        let priceResolved: Num = price;
+        if (isMarketOrder && (contract === true)) {
+            priceResolved = 0;
+        }
         let contractAmount: Num = 0;
         if (contract === true) {
             const isClose = this.safeValue (query, 'close');
@@ -6104,7 +6110,10 @@ export default class gate extends Exchange {
             request['settle'] = currency['id']; // todo: currencies have network-junctions
         }
         const isMarginTransfer = (fromId === 'margin') || (toId === 'margin');
-        const query = isMarginTransfer ? this.omit (params, 'symbol') : params;
+        let query = params;
+        if (isMarginTransfer) {
+            query = this.omit (params, 'symbol');
+        }
         const response = await this.privateWalletPostTransfers (this.extend (request, query));
         //
         // according to the docs (however actual response seems to be an empty string '')
@@ -6482,7 +6491,10 @@ export default class gate extends Exchange {
             }
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
-        const type = ((marketType === undefined) || (marketType === 'spot')) ? 'swap' : marketType; // default to swap
+        let type = marketType;
+        if ((marketType === undefined) || (marketType === 'spot')) {
+            type = 'swap';
+        } // default to swap
         // prepareRequest leaves request empty and params untouched for options
         const [ request, query ] = this.prepareRequest (undefined, type, paramsMarketType);
         if (type === 'option') {
@@ -7664,7 +7676,10 @@ export default class gate extends Exchange {
             request['settle'] = settle;
         }
         const isContract = (type === 'swap') || (type === 'future');
-        const paramsSettle = isContract ? this.omit (paramsMarketType, 'settle') : paramsMarketType;
+        let paramsSettle = paramsMarketType;
+        if (isContract) {
+            paramsSettle = this.omit (paramsMarketType, 'settle');
+        }
         if (since !== undefined) {
             request['from'] = since;
         }
@@ -7899,7 +7914,10 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         const [ marketTypeRaw, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchUnderlyingAssets', undefined, params);
-        const marketType = ((marketTypeRaw === undefined) || (marketTypeRaw === 'spot')) ? 'option' : marketTypeRaw;
+        let marketType = marketTypeRaw;
+        if ((marketTypeRaw === undefined) || (marketTypeRaw === 'spot')) {
+            marketType = 'option';
+        }
         if (marketType !== 'option') {
             throw new NotSupported (this.id + ' fetchUnderlyingAssets() supports option markets only');
         }

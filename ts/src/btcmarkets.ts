@@ -1017,7 +1017,10 @@ export default class btcmarkets extends Exchange {
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         }
-        const paramsTriggerPrice = (triggerPriceIsRequired) ? this.omit (params, 'triggerPrice') : params;
+        let paramsTriggerPrice = params;
+        if (triggerPriceIsRequired) {
+            paramsTriggerPrice = this.omit (params, 'triggerPrice');
+        }
         const paramsOmitted = this.omit (paramsTriggerPrice, 'clientOrderId');
         const response = await this.privatePostOrders (this.extend (request, paramsOmitted));
         //

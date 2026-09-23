@@ -1279,7 +1279,12 @@ export default class bitfinex extends Exchange {
             minusIndex = 1;
         }
         const marketId = this.safeString (ticker, 0);
-        const marketResolved = (isFetchTicker) ? market : this.safeMarket (marketId, market);
+        let marketResolved = undefined;
+        if (isFetchTicker) {
+            marketResolved = market;
+        } else {
+            marketResolved = this.safeMarket (marketId, market);
+        }
         const isFundingCurrency = length >= 17;
         symbol = this.safeSymbol (undefined, marketResolved);
         let last: Str = undefined;

@@ -195,7 +195,10 @@ export default class cex extends cexRest {
         //  update trade
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
-        const tradeParts = (!Array.isArray (trade)) ? trade.split (':') : trade;
+        let tradeParts = trade;
+        if (!Array.isArray (trade)) {
+            tradeParts = trade.split (':');
+        }
         const side = this.safeString (tradeParts, 0);
         const timestamp = this.safeInteger (tradeParts, 1);
         const amount = this.safeString (tradeParts, 2);
@@ -505,7 +508,10 @@ export default class cex extends cexRest {
         };
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, messageHash, request);
-        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolValue, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolValue, since, limitResolved, true);
     }
 
@@ -1125,7 +1131,10 @@ export default class cex extends cexRest {
             ],
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 

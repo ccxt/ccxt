@@ -5135,7 +5135,10 @@ export default class binance extends Exchange {
         const price = this.safeString (paramsPaginate, 'price');
         const until = this.safeInteger (paramsPaginate, 'until');
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'price', 'until' ]);
-        const limitRequested: Int = (since !== undefined && until !== undefined && limit === undefined) ? maxLimit : limit;
+        let limitRequested: Int = limit;
+        if (since !== undefined && until !== undefined && limit === undefined) {
+            limitRequested = maxLimit;
+        }
         const limitValue: Int = (limitRequested === undefined) ? defaultLimit : Math.min (limitRequested, maxLimit);
         const request: Dict = {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
@@ -5889,7 +5892,10 @@ export default class binance extends Exchange {
             request['cancelOrderId'] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-        const paramsTimeInForce: Dict = (this.safeString (params, 'timeInForce') === 'PO') ? this.omit (params, [ 'timeInForce' ]) : params;
+        let paramsTimeInForce: Dict = params;
+        if (this.safeString (params, 'timeInForce') === 'PO') {
+            paramsTimeInForce = this.omit (params, [ 'timeInForce' ]);
+        }
         const paramsOmitted: Dict = this.omit (paramsTimeInForce, [ 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
         return this.extend (request, paramsOmitted);
     }
@@ -7675,7 +7681,10 @@ export default class binance extends Exchange {
             request['startTime'] = since;
         }
         // max 100
-        const limitResolved: Int = (limit !== undefined && stock === true) ? Math.min (limit, 100) : limit;
+        let limitResolved: Int = limit;
+        if (limit !== undefined && stock === true) {
+            limitResolved = Math.min (limit, 100);
+        }
         if (limitResolved !== undefined) {
             if (stock === true) {
                 request['size'] = limitResolved;
@@ -8933,8 +8942,14 @@ export default class binance extends Exchange {
         }
         const isContractLimit = (type === 'option') || (this.safeBool (market, 'contract') === true);
         // above 1000, returns error
-        const limitContract: Int = (limit !== undefined && isContractLimit) ? Math.min (limit, 1000) : limit;
-        const limitResolved: Int = (limitContract !== undefined && stock === true) ? Math.min (limitContract, 100) : limitContract;
+        let limitContract: Int = limit;
+        if (limit !== undefined && isContractLimit) {
+            limitContract = Math.min (limit, 1000);
+        }
+        let limitResolved: Int = limitContract;
+        if (limitContract !== undefined && stock === true) {
+            limitResolved = Math.min (limitContract, 100);
+        }
         if (limitResolved !== undefined) {
             if (stock === true) {
                 request['size'] = limitResolved;

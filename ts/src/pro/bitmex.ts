@@ -760,7 +760,12 @@ export default class bitmex extends bitmexRest {
         await this.authenticate ();
         const subscriptionHash = 'position';
         let messageHash = 'positions';
-        const symbolsNormalized: Strings = (this.isEmpty (symbols)) ? symbols : this.marketSymbols (symbols);
+        let symbolsNormalized: Strings = undefined;
+        if (this.isEmpty (symbols)) {
+            symbolsNormalized = symbols;
+        } else {
+            symbolsNormalized = this.marketSymbols (symbols);
+        }
         if (!this.isEmpty (symbols)) {
             messageHash = 'positions::' + (symbolsNormalized as string[]).join (',');
         }
@@ -1005,7 +1010,10 @@ export default class bitmex extends bitmexRest {
             ],
         };
         const orders = await this.watch (url, messageHash, request, subscriptionHash);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
@@ -1224,7 +1232,10 @@ export default class bitmex extends bitmexRest {
             ],
         };
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
@@ -1406,7 +1417,10 @@ export default class bitmex extends bitmexRest {
         const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -1438,7 +1452,10 @@ export default class bitmex extends bitmexRest {
             ],
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 

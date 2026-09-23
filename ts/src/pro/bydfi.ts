@@ -361,7 +361,10 @@ export default class bydfi extends bydfiRest {
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + interval);
         }
         const [ symbol, timeframe, candles ] = await this.watchPublic (messageHashes, channels, params);
-        const limitResolved = (this.newUpdates) ? candles.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = candles.getLimit (symbol, limit);
+        }
         const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
@@ -608,7 +611,10 @@ export default class bydfi extends bydfiRest {
         const orders = await this.watchPrivate (messageHashes, params);
         const first = this.safeDict (orders, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved = (this.newUpdates) ? orders.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 

@@ -1869,7 +1869,10 @@ export default class mexc extends Exchange {
         let candles: OHLCV[] = [];
         const until = this.safeInteger2 (paramsPaginate, 'until', 'endTime');
         const omitUntil = (until !== undefined) && (since === undefined);
-        const paramsUntil: Dict = omitUntil ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
+        let paramsUntil: Dict = paramsPaginate;
+        if (omitUntil) {
+            paramsUntil = this.omit (paramsPaginate, [ 'until' ]);
+        }
         let start = since;
         if (omitUntil) {
             const usedLimit = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
@@ -5630,7 +5633,10 @@ export default class mexc extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const paramsOmitted: Dict = isIsolatedMargin ? this.omit (params, 'symbol') : params;
+        let paramsOmitted: Dict = params;
+        if (isIsolatedMargin) {
+            paramsOmitted = this.omit (params, 'symbol');
+        }
         const response = await this.spotPrivatePostCapitalTransfer (this.extend (request, paramsOmitted));
         //
         //     {

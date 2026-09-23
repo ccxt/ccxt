@@ -3008,7 +3008,10 @@ export default class htx extends Exchange {
         const untilSeconds = (until !== undefined) ? this.parseToInt (until / 1000) : undefined;
         const isContract = (market['contract'] === true);
         const contractLimit: number = (limit !== undefined) ? limit : 2000; // only used for from/to calculation
-        const rangeLimit = isContract ? contractLimit : limit;
+        let rangeLimit = limit;
+        if (isContract) {
+            rangeLimit = contractLimit;
+        }
         if (isContract) {
             if (limit !== undefined) {
                 request['size'] = Math.min (limit, 2000); // when using limit: from & to are ignored
@@ -5135,7 +5138,10 @@ export default class htx extends Exchange {
         const isMarketBuy = (orderType === 'market') && (side === 'buy');
         const requiresPriceAndParams = this.handleOptionAndParams (paramsPostOnly, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
         const cost = this.safeNumber (requiresPriceAndParams[1], 'cost');
-        const paramsCost: Dict = isMarketBuy ? this.omit (requiresPriceAndParams[1], 'cost') : paramsPostOnly;
+        let paramsCost: Dict = paramsPostOnly;
+        if (isMarketBuy) {
+            paramsCost = this.omit (requiresPriceAndParams[1], 'cost');
+        }
         if (isMarketBuy) {
             let quoteAmount: Str = undefined;
             const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
@@ -6477,7 +6483,10 @@ export default class htx extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        const limitValue: Int = (limit === undefined || limit > 100) ? 100 : limit;
+        let limitValue: Int = limit;
+        if (limit === undefined || limit > 100) {
+            limitValue = 100;
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6539,7 +6548,10 @@ export default class htx extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        const limitValue: Int = (limit === undefined || limit > 100) ? 100 : limit;
+        let limitValue: Int = limit;
+        if (limit === undefined || limit > 100) {
+            limitValue = 100;
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6748,7 +6760,10 @@ export default class htx extends Exchange {
         let amountValue = parseFloat (amountPrecision);
         const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
-        const paramsFee: Dict = includeFee ? this.omit (paramsNetwork, 'fee') : paramsNetwork;
+        let paramsFee: Dict = paramsNetwork;
+        if (includeFee) {
+            paramsFee = this.omit (paramsNetwork, 'fee');
+        }
         if (includeFee) {
             let fee = this.safeNumber (paramsNetwork, 'fee');
             if (fee === undefined) {

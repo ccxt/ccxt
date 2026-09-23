@@ -91,7 +91,10 @@ export default class whitebit extends whitebitRest {
         const reqParams = [ marketId, interval ];
         const method = 'candles_subscribe';
         const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
-        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -373,7 +376,10 @@ export default class whitebit extends whitebitRest {
         const method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
         const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -445,7 +451,10 @@ export default class whitebit extends whitebitRest {
         const messageHash = 'myTrades:' + symbolValue;
         const method = 'deals_subscribe';
         const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, true, params);
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
     }
 
@@ -570,7 +579,10 @@ export default class whitebit extends whitebitRest {
         const messageHash = 'orders:' + symbolValue;
         const method = 'ordersPending_subscribe';
         const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
     }
 

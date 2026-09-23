@@ -59,7 +59,10 @@ export default class dydx extends dydxRest {
             'id': market['id'],
         };
         const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -290,7 +293,10 @@ export default class dydx extends dydxRest {
             'id': market['id'] + '/' + resolution,
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 

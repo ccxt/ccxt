@@ -118,7 +118,10 @@ export default class paradex extends paradexRest {
             },
         };
         const trades = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -350,7 +353,10 @@ export default class paradex extends paradexRest {
             },
         };
         const orders = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
-        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 

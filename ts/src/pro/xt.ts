@@ -422,7 +422,10 @@ export default class xt extends xtRest {
         const market = this.market (symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
         const ohlcv = await this.subscribe (name, 'public', 'watchOHLCV', market, undefined, params);
-        const limitResolved: Int = this.newUpdates ? ohlcv.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -467,7 +470,10 @@ export default class xt extends xtRest {
         const market = this.market (symbol);
         const name = 'trade@' + market['id'];
         const trades = await this.subscribe (name, 'public', 'watchTrades', market, undefined, params);
-        const limitResolved: Int = this.newUpdates ? trades.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp');
     }
 
@@ -570,7 +576,10 @@ export default class xt extends xtRest {
             market = this.market (symbol);
         }
         const orders = await this.subscribe (name, 'private', 'watchOrders', market, undefined, params);
-        const limitResolved: Int = this.newUpdates ? orders.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp');
     }
 
@@ -596,7 +605,10 @@ export default class xt extends xtRest {
             market = this.market (symbol);
         }
         const trades = await this.subscribe (name, 'private', 'watchMyTrades', market, undefined, params);
-        const limitResolved: Int = this.newUpdates ? trades.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp');
     }
 

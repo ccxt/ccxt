@@ -401,7 +401,10 @@ export default class bingx extends bingxRest {
             'id': uuid,
         };
         const trades = await this.watch (url, messageHash, this.extend (request, paramsSubType), messageHash, subscription);
-        const limitResolved: Int = this.newUpdates ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
         if (this.handleOption ('watchTrades', 'ignoreDuplicates', true) === true) {
             let filtered = this.removeRepeatedTradesFromArray (result);
@@ -937,7 +940,10 @@ export default class bingx extends bingxRest {
         };
         const result = await this.watch (url, messageHash, this.extend (request, paramsSubType), subscriptionHash, subscriptionArgs);
         const ohlcv = result[2];
-        const limitResolved: Int = this.newUpdates ? ohlcv.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -1024,7 +1030,10 @@ export default class bingx extends bingxRest {
             'id': uuid,
         };
         const orders = await this.watch (url, messageHash, request, subscriptionHash, subscription);
-        const limitResolved: Int = this.newUpdates ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
@@ -1082,7 +1091,10 @@ export default class bingx extends bingxRest {
             'id': uuid,
         };
         const trades = await this.watch (url, messageHash, request, subscriptionHash, subscription);
-        const limitResolved: Int = this.newUpdates ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 

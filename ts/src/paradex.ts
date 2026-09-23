@@ -3468,7 +3468,10 @@ export default class paradex extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let version = this.version;
-        const pathValue: any = (path.indexOf ('v2/') === 0) ? path.replace ('v2/', '') : path;
+        let pathValue: any = path;
+        if (path.indexOf ('v2/') === 0) {
+            pathValue = path.replace ('v2/', '');
+        }
         if (path.indexOf ('v2/') === 0) {
             version = 'v2';
         }

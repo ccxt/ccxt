@@ -828,7 +828,10 @@ export default class lighter extends lighterRest {
             'channel': 'account_all_trades/' + this.numberToString (accountIndex),
         };
         const trades = await this.subscribePublic (messageHash, this.extend (request, paramsAccountIndex));
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
@@ -1137,7 +1140,10 @@ export default class lighter extends lighterRest {
             request['channel'] = 'account_all_orders/' + this.numberToString (accountIndex);
         }
         const orders = await this.subscribePrivate (messageHash, this.extend (request, paramsAccountIndex));
-        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbol, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
     }
 

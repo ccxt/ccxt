@@ -211,7 +211,10 @@ export default class toobit extends toobitRest {
         const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -323,7 +326,10 @@ export default class toobit extends toobitRest {
             'event': 'sub',
         };
         const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
-        const limitResolved = (this.newUpdates) ? stored.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = stored.getLimit (symbol, limit);
+        }
         const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
@@ -822,7 +828,10 @@ export default class toobit extends toobitRest {
         }
         const url = this.getUserStreamUrl ();
         const orders = await this.watch (url, messageHash, params, messageHash);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolValue, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolValue, since, limitResolved, true);
     }
 
@@ -943,7 +952,10 @@ export default class toobit extends toobitRest {
         }
         const url = this.getUserStreamUrl ();
         const trades = await this.watch (url, messageHash, params, messageHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -1017,7 +1029,10 @@ export default class toobit extends toobitRest {
         await this.authenticate ();
         const type = 'swap'; // the only account type that carries positions here
         let messageHash = '';
-        const symbolsNormalized = (!this.isEmpty (symbols)) ? this.marketSymbols (symbols) : symbols;
+        let symbolsNormalized = symbols;
+        if (!this.isEmpty (symbols)) {
+            symbolsNormalized = this.marketSymbols (symbols);
+        }
         if (!this.isEmpty (symbols)) {
             if (symbolsNormalized === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');

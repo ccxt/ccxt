@@ -1881,7 +1881,10 @@ export default class bittrade extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        const limitResolved = (limit === undefined || limit > 100) ? 100 : limit;
+        let limitResolved = limit;
+        if (limit === undefined || limit > 100) {
+            limitResolved = 100;
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1916,7 +1919,10 @@ export default class bittrade extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        const limitResolved = (limit === undefined || limit > 100) ? 100 : limit;
+        let limitResolved = limit;
+        if (limit === undefined || limit > 100) {
+            limitResolved = 100;
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

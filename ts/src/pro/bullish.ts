@@ -140,7 +140,10 @@ export default class bullish extends bullishRest {
             'symbol': market['id'],
         };
         const trades = await this.watchPublic (url, messageHash, request, params);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -393,7 +396,10 @@ export default class bullish extends bullishRest {
             request['tradingAccountId'] = tradingAccountId;
         }
         const orders = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
@@ -510,7 +516,10 @@ export default class bullish extends bullishRest {
             request['tradingAccountId'] = tradingAccountId;
         }
         const trades = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -704,7 +713,10 @@ export default class bullish extends bullishRest {
         const subscribeHash = 'positions';
         let messageHash = subscribeHash;
         const hasSymbols = (symbols !== undefined) && !this.isEmpty (symbols);
-        const symbolsNormalized = (hasSymbols) ? this.marketSymbols (symbols) : symbols;
+        let symbolsNormalized = symbols;
+        if (hasSymbols) {
+            symbolsNormalized = this.marketSymbols (symbols);
+        }
         if (hasSymbols && (symbolsNormalized !== undefined)) {
             messageHash += '::' + symbolsNormalized.join (',');
         }

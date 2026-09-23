@@ -3093,7 +3093,10 @@ export default class modetrade extends Exchange {
                     }
                 }
             }
-            const paramsSigned: Dict = (isPostOrPut && isOrder) ? this.keysort (paramsSorted) : paramsSorted;
+            let paramsSigned: Dict = paramsSorted;
+            if (isPostOrPut && isOrder) {
+                paramsSigned = this.keysort (paramsSorted);
+            }
             let auth = '';
             const ts = this.nonce ().toString ();
             url += pathWithParams;

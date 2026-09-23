@@ -144,7 +144,10 @@ export default class bitfinex extends bitfinexRest {
         const url = this.urls['api']['ws']['public'];
         // not using subscribe here because this message has a different format
         const ohlcv = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -282,7 +285,10 @@ export default class bitfinex extends bitfinexRest {
      */
     override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.subscribe ('trades', symbol, params);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -318,7 +324,10 @@ export default class bitfinex extends bitfinexRest {
             messageHash += ':' + market['id'];
         }
         const trades = await this.subscribePrivate (messageHash);
-        const limitResolved = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbol, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
     }
 
@@ -1081,7 +1090,10 @@ export default class bitfinex extends bitfinexRest {
             messageHash += ':' + market['id'];
         }
         const orders = await this.subscribePrivate (messageHash);
-        const limitResolved = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbol, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
     }
 

@@ -961,7 +961,10 @@ export default class derive extends Exchange {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
         }
-        const limitResolved: Int = (limit !== undefined && limit > 1000) ? 1000 : limit;
+        let limitResolved: Int = limit;
+        if (limit !== undefined && limit > 1000) {
+            limitResolved = 1000;
+        }
         if (limitResolved !== undefined) {
             request['page_size'] = limitResolved; // default 100, max 1000
         }

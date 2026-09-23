@@ -4739,7 +4739,10 @@ export default class bitget extends Exchange {
         const recentEndpointAvailableDays = this.safeInteger (recentEndpointDaysMap, timeframe);
         const recentEndpointBoundaryTs = now - ((recentEndpointAvailableDays as number) - 1) * msInDay;
         const limitCapped = Math.min (limit as number, maxLimitForRecentEndpoint);
-        let limitResolved: Int = (limitDefined) ? Math.min (limitCapped, maxLimitForThisTimeframe as number) : defaultLimit;
+        let limitResolved: Int = defaultLimit;
+        if (limitDefined) {
+            limitResolved = Math.min (limitCapped, maxLimitForThisTimeframe as number);
+        }
         let limitMultipliedDuration = limitResolved * duration;
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint

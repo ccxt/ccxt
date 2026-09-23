@@ -2759,7 +2759,10 @@ export default class whitebit extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.parseToInt (since / 1000);
         }
-        const limitResolved = (limit === undefined || limit > 100) ? 100 : limit;
+        let limitResolved = limit;
+        if (limit === undefined || limit > 100) {
+            limitResolved = 100;
+        }
         request['limit'] = limitResolved;
         // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
         request['transactionMethod'] = '2';
@@ -2810,7 +2813,10 @@ export default class whitebit extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.parseToInt (since / 1000);
         }
-        const limitResolved = (limit === undefined || limit > 100) ? 100 : limit;
+        let limitResolved = limit;
+        if (limit === undefined || limit > 100) {
+            limitResolved = 100;
+        }
         request['limit'] = limitResolved;
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
@@ -4289,8 +4295,14 @@ export default class whitebit extends Exchange {
             };
         }
         const isPrivate = (accessibility === 'private');
-        const requestBody: Str = isPrivate ? privateBody : body;
-        const requestHeaders: Dict = isPrivate ? privateHeaders : publicHeaders;
+        let requestBody: Str = body;
+        if (isPrivate) {
+            requestBody = privateBody;
+        }
+        let requestHeaders: Dict = publicHeaders;
+        if (isPrivate) {
+            requestHeaders = privateHeaders;
+        }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

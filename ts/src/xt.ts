@@ -2637,7 +2637,10 @@ export default class xt extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const isMarketBuy = (type === 'market') && (side === 'buy');
-        const paramsWithoutCost: Dict = isMarketBuy ? this.omit (paramsMarginMode, 'cost') : paramsMarginMode;
+        let paramsWithoutCost: Dict = paramsMarginMode;
+        if (isMarketBuy) {
+            paramsWithoutCost = this.omit (paramsMarginMode, 'cost');
+        }
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', timeInForce === 'GTX', paramsWithoutCost);
         if (postOnly === true) {
             timeInForce = 'GTX';
@@ -5874,7 +5877,10 @@ export default class xt extends Exchange {
                 url += '?' + urlencoded;
             }
         }
-        const bodyValue = (signed) ? signedBody : body;
+        let bodyValue = body;
+        if (signed) {
+            bodyValue = signedBody;
+        }
         return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
 }

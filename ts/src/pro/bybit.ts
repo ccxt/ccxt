@@ -733,7 +733,10 @@ export default class bybit extends bybitRest {
             messageHashes.push ('ohlcv::' + symbolString + '::' + unfiedTimeframe);
         }
         const [ symbol, timeframe, stored ] = await this.watchTopics (url, messageHashes, rawHashes, params);
-        const limitResolved: Int = (this.newUpdates) ? stored.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = stored.getLimit (symbol, limit);
+        }
         const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
@@ -1124,7 +1127,10 @@ export default class bybit extends bybitRest {
         const trades = await this.watchTopics (url, messageHashes, topics, paramsValue);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -1332,7 +1338,10 @@ export default class bybit extends bybitRest {
             topic = 'execution.fast';
         }
         const trades = await this.watchTopics (url, [ messageHash ], [ topic ], paramsExecutionFast);
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
@@ -1537,7 +1546,10 @@ export default class bybit extends bybitRest {
         }
         const method = 'watchPositions';
         let messageHash = '';
-        const symbolsNormalized = ((symbols !== undefined) && !this.isEmpty (symbols)) ? this.marketSymbols (symbols) : symbols;
+        let symbolsNormalized = symbols;
+        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
+            symbolsNormalized = this.marketSymbols (symbols);
+        }
         if ((symbolsNormalized !== undefined) && !this.isEmpty (symbolsNormalized)) {
             messageHash = '::' + symbolsNormalized.join (',');
         }
@@ -1866,7 +1878,10 @@ export default class bybit extends bybitRest {
         };
         const topics = this.safeList (topicsByMarket, this.getPrivateType (url));
         const orders = await this.watchTopics (url, [ messageHash ], topics, params);
-        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 

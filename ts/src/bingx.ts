@@ -3263,8 +3263,14 @@ export default class bingx extends Exchange {
             const hasStopLoss = stopLossDict !== undefined;
             const hasTakeProfit = takeProfitDict !== undefined;
             // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
-            const paramsStopLoss = (hasStopLoss) ? this.omit (paramsPostOnly, 'stopLoss') : paramsPostOnly;
-            const paramsTakeProfit = (hasTakeProfit) ? this.omit (paramsStopLoss, 'takeProfit') : paramsStopLoss;
+            let paramsStopLoss = paramsPostOnly;
+            if (hasStopLoss) {
+                paramsStopLoss = this.omit (paramsPostOnly, 'stopLoss');
+            }
+            let paramsTakeProfit = paramsStopLoss;
+            if (hasTakeProfit) {
+                paramsTakeProfit = this.omit (paramsStopLoss, 'takeProfit');
+            }
             if (((typeValue === 'LIMIT') || (typeValue === 'TRIGGER_LIMIT') || (typeValue === 'STOP') || (typeValue === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }

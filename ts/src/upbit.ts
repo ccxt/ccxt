@@ -2435,7 +2435,10 @@ export default class upbit extends Exchange {
             }
         }
         const hasBody = (api === 'private') && (method !== 'GET') && (method !== 'DELETE');
-        const requestBody = hasBody ? this.json (params) : body;
+        let requestBody = body;
+        if (hasBody) {
+            requestBody = this.json (params);
+        }
         let privateHeaders: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();

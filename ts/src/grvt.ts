@@ -2126,7 +2126,10 @@ export default class grvt extends Exchange {
                 },
             };
         }
-        const paramsTrigger: Dict = isTriggerOrder ? this.omit (paramsTriggerPrices, [ 'triggerDirection', 'triggerPriceType', 'closePosition' ]) : paramsTriggerPrices;
+        let paramsTrigger: Dict = paramsTriggerPrices;
+        if (isTriggerOrder) {
+            paramsTrigger = this.omit (paramsTriggerPrices, [ 'triggerDirection', 'triggerPriceType', 'closePosition' ]);
+        }
         let eipType = 'EIP712_ORDER_TYPE';
         const builderFee = this.safeBool (paramsTrigger, 'builderFee', this.safeBool (this.options, 'builderFee', true));
         if (builderFee === true) {

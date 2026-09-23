@@ -1002,7 +1002,10 @@ export default class indodax extends Exchange {
         let priceIsRequired = false;
         let quantityIsRequired = false;
         const isMarketBuy = (type === 'market') && (side === 'buy');
-        const paramsOmitted: Dict = isMarketBuy ? this.omit (params, 'cost') : params;
+        let paramsOmitted: Dict = params;
+        if (isMarketBuy) {
+            paramsOmitted = this.omit (params, 'cost');
+        }
         if (type === 'market') {
             if (side === 'buy') {
                 let quoteAmount: Str = undefined;
@@ -1540,8 +1543,14 @@ export default class indodax extends Exchange {
                 'Sign': this.hmac (this.encode (privateBody), this.encode (this.secret), sha512),
             };
         }
-        const requestBody: Str = isPublic ? body : privateBody;
-        const requestHeaders: NullableDict = isPublic ? headers : privateHeaders;
+        let requestBody: Str = privateBody;
+        if (isPublic) {
+            requestBody = body;
+        }
+        let requestHeaders: NullableDict = privateHeaders;
+        if (isPublic) {
+            requestHeaders = headers;
+        }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

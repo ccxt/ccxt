@@ -890,7 +890,10 @@ export default class latoken extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
         const symbolKnown = (this.markets !== undefined) && (symbol in this.markets);
-        const marketResolved: Market = symbolKnown ? this.market (symbol) : market;
+        let marketResolved: Market = market;
+        if (symbolKnown) {
+            marketResolved = this.market (symbol);
+        }
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
         const feeCost = this.safeString (trade, 'fee');
@@ -1167,9 +1170,15 @@ export default class latoken extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const hasBaseAndQuote = (base !== undefined) && (quote !== undefined);
-        const symbol: Str = hasBaseAndQuote ? (base + '/' + quote) : undefined;
+        let symbol: Str = undefined;
+        if (hasBaseAndQuote) {
+            symbol = base + '/' + quote;
+        }
         const symbolKnown = (symbol !== undefined) && (this.markets !== undefined) && (symbol in this.markets);
-        const marketResolved: Market = symbolKnown ? this.market (symbol) : market;
+        let marketResolved: Market = market;
+        if (symbolKnown) {
+            marketResolved = this.market (symbol);
+        }
         const orderSide = this.safeString (order, 'side');
         let side: Str = undefined;
         if (orderSide !== undefined) {

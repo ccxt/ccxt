@@ -558,7 +558,10 @@ export default class p2b extends Exchange {
         //    }
         //
         const timestamp = this.safeIntegerProduct (ticker, 'at', 1000);
-        const tickerInner = ('ticker' in ticker) ? this.safeDict (ticker, 'ticker') : ticker;
+        let tickerInner = ticker;
+        if ('ticker' in ticker) {
+            tickerInner = this.safeDict (ticker, 'ticker');
+        }
         const last = this.safeString (tickerInner, 'last');
         return this.safeTicker ({
             'symbol': this.safeString (market, 'symbol'),

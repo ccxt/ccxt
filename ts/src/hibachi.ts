@@ -1825,7 +1825,10 @@ export default class hibachi extends Exchange {
         if (hasJsonBody) {
             headersValue['Content-Type'] = 'application/json';
         }
-        const bodyResult = (hasJsonBody) ? this.json (params) : body;
+        let bodyResult = body;
+        if (hasJsonBody) {
+            bodyResult = this.json (params);
+        }
         if (api === 'private') {
             this.checkRequiredCredentials ();
             headersValue['Authorization'] = this.apiKey;

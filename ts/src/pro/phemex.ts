@@ -630,7 +630,10 @@ export default class phemex extends phemexRest {
         };
         const request = this.deepExtend (subscribe, params);
         const trades = await this.watch (url, messageHash, request, messageHash);
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -711,7 +714,10 @@ export default class phemex extends phemexRest {
         };
         const request = this.deepExtend (subscribe, params);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
@@ -825,14 +831,20 @@ export default class phemex extends phemexRest {
             messageHash = messageHash + market['symbol'];
         }
         const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
-        const settleRequest: Dict = isUsdtMarket ? { 'settle': 'USDT' } : {};
+        let settleRequest: Dict = {};
+        if (isUsdtMarket) {
+            settleRequest = { 'settle': 'USDT' };
+        }
         const [ type, paramsType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, this.extend (params, settleRequest));
         if (symbolResolved === undefined) {
             const settle = this.safeString (paramsType, 'settle');
             messageHash = (settle === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
         }
         const trades = await this.subscribePrivate (type, messageHash, paramsType);
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
@@ -989,14 +1001,20 @@ export default class phemex extends phemexRest {
             messageHash = messageHash + market['symbol'];
         }
         const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
-        const settleRequest: Dict = isUsdtMarket ? { 'settle': 'USDT' } : {};
+        let settleRequest: Dict = {};
+        if (isUsdtMarket) {
+            settleRequest = { 'settle': 'USDT' };
+        }
         const [ type, paramsType ] = this.handleMarketTypeAndParams ('watchOrders', market, this.extend (params, settleRequest));
         const isUSDTSettled = this.safeString (paramsType, 'settle') === 'USDT';
         if (symbolResolved === undefined) {
             messageHash = (isUSDTSettled) ? (messageHash + 'perpetual') : (messageHash + type);
         }
         const orders = await this.subscribePrivate (type, messageHash, paramsType);
-        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbolResolved, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 

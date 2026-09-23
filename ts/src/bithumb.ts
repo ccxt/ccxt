@@ -1705,7 +1705,10 @@ export default class bithumb extends Exchange {
         const paramsTimeInForce = (timeInForceRaw === undefined) ? params : this.omit (params, 'timeInForce');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', false, paramsTimeInForce);
         const isPostOnly = postOnly || (timeInForce === 'PO');
-        let paramsOrder: Dict = (isPostOnly) ? this.omit (paramsPostOnly, 'postOnly') : paramsPostOnly;
+        let paramsOrder: Dict = paramsPostOnly;
+        if (isPostOnly) {
+            paramsOrder = this.omit (paramsPostOnly, 'postOnly');
+        }
         if (isPostOnly) {
             request['time_in_force'] = 'post_only';
         } else if (timeInForce === 'FOK') {
@@ -2383,7 +2386,12 @@ export default class bithumb extends Exchange {
         const request: Dict = {};
         const twap = this.safeBool (paramsGeneration, 'twap', false);
         const paramsOmitted = this.omit (paramsGeneration, 'twap');
-        const clientOrderIds = (twap) ? undefined : this.safeList2 (paramsOmitted, 'client_order_ids', 'clientOrderIds');
+        let clientOrderIds = undefined;
+        if (twap) {
+            clientOrderIds = undefined;
+        } else {
+            clientOrderIds = this.safeList2 (paramsOmitted, 'client_order_ids', 'clientOrderIds');
+        }
         const paramsRequest = (clientOrderIds !== undefined) ? this.omit (paramsOmitted, [ 'clientOrderIds' ]) : paramsOmitted;
         if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds;
@@ -2525,9 +2533,17 @@ export default class bithumb extends Exchange {
         let response: any = undefined;
         const twap = this.safeBool (paramsGeneration, 'twap', false);
         const paramsOmitted = this.omit (paramsGeneration, 'twap');
-        const clientOrderId = (twap) ? undefined : this.safeString2 (paramsOmitted, 'clientOrderId', 'client_order_id');
+        let clientOrderId = undefined;
+        if (twap) {
+            clientOrderId = undefined;
+        } else {
+            clientOrderId = this.safeString2 (paramsOmitted, 'clientOrderId', 'client_order_id');
+        }
         const useClientOrderId = (generation === 2) && (clientOrderId !== undefined);
-        const paramsRequest = (useClientOrderId) ? this.omit (paramsOmitted, [ 'clientOrderId' ]) : paramsOmitted;
+        let paramsRequest = paramsOmitted;
+        if (useClientOrderId) {
+            paramsRequest = this.omit (paramsOmitted, [ 'clientOrderId' ]);
+        }
         if (twap) {
             request['algo_order_id'] = id;
         } else {
@@ -2686,7 +2702,10 @@ export default class bithumb extends Exchange {
         let response: any = undefined;
         let destinationRequest: Str = undefined;
         const requiresDestination = (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM' || code === 'TON');
-        const paramsDestination = (requiresDestination) ? this.omit (paramsNetwork, [ 'destination', 'secondary_address' ]) : paramsNetwork;
+        let paramsDestination = paramsNetwork;
+        if (requiresDestination) {
+            paramsDestination = this.omit (paramsNetwork, [ 'destination', 'secondary_address' ]);
+        }
         if (requiresDestination) {
             const destination = this.safeString2 (paramsNetwork, 'destination', 'secondary_address');
             if ((tagWithdrawTag === undefined) && (destination === undefined)) {

@@ -1904,7 +1904,12 @@ export default class digifinex extends Exchange {
             let quantity: Str = undefined;
             const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ] = this.handleOptionAndParams (paramsMarginMode, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
             const isMarketBuy = isMarketOrder && (side === 'buy');
-            const keysToOmit = isMarketBuy ? [ 'cost', 'postOnly' ] : [ 'postOnly' ];
+            let keysToOmit = undefined;
+            if (isMarketBuy) {
+                keysToOmit = [ 'cost', 'postOnly' ];
+            } else {
+                keysToOmit = [ 'postOnly' ];
+            }
             paramsRequest = this.omit (paramsRequiresPrice, keysToOmit);
             if (isMarketBuy) {
                 const cost = this.safeNumber (paramsRequiresPrice, 'cost');
@@ -4528,7 +4533,10 @@ export default class digifinex extends Exchange {
                 }
             }
             const hasPostBody = (method === 'POST') && (urlencoded !== undefined) && (urlencoded !== '');
-            const requestBody = hasPostBody ? urlencoded : body;
+            let requestBody = body;
+            if (hasPostBody) {
+                requestBody = urlencoded;
+            }
             const privateHeaders: Dict = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-SIGN': signature,

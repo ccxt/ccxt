@@ -929,7 +929,10 @@ export default class krakenfutures extends Exchange {
         };
         const paramsOmitted: Dict = this.omit (paramsPaginate, 'price');
         const windowLimit = (limit === undefined) ? 2000 : Math.min (limit, 2000);
-        const limitResolved = ((since !== undefined) || (limit !== undefined)) ? windowLimit : undefined;
+        let limitResolved = undefined;
+        if ((since !== undefined) || (limit !== undefined)) {
+            limitResolved = windowLimit;
+        }
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
             request['from'] = this.parseToInt (since / 1000);

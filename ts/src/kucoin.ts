@@ -3387,7 +3387,10 @@ export default class kucoin extends Exchange {
         // To obtain more data, please page the data by time.
         const windowLimit = (limit === undefined) ? this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit) : limit;
         const limitResolved = (since !== undefined) ? windowLimit : limit;
-        const sinceResolved = ((since === undefined) && (limit !== undefined)) ? (endAt - limit * duration) : since;
+        let sinceResolved = since;
+        if ((since === undefined) && (limit !== undefined)) {
+            sinceResolved = endAt - limit * duration;
+        }
         if (since !== undefined) {
             request['startAt'] = this.parseToInt (Math.floor (since / denominator));
             endAt = this.sum (since, windowLimit * duration);
@@ -3471,7 +3474,10 @@ export default class kucoin extends Exchange {
         // To obtain more data, please page the data by time.
         const windowLimit = (limit === undefined) ? this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit) : limit;
         const limitResolved = (since !== undefined) ? windowLimit : limit;
-        const sinceResolved = ((since === undefined) && (limit !== undefined)) ? (endAt - limit * duration) : since;
+        let sinceResolved = since;
+        if ((since === undefined) && (limit !== undefined)) {
+            sinceResolved = endAt - limit * duration;
+        }
         if (since !== undefined) {
             request['startAt'] = this.parseToInt (Math.floor (since / denominator));
             endAt = this.sum (since, windowLimit * duration);
@@ -3536,7 +3542,10 @@ export default class kucoin extends Exchange {
         // To obtain more data, please page the data by time.
         const windowLimit = (limit === undefined) ? this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit) : limit;
         const limitResolved = (since !== undefined) ? windowLimit : limit;
-        const sinceResolved = ((since === undefined) && (limit !== undefined)) ? (endAt - limit * duration) : since;
+        let sinceResolved = since;
+        if ((since === undefined) && (limit !== undefined)) {
+            sinceResolved = endAt - limit * duration;
+        }
         if (since !== undefined) {
             request['from'] = since;
             endAt = this.sum (since, windowLimit * duration);
@@ -5953,7 +5962,10 @@ export default class kucoin extends Exchange {
         let uta = await this.isUTAEnabled ();
         let paramsRequest = undefined;
         [ uta, paramsRequest ] = this.handleOptionAndParams (params, 'fetchOrder', 'uta', uta);
-        let paramsOmitted: Dict = (uta) ? this.omit (paramsRequest, 'uta') : paramsRequest;
+        let paramsOmitted: Dict = paramsRequest;
+        if (uta) {
+            paramsOmitted = this.omit (paramsRequest, 'uta');
+        }
         if (uta) {
             return await this.fetchUtaOrder (id, symbol, paramsOmitted);
         }

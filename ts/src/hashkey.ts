@@ -2786,7 +2786,10 @@ export default class hashkey extends Exchange {
         request['side'] = (side as string).toUpperCase () + suffix;
         const [ timeInForceParam, paramsTimeInForce ] = this.handleParamString (paramsReduceOnly, 'timeInForce');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarketOrder, timeInForceParam === 'LIMIT_MAKER', paramsTimeInForce);
-        const timeInForce: Str = (postOnly) ? 'LIMIT_MAKER' : timeInForceParam;
+        let timeInForce: Str = timeInForceParam;
+        if (postOnly) {
+            timeInForce = 'LIMIT_MAKER';
+        }
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
@@ -3811,7 +3814,10 @@ export default class hashkey extends Exchange {
         if ((type === 'LIMIT_MAKER') || isMakerTimeInForce) {
             postOnly = true;
         }
-        const timeInForceParsed: Str = ((type !== 'LIMIT_MAKER') && isMakerTimeInForce) ? 'PO' : timeInForce;
+        let timeInForceParsed: Str = timeInForce;
+        if ((type !== 'LIMIT_MAKER') && isMakerTimeInForce) {
+            timeInForceParsed = 'PO';
+        }
         const typeValue: Str = this.parseOrderType (type);
         return [ typeValue, timeInForceParsed, postOnly ];
     }

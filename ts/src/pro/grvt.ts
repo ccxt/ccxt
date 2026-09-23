@@ -332,7 +332,10 @@ export default class grvt extends grvtRest {
         const trades = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (tradeSymbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -434,7 +437,10 @@ export default class grvt extends grvtRest {
             'selectors': rawHashes,
         };
         const [ symbol, timeframe, stored ] = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
-        const limitResolved: Int = (this.newUpdates) ? stored.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = stored.getLimit (symbol, limit);
+        }
         const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
@@ -532,7 +538,12 @@ export default class grvt extends grvtRest {
         const paramsLimit: Dict = (limit === undefined) ? paramsLimitOption : paramsChannel;
         const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsLimit, 'watchOrderBook', 'interval', 500);
         const symbolsNormalized: string[] = this.marketSymbols (symbols);
-        const extraPart = isSnapshot ? (interval.toString () + '-' + limitResolved.toString ()) : interval.toString ();
+        let extraPart = undefined;
+        if (isSnapshot) {
+            extraPart = interval.toString () + '-' + limitResolved.toString ();
+        } else {
+            extraPart = interval.toString ();
+        }
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -676,7 +687,10 @@ export default class grvt extends grvtRest {
             'selectors': rawHashes,
         };
         const trades = await this.subscribeMultiple (messageHashes, this.extend (request, params), messageHashes, false);
-        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
@@ -852,7 +866,10 @@ export default class grvt extends grvtRest {
             'selectors': rawHashes,
         };
         const orders = await this.subscribeMultiple (messageHashes, this.extend (request, params), rawHashes, false);
-        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit (symbol, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
     }
 
