@@ -1312,16 +1312,17 @@ function qualifyApiReturnType (t) {
 const JAVA_API_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'api');
 const awaitedApiTables = new Map ();
 
-function awaitedApiReturnTypes (exchange) {
-    if (awaitedApiTables.has (exchange)) {
-        return awaitedApiTables.get (exchange);
+// a prediction venue extends api/prediction/<X>Api.java, whose id may collide with a REST venue
+function awaitedApiReturnTypes (exchange, predictionSource = false) {
+    const cacheKey = (predictionSource ? 'prediction|' : '') + exchange;
+    if (awaitedApiTables.has (cacheKey)) {
+        return awaitedApiTables.get (cacheKey);
     }
     let table;
     const capital = exchange.charAt (0).toUpperCase () + exchange.slice (1);
-    const candidates = [
-        path.join (JAVA_API_FOLDER, capital + 'Api.java'),
-        path.join (JAVA_API_FOLDER, 'prediction', capital + 'Api.java'),
-    ];
+    const candidates = predictionSource
+        ? [ path.join (JAVA_API_FOLDER, 'prediction', capital + 'Api.java') ]
+        : [ path.join (JAVA_API_FOLDER, capital + 'Api.java') ];
     for (const file of candidates) {
         let content;
         try {
@@ -1338,7 +1339,7 @@ function awaitedApiReturnTypes (exchange) {
         }
         break;
     }
-    awaitedApiTables.set (exchange, table);
+    awaitedApiTables.set (cacheKey, table);
     return table;
 }
 
@@ -1365,7 +1366,7 @@ function awaitedThisCallType (node) {
     if (methodName === undefined) {
         return undefined;
     }
-    const table = awaitedApiReturnTypes (sourceExchangeId (node));
+    const table = awaitedApiReturnTypes (sourceExchangeId (node), javaCoreTierOf (node) === 'prediction');
     return table?.get (methodName);
 }
 
@@ -9982,7 +9983,8 @@ export function javaVenueAsyncReturnTable () {
             continue;
         }
         for (const f of files) {
-            javaVenueScan (path.join (JAVA_VENUE_TS_ROOT, dir, f), /^ {4}(async )?(\w+) \(/, (m, line) => {
+            // only async declarations print a CompletableFuture core; a same-named sync helper elsewhere is unrelated
+            javaVenueScan (path.join (JAVA_VENUE_TS_ROOT, dir, f), /^ {4}(async )(\w+) \(/, (m, line) => {
                 const full = /^ {4}(async )?\w+ \(.*\)\s*(?::\s*(.+?))?\s*\{\s*$/.exec (line);
                 const promise = full === null ? undefined : /^Promise<(\w+)>$/.exec (full[2] ?? '');
                 const spelling = (full !== null && full[1] !== undefined && promise) ? JAVA_VENUE_RETURN_MAP[promise[1]] : undefined;
