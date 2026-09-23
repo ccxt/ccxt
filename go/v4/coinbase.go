@@ -1152,7 +1152,7 @@ func (this *Coinbase) fetchMySellsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var query any = this.Omit(params, []any{"account_id", "accountId"})
+	var query map[string]any = MapTyped(this.Omit(params, []any{"account_id", "accountId"}))
 
 	sells := (<-this.V2PrivateGetAccountsAccountIdSells(this.Extend(request, query)))
 	PanicOnError(sells)
@@ -1196,7 +1196,7 @@ func (this *Coinbase) fetchMyBuysBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var query any = this.Omit(params, []any{"account_id", "accountId"})
+	var query map[string]any = MapTyped(this.Omit(params, []any{"account_id", "accountId"}))
 
 	buys := (<-this.V2PrivateGetAccountsAccountIdBuys(this.Extend(request, query)))
 	PanicOnError(buys)
@@ -2703,8 +2703,8 @@ func (this *Coinbase) fetchTickersV2Body(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(baseIds); i++ {
 		var baseId string = GetValue(baseIds, i).(string)
 		var marketId any = Add(baseId+delimiter, quoteId)
-		var market any = this.SafeMarket(marketId, nil, delimiter)
-		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, delimiter))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(result, symbol, this.ParseTicker(rates[baseId], market))
 	}
 
@@ -2805,8 +2805,8 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var marketId *string = this.SafeString(entry, "product_id")
-		var market any = this.SafeMarket(marketId, nil, "-")
-		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, "-"))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(result, symbol, this.ParseTicker(entry, market))
 	}
 
@@ -6591,9 +6591,9 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) any {
 		}())
 		var currencyCode *string = this.SafeString(position, "asset", "Unknown")
 		var availableBalanceStr *string = this.SafeString(position, "available_to_trade_fiat", "0")
-		var availableBalance any = this.ParseNumber(availableBalanceStr)
+		var availableBalance *float64 = Float64PtrTyped(this.ParseNumber(availableBalanceStr))
 		var totalBalanceFiatStr *string = this.SafeString(position, "total_balance_fiat", "0")
-		var totalBalanceFiat any = this.ParseNumber(totalBalanceFiatStr)
+		var totalBalanceFiat *float64 = Float64PtrTyped(this.ParseNumber(totalBalanceFiatStr))
 		var holdAmount any = Subtract(totalBalanceFiat, availableBalance)
 		var costBasisDict map[string]any = SafeMapTyped(position, "cost_basis")
 		var costBasisStr *string = this.SafeString(costBasisDict, "value", "0")
@@ -6788,7 +6788,7 @@ func (this *Coinbase) Sign(path any, optionalArgs ...any) any {
 				var nonce any = this.Nonce()
 				var timestamp int64 = this.ParseToInt(Divide(nonce, 1000))
 				var timestampString string = ToString(timestamp)
-				var auth any = Add(Add(Add(timestampString, method), savedPath), payload)
+				var auth any = Add(Add(timestampString+method, savedPath), payload)
 				var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 				headers = map[string]any{
 					"CB-ACCESS-KEY":       this.ApiKey,

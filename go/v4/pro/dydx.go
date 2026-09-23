@@ -151,8 +151,8 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	// }
 	//
 	var marketId *string = this.SafeString(message, "id")
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
 	var rawTrades any = this.SafeList(content, "trades", []any{})
 	var stored any = this.SafeValue(this.Trades, symbol)
@@ -479,8 +479,8 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	var interval *string = this.SafeString(part, 1)
 	var timeframe *string = this.FindTimeframe(interval)
 	var marketId *string = this.SafeString(part, 0)
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var content any = this.SafeDict(message, "contents")
 	var candles any = this.SafeList(content, "candles")
 	var messageHash string = "ohlcv:" + *symbol

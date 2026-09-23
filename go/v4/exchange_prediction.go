@@ -509,7 +509,8 @@ func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs 
 	if !IsEqual(outcomeObj, nil) {
 		return outcomeObj
 	}
-	return map[string]any{
+	// stub for an unknown handle; it only carries the identity keys, not the market fields
+	outcomeObj = map[string]any{
 		"outcome":   outcomeIdOrSymbol,
 		"outcomeId": outcomeIdOrSymbol,
 		"market":    nil,
@@ -517,6 +518,7 @@ func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs 
 		"event":     nil,
 		"info":      map[string]any{},
 	}
+	return outcomeObj
 }
 func (this *PredictionExchange) SafeOutcomeSymbol(outcomeIdOrSymbol any, optionalArgs ...any) any {
 	outcomeObj := GetArg(optionalArgs, 0, nil)
