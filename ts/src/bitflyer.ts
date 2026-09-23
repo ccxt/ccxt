@@ -1238,6 +1238,8 @@ export default class bitflyer extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let bodySigned: Str = undefined;
+        let headersSigned: NullableDict = undefined;
         let request = '/' + this.version + '/';
         if (api === 'private') {
             request += 'me/';
@@ -1257,18 +1259,20 @@ export default class bitflyer extends Exchange {
             let auth = content.join ('');
             if (Object.keys (params).length > 0) {
                 if (method !== 'GET') {
-                    body = this.json (params);
-                    auth += body;
+                    bodySigned = this.json (params);
+                    auth += bodySigned;
                 }
             }
-            headers = {
+            headersSigned = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
                 'ACCESS-SIGN': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

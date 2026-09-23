@@ -105,8 +105,9 @@ export default class bingx extends bingxRest {
         let marketType: Str = undefined;
         let subType: Str = undefined;
         let url: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
-        [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params, 'linear');
+        let query = undefined;
+        [ marketType, query ] = this.handleMarketTypeAndParams (methodName, market, params);
+        [ subType, query ] = this.handleSubTypeAndParams (methodName, market, query, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -130,12 +131,12 @@ export default class bingx extends bingxRest {
             'symbols': symbols,
             'topic': topic,
         };
-        const symbolsAndTimeframes = this.safeList (params, 'symbolsAndTimeframes');
+        const symbolsAndTimeframes = this.safeList (query, 'symbolsAndTimeframes');
         if (symbolsAndTimeframes !== undefined) {
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
-            params = this.omit (params, 'symbolsAndTimeframes');
+            query = this.omit (query, 'symbolsAndTimeframes');
         }
-        return await this.watch ((url as string), messageHash, this.extend (request, params), subscribeHash, subscription);
+        return await this.watch ((url as string), messageHash, this.extend (request, query), subscribeHash, subscription);
     }
 
     /**
@@ -335,13 +336,12 @@ export default class bingx extends bingxRest {
 
     getOrderBookLimitByMarketType (marketType: string, limit: Int = undefined) {
         if (limit === undefined) {
-            limit = 100;
-        } else {
-            if (marketType === 'swap' || marketType === 'future') {
-                limit = this.findNearestCeiling ([ 5, 10, 20, 50, 100 ], limit);
-            } else if (marketType === 'spot') {
-                limit = this.findNearestCeiling ([ 20, 100 ], limit);
-            }
+            return 100;
+        }
+        if (marketType === 'swap' || marketType === 'future') {
+            return this.findNearestCeiling ([ 5, 10, 20, 50, 100 ], limit);
+        } else if (marketType === 'spot') {
+            return this.findNearestCeiling ([ 20, 100 ], limit);
         }
         return limit;
     }
@@ -401,10 +401,8 @@ export default class bingx extends bingxRest {
             'id': uuid,
         };
         const trades = await this.watch (url, messageHash, this.extend (request, paramsSubType), messageHash, subscription);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = this.newUpdates ? trades.getLimit (symbolValue, limit) : limit;
+        const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
         if (this.handleOption ('watchTrades', 'ignoreDuplicates', true) === true) {
             let filtered = this.removeRepeatedTradesFromArray (result);
             filtered = this.sortBy (filtered, 'timestamp');
@@ -939,10 +937,8 @@ export default class bingx extends bingxRest {
         };
         const result = await this.watch (url, messageHash, this.extend (request, paramsSubType), subscriptionHash, subscriptionArgs);
         const ohlcv = result[2];
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved: Int = this.newUpdates ? ohlcv.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -992,11 +988,8 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const [ subType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchOrders', market, paramsMarketType, 'linear');
         const isSpot = (type === 'spot');
@@ -1007,7 +1000,7 @@ export default class bingx extends bingxRest {
         const swapMessageHash = 'swap:order';
         let messageHash = isSpot ? spotMessageHash : swapMessageHash;
         if (market !== undefined) {
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
@@ -1031,10 +1024,8 @@ export default class bingx extends bingxRest {
             'id': uuid,
         };
         const orders = await this.watch (url, messageHash, request, subscriptionHash, subscription);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = this.newUpdates ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1055,11 +1046,8 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const [ subType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchMyTrades', market, paramsMarketType, 'linear');
         const isSpot = (type === 'spot');
@@ -1070,7 +1058,7 @@ export default class bingx extends bingxRest {
         const swapMessageHash = 'swap:mytrades';
         let messageHash = isSpot ? spotMessageHash : swapMessageHash;
         if (market !== undefined) {
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
@@ -1094,10 +1082,8 @@ export default class bingx extends bingxRest {
             'id': uuid,
         };
         const trades = await this.watch (url, messageHash, request, subscriptionHash, subscription);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved: Int = this.newUpdates ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
