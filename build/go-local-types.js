@@ -2654,6 +2654,260 @@ function installCcxtGoNilDeclaredJoin (goTranspiler) {
     };
 }
 
+// --------------------- printer ternary-IIFE locals: name the scalar join type ---------------------
+// `var x any = func() any { … }()` keeps its body, its call position and its boxed value; only the
+// declaration head learns the type every arm already produces. Anything unproven keeps `any`.
+const CCXT_GO_CLOSURE_POINTER_JOIN_TYPES = [ '*string', '*int64', '*float64', '*bool' ];
+
+// Scalar joins admitted for the pointer case: the types `derefScalar` and `IsEqual` treat as
+// transparent, so a typed nil pointer reads exactly like the untyped nil it replaces. A
+// container join is rejected — `derefScalar` cannot unwrap a nil map or slice.
+const CCXT_GO_CLOSURE_VALUE_JOIN_TYPES = [ 'string', 'int64' ];
+
+const CCXT_GO_CLOSURE_HEAD = /^([ \t]*)var ([A-Za-z_]\w*) any = func\(\) any \{$/;
+
+// the two arm texts and the untouched tail of a printed ternary literal, or undefined when the
+// text is not that template (a multi-line arm, a nested literal or a condition carrying a
+// newline all fail here — the printer lays them out differently)
+function ccxtGoClosureLiteralLines (printed) {
+    const lines = printed.split ('\n');
+    if (lines.length !== 6) {
+        return undefined;
+    }
+    const match = CCXT_GO_CLOSURE_HEAD.exec (lines[0]);
+    if (match === null) {
+        return undefined;
+    }
+    const indent = match[1];
+    const body = indent + '\t';
+    if ((lines[5] !== indent + '}()')
+        || !lines[1].startsWith (body + 'if ') || !lines[1].endsWith (' {')
+        || !lines[2].startsWith (body + '\treturn ')
+        || (lines[3] !== body + '}')
+        || !lines[4].startsWith (body + 'return ')) {
+        return undefined;
+    }
+    return {
+        indent: indent,
+        name: match[2],
+        whenTrue: lines[2].substring (body.length + 8),
+        whenFalse: lines[4].substring (body.length + 7),
+        body: printed.substring (lines[0].length),
+    };
+}
+
+// `var x any = func() any {` -> `var x *float64 = func() *float64 {`: the two `any` tokens of the
+// head line only, the whole printed body is appended unchanged
+function ccxtGoClosureRewrite (literal, joinType) {
+    return literal.indent + 'var ' + literal.name + ' ' + joinType + ' = func() ' + joinType + ' {' + literal.body;
+}
+
+// Value joins need both arms to print the same scalar with no `nil` path: `string` is the
+// Urlencode pair and `int64` the ParseToInt/Seconds pair. Dropping `int64` narrows the rule by
+// exactly that one site.
+function ccxtGoClosureArmType (goTranspiler, armNode, armText) {
+    const text = (armText ?? '').trim ();
+    if (text === 'nil') {
+        return 'nil';
+    }
+    const open = text.indexOf ('(');
+    if ((open > 0) && (typeof goTranspiler.isWholePrintedCall === 'function') && goTranspiler.isWholePrintedCall (text, open)) {
+        const callee = text.substring (0, open);
+        const known = CCXT_GO_HELPER_RETURN_TYPES[callee];
+        if (known !== undefined) {
+            return known;
+        }
+        if (typeof goTranspiler.goTypeOfInitializer === 'function') {
+            return goTranspiler.goTypeOfInitializer (armNode, text);
+        }
+        return undefined;
+    }
+    if ((armNode?.kind === ts.SyntaxKind.Identifier) && (typeof goTranspiler.goDeclaredTypeOfIdentifier === 'function')) {
+        const declared = goTranspiler.goDeclaredTypeOfIdentifier (armNode);
+        return (declared === 'any') ? undefined : declared;
+    }
+    return undefined;
+}
+
+// a nil comparison of the local: only the deref-aware IsEqual form is transparent, the printer's
+// inlined Go comparison is not (`x == nil` flips for a typed nil pointer, `x == "lit"` would not
+// even compile against `*T`) — so the printed text of the comparison decides, not the TS operator
+function ccxtGoClosureCompareIsHelper (goTranspiler, parent, name) {
+    const printed = (goTranspiler.printNode (parent, 0) ?? '').trim ();
+    const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp ('(?<![.\\w*"])' + escaped + '\\s*(?:==|!=)').test (printed)) {
+        return false; // the printer inlined a Go comparison of the local
+    }
+    return new RegExp ('!?(?:ccxt\\.|this\\.)?IsEqual\\([^\\n]*\\b' + escaped + '\\b[^\\n]*\\)').test (printed);
+}
+
+// is reading the local through `node` provably transparent for a pointer-typed local? Same shape
+// table as nilDeclaredReadIsSafe above, plus the native-comparison rejection this family needs;
+// everything the scan cannot classify rejects.
+function ccxtGoClosureReadIsSafe (goTranspiler, node, name) {
+    let current = node;
+    let parent = current.parent;
+    while (parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = parent;
+        parent = current.parent;
+    }
+    if (parent === undefined) {
+        return false;
+    }
+    // a property name (`obj.x`) or an object-literal key is not a use of the local
+    if ((parent.name === node) && (parent.expression !== node) && (parent.initializer !== node)) {
+        return true;
+    }
+    switch (parent.kind) {
+    case ts.SyntaxKind.PropertyAccessExpression:
+    case ts.SyntaxKind.QualifiedName:
+        return parent.name !== node;                 // `x.f` needs a value, not a pointer
+    case ts.SyntaxKind.PropertyAssignment:
+    case ts.SyntaxKind.BindingElement:
+        return parent.name !== node;
+    case ts.SyntaxKind.ShorthandPropertyAssignment:
+        return true;                                 // `{ x }` prints `"x": x`
+    case ts.SyntaxKind.MethodDeclaration:
+    case ts.SyntaxKind.PropertyDeclaration:
+    case ts.SyntaxKind.Parameter:
+        return parent.name !== node;                 // a binding, not a use
+    case ts.SyntaxKind.VariableDeclaration:
+        return false;                                // a re-declaration of the name
+    case ts.SyntaxKind.BinaryExpression: {
+        const op = parent.operatorToken?.kind;
+        if (op === ts.SyntaxKind.EqualsToken) {
+            if (parent.left === node) {
+                return false;                        // a later write of the local
+            }
+            // `container[key] = x` / `container.prop = x`: the printer turns the element write
+            // into AddElementToObject(container, key, x), which boxes the pointer exactly the way
+            // a declaration-initialised `var x *int64 = …` is boxed today
+            const target = parent.left;
+            if ((target?.kind !== ts.SyntaxKind.ElementAccessExpression) && (target?.kind !== ts.SyntaxKind.PropertyAccessExpression)) {
+                return false;
+            }
+            return (goTranspiler.printNode (parent, 0) ?? '').trim ().startsWith ('AddElementToObject(');
+        }
+        if (COMPARISON_TOKENS.indexOf (op) >= 0) {
+            return ccxtGoClosureCompareIsHelper (goTranspiler, parent, name);
+        }
+        return false;                                // arithmetic, concatenation, `in`, `&&`, …
+    }
+    case ts.SyntaxKind.PrefixUnaryExpression:
+    case ts.SyntaxKind.PostfixUnaryExpression:
+    case ts.SyntaxKind.DeleteExpression:
+    case ts.SyntaxKind.SpreadElement:
+        return false;                                // `++x`, `!x`, `-x`, `...x`
+    case ts.SyntaxKind.CallExpression:
+        return parent.expression !== node;           // an argument, not a call of the local
+    case ts.SyntaxKind.ReturnStatement:
+        return true;                                 // the caller receives the same box
+    case ts.SyntaxKind.ArrayLiteralExpression:
+        // `[]any{x}` boxes the pointer; `[x, y] = f()` destructures into a write
+        return !((parent.parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.parent.left === parent));
+    }
+    return false;                                    // rejection by default
+}
+
+// the join type to name on this declaration, or undefined when the family's proof does not hold
+export function ccxtGoClosureJoinType (goTranspiler, declaration) {
+    if (declaration === undefined) {
+        return undefined;
+    }
+    const name = declaration.name;
+    if (name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    // only the shape the printer renders as the ternary literal
+    const initializer = declaration.initializer;
+    if (initializer?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const varName = name.escapedText;
+    const scope = (typeof goTranspiler.goEnclosingFunction === 'function') ? goTranspiler.goEnclosingFunction (declaration) : undefined;
+    if (scope === undefined) {
+        return undefined;
+    }
+    const whenTrue = (goTranspiler.printNode (initializer.whenTrue, 0) ?? '').trim ();
+    const whenFalse = (goTranspiler.printNode (initializer.whenFalse, 0) ?? '').trim ();
+    const whenTrueType = ccxtGoClosureArmType (goTranspiler, initializer.whenTrue, whenTrue);
+    const whenFalseType = ccxtGoClosureArmType (goTranspiler, initializer.whenFalse, whenFalse);
+    if ((whenTrueType === undefined) || (whenFalseType === undefined)) {
+        return undefined;
+    }
+    const absent = (whenTrueType === 'nil') || (whenFalseType === 'nil');
+    const values = (absent ? ((whenTrueType === 'nil') ? [ whenFalseType ] : [ whenTrueType ]) : [ whenTrueType, whenFalseType ]);
+    if ((values.length === 0) || (values[0] !== values[values.length - 1])) {
+        return undefined;                            // both arms absent, or two different types
+    }
+    const joinType = values[0];
+    if (CCXT_GO_CLOSURE_POINTER_JOIN_TYPES.indexOf (joinType) < 0) {
+        // a value type cannot carry the TypeScript `undefined` the literal returns as `nil`
+        if (absent || (CCXT_GO_CLOSURE_VALUE_JOIN_TYPES.indexOf (joinType) < 0)) {
+            return undefined;
+        }
+    }
+    let unproven = false;
+    const visit = (n) => {
+        if (unproven) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== name)) {
+            if (!ccxtGoClosureReadIsSafe (goTranspiler, n, varName)) {
+                unproven = true;
+            }
+            return;
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    if (unproven) {
+        return undefined;
+    }
+    if (goTranspiler.goTypeNameIsShadowed (scope, joinType)) {
+        return undefined;
+    }
+    if (!goTranspiler.goLocalIsSafeToType (scope, declaration, varName, joinType)) {
+        return undefined;
+    }
+    return joinType;
+}
+
+// printVariableDeclarationList prints the literal before it ever asks for a local type (the
+// signature `func() any` is what it renders), so the family is installed as a wrapper on that one
+// statement: every other shape the printer produces is returned untouched.
+function installCcxtGoClosurePointerJoin (goTranspiler) {
+    if (typeof goTranspiler.printVariableDeclarationList !== 'function') {
+        return; // older printer: nothing to extend
+    }
+    const upstream = goTranspiler.printVariableDeclarationList.bind (goTranspiler);
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declarations = node?.declarations;
+        if (!declarations || (declarations.length !== 1)) {
+            return printed;
+        }
+        const declaration = declarations[0];
+        const literal = ccxtGoClosureLiteralLines (printed);
+        if ((literal === undefined) || (literal.name !== (goTranspiler.printNode (declaration.name) ?? '').trim ())) {
+            return printed;
+        }
+        const joinType = ccxtGoClosureJoinType (goTranspiler, declaration);
+        if (joinType === undefined) {
+            return printed;
+        }
+        const whenTrue = (declaration.initializer.whenTrue === undefined) ? undefined
+            : (goTranspiler.printNode (declaration.initializer.whenTrue, 0) ?? '').trim ();
+        const whenFalse = (goTranspiler.printNode (declaration.initializer.whenFalse, 0) ?? '').trim ();
+        // the emitted arms are the ones the proof typed: never rewrite a statement whose body
+        // came from another node
+        if ((whenTrue !== literal.whenTrue) || (whenFalse !== literal.whenFalse)) {
+            return printed;
+        }
+        return ccxtGoClosureRewrite (literal, joinType);
+    };
+}
+
 export function installCcxtGoLocalTypes (goTranspiler) {
     if (goTranspiler === undefined || goTranspiler.__ccxtGoLocalTypesInstalled) {
         return;
@@ -2730,6 +2984,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         && typeof goTranspiler.goTypeNameIsShadowed === 'function'
         && typeof goTranspiler.goLocalIsSafeToType === 'function') {
         installNilDeclaredJoin (goTranspiler);
+        installCcxtGoClosurePointerJoin (goTranspiler);
     }
     // the emitted signature of the same helpers: `any` → `*string` for the methods
     // the predicate above accepts, so the coercion and the local typing can never
