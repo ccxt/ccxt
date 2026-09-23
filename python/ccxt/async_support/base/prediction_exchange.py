@@ -86,14 +86,14 @@ class PredictionExchange(BaseExchange):
     def is_prediction(self) -> bool:
         return self.safe_bool(self.has, 'prediction', False)
 
-    def parse_search_queries(self, params={}):
+    def parse_search_queries(self, params: dict = {}):
         # accepts either `query` (a single search string) or `queries` (a list of strings)
         singleQuery = self.safe_string(params, 'query')
         if singleQuery is not None:
             return [singleQuery]
         return self.safe_list(params, 'queries', [])
 
-    def require_event_query(self, params={}):
+    def require_event_query(self, params: dict = {}):
         # fetchEvents must be scoped by at least one selector — an unfiltered call would page the
         # entire exchange. require one of query / queries / tags / eventId / slug, or one of the
         # venue-specific scope params an exchange declares in options['eventScopeParams'],
@@ -117,7 +117,7 @@ class PredictionExchange(BaseExchange):
             extraNames = extraNames + ', ' + scopeKey
         raise ArgumentsRequired(self.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search')
 
-    def apply_event_fetch_params(self, events: list[object], params={}, queries: Strings = None):
+    def apply_event_fetch_params(self, events: list[object], params: dict = {}, queries: Strings = None):
         # applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
         # so exchanges whose API can't filter natively still support them consistently.
         # every fetched event lands in the cache before filtering, so loadEvents()/event()
@@ -277,7 +277,7 @@ class PredictionExchange(BaseExchange):
     async def fetch_events(self, params: fetchEventsParams = {}):
         raise NotSupported(self.id + ' fetchEvents() is not supported yet')
 
-    async def fetch_event(self, id: str, params={}):
+    async def fetch_event(self, id: str, params: dict = {}):
         raise NotSupported(self.id + ' fetchEvent() is not supported yet')
 
     def set_events(self, events: list[object]):
@@ -317,7 +317,7 @@ class PredictionExchange(BaseExchange):
                 result.append(event)
         return result
 
-    async def load_events_helper(self, reload=False, params={}):
+    async def load_events_helper(self, reload=False, params: dict = {}):
         # note: the cache-hit shortcut ignores params, so events fetched under one scope are
         # returned for a later differently-scoped call. events are scoped (unlike global
         # markets), so prefer fetchEvents (params) directly when you need a specific scope
@@ -326,7 +326,7 @@ class PredictionExchange(BaseExchange):
         events = await self.fetch_events(params)
         return self.set_events(events)
 
-    async def load_events(self, reload=False, params={}):
+    async def load_events(self, reload=False, params: dict = {}):
         # cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
         # promise coalescing: the promise-sharing idiom is not expressible in the transpiled
         # base, so two truly concurrent first calls may fetch twice (both land in the cache)
@@ -372,7 +372,9 @@ class PredictionExchange(BaseExchange):
                 return self.outcomes_by_id[outcomeIdOrSymbol]
         if outcomeObj is not None:
             return outcomeObj
-        return {'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': None, 'label': None, 'event': None, 'info': {}}
+        # stub for an unknown handle; it only carries the identity keys, not the market fields
+        outcomeObj = {'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': None, 'label': None, 'event': None, 'info': {}}
+        return outcomeObj
 
     def safe_outcome_symbol(self, outcomeIdOrSymbol: Str, outcomeObj: object = None):
         outcomeObj = self.safe_outcome(outcomeIdOrSymbol, outcomeObj)
@@ -577,7 +579,7 @@ class PredictionExchange(BaseExchange):
                 self.markets[marketHandle] = m
         self.populate_outcomes()
 
-    async def load_outcomes(self, outcomes: Strings = None, reload=False, params={}):
+    async def load_outcomes(self, outcomes: Strings = None, reload=False, params: dict = {}):
         # outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
         # - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
         #   fetchOutcomes — venues with a batch by-id endpoint (kalshi, polymarket) override it to
@@ -720,7 +722,7 @@ class PredictionExchange(BaseExchange):
                 return self.safe_outcome(outcomeSymbol)
         raise BadSymbol(self.id + ' could not resolve outcome ' + outcomeSymbol + " — call fetchEvents ({'query': ...}) first, or pass a known outcomeId")
 
-    async def fetch_ticker(self, outcome: str, params={}):
+    async def fetch_ticker(self, outcome: str, params: dict = {}):
         """
         fetches a price ticker for a single prediction outcome
         :param str outcome: unified outcome handle
@@ -729,7 +731,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
-    async def fetch_tickers(self, outcomes: Strings = None, params={}):
+    async def fetch_tickers(self, outcomes: Strings = None, params: dict = {}):
         """
         fetches price tickers for multiple prediction outcomes at once
         :param str[] [outcomes]: unified outcome handles or outcome ids
@@ -738,7 +740,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}):
+    async def fetch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}):
         """
         fetches the order book for a prediction outcome
         :param str outcome: unified outcome handle
@@ -748,7 +750,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
-    async def fetch_ohlcv(self, outcome: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
+    async def fetch_ohlcv(self, outcome: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetches historical candlestick data for a prediction outcome
         :param str outcome: unified outcome handle
@@ -760,7 +762,7 @@ class PredictionExchange(BaseExchange):
         """
         return await super(PredictionExchange, self).fetch_ohlcv(outcome, timeframe, since, limit, params)
 
-    async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params: dict = {}):
         """
         get the list of most recent trades for a prediction outcome
         :param str outcome: unified outcome handle
@@ -771,7 +773,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchTrades() is not supported yet')
 
-    async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
         """
         create a trade order on a prediction outcome
         :param str outcome: unified outcome handle
@@ -784,7 +786,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
-    async def cancel_order(self, id: str, outcome: Str = None, params={}):
+    async def cancel_order(self, id: str, outcome: Str = None, params: dict = {}):
         """
         cancels an open order
         :param str id: order id
@@ -794,7 +796,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
-    async def watch_ticker(self, outcome: str, params={}):
+    async def watch_ticker(self, outcome: str, params: dict = {}):
         """
         watches a price ticker for a single prediction outcome
         :param str outcome: unified outcome handle
@@ -803,7 +805,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' watchTicker() is not supported yet')
 
-    async def watch_order_book(self, outcome: str, limit: Int = None, params={}):
+    async def watch_order_book(self, outcome: str, limit: Int = None, params: dict = {}):
         """
         watches the order book for a prediction outcome
         :param str outcome: unified outcome handle
@@ -813,7 +815,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
 
-    async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params: dict = {}):
         """
         watches the most recent trades for a prediction outcome
         :param str outcome: unified outcome handle
@@ -824,7 +826,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
-    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetches information on multiple orders made by the user
         :param str [outcome]: unified outcome handle
@@ -835,7 +837,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
-    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetches information on the user's open orders
         :param str [outcome]: unified outcome handle
@@ -846,7 +848,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
-    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetches information on multiple closed orders made by the user
         :param str [outcome]: unified outcome handle
@@ -857,7 +859,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
 
-    async def fetch_order_trades(self, id: str, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -869,7 +871,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
-    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetch all trades made by the user
         :param str [outcome]: unified outcome handle
@@ -880,7 +882,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
 
-    async def fetch_position(self, outcome: str, params={}):
+    async def fetch_position(self, outcome: str, params: dict = {}):
         """
         fetch the open position held on a single prediction outcome
         :param str outcome: unified outcome handle
@@ -889,7 +891,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
 
-    async def fetch_positions(self, outcomes: Strings = None, params={}):
+    async def fetch_positions(self, outcomes: Strings = None, params: dict = {}):
         """
         fetches the user's open positions
         :param str[] [outcomes]: unified outcome handles to filter by
@@ -898,7 +900,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')
 
-    async def fetch_trading_fee(self, outcome: str, params={}):
+    async def fetch_trading_fee(self, outcome: str, params: dict = {}):
         """
         fetch the trading fee for a prediction outcome
         :param str outcome: unified outcome handle
@@ -907,7 +909,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
 
-    async def fetch_open_interest(self, outcome: str, params={}):
+    async def fetch_open_interest(self, outcome: str, params: dict = {}):
         """
         fetch the open interest of a prediction outcome
         :param str outcome: unified outcome handle
@@ -916,7 +918,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
-    async def create_orders(self, orders: list[PredictionOrderRequest], params={}):
+    async def create_orders(self, orders: list[PredictionOrderRequest], params: dict = {}):
         """
         create a list of trade orders
         :param dict[] orders: a list of PredictionOrderRequest objects, each carrying an `outcome` handle
@@ -925,7 +927,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' createOrders() is not supported yet')
 
-    async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], outcome: Str = None, params: dict = {}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -935,7 +937,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' cancelOrders() is not supported yet')
 
-    async def create_market_buy_order_with_cost(self, outcome: str, cost: float, params={}):
+    async def create_market_buy_order_with_cost(self, outcome: str, cost: float, params: dict = {}):
         """
         create a market buy order on a prediction outcome by providing the cost
         :param str outcome: unified outcome handle
@@ -949,7 +951,7 @@ class PredictionExchange(BaseExchange):
             return await self.create_order(outcome, 'market', 'buy', cost, 1, params)
         raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
 
-    async def create_market_sell_order_with_cost(self, outcome: str, cost: float, params={}):
+    async def create_market_sell_order_with_cost(self, outcome: str, cost: float, params: dict = {}):
         """
         create a market sell order on a prediction outcome by providing the cost
         :param str outcome: unified outcome handle
@@ -961,7 +963,7 @@ class PredictionExchange(BaseExchange):
             return await self.create_order(outcome, 'market', 'sell', cost, 1, params)
         raise NotSupported(self.id + ' createMarketSellOrderWithCost() is not supported yet')
 
-    async def watch_tickers(self, outcomes: Strings = None, params={}):
+    async def watch_tickers(self, outcomes: Strings = None, params: dict = {}):
         """
         watches price tickers for multiple prediction outcomes
         :param str[] [outcomes]: unified outcome handles to watch
@@ -970,7 +972,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
 
-    async def watch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         watches information on multiple orders made by the user
         :param str [outcome]: unified outcome handle
@@ -981,7 +983,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
 
-    async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         watches all trades made by the user
         :param str [outcome]: unified outcome handle
@@ -992,7 +994,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
-    async def watch_positions(self, outcomes: Strings = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_positions(self, outcomes: Strings = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         watches the open positions held by the user
         :param str[] [outcomes]: unified outcome handles to watch
@@ -1003,7 +1005,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' watchPositions() is not supported yet')
 
-    async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetches the user's settled (resolved) positions — the "close the loop" record after
  markets resolve, with the collateral paid out and the realized pnl
@@ -1265,7 +1267,7 @@ class PredictionExchange(BaseExchange):
     def parse_prediction_open_interest(self, interest: dict, market: Market = None):
         raise NotSupported(self.id + ' parsePredictionOpenInterest() is not supported yet')
 
-    def parse_prediction_trades(self, trades: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params={}):
+    def parse_prediction_trades(self, trades: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
  @ignore
         parses a list of raw trades with the exchange's parsePredictionTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
@@ -1290,7 +1292,7 @@ class PredictionExchange(BaseExchange):
         outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_outcome_since_limit(results, outcomeHandle, since, limit)
 
-    def parse_prediction_orders(self, orders: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params={}):
+    def parse_prediction_orders(self, orders: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
  @ignore
         parses a list of raw orders with the exchange's parsePredictionOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
@@ -1312,7 +1314,7 @@ class PredictionExchange(BaseExchange):
         outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_outcome_since_limit(results, outcomeHandle, since, limit)
 
-    def parse_prediction_positions(self, positions: list[object], params={}):
+    def parse_prediction_positions(self, positions: list[object], params: dict = {}):
         """
  @ignore
         parses a list of raw positions with the exchange's parsePredictionPosition — the prediction analogue of the base parsePositions

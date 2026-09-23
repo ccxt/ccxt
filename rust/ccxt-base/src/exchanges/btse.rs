@@ -416,7 +416,11 @@ impl BtseCore {
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
-        m.insert("spot/api/v3.3/time".to_string(), Value::Int(5));
+        m.insert("spot/api/v3.3/time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
         m.insert("futures/api/v2.3/market_summary".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));

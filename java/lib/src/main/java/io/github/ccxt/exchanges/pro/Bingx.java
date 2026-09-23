@@ -1570,13 +1570,13 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
             Client client = this.client(url);
             this.setBalanceCache(client, type, subType, subscriptionHash, (Map<String, Object>) (parameters));
-            Object fetchBalanceSnapshot = null;
-            Object awaitBalanceSnapshot = null;
+            Boolean fetchBalanceSnapshot = null;
+            Boolean awaitBalanceSnapshot = null;
             List<Object> fetchBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
-            fetchBalanceSnapshot = ((List<Object>) fetchBalanceSnapshotparametersVariable).get(0);
+            fetchBalanceSnapshot = Helpers.isTrue(((List<Object>) fetchBalanceSnapshotparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
             List<Object> awaitBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", false);
-            awaitBalanceSnapshot = ((List<Object>) awaitBalanceSnapshotparametersVariable).get(0);
+            awaitBalanceSnapshot = Helpers.isTrue(((List<Object>) awaitBalanceSnapshotparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) awaitBalanceSnapshotparametersVariable).get(1);
             if (Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot))
             {
@@ -1707,13 +1707,13 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
             Client client = this.client(url);
             this.setPositionsCache(client, type, symbols);
-            Object fetchPositionsSnapshot = null;
-            Object awaitPositionsSnapshot = null;
+            Boolean fetchPositionsSnapshot = null;
+            Boolean awaitPositionsSnapshot = null;
             List<Object> fetchPositionsSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
-            fetchPositionsSnapshot = ((List<Object>) fetchPositionsSnapshotparametersVariable).get(0);
+            fetchPositionsSnapshot = Helpers.isTrue(((List<Object>) fetchPositionsSnapshotparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) fetchPositionsSnapshotparametersVariable).get(1);
             List<Object> awaitPositionsSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "awaitPositionsSnapshot", false);
-            awaitPositionsSnapshot = ((List<Object>) awaitPositionsSnapshotparametersVariable).get(0);
+            awaitPositionsSnapshot = Helpers.isTrue(((List<Object>) awaitPositionsSnapshotparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) awaitPositionsSnapshotparametersVariable).get(1);
             String uuid = this.uuid();
             Map<String, Object> subscription = new HashMap<String, Object>() {{

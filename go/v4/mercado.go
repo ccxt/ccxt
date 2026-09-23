@@ -468,8 +468,7 @@ func (this *Mercado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"coin": market["base"],
 	}
 
-	response := (<-this.PublicGetCoinOrderbook(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCoinOrderbook(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
@@ -697,8 +696,7 @@ func (this *Mercado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostGetAccountInfo(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetAccountInfo(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -1148,8 +1146,7 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		request["from"] = Subtract(request["to"], (Multiply(limit, this.ParseTimeframe(timeframe))))
 	}
 
-	response := (<-this.V4PublicNetGetCandles(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V4PublicNetGetCandles(this.Extend(request, params))).Raw))
 
 	// parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
 	// then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix

@@ -5283,8 +5283,7 @@ func (this *Phemex) setMarginBody(ch chan any, symbol any, amount any, optionalA
 		"posBalanceEv": this.ToEv(amount, market),
 	}
 
-	response := (<-this.PrivatePostPositionsAssign(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostPositionsAssign(this.Extend(request, params))).Raw))
 
 	//
 	//     {

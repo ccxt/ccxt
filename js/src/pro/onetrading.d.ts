@@ -95,7 +95,7 @@ export default class onetrading extends onetradingRest {
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: Dict): void;
-    findTimeframe(timeframe: any, timeframes?: any): string | undefined;
+    findTimeframe(timeframe: any, timeframes?: any): Str;
     handleSubscriptions(client: Client, message: Dict): Dict;
     handleHeartbeat(client: Client, message: Dict): Dict;
     handleErrorMessage(client: Client, message: Dict): Bool;

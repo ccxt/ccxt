@@ -198,11 +198,11 @@ class binance extends Exchange {
         return $flatMarkets;
     }
 
-    public function fetch_raw_topics(?int $maxTopics, $rest = array()): PromiseInterface {
+    public function fetch_raw_topics(?int $maxTopics, array $rest = array()): PromiseInterface {
         return Async\async(self::do_fetch_raw_topics(...))($maxTopics, $rest);
     }
 
-    private function do_fetch_raw_topics(?int $maxTopics, $rest = array()) {
+    private function do_fetch_raw_topics(?int $maxTopics, array $rest = array()) {
         /**
          * @ignore
          * pages the market/list endpoint and returns up to `$maxTopics` raw market topics
@@ -448,11 +448,11 @@ class binance extends Exchange {
         return $this->apply_event_fetch_params($result, $postParams, array());
     }
 
-    public function fetch_events_by_query(array $queries, ?int $limit, $rest = array()): PromiseInterface {
+    public function fetch_events_by_query(array $queries, ?int $limit, array $rest = array()): PromiseInterface {
         return Async\async(self::do_fetch_events_by_query(...))($queries, $limit, $rest);
     }
 
-    private function do_fetch_events_by_query(array $queries, ?int $limit, $rest = array()) {
+    private function do_fetch_events_by_query(array $queries, ?int $limit, array $rest = array()) {
         /**
          * @ignore
          * resolves free-text $queries through the semantic market search endpoint, then completes the matched topics with their outcome tokens

@@ -847,8 +847,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetPublicSymbol(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicSymbol(params)).Raw))
 	//
 	//     {
 	//         "AAVEUSDT_PERP":{
@@ -925,8 +924,8 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var lotString *string = this.SafeString(market, "quantity_increment")
 		var stepString *string = this.SafeString(market, "tick_size")
-		var lot any = this.ParseNumber(lotString)
-		var step any = this.ParseNumber(stepString)
+		var lot *float64 = Float64PtrTyped(this.ParseNumber(lotString))
+		var step *float64 = Float64PtrTyped(this.ParseNumber(stepString))
 		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
@@ -1333,8 +1332,7 @@ func (this *Hitbtc) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetPublicTickerSymbol(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicTickerSymbol(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -1386,8 +1384,7 @@ func (this *Hitbtc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["symbols"] = delimited
 	}
 
-	response := (<-this.PublicGetPublicTicker(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicTicker(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//       "BTCUSDT": {
@@ -1407,8 +1404,8 @@ func (this *Hitbtc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
 		var marketId string = GetValue(keys, i).(string)
-		var market any = this.SafeMarket(marketId)
-		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+		var market map[string]any = MapTyped(this.SafeMarket(marketId))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		var entry map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		AddElementToObject(result, symbol, this.ParseTicker(entry, market))
 	}
@@ -1503,15 +1500,13 @@ func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 
-		responseInner := (<-this.PublicGetPublicTradesSymbol(this.Extend(request, params))).Raw
-		PanicOnError(responseInner)
+		var responseInner []any = ListTyped(PanicOnError((<-this.PublicGetPublicTradesSymbol(this.Extend(request, params))).Raw))
 
 		ch <- this.ParseTrades(responseInner, market)
 		return nil
 	}
 
-	response := (<-this.PublicGetPublicTrades(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicTrades(this.Extend(request, params))).Raw))
 	var trades []any = []any{}
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
@@ -1745,8 +1740,7 @@ func (this *Hitbtc) fetchTransactionsHelperBody(ch chan any, types any, code any
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetWalletTransactions(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWalletTransactions(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2016,8 +2010,7 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		request["depth"] = limit
 	}
 
-	response := (<-this.PublicGetPublicOrderbook(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOrderbook(this.Extend(request, params))).Raw))
 	var result map[string]any = map[string]any{}
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
@@ -2066,8 +2059,7 @@ func (this *Hitbtc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		request["depth"] = limit
 	}
 
-	response := (<-this.PublicGetPublicOrderbookSymbol(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOrderbookSymbol(this.Extend(request, params))).Raw))
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "timestamp"))
 
 	ch <- this.ParseOrderBook(response, symbol, timestamp, "bid", "ask")
@@ -3397,8 +3389,7 @@ func (this *Hitbtc) transferBody(ch chan any, code any, amount any, fromAccount 
 		"destination": toId,
 	}
 
-	response := (<-this.PrivatePostWalletTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletTransfer(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -3531,8 +3522,7 @@ func (this *Hitbtc) withdrawBody(ch chan any, code any, amount any, address any,
 		request["include_fee"] = true
 	}
 
-	response := (<-this.PrivatePostWalletCryptoWithdraw(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletCryptoWithdraw(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -3584,8 +3574,7 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		panic(NotSupported(Add(Add(this.Id+" fetchFundingRates() does not support ", typeVar), " markets")))
 	}
 
-	response := (<-this.PublicGetPublicFuturesInfo(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesInfo(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "BTCUSDT_PERP": {
@@ -3681,8 +3670,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		AddElementToObject(request, "limit", limit)
 	}
 
-	response := (<-this.PublicGetPublicFuturesHistoryFunding(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesHistoryFunding(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "BTCUSDT_PERP": [
@@ -4083,8 +4071,7 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 		request["symbols"] = Join(marketIds, ",")
 	}
 
-	response := (<-this.PublicGetPublicFuturesInfo(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesInfo(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "BTCUSDT_PERP": {
@@ -4106,7 +4093,7 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 	var markets []string = ObjectKeys(response)
 	for i := 0; i < len(markets); i++ {
 		var marketId string = GetValue(markets, i).(string)
-		var marketInner any = this.SafeMarket(marketId)
+		var marketInner map[string]any = MapTyped(this.SafeMarket(marketId))
 		var openInterest map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		results = append(results, this.ParseOpenInterest(openInterest, marketInner))
 	}
@@ -4146,8 +4133,7 @@ func (this *Hitbtc) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetPublicFuturesInfoSymbol(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesInfoSymbol(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -4199,8 +4185,7 @@ func (this *Hitbtc) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetPublicFuturesInfoSymbol(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesInfoSymbol(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -4333,7 +4318,7 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 	//         "positions": null
 	//     }
 	//
-	var parsedAmount any = this.ParseNumber(amount)
+	var parsedAmount *float64 = Float64PtrTyped(this.ParseNumber(amount))
 
 	ch <- this.Extend(this.ParseMarginModification(response, market), map[string]any{
 		"amount": parsedAmount,
@@ -4624,8 +4609,7 @@ func (this *Hitbtc) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetPublicCurrency(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicCurrency(params)).Raw))
 
 	//
 	//     {
@@ -4764,8 +4748,7 @@ func (this *Hitbtc) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		"margin_mode": marginMode,
 	}
 
-	response := (<-this.PrivateDeleteFuturesPositionMarginModeSymbol(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteFuturesPositionMarginModeSymbol(this.Extend(request, params))).Raw))
 
 	//
 	// {

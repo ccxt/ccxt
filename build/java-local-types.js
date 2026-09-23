@@ -1312,16 +1312,17 @@ function qualifyApiReturnType (t) {
 const JAVA_API_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'api');
 const awaitedApiTables = new Map ();
 
-function awaitedApiReturnTypes (exchange) {
-    if (awaitedApiTables.has (exchange)) {
-        return awaitedApiTables.get (exchange);
+// a prediction venue extends api/prediction/<X>Api.java, whose id may collide with a REST venue
+function awaitedApiReturnTypes (exchange, predictionSource = false) {
+    const cacheKey = (predictionSource ? 'prediction|' : '') + exchange;
+    if (awaitedApiTables.has (cacheKey)) {
+        return awaitedApiTables.get (cacheKey);
     }
     let table;
     const capital = exchange.charAt (0).toUpperCase () + exchange.slice (1);
-    const candidates = [
-        path.join (JAVA_API_FOLDER, capital + 'Api.java'),
-        path.join (JAVA_API_FOLDER, 'prediction', capital + 'Api.java'),
-    ];
+    const candidates = predictionSource
+        ? [ path.join (JAVA_API_FOLDER, 'prediction', capital + 'Api.java') ]
+        : [ path.join (JAVA_API_FOLDER, capital + 'Api.java') ];
     for (const file of candidates) {
         let content;
         try {
@@ -1338,7 +1339,7 @@ function awaitedApiReturnTypes (exchange) {
         }
         break;
     }
-    awaitedApiTables.set (exchange, table);
+    awaitedApiTables.set (cacheKey, table);
     return table;
 }
 
@@ -1365,7 +1366,7 @@ function awaitedThisCallType (node) {
     if (methodName === undefined) {
         return undefined;
     }
-    const table = awaitedApiReturnTypes (sourceExchangeId (node));
+    const table = awaitedApiReturnTypes (sourceExchangeId (node), javaCoreTierOf (node) === 'prediction');
     return table?.get (methodName);
 }
 
@@ -4391,6 +4392,7 @@ const HANDLE_COERCION_DEBUG = typeof process !== 'undefined' && process.env !== 
 const HANDLE_COERCION_KINDS = {
     'boolean': { declaration: 'Boolean', wrapper: 'Boolean.TRUE.equals(' }, // TS type exactly `boolean`
     'Boolean': { declaration: 'Boolean', wrapper: 'Helpers.isTrue(' },      // TS nullable `Bool` / bool|null union
+    'any': { declaration: 'Boolean', wrapper: 'Helpers.isTrue(' },          // TS `any`, null/undefined init only
 };
 
 // the TS-declared kind of the local, through the printer's OWN two predicates (the same ones that
@@ -4416,6 +4418,9 @@ function handleCoercionKind (printer, declaration) {
         && printer.javaNullableBooleanDeclaration (declaration)) {
         return 'Boolean';
     }
+    if (declaration.type === undefined && ((type.flags ?? 0) & ts.TypeFlags.Any) !== 0) {
+        return 'any'; // unannotated `let x = undefined`: its reads already print Helpers.isTrue
+    }
     return undefined;
 }
 
@@ -4429,7 +4434,9 @@ function handleCoercionInitIsKind (initializer, kind) {
     if (node.kind === ts.SyntaxKind.TrueKeyword || node.kind === ts.SyntaxKind.FalseKeyword) {
         return true;
     }
-    return kind === 'Boolean' && node.kind === ts.SyntaxKind.NullKeyword;
+    const nullish = node.kind === ts.SyntaxKind.NullKeyword
+        || (ts.isIdentifier (node) && node.escapedText === 'undefined'); // both print `null`
+    return kind !== 'boolean' && nullish;
 }
 
 // `if (x)` / `while (x)` / `do .. while (x)` / `x ? :` / `!x` / `x || y` / `x && y` inside a
@@ -9982,7 +9989,8 @@ export function javaVenueAsyncReturnTable () {
             continue;
         }
         for (const f of files) {
-            javaVenueScan (path.join (JAVA_VENUE_TS_ROOT, dir, f), /^ {4}(async )?(\w+) \(/, (m, line) => {
+            // only async declarations print a CompletableFuture core; a same-named sync helper elsewhere is unrelated
+            javaVenueScan (path.join (JAVA_VENUE_TS_ROOT, dir, f), /^ {4}(async )(\w+) \(/, (m, line) => {
                 const full = /^ {4}(async )?\w+ \(.*\)\s*(?::\s*(.+?))?\s*\{\s*$/.exec (line);
                 const promise = full === null ? undefined : /^Promise<(\w+)>$/.exec (full[2] ?? '');
                 const spelling = (full !== null && full[1] !== undefined && promise) ? JAVA_VENUE_RETURN_MAP[promise[1]] : undefined;
@@ -10407,4 +10415,29 @@ function joinListElementType (printer, node) {
     } catch (e) {
         return undefined;
     }
+}
+
+// ===== 16. default-valued `Strings` parameters answer their printed List<String> =====
+// A split core prints `symbols: Strings = undefined` as `List<String> symbols` (the async
+// body copy too; writes go through toStringListArg), so its counter reads join as String.
+export function installJavaStringListParamTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaOptionalParameterType !== 'function' || printer._javaStringListParamTypesPatched) {
+        return;
+    }
+    const upstream = printer.javaDeclaredLocalTypeResolver;
+    printer.javaDeclaredLocalTypeResolver = function (declaration) {
+        const own = (typeof upstream === 'function') ? upstream (declaration) : undefined;
+        if (own !== undefined || declaration === undefined || !ts.isParameter (declaration)) {
+            return own;
+        }
+        let type;
+        try {
+            type = printer.javaOptionalParameterType (declaration);
+        } catch (e) {
+            return undefined;
+        }
+        return type === 'java.util.List<String>' ? type : undefined;
+    };
+    printer._javaStringListParamTypesPatched = true;
 }

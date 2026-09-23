@@ -1057,7 +1057,7 @@ public class Extended extends ExtendedApi
                 List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
                     ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
                 }
                 ((Map<String, Object>)request).put("market", marketIds);

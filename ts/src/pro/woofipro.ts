@@ -171,7 +171,6 @@ export default class woofipro extends woofiproRest {
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        market['symbol'];
         const topic = market['id'] + '@' + name;
         const request: Dict = {
             'event': 'subscribe',

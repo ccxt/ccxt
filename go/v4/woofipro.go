@@ -4268,8 +4268,7 @@ func (this *Woofipro) modifyMarginHelperBody(ch chan any, symbol any, amount any
 		"type":   typeVar,
 	}
 
-	response := (<-this.V1PrivatePostPositionMargin(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostPositionMargin(this.Extend(request, params))).Raw))
 	//
 	// {
 	//     "success": true,

@@ -674,8 +674,7 @@ func (this *Backpack) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetApiV1Assets(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1Assets(params)).Raw))
 
 	//
 	//     [
@@ -797,8 +796,7 @@ func (this *Backpack) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 
-	response := (<-this.PublicGetApiV1Markets(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1Markets(params)).Raw))
 
 	ch <- this.ParseMarkets(response)
 	return nil
@@ -1013,8 +1011,7 @@ func (this *Backpack) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 
-	response := (<-this.PublicGetApiV1Tickers(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1Tickers(this.Extend(request, params))).Raw))
 	var tickers any = this.ParseTickers(response)
 
 	ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)
@@ -1049,8 +1046,7 @@ func (this *Backpack) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetApiV1Ticker(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiV1Ticker(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTicker(response, market)
 	return nil
@@ -1148,8 +1144,7 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetApiV1Depth(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiV1Depth(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "asks": [
@@ -1783,8 +1778,7 @@ func (this *Backpack) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetApiV1Capital(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetApiV1Capital(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -1869,8 +1863,7 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 
-	response := (<-this.PrivateGetWapiV1CapitalDeposits(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWapiV1CapitalDeposits(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
 	return nil
@@ -1927,8 +1920,7 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["to"] = until
 	}
 
-	response := (<-this.PrivateGetWapiV1CapitalWithdrawals(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWapiV1CapitalWithdrawals(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
 	return nil
@@ -1981,8 +1973,7 @@ func (this *Backpack) withdrawBody(ch chan any, code any, amount any, address an
 	}
 	request["blockchain"] = networkId
 
-	response := (<-this.PrivatePostWapiV1CapitalWithdrawals(this.Extend(request, query))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWapiV1CapitalWithdrawals(this.Extend(request, query))).Raw))
 
 	ch <- this.ParseTransaction(response, currency)
 	return nil
@@ -2156,8 +2147,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code any, optionalArg
 		"blockchain": this.NetworkCodeToId(networkCode, currency["code"]),
 	}
 
-	response := (<-this.PrivateGetWapiV1CapitalDepositAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWapiV1CapitalDepositAddress(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseDepositAddress(response, currency)
 	return nil
@@ -2231,8 +2221,7 @@ func (this *Backpack) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
-	response := (<-this.PrivatePostApiV1Order(orderRequest)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1Order(orderRequest)).Raw))
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -2275,8 +2264,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
-	response := (<-this.PrivatePostApiV1Orders(ordersRequests)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostApiV1Orders(ordersRequests)).Raw))
 
 	ch <- this.ParseOrders(response)
 	return nil
@@ -2421,8 +2409,7 @@ func (this *Backpack) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["symbol"] = GetValue(market, "id")
 	}
 
-	response := (<-this.PrivateGetApiV1Orders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1Orders(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -2463,8 +2450,7 @@ func (this *Backpack) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
 		"orderId": id,
 	}
 
-	response := (<-this.PrivateGetApiV1Order(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetApiV1Order(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrder(response)
 	return nil
@@ -2505,8 +2491,7 @@ func (this *Backpack) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"symbol":  market["id"],
 	}
 
-	response := (<-this.PrivateDeleteApiV1Order(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteApiV1Order(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrder(response)
 	return nil
@@ -2545,8 +2530,7 @@ func (this *Backpack) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PrivateDeleteApiV1Orders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteApiV1Orders(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrders(response, market)
 	return nil
@@ -2593,8 +2577,7 @@ func (this *Backpack) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetWapiV1HistoryOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWapiV1HistoryOrders(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -2788,8 +2771,7 @@ func (this *Backpack) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetApiV1Position(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1Position(params)).Raw))
 	var positions any = this.ParsePositions(response)
 	if this.IsEmpty(symbols) {
 
@@ -2931,8 +2913,7 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseIncomes(response, market, since, limit)
 	return nil

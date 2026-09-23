@@ -5975,7 +5975,7 @@ class bingx(Exchange, ImplicitAPI):
             request['addressTag'] = tag
         params = self.omit(params, ['walletType', 'network'])
         response = self.walletsV1PrivatePostCapitalWithdrawApply(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         #    {
         #        "code":0,
         #        "timestamp":1689258953651,

@@ -674,8 +674,7 @@ func (this *Coinbaseexchange) fetchCurrenciesBody(ch chan any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetCurrencies(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetCurrencies(params)).Raw))
 
 	//
 	//   {
@@ -1035,8 +1034,7 @@ func (this *Coinbaseexchange) fetchBalanceBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccounts(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccounts(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -1076,8 +1074,7 @@ func (this *Coinbaseexchange) fetchOrderBookBody(ch chan any, symbol any, option
 		"level": 2,
 	}
 
-	response := (<-this.PublicGetProductsIdBook(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProductsIdBook(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "sequence":1924393896,
@@ -1214,8 +1211,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 
-	response := (<-this.PublicGetProductsSparkLines(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProductsSparkLines(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         YYY-USD: [
@@ -1243,8 +1239,8 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 		var marketId string = GetValue(marketIds, i).(string)
 		var entry []any = SafeListTypedDefault(response, marketId, []any{})
 		var first []any = SafeListTypedDefault(entry, 0, []any{})
-		var market any = this.SafeMarket(marketId, nil, delimiter)
-		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, delimiter))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(result, symbol, this.ParseTicker(first, market))
 	}
 
@@ -1470,8 +1466,7 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan any, optionalArgs ...any
 		request["end_date"] = this.Iso8601(until)
 	}
 
-	response := (<-this.PrivateGetFills(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -1514,8 +1509,7 @@ func (this *Coinbaseexchange) fetchTradesBody(ch chan any, symbol any, optionalA
 		request["limit"] = limit // default 100
 	}
 
-	response := (<-this.PublicGetProductsIdTrades(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetProductsIdTrades(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -1889,8 +1883,7 @@ func (this *Coinbaseexchange) fetchOrderTradesBody(ch chan any, id any, optional
 		"order_id": id,
 	}
 
-	response := (<-this.PrivateGetFills(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -1994,8 +1987,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 		request["end_date"] = this.Iso8601(until)
 	}
 
-	response := (<-this.PrivateGetOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -2109,8 +2101,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan any, symbol any, typeVar a
 		}
 	}
 
-	response := (<-this.PrivatePostOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -2357,9 +2348,9 @@ func (this *Coinbaseexchange) ParseLedgerEntry(item any, optionalArgs ...any) an
 	} else {
 		direction = "in"
 	}
-	var amount any = this.ParseNumber(amountString)
-	var after any = this.ParseNumber(afterString)
-	var before any = this.ParseNumber(beforeString)
+	var amount *float64 = Float64PtrTyped(this.ParseNumber(amountString))
+	var after *float64 = Float64PtrTyped(this.ParseNumber(afterString))
+	var before *float64 = Float64PtrTyped(this.ParseNumber(beforeString))
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "created_at"))
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	var code *string = this.SafeCurrencyCode(nil, currency)
@@ -2849,7 +2840,7 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 				payload = body
 			}
 		}
-		var what any = Add(Add(Add(nonce, method), request), payload)
+		var what any = Add(Add(nonce+method, request), payload)
 		var secret any = nil
 
 		{

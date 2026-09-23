@@ -1,5 +1,5 @@
 import { BaseExchange } from './Exchange.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, fetchEventsParams } from './types.js';
 /**
  * @class PredictionExchange
  * @augments BaseExchange
@@ -28,9 +28,9 @@ export default class PredictionExchange extends BaseExchange {
     loadEventsHelper(reload?: boolean, params?: Dict): Promise<Dictionary<any>>;
     loadEvents(reload?: boolean, params?: Dict): Promise<Dictionary<any>>;
     getEvent(eventIdOrSlug: string): any;
-    outcome(outcomeSymbol: Str): any;
+    outcome(outcomeSymbol: Str): PredictionOutcomeMarket;
     hasOutcome(outcomeIdOrSymbol: Str): boolean;
-    safeOutcome(outcomeIdOrSymbol: Str, outcomeObj?: any): any;
+    safeOutcome(outcomeIdOrSymbol: Str, outcomeObj?: any): PredictionOutcomeMarket;
     safeOutcomeSymbol(outcomeIdOrSymbol: Str, outcomeObj?: any): Str;
     shortenSlug(slug: Str): string;
     slugToMarketSymbol(eventSlug: Str, marketSlug: Str): string;
@@ -49,9 +49,9 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} the outcome cache
      */
     fetchOutcomes(outcomeSymbols: string[]): Promise<any>;
-    loadOutcome(outcomeSymbol: Str, reload?: boolean): Promise<any>;
+    loadOutcome(outcomeSymbol: Str, reload?: boolean): Promise<PredictionOutcomeMarket>;
     outcomeSearchQuery(outcomeSymbol: string): Str;
-    fetchOutcome(outcomeSymbol: string): Promise<any>;
+    fetchOutcome(outcomeSymbol: string): Promise<PredictionOutcomeMarket>;
     /**
      * @method
      * @name fetchTicker

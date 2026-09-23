@@ -66,7 +66,7 @@ class lighter extends \ccxt\async\lighter {
         ));
     }
 
-    public function get_message_hash(string $unifiedChannel, ?string $symbol = null, ?string $extra = null) {
+    public function get_message_hash(string $unifiedChannel, ?string $symbol = null, ?string $extra = null): string {
         $hash = $unifiedChannel;
         if ($symbol !== null) {
             $hash .= '::' . $symbol;

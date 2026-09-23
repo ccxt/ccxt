@@ -1311,7 +1311,7 @@ impl BitfinexCore {
         let mut updateType: Value = self.safe_value(message.clone(), Value::Int(1), &[]);
         let mut data: Value = Value::from(vec![]);
         if (updateType.as_str() == Some("ws")) {
-            data = self.safe_value(message.clone(), Value::Int(2), &[]);
+            data = self.safe_list(message.clone(), Value::Int(2), &[]);
         }  else {
             data = Value::from(vec![self.safe_value(message.clone(), Value::Int(2), &[])]);
         }

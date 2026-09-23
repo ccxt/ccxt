@@ -1313,8 +1313,7 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	}
 	var url any = this.GetUrlByMarket(market)
 
-	trades := (<-this.SubscribePublicMultipleAsync(url, messageHashes, marketIds, channel, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePublicMultipleAsync(url, messageHashes, marketIds, channel, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -1471,8 +1470,7 @@ func (this *Gate) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var url any = this.GetUrlByMarket(market)
 	var payload []any = []any{interval, marketId}
 
-	ohlcv := (<-this.SubscribePublicAsync(url, messageHash, payload, channel, params))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePublicAsync(url, messageHash, payload, channel, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -1610,8 +1608,7 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	// uid required for non spot markets
 	var requiresUid bool = (!ccxt.IsEqual(typeVar, "spot"))
 
-	trades := (<-this.SubscribePrivateAsync(url, messageHash, payload, channel, params, requiresUid))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(url, messageHash, payload, channel, params, requiresUid))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -2140,8 +2137,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	// uid required for non spot markets
 	var requiresUid bool = (!ccxt.IsEqual(typeVar, "spot"))
 
-	orders := (<-this.SubscribePrivateAsync(url, messageHash, payload, channel, query, requiresUid))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(url, messageHash, payload, channel, query, requiresUid))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}

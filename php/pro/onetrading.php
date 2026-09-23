@@ -1125,7 +1125,7 @@ class onetrading extends \ccxt\async\onetrading {
         $type = 'SUBSCRIBE';
         $subscription = array();
         if ($client !== null) {
-            $subscription = $this->safe_value($client->subscriptions, $subscriptionHash);
+            $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
             if ($subscription !== null) {
                 $ohlcvMarket = $this->safe_dict($subscription, $marketId, array());
                 $marketSubscribed = $this->safe_bool($ohlcvMarket, $timeframe, false);
@@ -1238,7 +1238,7 @@ class onetrading extends \ccxt\async\onetrading {
         $client->resolve($stored, $channel);
     }
 
-    public function find_timeframe(mixed $timeframe, mixed $timeframes = null) {
+    public function find_timeframe(mixed $timeframe, mixed $timeframes = null): ?string {
         if ($timeframes === null) {
             $timeframes = $this->timeframes;
         }
@@ -1391,7 +1391,7 @@ class onetrading extends \ccxt\async\onetrading {
         $type = 'SUBSCRIBE';
         $subscription = array();
         if ($client !== null) {
-            $subscription = $this->safe_value($client->subscriptions, $subscriptionHash);
+            $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
             if ($subscription !== null) {
                 for ($i = 0; $i < count($marketIds); $i++) {
                     $marketId = $marketIds[$i];

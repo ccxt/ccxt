@@ -417,7 +417,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None) -> Trade:
         #
         #    [
         #        1128060969, // id
@@ -819,7 +819,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         updateType = self.safe_value(message, 1)
         data = []
         if updateType == 'ws':
-            data = self.safe_value(message, 2)
+            data = self.safe_list(message, 2)
         else:
             data = [self.safe_value(message, 2)]
         updatedTypes = {}

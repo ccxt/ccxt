@@ -1110,7 +1110,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         orders = await self.watch_request('privateGetOrders', request)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    def request_id(self):
+    def request_id(self) -> float:
         ts = str(self.milliseconds())
         randomNumber = self.rand_number(4)
         randomPart = str(randomNumber)

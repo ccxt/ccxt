@@ -99,12 +99,14 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __params_empty = indexmap::IndexMap::new();
+        let params = params.as_map().unwrap_or(&__params_empty);
         // accepts either `query` (a single search string) or `queries` (a list of strings)
-        let mut singleQuery: Value = self.safe_string_k(params.clone(), "query", &[]);
+        let mut singleQuery: Value = (match params.get("query") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (singleQuery != Value::Null) {
             return Value::from(vec![singleQuery]);
         }
-        return self.safe_list_k(params, "queries", &[Value::from(vec![])]);
+        return (match params.get("queries") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
 
     Value::Null
 }
@@ -153,14 +155,16 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     m
 }));
         let mut queries = get_arg(optional_args, 1, Value::Null);
+        let __params_empty = indexmap::IndexMap::new();
+        let params = params.as_map().unwrap_or(&__params_empty);
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
         // so exchanges whose API can't filter natively still support them consistently.
         // every fetched event lands in the cache before filtering, so loadEvents()/event()
         // serve them later without another request
         self.set_events(events.clone());
         let mut result: Value = events;
-        let mut eventId: Value = self.safe_string_k(params.clone(), "eventId", &[]);
-        let mut slug: Value = self.safe_string_k(params.clone(), "slug", &[]);
+        let mut eventId: Value = (match params.get("eventId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut slug: Value = (match params.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (eventId != Value::Null) || (slug != Value::Null) {
             let mut filtered: Value = Value::from(vec![]);
             {
@@ -177,8 +181,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             result = filtered;
         }
-        result = self.filter_events_by_status(result.clone(), &[self.safe_string_k(params.clone(), "status", &[])]);
-        result = self.filter_events_by_tags(result.clone(), &[self.safe_list_k(params.clone(), "tags", &[])]);
+        result = self.filter_events_by_status(result.clone(), &[(match params.get("status") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
+        result = self.filter_events_by_tags(result.clone(), &[(match params.get("tags") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null })]);
         // own-line length read so the regex transpiler treats `queries` as an array (count())
         // and not a string (strlen()); guard undefined since the default is undefined
         let mut queriesLength: Value = Value::Int(0);
@@ -186,9 +190,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             queriesLength = Value::Int(queries.len() as i64);
         }
         if queriesLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            result = self.filter_events_by_search_in(result.clone(), queries, &[self.safe_string_k(params.clone(), "searchIn", &[])]);
+            result = self.filter_events_by_search_in(result.clone(), queries, &[(match params.get("searchIn") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         }
-        let mut sort: Option<String> = self.safe_string_k(params.clone(), "sort", &[]).as_str().map(str::to_owned);
+        let mut sort: Option<String> = (match params.get("sort") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (sort.is_some()) {
             let mut sortKey: Value = Value::Null;
             if (sort.as_deref() == Some("volume")) {
@@ -209,7 +213,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 result = self.sort_by(result.clone(), sortKey, &[Value::Bool(true), Value::Int(0)]);
             }
         }
-        let mut limit: Value = self.safe_integer_k(params, "limit", &[]);
+        let mut limit: Value = (match params.get("limit") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         if (limit != Value::Null) {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
@@ -592,19 +596,21 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (outcomeObj != Value::Null) {
             return outcomeObj;
         }
-        return Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("outcome".to_string(), outcomeIdOrSymbol.clone());
-        m.insert("outcomeId".to_string(), outcomeIdOrSymbol);
-        m.insert("market".to_string(), Value::Null);
-        m.insert("label".to_string(), Value::Null);
-        m.insert("event".to_string(), Value::Null);
-        m.insert("info".to_string(), Value::Map({
+        // stub for an unknown handle; it only carries the identity keys, not the market fields
+        outcomeObj = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("outcome".to_string(), outcomeIdOrSymbol.clone());
+                m.insert("outcomeId".to_string(), outcomeIdOrSymbol);
+                m.insert("market".to_string(), Value::Null);
+                m.insert("label".to_string(), Value::Null);
+                m.insert("event".to_string(), Value::Null);
+                m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-    m
-});
+            m
+        });
+        return outcomeObj;
 
     Value::Null
 }

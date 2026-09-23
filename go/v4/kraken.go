@@ -1988,8 +1988,7 @@ func (this *Kraken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostBalanceEx(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostBalanceEx(params)).Raw))
 
 	//
 	//     {
@@ -4452,8 +4451,7 @@ func (this *Kraken) transferBody(ch chan any, code any, amount any, fromAccount 
 		panic(BadRequest(this.Id + " transfer cannot transfer from " + *fromAccountParsed + " to " + *toAccountParsed + ". Use krakenfutures instead to transfer from the futures account."))
 	}
 
-	response := (<-this.PrivatePostWalletTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletTransfer(this.Extend(request, params))).Raw))
 	//
 	//   {
 	//       "error":[

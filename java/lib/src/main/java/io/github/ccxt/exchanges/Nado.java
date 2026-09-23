@@ -417,7 +417,7 @@ public class Nado extends NadoApi
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = (this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+            Map<String, Object> request = (this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
             Map<String, Object> placeOrder = (Map<String, Object>) this.safeDict(request, "place_order", new HashMap<String, Object>() {{}});
             Boolean isTriggerOrder = (placeOrder.containsKey("trigger"));
             Map<String, Object> response = null;
@@ -489,7 +489,7 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the place_order execute
      */
-    public CompletableFuture<Object> createOrderRequest(Object symbol, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Map<String, Object>> createOrderRequest(Object symbol, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final String type3 = type2;
         final String side3 = side2;
@@ -615,7 +615,7 @@ public class Nado extends NadoApi
                 put( "place_order", placeOrder );
             }};
             return this.extend(request, parameters);
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -631,7 +631,7 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the place_order execute
      */
-    public CompletableFuture<Object> createOrderRequest(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> createOrderRequest(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -668,7 +668,7 @@ public class Nado extends NadoApi
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = (this.editOrderRequest(id, symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+            Map<String, Object> request = (this.editOrderRequest(id, symbol, (String) (type), (String) (side), amount, price, parameters)).join();
             Map<String, Object> response = (this.gatewayPrivatePostExecute(request)).join();
             //
             //     {
@@ -731,7 +731,7 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_and_place execute
      */
-    public CompletableFuture<Object> editOrderRequest(Object id, Object symbol, String type2, String side2, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Map<String, Object>> editOrderRequest(Object id, Object symbol, String type2, String side2, Object amount2, Object price2, Map<String, Object> parameters2)
     {
         final String type3 = type2;
         final String side3 = side2;
@@ -845,7 +845,7 @@ public class Nado extends NadoApi
                 put( "cancel_and_place", cancelAndPlace );
             }};
             return this.extend(request, parameters);
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -862,7 +862,7 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_and_place execute
      */
-    public CompletableFuture<Object> editOrderRequest(Object id, Object symbol, String type, String side, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> editOrderRequest(Object id, Object symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrderRequest(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -936,7 +936,7 @@ public class Nado extends NadoApi
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            Object request = (this.cancelAllOrdersRequest(symbol, parameters)).join();
+            Map<String, Object> request = (this.cancelAllOrdersRequest(symbol, parameters)).join();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
@@ -984,7 +984,7 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_product_orders execute
      */
-    public CompletableFuture<Object> cancelAllOrdersRequest(String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Map<String, Object>> cancelAllOrdersRequest(String symbol2, Map<String, Object> parameters2)
     {
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
@@ -1034,7 +1034,7 @@ public class Nado extends NadoApi
                 put( "cancel_product_orders", cancelProductOrders );
             }};
             return this.extend(request, parameters);
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -1046,7 +1046,7 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_product_orders execute
      */
-    public CompletableFuture<Object> cancelAllOrdersRequest(Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> cancelAllOrdersRequest(Object... optionalArgs)
     {
         return this.cancelAllOrdersRequest(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1081,7 +1081,7 @@ public class Nado extends NadoApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            Object request = (this.cancelOrdersRequest(ids, symbol, parameters)).join();
+            Map<String, Object> request = (this.cancelOrdersRequest(ids, symbol, parameters)).join();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
@@ -1132,7 +1132,7 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_orders execute
      */
-    public CompletableFuture<Object> cancelOrdersRequest(Object ids, String symbol, Map<String, Object> parameters2)
+    public CompletableFuture<Map<String, Object>> cancelOrdersRequest(Object ids, String symbol, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -1191,7 +1191,7 @@ public class Nado extends NadoApi
                 put( "cancel_orders", cancelOrders );
             }};
             return this.extend(request, parameters);
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -1204,7 +1204,7 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_orders execute
      */
-    public CompletableFuture<Object> cancelOrdersRequest(Object ids, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> cancelOrdersRequest(Object ids, Object... optionalArgs)
     {
         return this.cancelOrdersRequest(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

@@ -203,10 +203,10 @@ func (this *Mexc) HandleTicker(client any, message any) {
 	var rawTicker any = this.SafeDictN(message, []any{"d", "data", "publicAggreBookTicker"})
 	var marketId *string = this.SafeString2(message, "s", "symbol")
 	var timestamp *int64 = this.SafeInteger2(message, "t", "sendTime")
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var ticker any = nil
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		ticker = this.ParseWsTicker(rawTicker, market)
 		ccxt.AddElementToObject(ticker, "timestamp", timestamp)
 		ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
@@ -349,14 +349,14 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 	var data []any = ccxt.SafeList2Typed(message, "data", "d")
 	var channel *string = this.SafeString(message, "c", "")
 	var marketId *string = this.SafeString(message, "s")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var channelStartsWithSpot bool = ccxt.StartsWith(channel, "spot")
 	var marketIdIsUndefined bool = (marketId == nil)
 	var isSpot any = func() any {
 		if marketIdIsUndefined {
 			return channelStartsWithSpot
 		}
-		return ccxt.GetValue(market, "spot")
+		return market["spot"]
 	}()
 	var spotPrefix string = "spot:"
 	var messageHashPrefix string = func() string {
@@ -803,8 +803,8 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 		var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 		timeframe = ccxt.DerefScalar(this.FindTimeframe(timeframeId, timeframes))
 		var marketId *string = this.SafeString2(message, "s", "symbol")
-		var market any = this.SafeMarket(marketId)
-		symbol = ccxt.GetValue(market, "symbol")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		symbol = market["symbol"]
 		parsed = this.ParseWsOHLCV(rawOhlcv, market)
 	}
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", symbol), ":"), timeframe)
@@ -1227,8 +1227,8 @@ func (this *Mexc) HandleTrades(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString2(message, "s", "symbol")
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trades:" + *symbol
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -1243,7 +1243,7 @@ func (this *Mexc) HandleTrades(client any, message any) {
 	}
 	for j := 0; j < ccxt.GetArrayLength(trades); j++ {
 		var parsedTrade any = nil
-		if ccxt.GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			parsedTrade = this.ParseWsTrade(ccxt.GetValue(trades, j), market)
 		} else {
 			parsedTrade = this.ParseTrade(ccxt.GetValue(trades, j), market)
@@ -1356,10 +1356,10 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	var data any = this.SafeDictN(message, []any{"d", "data", "privateDeals"})
 	var futuresMarketId *string = this.SafeString(data, "symbol")
 	var marketId *string = this.SafeString2(message, "s", "symbol", futuresMarketId)
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var trade any = nil
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		trade = this.ParseWsTrade(data, market)
 	} else if !ccxt.IsEqual(data, nil) {
 		trade = this.ParseTrade(data, market)
@@ -1612,10 +1612,10 @@ func (this *Mexc) HandleOrder(client any, message any) {
 	var data any = this.SafeDictN(message, []any{"d", "data", "privateOrders"})
 	var futuresMarketId *string = this.SafeString(data, "symbol")
 	var marketId *string = this.SafeString2(message, "s", "symbol", futuresMarketId)
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var parsed any = nil
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		parsed = this.ParseWsOrder(data, market)
 		var sendTime *int64 = this.SafeInteger(message, "sendTime")
 		if sendTime != nil {

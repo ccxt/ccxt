@@ -1493,8 +1493,7 @@ func (this *Kucoin) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		var messageHash any = ccxt.Add("uta:trades:", symbol)
 		var channel string = "trade"
 
-		trades := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params))
-		ccxt.PanicOnError(trades)
+		var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params))))
 		if this.NewUpdates {
 			var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 			var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -1564,8 +1563,7 @@ func (this *Kucoin) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		subscriptionHashes = append(subscriptionHashes, channelName+*marketId)
 	}
 
-	trades := (<-this.SubscribeMultipleAsync(url, messageHashes, topic, subscriptionHashes, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMultipleAsync(url, messageHashes, topic, subscriptionHashes, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -3591,8 +3589,7 @@ func (this *Kucoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var cache any = this.Positions
 	if (fetchPositionSnapshot == true) && (awaitPositionSnapshot == true) && (ccxt.IsEqual(cache, nil)) {
 
-		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
-		ccxt.PanicOnError(snapshot)
+		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))))
 
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil

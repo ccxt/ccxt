@@ -7,7 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFillable, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import type Client from '../base/ws/Client.js';
-import type { Balances, Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { Balances, Dict, Endpoint, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -76,10 +76,10 @@ export default class sxbet extends Exchange {
                 'sxbet': {
                     'public': {
                         'get': {
-                            'metadata/obv3': 1,
-                            'orderbook-v3/snapshot': 1,
-                            'trades-v3/public': 1,
-                            'markets/active': 1,
+                            'metadata/obv3': { 'cost': 1 } as Endpoint<Dict>,
+                            'orderbook-v3/snapshot': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades-v3/public': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/active': { 'cost': 1 } as Endpoint<Dict>,
                             'markets/find': 1,
                             'markets/popular': 1,
                             'trades/consolidated': 1,
@@ -96,27 +96,27 @@ export default class sxbet extends Exchange {
                     },
                     'private': {
                         'get': {
-                            'user/realtime-token-v3/api-key': 1,
-                            'user/proxy': 1,
-                            'user/balance-v3': 1,
+                            'user/realtime-token-v3/api-key': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/proxy': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/balance-v3': { 'cost': 1 } as Endpoint<Dict>,
                             'user/transfer-to-proxy/pending': 1,
                             'user/transfer-to-proxy/status': 1,
-                            'orders-v3': 1,
-                            'orders-v3/{orderId}': 1,
-                            'orders-v3/odds/best': 1,
-                            'trades-v3': 1,
-                            'fills-v3': 1,
-                            'positions-v3': 1,
+                            'orders-v3': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders-v3/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders-v3/odds/best': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades-v3': { 'cost': 1 } as Endpoint<Dict>,
+                            'fills-v3': { 'cost': 1 } as Endpoint<Dict>,
+                            'positions-v3': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'orders-v3': 1,
-                            'orders-v3/event': 1,
-                            'orders-v3/all': 1,
+                            'orders-v3': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders-v3/event': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders-v3/all': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'orders-v3': 1,
+                            'orders-v3': { 'cost': 1 } as Endpoint<Dict>,
                             'user/deploy-proxy': 1,
-                            'user/transfer-to-proxy': 1,
+                            'user/transfer-to-proxy': { 'cost': 1 } as Endpoint<Dict>,
                             'heartbeat/v3': 1,
                         },
                     },

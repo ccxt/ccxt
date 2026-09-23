@@ -150,7 +150,7 @@ class binance(PredictionExchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         fetches binance prediction markets; with a query it resolves the query via the search endpoint and returns the matched topics' markets, otherwise it pages the market listing
 
@@ -193,7 +193,7 @@ class binance(PredictionExchange, ImplicitAPI):
         self.set_events(parsedEvents)
         return flatMarkets
 
-    async def fetch_raw_topics(self, maxTopics: Int, rest={}) -> list[object]:
+    async def fetch_raw_topics(self, maxTopics: Int, rest: dict = {}) -> list[object]:
         """
  @ignore
         pages the market/list endpoint and returns up to `maxTopics` raw market topics
@@ -266,7 +266,7 @@ class binance(PredictionExchange, ImplicitAPI):
             offset = self.sum(offset, pageTopicsLength)
         return collected
 
-    async def fetch_raw_topic_detail(self, topicId: str, params={}) -> object:
+    async def fetch_raw_topic_detail(self, topicId: str, params: dict = {}) -> object:
         """
  @ignore
         fetches a single raw market topic(with nested markets and outcome tokens) by its id
@@ -398,7 +398,7 @@ class binance(PredictionExchange, ImplicitAPI):
         postParams = self.omit(params, ['tags', 'l1Category', 'l2Category'])
         return self.apply_event_fetch_params(result, postParams, [])
 
-    async def fetch_events_by_query(self, queries: list[str], limit: Int, rest={}) -> list[object]:
+    async def fetch_events_by_query(self, queries: list[str], limit: Int, rest: dict = {}) -> list[object]:
         """
  @ignore
         resolves free-text queries through the semantic market search endpoint, then completes the matched topics with their outcome tokens
@@ -450,7 +450,7 @@ class binance(PredictionExchange, ImplicitAPI):
             capped = self.array_slice(collected, 0, limit)
         return await self.complete_raw_topics(capped)
 
-    async def fetch_event(self, id: str, params={}) -> PredictionEvent:
+    async def fetch_event(self, id: str, params: dict = {}) -> PredictionEvent:
         """
         fetches a single prediction-market event(market topic) by its marketTopicId
 
@@ -693,7 +693,7 @@ class binance(PredictionExchange, ImplicitAPI):
             'created': self.safe_integer(rawTopic, 'publishedAt'),
         }
 
-    async def fetch_ticker(self, outcome: Str, params={}) -> PredictionTicker:
+    async def fetch_ticker(self, outcome: Str, params: dict = {}) -> PredictionTicker:
         """
         fetches the last trade price for a single prediction outcome
 
@@ -771,7 +771,7 @@ class binance(PredictionExchange, ImplicitAPI):
             'info': raw,
         }, market)
 
-    async def fetch_tickers(self, outcomes: Strings = None, params={}) -> PredictionTickers:
+    async def fetch_tickers(self, outcomes: Strings = None, params: dict = {}) -> PredictionTickers:
         """
         fetches last trade prices for multiple outcomes, one request per distinct underlying market
 
@@ -805,7 +805,7 @@ class binance(PredictionExchange, ImplicitAPI):
             result[symbolKey] = ticker
         return result
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         fetches the order book for a single prediction outcome token
 
@@ -838,7 +838,7 @@ class binance(PredictionExchange, ImplicitAPI):
         orderbook = self.parse_order_book(response, self.safe_outcome_symbol(outcome, outcomeObj), timestamp, 'bids', 'asks', 'price', 'size')
         return self.safe_prediction_order_book(orderbook, outcomeObj)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -967,7 +967,7 @@ class binance(PredictionExchange, ImplicitAPI):
             return 'canceled'
         return self.safe_string(statuses, status, status)
 
-    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetches currently open orders for the user
 
@@ -1043,7 +1043,7 @@ class binance(PredictionExchange, ImplicitAPI):
         parsedOrders = self.parse_prediction_orders(orders, outcomeObj, since)
         return self.filter_by_outcome_since_limit(parsedOrders, outcome, since, limit)
 
-    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetches all historical orders for the user
 
@@ -1126,7 +1126,7 @@ class binance(PredictionExchange, ImplicitAPI):
         parsedOrders = self.parse_prediction_orders(orders, outcomeObj, since)
         return self.filter_by_outcome_since_limit(parsedOrders, outcome, since, limit)
 
-    async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
+    async def fetch_positions(self, outcomes: Strings = None, params: dict = {}) -> list[PredictionPosition]:
         """
         fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form (size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
 
@@ -1212,7 +1212,7 @@ class binance(PredictionExchange, ImplicitAPI):
                 filtered.append(position)
         return filtered
 
-    async def fetch_position(self, outcome: str, params={}) -> PredictionPosition:
+    async def fetch_position(self, outcome: str, params: dict = {}) -> PredictionPosition:
         """
         fetch data on an open position
 
@@ -1288,7 +1288,7 @@ class binance(PredictionExchange, ImplicitAPI):
             'info': position,
         })
 
-    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         fetch all trades made by the user
 
@@ -1452,7 +1452,7 @@ class binance(PredictionExchange, ImplicitAPI):
             'fee': fee,
         }, outcomeObj)
 
-    async def fetch_wallet(self, methodName: str, params={}) -> object:
+    async def fetch_wallet(self, methodName: str, params: dict = {}) -> object:
         """
         fetch wallet for user and save the one match the walletAddress user provided
 
@@ -1495,7 +1495,7 @@ class binance(PredictionExchange, ImplicitAPI):
         self.options['wallet'] = cachedWallet
         return cachedWallet
 
-    async def fetch_quote(self, request: dict, params={}) -> object:
+    async def fetch_quote(self, request: dict, params: dict = {}) -> object:
         """
         request for quote from binance server
 
@@ -1558,7 +1558,7 @@ class binance(PredictionExchange, ImplicitAPI):
         # amounts truncate so a rounded-up value can never exceed the caller's balance
         return self.decimal_to_precision(amount, TRUNCATE, decimals, DECIMAL_PLACES, self.paddingMode)
 
-    async def create_order(self, outcome: str, type: str, side: str, amount: float, price: Num = None, params={}) -> PredictionOrder:
+    async def create_order(self, outcome: str, type: str, side: str, amount: float, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         creates a limit or market order for an outcome market
 
@@ -1661,7 +1661,7 @@ class binance(PredictionExchange, ImplicitAPI):
             'trades': [],
         }, market)
 
-    async def create_market_order_with_cost(self, symbol: str, side: str, cost: float, params={}):
+    async def create_market_order_with_cost(self, symbol: str, side: str, cost: float, params: dict = {}):
         """
         create a market order by providing the symbol, side and cost
 
@@ -1678,7 +1678,7 @@ class binance(PredictionExchange, ImplicitAPI):
         }
         return await self.create_order(symbol, 'market', side, cost, None, self.extend(req, params))
 
-    async def cancel_order(self, id: str, outcome: Str = None, params={}) -> PredictionOrder:
+    async def cancel_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         cancels a single open order
 
@@ -1692,7 +1692,7 @@ class binance(PredictionExchange, ImplicitAPI):
         orders = await self.cancel_orders([id], outcome, params)
         return self.safe_dict(orders, 0, {})
 
-    async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}) -> list[PredictionOrder]:
+    async def cancel_orders(self, ids: list[str], outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
         """
         cancels multiple open orders
 
@@ -1775,7 +1775,7 @@ class binance(PredictionExchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: object, api: object = 'sapi', method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: object, api: object = 'sapi', method='GET', params: dict = {}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches the standard binance SAPI HMAC-SHA256 signature — every prediction endpoint is signed

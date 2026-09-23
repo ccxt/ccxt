@@ -185,8 +185,7 @@ func (this *Bitopro) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("TRADE"+":", symbol)
 
-	trades := (<-this.WatchPublicAsync("trades", messageHash, market["id"]))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync("trades", messageHash, market["id"]))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -215,8 +214,8 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var market any = this.SafeMarket(marketId, nil, "_")
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
 	var rawData any = this.SafeList(message, "data", []any{})
@@ -273,8 +272,7 @@ func (this *Bitopro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "user-trades")
 	this.Authenticate(url)
 
-	trades := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -454,8 +452,8 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 		return // some TICKER frames arrive without a pair - nothing to resolve them against
 	}
 	// market-ids are lowercase in REST API and uppercase in WS API
-	var market any = this.SafeMarket(marketId, nil, "_")
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
 	var result map[string]any = ccxt.MapTyped(this.ParseTicker(message, market))

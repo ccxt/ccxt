@@ -7,6 +7,7 @@
 
 package io.github.ccxt.api.prediction;
 import io.github.ccxt.PredictionExchange;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class OpinionApi extends PredictionExchange
@@ -24,9 +25,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPublicGetMarket endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPublicGetMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPublicGetMarket (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetMarket", optionalArgs);
     }
@@ -35,9 +36,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPublicGetMarketMarketId endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPublicGetMarketMarketId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPublicGetMarketMarketId (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetMarketMarketId", optionalArgs);
     }
@@ -46,9 +47,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPublicGetMarketCategoricalMarketId endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPublicGetMarketCategoricalMarketId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPublicGetMarketCategoricalMarketId (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetMarketCategoricalMarketId", optionalArgs);
     }
@@ -57,9 +58,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPublicGetMarketSlugSlug endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPublicGetMarketSlugSlug (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPublicGetMarketSlugSlug (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetMarketSlugSlug", optionalArgs);
     }
@@ -79,9 +80,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPublicGetTokenLatestPrice endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPublicGetTokenLatestPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPublicGetTokenLatestPrice (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetTokenLatestPrice", optionalArgs);
     }
@@ -90,9 +91,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPublicGetTokenOrderbook endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPublicGetTokenOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPublicGetTokenOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetTokenOrderbook", optionalArgs);
     }
@@ -101,9 +102,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPublicGetTokenPriceHistory endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPublicGetTokenPriceHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPublicGetTokenPriceHistory (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetTokenPriceHistory", optionalArgs);
     }
@@ -112,9 +113,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPublicGetQuoteToken endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPublicGetQuoteToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPublicGetQuoteToken (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetQuoteToken", optionalArgs);
     }
@@ -123,9 +124,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPrivateGetOrder endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPrivateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPrivateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetOrder", optionalArgs);
     }
@@ -134,9 +135,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPrivateGetOrderOrderId endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPrivateGetOrderOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPrivateGetOrderOrderId (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetOrderOrderId", optionalArgs);
     }
@@ -145,9 +146,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPrivateGetPositionsUserWalletAddress endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPrivateGetPositionsUserWalletAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPrivateGetPositionsUserWalletAddress (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetPositionsUserWalletAddress", optionalArgs);
     }
@@ -156,9 +157,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPrivateGetTradeUserWalletAddress endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPrivateGetTradeUserWalletAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPrivateGetTradeUserWalletAddress (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetTradeUserWalletAddress", optionalArgs);
     }
@@ -167,9 +168,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPrivateGetAuthApiKey endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPrivateGetAuthApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPrivateGetAuthApiKey (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetAuthApiKey", optionalArgs);
     }
@@ -178,9 +179,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPrivateGetUserAuth endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPrivateGetUserAuth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPrivateGetUserAuth (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetUserAuth", optionalArgs);
     }
@@ -189,9 +190,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPrivateGetUserBalance endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPrivateGetUserBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPrivateGetUserBalance (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetUserBalance", optionalArgs);
     }
@@ -200,9 +201,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPrivatePostAuthApiKey endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPrivatePostAuthApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPrivatePostAuthApiKey (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivatePostAuthApiKey", optionalArgs);
     }
@@ -211,9 +212,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPrivatePostOrder endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPrivatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPrivatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivatePostOrder", optionalArgs);
     }
@@ -222,9 +223,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPrivatePostOrderCancel endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPrivatePostOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPrivatePostOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivatePostOrderCancel", optionalArgs);
     }
@@ -233,9 +234,9 @@ public class OpinionApi extends PredictionExchange
      * Calls the opinionPrivateDeleteAuthApiKey endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON object
      */
-    public CompletableFuture<Object>  opinionPrivateDeleteAuthApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  opinionPrivateDeleteAuthApiKey (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateDeleteAuthApiKey", optionalArgs);
     }

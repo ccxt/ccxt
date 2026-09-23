@@ -62,34 +62,72 @@ public partial class opinion : PredictionExchange
                 { "opinion", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "market", 1 },
-                            { "market/{marketId}", 1 },
-                            { "market/categorical/{marketId}", 1 },
-                            { "market/slug/{slug}", 1 },
+                            { "market", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/{marketId}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/categorical/{marketId}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/slug/{slug}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "label", 1 },
-                            { "token/latest-price", 1 },
-                            { "token/orderbook", 1 },
-                            { "token/price-history", 1 },
-                            { "quoteToken", 1 },
+                            { "token/latest-price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "token/orderbook", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "token/price-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "quoteToken", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "order", 1 },
-                            { "order/{orderId}", 1 },
-                            { "positions/user/{walletAddress}", 1 },
-                            { "trade/user/{walletAddress}", 1 },
-                            { "auth/api-key", 1 },
-                            { "user/auth", 1 },
-                            { "user/balance", 1 },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/{orderId}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "positions/user/{walletAddress}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/user/{walletAddress}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "auth/api-key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/auth", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "auth/api-key", 1 },
-                            { "order", 1 },
-                            { "order/cancel", 1 },
+                            { "auth/api-key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "auth/api-key", 1 },
+                            { "auth/api-key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -178,7 +216,7 @@ public partial class opinion : PredictionExchange
                 { "limit", pageLimit },
                 { "page", page },
             };
-            object response = await this.opinionPublicGetMarket(this.extend(request, rest));
+            Dictionary<string, object> response = await this.opinionPublicGetMarket(this.extend(request, rest));
             IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
             List<object> rawMarkets = this.safeList(result, "list", new List<object>() {});
             int rawMarketsLength = rawMarkets.Count;
@@ -422,7 +460,7 @@ public partial class opinion : PredictionExchange
         if (((eventId != null)) || ((slug != null)))
         {
             object singleRest = this.omit(parameters, new List<object>() {"eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit"});
-            object singleResponse = null;
+            Dictionary<string, object> singleResponse = null;
             if ((slug != null))
             {
                 singleResponse = await this.opinionPublicGetMarketSlugSlug(this.extend(new Dictionary<string, object>() {
@@ -472,7 +510,7 @@ public partial class opinion : PredictionExchange
                 { "limit", reqLimit },
                 { "page", page },
             };
-            object response = await this.opinionPublicGetMarket(this.extend(request, rest));
+            Dictionary<string, object> response = await this.opinionPublicGetMarket(this.extend(request, rest));
             IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
             List<object> pageEvents = this.safeList(result, "list", new List<object>() {});
             int pageEventsLength = pageEvents.Count;
@@ -524,7 +562,7 @@ public partial class opinion : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool isSlug = (id.IndexOf("-", StringComparison.Ordinal) >= 0);
-        object response = null;
+        Dictionary<string, object> response = null;
         if (isSlug)
         {
             response = await this.opinionPublicGetMarketSlugSlug(this.extend(new Dictionary<string, object>() {
@@ -847,7 +885,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "token_id", tokenId },
         };
-        object response = await this.opinionPublicGetTokenOrderbook(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.opinionPublicGetTokenOrderbook(this.extend(request, parameters));
         //
         //     {
         //         "errmsg": "",
@@ -894,7 +932,7 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
         string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar);
-        object response = await this.opinionPublicGetTokenPriceHistory(this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> response = await this.opinionPublicGetTokenPriceHistory(this.extend(new Dictionary<string, object>() {
             { "token_id", tokenId },
             { "interval", interval },
         }, parameters));
@@ -966,7 +1004,7 @@ public partial class opinion : PredictionExchange
         {
             return existing;
         }
-        object response = await this.opinionPublicGetQuoteToken(new Dictionary<string, object>() {});
+        Dictionary<string, object> response = await this.opinionPublicGetQuoteToken(new Dictionary<string, object>() {});
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> list = this.safeList(result, "list", new List<object>() {});
         int listLength = list.Count;
@@ -1003,7 +1041,7 @@ public partial class opinion : PredictionExchange
         {
             return ((string?)((object)(cached)));
         }
-        object response = await this.opinionPrivateGetUserAuth(new Dictionary<string, object>() {});
+        Dictionary<string, object> response = await this.opinionPrivateGetUserAuth(new Dictionary<string, object>() {});
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> walletUsers = this.safeDict(result, "walletUsers", new Dictionary<string, object>() {});
         string? multiSignAddress = this.safeString(walletUsers, "56", this.walletAddress);
@@ -1214,7 +1252,7 @@ public partial class opinion : PredictionExchange
             { "orderExpTime", "0" },
             { "postOnly", postOnly },
         }, rest);
-        object response = await this.opinionPrivatePostOrder(orderBody);
+        Dictionary<string, object> response = await this.opinionPrivatePostOrder(orderBody);
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> orderData = this.safeDict(result, "orderData", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToPredictionOrder(this.parsePredictionOrder(orderData, ((object)outcomeObj)));
@@ -1237,7 +1275,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        object response = await this.opinionPrivatePostOrderCancel(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.opinionPrivatePostOrderCancel(this.extend(request, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         bool? canceled = this.safeBool(result, "result", false);
         // a false result does NOT mean the order is still open — it may already be filled,
@@ -1351,7 +1389,7 @@ public partial class opinion : PredictionExchange
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             request["marketId"] = this.safeInteger(info, "marketId");
         }
-        object response = await this.opinionPrivateGetOrder(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.opinionPrivateGetOrder(this.extend(request, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(result, "list", new List<object>() {});
         return ccxt.BaseExchange.ToPredictionOrderList(this.parsePredictionOrders(orders, outcomeObj, since, limit));
@@ -1376,7 +1414,7 @@ public partial class opinion : PredictionExchange
         {
             outcomeObj = await this.loadOutcome(outcome);
         }
-        object response = await this.opinionPrivateGetOrderOrderId(this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> response = await this.opinionPrivateGetOrderOrderId(this.extend(new Dictionary<string, object>() {
             { "orderId", id },
         }, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
@@ -1455,7 +1493,7 @@ public partial class opinion : PredictionExchange
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             request["marketId"] = this.safeInteger(info, "marketId");
         }
-        object response = await this.opinionPrivateGetTradeUserWalletAddress(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.opinionPrivateGetTradeUserWalletAddress(this.extend(request, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> trades = this.safeList(result, "list", new List<object>() {});
         int tradesLength = trades.Count;
@@ -1497,7 +1535,7 @@ public partial class opinion : PredictionExchange
         {
             return existing;
         }
-        object response = await this.opinionPublicGetMarketMarketId(new Dictionary<string, object>() {
+        Dictionary<string, object> response = await this.opinionPublicGetMarketMarketId(new Dictionary<string, object>() {
             { "marketId", marketId },
         });
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
@@ -1567,7 +1605,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "chain_id", "56" },
         };
-        object response = await this.opinionPrivateGetUserBalance(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.opinionPrivateGetUserBalance(this.extend(request, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> rawBalances = this.safeList(result, "balances", new List<object>() {});
         int rawBalancesLength = rawBalances.Count;
@@ -1636,7 +1674,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "walletAddress", this.walletAddress },
         };
-        object response = await this.opinionPrivateGetPositionsUserWalletAddress(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.opinionPrivateGetPositionsUserWalletAddress(this.extend(request, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> positions = this.safeList(result, "list", new List<object>() {});
         List<object> parsed = this.parsePredictionPositions(positions);
@@ -1765,7 +1803,7 @@ public partial class opinion : PredictionExchange
     public async virtual Task<Dictionary<string, object>> CreateApiKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.opinionPrivatePostAuthApiKey(parameters);
+        Dictionary<string, object> response = await this.opinionPrivatePostAuthApiKey(parameters);
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToDict(this.setApiCredentials(result));
     }
@@ -1781,7 +1819,7 @@ public partial class opinion : PredictionExchange
     public async virtual Task<Dictionary<string, object>> FetchApiKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.opinionPrivateGetAuthApiKey(parameters);
+        Dictionary<string, object> response = await this.opinionPrivateGetAuthApiKey(parameters);
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToDict(this.setApiCredentials(result));
     }
@@ -1797,7 +1835,7 @@ public partial class opinion : PredictionExchange
     public async virtual Task<object> deleteApiKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.opinionPrivateDeleteAuthApiKey(parameters);
+        Dictionary<string, object> response = await this.opinionPrivateDeleteAuthApiKey(parameters);
         this.options["apiKey"] = null;
         // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
         // exchange.apiKey would keep being used for private calls after the key is revoked.

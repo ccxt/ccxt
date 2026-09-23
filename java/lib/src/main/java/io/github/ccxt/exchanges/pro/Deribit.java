@@ -808,9 +808,9 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.authenticate()).join();
             }
             Object descriptor = "";
-            Object useDepthEndpoint = null; // for more info, see comment in .options
+            Boolean useDepthEndpoint = null; // for more info, see comment in .options
             List<Object> useDepthEndpointparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "useDepthEndpoint", false);
-            useDepthEndpoint = ((List<Object>) useDepthEndpointparametersVariable).get(0);
+            useDepthEndpoint = Helpers.isTrue(((List<Object>) useDepthEndpointparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) useDepthEndpointparametersVariable).get(1);
             if (Helpers.isTrue(useDepthEndpoint))
             {

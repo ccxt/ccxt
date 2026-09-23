@@ -1496,7 +1496,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     String symbolMessageHash = ((messageHash + "::") + symbol);
                     ((List<Object>)messageHashes).add(symbolMessageHash);
                 }

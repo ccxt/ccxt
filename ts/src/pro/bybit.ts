@@ -1738,7 +1738,7 @@ export default class bybit extends bybitRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const url = await this.getUrlByMarketType (symbolValue, false, 'watchLiquidations', params);
-        const paramsValue: Dict = this.cleanParams (params);
+        const paramsValue = this.cleanParams (params);
         const [ method, paramsMethod ] = this.handleOptionAndParams (paramsValue, 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbolValue;
         const topic = method + '.' + market['id'];

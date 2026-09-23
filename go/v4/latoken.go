@@ -646,8 +646,7 @@ func (this *Latoken) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetCurrency(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetCurrency(params)).Raw))
 
 	//
 	//     [
@@ -985,8 +984,7 @@ func (this *Latoken) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		"quote": market["quoteId"],
 	}
 
-	response := (<-this.PublicGetTickerBaseQuote(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickerBaseQuote(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -1038,8 +1036,7 @@ func (this *Latoken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetTicker(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetTicker(params)).Raw))
 
 	//
 	//    [
@@ -1203,8 +1200,7 @@ func (this *Latoken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["limit"] = mathMin(limit, 100) // default 100, limit 100
 	}
 
-	response := (<-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))).Raw))
 
 	//
 	//     [

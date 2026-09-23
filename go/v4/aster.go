@@ -2552,8 +2552,7 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) a
 		symbols = this.MarketSymbols(symbols)
 	}
 
-	response := (<-this.FapiPublicGetV3FundingInfo(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.FapiPublicGetV3FundingInfo(params)).Raw))
 
 	//
 	//     [
@@ -2619,8 +2618,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
-	response := (<-this.FapiPublicGetV3FundingRate(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.FapiPublicGetV3FundingRate(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -3520,8 +3518,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		"batchOrders": ordersRequests,
 	}
 
-	response := (<-this.FapiPrivatePostV3BatchOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.FapiPrivatePostV3BatchOrders(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -4270,8 +4267,7 @@ func (this *Aster) modifyMarginHelperBody(ch chan any, symbol any, amount any, a
 	}
 	var code *string = SafeStringPtr(market["quote"])
 
-	response := (<-this.FapiPrivatePostV3PositionMargin(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FapiPrivatePostV3PositionMargin(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -4417,8 +4413,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		AddElementToObject(request, "limit", mathMin(limit, 1000)) // max 1000
 	}
 
-	response := (<-this.FapiPrivateGetV3Income(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.FapiPrivateGetV3Income(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseIncomes(response, market, since, limit)
 	return nil
@@ -4529,8 +4524,7 @@ func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 
-	response := (<-this.FapiPrivateGetV3Income(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.FapiPrivateGetV3Income(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -5130,8 +5124,7 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
 
 	PanicOnError((<-this.LoadLeverageBracketsAsync(false, params)))
 
-	response := (<-this.FapiPrivateGetV4Account(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.FapiPrivateGetV4Account(params)).Raw))
 	var filterClosed any = nil
 	var filterClosedparamsVariable []any = this.HandleOptionAndParams(params, "fetchAccountPositions", "filterClosed", false)
 	filterClosed = GetValue(filterClosedparamsVariable, 0)
@@ -5333,8 +5326,7 @@ func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, 
 	request["amount"] = this.CurrencyToPrecision(code, amount, network)
 	request["userSignature"] = this.SignWithdrawPayload(request, network)
 
-	response := (<-this.SapiPrivatePostV3AsterUserWithdraw(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SapiPrivatePostV3AsterUserWithdraw(this.Extend(request, params))).Raw))
 
 	//
 	//   {
@@ -5424,8 +5416,7 @@ func (this *Aster) transferBody(ch chan any, code any, amount any, fromAccount a
 	request["kindType"] = typeVar
 	request["clientTranId"] = clientTranId
 
-	response := (<-this.SapiPrivatePostV3AssetWalletTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SapiPrivatePostV3AssetWalletTransfer(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTransfer(response, currency)
 	return nil

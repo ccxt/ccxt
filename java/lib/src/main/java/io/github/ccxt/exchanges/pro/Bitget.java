@@ -297,7 +297,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(symbol);
                 final Object finalInstType = instType;
                 Map<String, Object> args = new HashMap<String, Object>() {{
@@ -584,7 +584,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(symbol);
                 final Object finalInstType = instType;
                 Map<String, Object> args = new HashMap<String, Object>() {{

@@ -1230,7 +1230,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($trades, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
         // public trade (protobuf)
         //    {

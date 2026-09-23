@@ -2341,10 +2341,9 @@ func (this *Myriad) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	response := (<-this.MyriadPublicGetOrdersHash(this.Extend(map[string]any{
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetOrdersHash(this.Extend(map[string]any{
 		"hash": id,
-	}, params))).Raw
-	ccxt.PanicOnError(response)
+	}, params))).Raw))
 	//
 	//     {
 	//         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -3038,8 +3037,7 @@ func (this *Myriad) fetchTickerBody(ch chan any, outcome any, optionalArgs ...an
 		"network_id": networkId,
 	}
 
-	response := (<-this.MyriadPublicGetMarketsId(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetMarketsId(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -3355,8 +3353,7 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 			"outcome":    outcomeId,
 		}
 
-		obResponse := (<-this.MyriadPublicGetMarketsIdOrderbook(this.Extend(obRequest, params))).Raw
-		ccxt.PanicOnError(obResponse)
+		var obResponse map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetMarketsIdOrderbook(this.Extend(obRequest, params))).Raw))
 
 		//
 		//     {
@@ -4496,8 +4493,7 @@ func (this *Myriad) watchTradesBody(ch chan any, outcome any, optionalArgs ...an
 	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("trades:", networkId), ":"), marketId)
 	var messageHash any = ccxt.Add("trades::", sym)
 
-	trades := (<-this.SubscribeMyriadChannelAsync(messageHash, channel, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMyriadChannelAsync(messageHash, channel, params))))
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
@@ -4544,8 +4540,7 @@ func (this *Myriad) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("trades:", networkId), ":"), marketId)
 	var messageHash string = "myTrades"
 
-	trades := (<-this.SubscribeMyriadChannelAsync(messageHash, channel, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMyriadChannelAsync(messageHash, channel, params))))
 
 	ch <- this.FilterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true)
 	return nil
@@ -4940,8 +4935,7 @@ func (this *Myriad) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var channel any = ccxt.Add("orders:"+*networkId+":", trader)
 	var messageHash string = "orders"
 
-	orders := (<-this.SubscribeMyriadChannelAsync(messageHash, channel, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMyriadChannelAsync(messageHash, channel, params))))
 
 	ch <- this.FilterByValueSinceLimit(orders, "outcome", outcome, since, limit, "timestamp", true)
 	return nil

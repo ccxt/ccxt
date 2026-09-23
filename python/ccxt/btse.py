@@ -220,7 +220,7 @@ class btse(Exchange, ImplicitAPI):
                         'spot/api/v3.3/orderbook': 5,  # not used
                         'spot/api/v3.3/orderbook/L2': 5,  # done
                         'spot/api/v3.3/trades': {'cost': 5},  # done
-                        'spot/api/v3.3/time': 5,  # done
+                        'spot/api/v3.3/time': {'cost': 5},  # done
                         'futures/api/v2.3/market_summary': {'cost': 5},  # done
                         'futures/api/v2.3/ohlcv': {'cost': 5},  # done
                         'futures/api/v2.3/price': 5,  # not used

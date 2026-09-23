@@ -264,7 +264,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         Retrieves all outcome markets from outcomeMeta.
  Each binary outcome becomes one CCXT prediction market with two outcomes: YES and NO.
@@ -290,7 +290,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
                 markets.append(eventMarkets[mi])
         return markets
 
-    async def fetch_event(self, id: str, params={}) -> PredictionEvent:
+    async def fetch_event(self, id: str, params: dict = {}) -> PredictionEvent:
         """
         fetches a single prediction-market event(market topic)
 
@@ -570,7 +570,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             postParams = self.extend(postParams, {'status': 'closed'})
         return self.apply_event_fetch_params(result, postParams, queries)
 
-    async def fetch_raw_topics_by_queries(self, queries: list[str], params={}) -> list[object]:
+    async def fetch_raw_topics_by_queries(self, queries: list[str], params: dict = {}) -> list[object]:
         """
  @ignore
         searches categories and markets for every query term and returns the raw market topics, deduplicated by slug
@@ -1193,7 +1193,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             'created': self.parse8601(createdDatetime),
         }
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         fetches the order book for a single prediction outcome token
 
@@ -1264,7 +1264,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             }
             return self.safe_prediction_order_book(noOrderbook, outcomeObj)
 
-    async def fetch_ticker(self, outcome: Str, params={}) -> PredictionTicker:
+    async def fetch_ticker(self, outcome: Str, params: dict = {}) -> PredictionTicker:
         """
         fetches the best bid and ask for a single prediction outcome token
 
@@ -1398,7 +1398,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             'info': ticker,
         })
 
-    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         fetches the settled matches the wallet took part in, on either side of the book
 
@@ -1461,7 +1461,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
                     flattenTrades.append(self.extend(entry, {'partyToParse': makerParty}))
         return self.parse_prediction_trades(flattenTrades, outcomeObj, since, limit)
 
-    async def fetch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def fetch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         fetches the most recent settled matches for a single prediction outcome token
 
@@ -1684,7 +1684,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         signatureHex = '0x' + r + s + v
         return signatureHex.lower()
 
-    async def authenticate(self, params={}) -> Str:
+    async def authenticate(self, params: dict = {}) -> Str:
         """
  @ignore
         exchanges a wallet signature for the JWT that authorises order actions, and caches it
@@ -1777,7 +1777,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             'signature': self.sign_hash(hash, self.privateKey),
         }
 
-    async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> PredictionOrder:
+    async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         creates a LIMIT or MARKET order on a single prediction outcome token
 
@@ -1960,7 +1960,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             'trades': [],
         })
 
-    async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
+    async def fetch_positions(self, outcomes: Strings = None, params: dict = {}) -> list[PredictionPosition]:
         """
         fetches the outcome shares the wallet holds
 
@@ -2038,7 +2038,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
                 result.append(position)
         return result
 
-    async def fetch_position(self, outcome: str, params={}) -> PredictionPosition:
+    async def fetch_position(self, outcome: str, params: dict = {}) -> PredictionPosition:
         """
         fetches the shares the wallet holds of a single outcome
 
@@ -2134,7 +2134,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             'info': position,
         })
 
-    async def cancel_order(self, id: str, outcome: Str = None, params={}) -> PredictionOrder:
+    async def cancel_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         removes one of your own orders from the order book
 
@@ -2151,7 +2151,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' cancelOrder() could not remove ' + id)
         return order
 
-    async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}) -> list[PredictionOrder]:
+    async def cancel_orders(self, ids: list[str], outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
         """
         removes several of your own orders from the order book, up to a hundred at a time
 
@@ -2207,7 +2207,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             rows.append(self.extend(response, {'orderHash': noop[i]}))
         return self.parse_prediction_orders(rows, outcomeObj)
 
-    async def fetch_order(self, id: Str, outcome: Str = None, params={}) -> PredictionOrder:
+    async def fetch_order(self, id: Str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         fetches one of your own orders by its hash
 
@@ -2263,7 +2263,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_prediction_order(data, outcomeObj)
 
-    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetches your own orders that are still resting on the book(only limit orders can be fetched)
 
@@ -2281,7 +2281,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         }
         return await self.fetch_orders_helper(outcome, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetches your own orders that filled(only limit orders can be fetched)
 
@@ -2301,7 +2301,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         }
         return await self.fetch_orders_helper(outcome, since, limit, self.extend(request, params))
 
-    async def fetch_orders_helper(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_orders_helper(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
  @ignore
         fetches your own orders - the venue answers with the open ones unless a status is named, so each public method passes its own
@@ -2614,7 +2614,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         signedFields.append(self.rlp_encode_bytes(sHex))
         return '0x02' + self.rlp_encode_list(signedFields)
 
-    async def approve(self, outcome: Str = None, params={}) -> object:
+    async def approve(self, outcome: Str = None, params: dict = {}) -> object:
         """
         grants the on-chain approvals a wallet needs before it can trade. The buy side is the USDT allowance the exchange spends, without which every order is refused with create_order_insufficient_collateral_allowance; the sell side is the ERC-1155 approval over the outcome shares themselves. WITHOUT params.amount THE BUY SIDE GRANTS AN UNLIMITED(max uint256) ALLOWANCE, pass params.amount to bound it. sends real transactions signed with the privateKey and waits for each receipt, so the wallet needs BNB for gas
 
@@ -2712,7 +2712,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         txHash = await self.send_evm_transaction(rpcUrl, chainId, owner, token, '0x0', approveData, gasLimit)
         return await self.wait_for_transaction_receipt(rpcUrl, txHash)
 
-    async def watch_order_book(self, outcome: str, limit: Int = None, params={}) -> PredictionOrderBook:
+    async def watch_order_book(self, outcome: str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         subscribes to the live order book of an outcome and returns it as it updates
 
@@ -2754,7 +2754,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         orderbook = await self.watch(url, messageHash, self.extend(request, params), topic, subscription)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, outcome: str, params={}) -> object:
+    async def un_watch_order_book(self, outcome: str, params: dict = {}) -> object:
         """
         stops watching the order book of an outcome. the venue publishes one book per market and both of its outcomes read it, so the sibling outcome is released with it
 
@@ -2888,7 +2888,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
                     'topic': subHash,
                 })
 
-    async def watch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def watch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         watches the wallet's own orders as the venue accepts, fills, expires or cancels them
 
@@ -2918,7 +2918,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             limit = orders.getLimit(outcome, limit)
         return self.filter_by_outcome_since_limit(orders, outcome, since, limit, True)
 
-    async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         watches the wallet's own fills as they settle on chain
 
@@ -2945,7 +2945,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             limit = trades.getLimit(outcome, limit)
         return self.filter_by_outcome_since_limit(trades, outcome, since, limit, True)
 
-    async def un_watch_orders(self, outcome: Str = None, params={}) -> object:
+    async def un_watch_orders(self, outcome: Str = None, params: dict = {}) -> object:
         """
         stops watching the wallet's orders. one wallet topic carries orders and fills alike, so both streams are released together
 
@@ -2957,7 +2957,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         """
         return await self.un_watch_wallet_events('orders', params)
 
-    async def un_watch_my_trades(self, outcome: Str = None, params={}) -> object:
+    async def un_watch_my_trades(self, outcome: Str = None, params: dict = {}) -> object:
         """
         stops watching the wallet's fills. one wallet topic carries orders and fills alike, so both streams are released together
 
@@ -2984,7 +2984,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         walletToken = await self.authenticate()
         return 'predictWalletEvents/' + walletToken
 
-    async def watch_wallet_events(self, messageHash: str, params={}) -> object:
+    async def watch_wallet_events(self, messageHash: str, params: dict = {}) -> object:
         """
  @ignore
         subscribes to the wallet topic and waits on the hash the caller's method reads
@@ -3034,7 +3034,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             hashes.append(messageHash)
         return hashes
 
-    async def un_watch_wallet_events(self, channel: str, params={}) -> object:
+    async def un_watch_wallet_events(self, channel: str, params: dict = {}) -> object:
         """
  @ignore
         drops the wallet topic, releasing both the order and the fill stream
@@ -3571,7 +3571,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # unique when two identical orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = 'predictfun', method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: object, api: object = 'predictfun', method='GET', params: dict = {}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches the API key header required by every endpoint

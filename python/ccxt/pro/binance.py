@@ -217,7 +217,7 @@ class binance(ccxt.async_support.binance):
             },
         }
 
-    def request_id(self, url: str):
+    def request_id(self, url: str) -> float:
         options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)

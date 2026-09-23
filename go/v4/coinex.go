@@ -2163,8 +2163,8 @@ func (this *Coinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var marketId *string = this.SafeString(entry, "market")
-		var market any = this.SafeMarket(marketId, nil, nil, typeVar)
-		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, nil, typeVar))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(result, symbol, this.ParseTradingFee(entry, market))
 	}
 
@@ -5522,8 +5522,7 @@ func (this *Coinex) transferBody(ch chan any, code any, amount any, fromAccount 
 		panic(BadRequest(this.Id + " transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot"))
 	}
 
-	response := (<-this.V2PrivatePostAssetsTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAssetsTransfer(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -6761,7 +6760,7 @@ func (this *Coinex) Sign(path any, optionalArgs ...any) any {
 			this.CheckRequiredCredentials()
 			query = this.Keysort(query)
 			var urlencoded string = this.Rawencode(query)
-			var preparedString any = Add(Add(Add(Add(method, "/"), version), "/"), path)
+			var preparedString any = Add(Add(Add(method+"/", version), "/"), path)
 			if method == "POST" {
 				body = this.Json(query)
 				preparedString = Add(preparedString, body)

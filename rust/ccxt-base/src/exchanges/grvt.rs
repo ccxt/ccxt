@@ -3052,7 +3052,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId == Value::Null) {
-            clientOrderId = add(&Value::Str(format!("{}{}", to_string_val(&self.nonce()), Value::Str("000".into())).into()), &to_string_val(&self.request_id()));
+            clientOrderId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", to_string_val(&self.nonce()), Value::Str("000".into())).into()), to_string_val(&self.request_id())).into());
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
         let mut isMarketOrder: Value = (Value::Bool(type_var.as_str() == Some("market")));

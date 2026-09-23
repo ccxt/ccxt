@@ -756,8 +756,8 @@ func (this *Bitmex) HandleTrades(client any, message map[string]any) {
 	var marketIds []string = ccxt.ObjectKeys(dataByMarketIds)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market any = this.SafeMarket(marketId)
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var messageHash string = table + ":" + *symbol
 		var trades any = this.ParseTrades(dataByMarketIds[marketId], market)
 		var stored any = this.SafeValue(this.Trades, symbol)
@@ -1154,8 +1154,7 @@ func (this *Bitmex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"args": []any{subscriptionHash},
 	}
 
-	orders := (<-this.Watch(url, messageHash, request, subscriptionHash))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -1397,8 +1396,7 @@ func (this *Bitmex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"args": []any{subscriptionHash},
 	}
 
-	trades := (<-this.Watch(url, messageHash, request, subscriptionHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
@@ -1624,8 +1622,7 @@ func (this *Bitmex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		"args": topics,
 	}
 
-	trades := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), topics))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), topics))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -1678,8 +1675,7 @@ func (this *Bitmex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		"args": []any{messageHash},
 	}
 
-	ohlcv := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}

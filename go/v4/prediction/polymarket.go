@@ -1436,7 +1436,7 @@ func (this *Polymarket) fetchTickerBody(ch chan any, outcome any, optionalArgs .
 
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var promises []any = []any{ccxt.EndpointRaw(this.ClobPublicGetMidpoint(map[string]any{
 		"token_id": tokenId,
 	})), ccxt.EndpointRaw(this.ClobPublicGetBook(map[string]any{
@@ -1769,13 +1769,12 @@ func (this *Polymarket) fetchOrderBookBody(ch chan any, outcome any, optionalArg
 
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var request map[string]any = map[string]any{
 		"token_id": tokenId,
 	}
 
-	response := (<-this.ClobPublicGetBook(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPublicGetBook(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "market": "0x42d42b30124ed2d93800358dfd1d48253114e4d58cff15cb765cd0c69956555f",
@@ -1838,7 +1837,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 	}
 
 	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var fidelityMin *int64 = this.SafeInteger(this.Timeframes, timeframe, 1) // fidelity in minutes
 	var nowS int64 = this.Seconds()
 	var startS any = nil
@@ -2178,11 +2177,11 @@ func (this *Polymarket) fetchTradesBody(ch chan any, outcome any, optionalArgs .
 	_ = params
 
 	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var conditionId *string = this.SafeString(outcomeInfo, "conditionId")
 	if conditionId == nil {
-		panic(ccxt.BadRequest(ccxt.Add(this.Id+" fetchTrades() requires outcome.info.conditionId for an outcome ", tokenId)))
+		panic(ccxt.BadRequest(this.Id + " fetchTrades() requires outcome.info.conditionId for an outcome " + *tokenId))
 	}
 	// the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
 	// to the requested token client-side below. applying the user's `limit` to this request and
@@ -2206,7 +2205,7 @@ func (this *Polymarket) fetchTradesBody(ch chan any, outcome any, optionalArgs .
 	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
 		var trade any = ccxt.GetValue(rawTrades, i)
 		var tradeAsset *string = this.SafeString(trade, "asset")
-		if ccxt.IsEqual(tradeAsset, tokenId) {
+		if tradeAsset == tokenId || (tradeAsset != nil && tokenId != nil && *tradeAsset == *tokenId) {
 			filteredTrades = append(filteredTrades, trade)
 		}
 	}
@@ -2425,8 +2424,7 @@ func (this *Polymarket) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"signature_type": signatureType,
 	}
 
-	response := (<-this.ClobPrivateGetBalanceAllowance(this.Extend(request, rest))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateGetBalanceAllowance(this.Extend(request, rest))).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -2687,8 +2685,7 @@ func (this *Polymarket) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		"id": id,
 	}
 
-	response := (<-this.ClobPrivateGetDataOrderId(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateGetDataOrderId(this.Extend(request, params))).Raw))
 
 	ch <- this.ParsePredictionOrder(response)
 	return nil
@@ -2930,7 +2927,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var outcomeObj any = this.Outcome(outcome)
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var sideStr string = ccxt.ToUpper(side)
 	var isMarket bool = (ccxt.IsEqual(typeVar, "market"))
 	// CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -4434,8 +4431,7 @@ func (this *Polymarket) watchTradesBody(ch chan any, outcome any, optionalArgs .
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 
-	trades := (<-this.Watch(url, messageHash, subscribeMsg, subscribeHash))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, subscribeMsg, subscribeHash))))
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
@@ -4580,8 +4576,7 @@ func (this *Polymarket) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add("orders::", outcome)
 	}
 
-	orders := (<-this.SubscribeUserChannelAsync(messageHash, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeUserChannelAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(outcome, limit)
 	}
@@ -4627,8 +4622,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		messageHash = ccxt.Add("myTrades::", outcome)
 	}
 
-	trades := (<-this.SubscribeUserChannelAsync(messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeUserChannelAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(outcome, limit)
 	}

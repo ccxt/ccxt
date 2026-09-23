@@ -309,8 +309,7 @@ func (this *Predictfun) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	events := (<-this.FetchEventsAsync(params))
-	ccxt.PanicOnError(events)
+	var events []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchEventsAsync(params))))
 	var eventsLength int = ccxt.GetArrayLength(events)
 	var markets []any = []any{}
 	for ei := 0; ei < eventsLength; ei++ {
@@ -361,10 +360,9 @@ func (this *Predictfun) fetchEventBody(ch chan any, id any, optionalArgs ...any)
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchEvent() requires the \"id\" argument or the \"slug\" parameter"))
 	}
 
-	events := (<-this.FetchEventsAsync(this.Extend(map[string]any{
+	var events []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchEventsAsync(this.Extend(map[string]any{
 		"slug": slug,
-	}, params)))
-	ccxt.PanicOnError(events)
+	}, params)))))
 
 	ch <- this.SafeDict(events, 0)
 	return nil
@@ -3763,8 +3761,7 @@ func (this *Predictfun) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync()))
 	}
 
-	orders := (<-this.WatchWalletEventsAsync(messageHash, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchWalletEventsAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(outcome, limit)
 	}
@@ -3814,8 +3811,7 @@ func (this *Predictfun) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync()))
 	}
 
-	trades := (<-this.WatchWalletEventsAsync(messageHash, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchWalletEventsAsync(messageHash, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(outcome, limit)
 	}

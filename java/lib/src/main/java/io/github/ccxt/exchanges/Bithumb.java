@@ -1370,7 +1370,7 @@ public class Bithumb extends BithumbApi
                     Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
                     for (var i = 0; i < ((List<?>)symbols).size(); i++)
                     {
-                        Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                        Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                         String quoteId = this.safeString(market, "quoteId");
                         if ((!java.util.Objects.equals(quoteId, null)) && (quoteCurrencies.containsKey(quoteId)))

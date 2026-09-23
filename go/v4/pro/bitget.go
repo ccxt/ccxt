@@ -683,11 +683,10 @@ func (this *Bitget) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	} else {
 		args["channel"] = ccxt.Add("candle", interval)
 		args["instId"] = market["id"]
-		messageHash = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
+		messageHash = ccxt.Add("candles:"+timeframe+":", symbol)
 	}
 
-	ohlcv := (<-this.WatchPublicAsync(uta, messageHash, args, params))
-	ccxt.PanicOnError(ohlcv)
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(uta, messageHash, args, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
@@ -831,8 +830,8 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 		return "contract"
 	}()
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var interval *string = this.SafeString(arg, "interval")
@@ -1371,8 +1370,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		})
 	}
 
-	trades := (<-this.WatchPublicMultipleAsync(uta, messageHashes, topics, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicMultipleAsync(uta, messageHashes, topics, params))))
 	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
@@ -1474,8 +1472,8 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 		return "contract"
 	}()
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1827,7 +1825,7 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 			return nil
 		}()
 		var marketId *string = this.SafeString2(rawPosition, "instId", "symbol")
-		var market any = this.SafeMarket(marketId, nil, nil, "contract")
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, "contract"))
 		var position any = this.ParseWsPosition(rawPosition, market)
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
@@ -2102,8 +2100,7 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		})
 	}
 
-	orders := (<-this.WatchPrivateAsync(uta, messageHash, subscriptionHash, args, params))
-	ccxt.PanicOnError(orders)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(uta, messageHash, subscriptionHash, args, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
@@ -2244,7 +2241,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var order any = ccxt.GetValue(data, i)
 		var marketId *string = this.SafeString2(order, "instId", "symbol", argInstId)
-		var market any = this.SafeMarket(marketId, nil, nil, marketType)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order, market))
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
@@ -2627,8 +2624,7 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		})
 	}
 
-	trades := (<-this.WatchPrivateAsync(uta, messageHash, subscriptionHash, args, params))
-	ccxt.PanicOnError(trades)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(uta, messageHash, subscriptionHash, args, params))))
 	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
