@@ -983,11 +983,11 @@ export default class bullish extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        params = this.handleSinceAndUntil (since, params);
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil (since, params);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
-        const response = await this.publicGetV1HistoryMarketsSymbolTrades (this.extend (request, params));
+        const response = await this.publicGetV1HistoryMarketsSymbolTrades (this.extend (request, paramsSinceAndUntil));
         //
         //     [
         //         {
@@ -1043,7 +1043,7 @@ export default class bullish extends Exchange {
                 params = this.handlePaginationParams ('fetchMyTrades', since, params);
                 return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
             }
-            params = this.handleSinceAndUntil (since, params);
+            const paramsSinceAndUntil: Dict = this.handleSinceAndUntil (since, params);
             if (limit !== undefined) {
                 request['_pageSize'] = this.getClosestLimit (limit);
             }
@@ -1067,7 +1067,7 @@ export default class bullish extends Exchange {
             //         }, ...
             //     ]
             //
-            response = await this.privateGetV1HistoryTrades (this.extend (request, params));
+            response = await this.privateGetV1HistoryTrades (this.extend (request, paramsSinceAndUntil));
         }
         return this.parseTrades (response, market, since, limit);
     }
@@ -1452,8 +1452,8 @@ export default class bullish extends Exchange {
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
-        params = this.handleSinceAndUntil (since, params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
-        const response = await this.publicGetV1HistoryMarketsSymbolFundingRate (this.extend (request, params));
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil (since, params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
+        const response = await this.publicGetV1HistoryMarketsSymbolFundingRate (this.extend (request, paramsSinceAndUntil));
         //
         //     [
         //         {
@@ -1517,12 +1517,13 @@ export default class bullish extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        params = this.handleSinceAndUntil (since, params);
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil (since, params);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
         let method = 'privateGetV2HistoryOrders';
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'method', method);
+        let paramsMethod: Dict = undefined;
+        [ method, paramsMethod ] = this.handleOptionAndParams (paramsSinceAndUntil, 'fetchOrders', 'method', method);
         let response: Dict | List = [];
         if (method === 'privateGetV2Orders') {
             //
@@ -1554,9 +1555,9 @@ export default class bullish extends Exchange {
             //         }
             //     ]
             //
-            response = await this.privateGetV2Orders (this.extend (request, params));
+            response = await this.privateGetV2Orders (this.extend (request, paramsMethod));
         } else if (method === 'privateGetV2HistoryOrders') {
-            response = await this.privateGetV2HistoryOrders (this.extend (request, params));
+            response = await this.privateGetV2HistoryOrders (this.extend (request, paramsMethod));
         } else {
             throw new BadRequest (this.id + ' fetchOrders() method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
         }
@@ -2260,9 +2261,10 @@ export default class bullish extends Exchange {
 
     async loadAccount (params: Dict = {}): Promise<string> {
         let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'loadAccount', 'tradingAccountId');
+        let paramsTradingAccountId: Dict = undefined;
+        [ tradingAccountId, paramsTradingAccountId ] = this.handleOptionAndParams (params, 'loadAccount', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            const response = await this.privateGetV1AccountsTradingAccounts (params);
+            const response = await this.privateGetV1AccountsTradingAccounts (paramsTradingAccountId);
             const accounts = this.toArray (response);
             for (let i = 0; i < accounts.length; i++) {
                 const account = accounts[i];
@@ -2412,7 +2414,7 @@ export default class bullish extends Exchange {
         const length = safeResponse.length;
         let data = this.safeDict (safeResponse, 0, {});
         let network: Str = undefined;
-        [ network, params ] = this.handleNetworkCodeAndParams (params);
+        [ network ] = this.handleNetworkCodeAndParams (params);
         const networkDefinedByUser = network !== undefined;
         if ((length > 1) || (networkDefinedByUser)) {
             // some currencies have multiple networks
@@ -2668,11 +2670,11 @@ export default class bullish extends Exchange {
             const now = this.milliseconds ();
             params = this.extend (params, { 'until': now });
         }
-        params = this.handleSinceAndUntil (since, params);
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil (since, params);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
-        const response = await this.privateGetV1HistoryTransfer (this.extend (request, params));
+        const response = await this.privateGetV1HistoryTransfer (this.extend (request, paramsSinceAndUntil));
         //
         //     [
         //         {

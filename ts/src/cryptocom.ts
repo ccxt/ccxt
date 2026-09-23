@@ -1693,8 +1693,8 @@ export default class cryptocom extends Exchange {
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        params = this.omit (params, [ 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        return this.extend (request, params);
+        const paramsOmitted: Dict = this.omit (params, [ 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        return this.extend (request, paramsOmitted);
     }
 
     /**
@@ -2672,9 +2672,10 @@ export default class cryptocom extends Exchange {
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
-        params = this.omit (params, 'margin');
+        const paramsOmitted: Dict = this.omit (params, 'margin');
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams (methodName, params);
+        let paramsMarginMode: Dict = undefined;
+        [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams (methodName, paramsOmitted);
         if (marginMode !== undefined) {
             if (marginMode !== 'cross') {
                 throw new NotSupported (this.id + ' only cross margin is supported');
@@ -2684,7 +2685,7 @@ export default class cryptocom extends Exchange {
                 marginMode = 'cross';
             }
         }
-        return [ marginMode, params ];
+        return [ marginMode, paramsMarginMode ];
     }
 
     override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
@@ -3013,7 +3014,8 @@ export default class cryptocom extends Exchange {
             market = this.market (symbol);
         }
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
+        let paramsMarketType: Dict = undefined;
+        [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
         this.checkRequiredArgument ('fetchSettlementHistory', type, 'type', [ 'future', 'option', 'WARRANT', 'FUTURE' ]);
         if (type === 'option') {
             type = 'WARRANT';
@@ -3021,7 +3023,7 @@ export default class cryptocom extends Exchange {
         const request: Dict = {
             'instrument_type': type.toUpperCase (),
         };
-        const response = await this.v1PublicGetPublicGetExpiredSettlementPrice (this.extend (request, params));
+        const response = await this.v1PublicGetPublicGetExpiredSettlementPrice (this.extend (request, paramsMarketType));
         //
         //     {
         //         "id": -1,

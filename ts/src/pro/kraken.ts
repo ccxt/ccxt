@@ -262,8 +262,8 @@ export default class kraken extends krakenRest {
                 }
             }
         }
-        params = this.omit (params, [ 'clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
-        return [ request, params ];
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
+        return [ request, paramsOmitted ];
     }
 
     /**

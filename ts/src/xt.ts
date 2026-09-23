@@ -1502,12 +1502,8 @@ export default class xt extends Exchange {
             request['startTime'] = Math.ceil (since / duration) * duration;
         }
         if (limit !== undefined) {
-            if (market['spot'] === true) {
-                limit = Math.min (limit, 1000); // spot max limit
-            } else {
-                limit = Math.min (limit, 1500); // derivatives max limit
-            }
-            request['limit'] = limit;
+            const maxLimit = (market['spot'] === true) ? 1000 : 1500; // spot : derivatives max limit
+            request['limit'] = Math.min (limit, maxLimit);
         } else {
             request['limit'] = 1000;
         }
@@ -1798,9 +1794,9 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
-            market = this.market (symbols[0]);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if (symbolsNormalized !== undefined) {
+            market = this.market (symbolsNormalized[0]);
         }
         const request: Dict = {};
         let response = undefined;
@@ -1870,7 +1866,7 @@ export default class xt extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArray (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -2145,29 +2141,26 @@ export default class xt extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        let type: Str = undefined;
-        let subType: SubType = undefined;
         let response = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchMyTrades', market, paramsMarketType);
         if ((subType !== undefined) || (type === 'swap') || (type === 'future')) {
             if (limit !== undefined) {
                 request['size'] = limit;
             }
             if (subType === 'inverse') {
-                response = await this.privateInverseGetFutureTradeV1OrderTradeList (this.extend (request, params));
+                response = await this.privateInverseGetFutureTradeV1OrderTradeList (this.extend (request, paramsSubType));
             } else {
-                response = await this.privateLinearGetFutureTradeV1OrderTradeList (this.extend (request, params));
+                response = await this.privateLinearGetFutureTradeV1OrderTradeList (this.extend (request, paramsSubType));
             }
         } else {
-            let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+            const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchMyTrades', paramsSubType);
             const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
             request['bizType'] = marginOrSpotRequest;
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response = await this.privateSpotGetTrade (this.extend (request, params));
+            response = await this.privateSpotGetTrade (this.extend (request, paramsMarginMode));
         }
         //
         // spot and margin
@@ -2612,15 +2605,13 @@ export default class xt extends Exchange {
             'type': type.toUpperCase (),
         };
         let timeInForce: Str = undefined;
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('createOrder', params);
         const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
         request['bizType'] = marginOrSpotRequest;
         if (type === 'market') {
-            timeInForce = this.safeStringUpper (params, 'timeInForce', 'FOK');
+            timeInForce = this.safeStringUpper (paramsMarginMode, 'timeInForce', 'FOK');
             if (side === 'buy') {
-                const cost = this.safeString (params, 'cost');
-                params = this.omit (params, 'cost');
+                const cost = this.safeString (paramsMarginMode, 'cost');
                 const createMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice', true);
                 if (createMarketBuyOrderRequiresPrice === true) {
                     if (price === undefined && (cost === undefined)) {
@@ -2642,20 +2633,21 @@ export default class xt extends Exchange {
                 }
             }
         } else {
-            timeInForce = this.safeStringUpper (params, 'timeInForce', 'GTC');
+            timeInForce = this.safeStringUpper (paramsMarginMode, 'timeInForce', 'GTC');
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let postOnly: Bool = undefined;
-        [ postOnly, params ] = this.handlePostOnly (type === 'market', timeInForce === 'GTX', params);
+        const isMarketBuy = (type === 'market') && (side === 'buy');
+        const paramsWithoutCost: Dict = isMarketBuy ? this.omit (paramsMarginMode, 'cost') : paramsMarginMode;
+        const [ postOnly, paramsPostOnly ]: [ Bool, Dict ] = this.handlePostOnly (type === 'market', timeInForce === 'GTX', paramsWithoutCost);
         if (postOnly === true) {
             timeInForce = 'GTX';
         }
-        params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+        const paramsOmitted: Dict = this.omit (paramsPostOnly, [ 'timeInForce', 'postOnly' ]);
         if ((side === 'sell') || (type === 'limit')) {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
         request['timeInForce'] = timeInForce;
-        const response = await this.privateSpotPostOrder (this.extend (request, params));
+        const response = await this.privateSpotPostOrder (this.extend (request, paramsOmitted));
         //
         //     {
         //         "rc": 0,
@@ -2680,16 +2672,15 @@ export default class xt extends Exchange {
             'origQty': this.amountToPrecision (symbol, amount),
         };
         let timeInForce = this.safeStringUpper (params, 'timeInForce');
-        let postOnly: Bool = undefined;
-        [ postOnly, params ] = this.handlePostOnly (type === 'market', timeInForce === 'GTX', params);
+        const [ postOnly, paramsPostOnly ]: [ Bool, Dict ] = this.handlePostOnly (type === 'market', timeInForce === 'GTX', params);
         if (postOnly === true) {
             timeInForce = 'GTX';
         }
-        params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+        const paramsOmitted4: Dict = this.omit (paramsPostOnly, [ 'timeInForce', 'postOnly' ]);
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool (paramsOmitted4, 'reduceOnly', false);
         if (side === 'buy') {
             const requestType = (reduceOnly === true) ? 'SHORT' : 'LONG';
             request['positionSide'] = requestType;
@@ -2698,12 +2689,12 @@ export default class xt extends Exchange {
             request['positionSide'] = requestType;
         }
         let response: Dict = {};
-        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
-        const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');
-        const trailingPercent = this.safeString (params, 'trailingPercent');
-        const trailingAmount = this.safeString (params, 'trailingAmount');
-        const trailingTriggerPrice = this.safeNumber (params, 'trailingTriggerPrice');
+        const triggerPrice = this.safeNumber2 (paramsOmitted4, 'triggerPrice', 'stopPrice');
+        const stopLoss = this.safeNumber2 (paramsOmitted4, 'stopLoss', 'triggerStopPrice');
+        const takeProfit = this.safeNumber2 (paramsOmitted4, 'takeProfit', 'triggerProfitPrice');
+        const trailingPercent = this.safeString (paramsOmitted4, 'trailingPercent');
+        const trailingAmount = this.safeString (paramsOmitted4, 'trailingAmount');
+        const trailingTriggerPrice = this.safeNumber (paramsOmitted4, 'trailingTriggerPrice');
         const isTrigger = (triggerPrice !== undefined);
         const isStopLoss = (stopLoss !== undefined);
         const isTakeProfit = (takeProfit !== undefined);
@@ -2722,9 +2713,8 @@ export default class xt extends Exchange {
         }
         if (isTrailing) {
             request['orderSide'] = side.toUpperCase ();
-            request['triggerPriceType'] = this.safeString (params, 'triggerPriceType', 'LATEST_PRICE');
-            let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
+            request['triggerPriceType'] = this.safeString (paramsOmitted4, 'triggerPriceType', 'LATEST_PRICE');
+            const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('createOrder', paramsOmitted4, 'cross');
             request['positionType'] = (marginMode === 'isolated') ? 'ISOLATED' : 'CROSSED';
             if (trailingPercent !== undefined) {
                 request['callback'] = 'PROPORTION';
@@ -2736,24 +2726,24 @@ export default class xt extends Exchange {
             if (trailingTriggerPrice !== undefined) {
                 request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
             }
-            params = this.omit (params, [ 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ]);
+            const paramsOmitted3: Dict = this.omit (paramsMarginMode, [ 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ]);
             if (market['linear'] === true) {
-                response = await this.privateLinearPostFutureTradeV1EntrustCreateTrack (this.extend (request, params));
+                response = await this.privateLinearPostFutureTradeV1EntrustCreateTrack (this.extend (request, paramsOmitted3));
             } else if (market['inverse'] === true) {
-                response = await this.privateInversePostFutureTradeV1EntrustCreateTrack (this.extend (request, params));
+                response = await this.privateInversePostFutureTradeV1EntrustCreateTrack (this.extend (request, paramsOmitted3));
             }
         } else if (isTrigger) {
             request['timeInForce'] = (timeInForce === undefined) ? 'GTC' : timeInForce;
-            request['triggerPriceType'] = this.safeString (params, 'triggerPriceType', 'LATEST_PRICE');
+            request['triggerPriceType'] = this.safeString (paramsOmitted4, 'triggerPriceType', 'LATEST_PRICE');
             request['orderSide'] = side.toUpperCase ();
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             const entrustType = (type === 'market') ? 'STOP_MARKET' : 'STOP';
             request['entrustType'] = entrustType;
-            params = this.omit (params, 'triggerPrice');
+            const paramsOmitted2: Dict = this.omit (paramsOmitted4, 'triggerPrice');
             if (market['linear'] === true) {
-                response = await this.privateLinearPostFutureTradeV1EntrustCreatePlan (this.extend (request, params));
+                response = await this.privateLinearPostFutureTradeV1EntrustCreatePlan (this.extend (request, paramsOmitted2));
             } else if (market['inverse'] === true) {
-                response = await this.privateInversePostFutureTradeV1EntrustCreatePlan (this.extend (request, params));
+                response = await this.privateInversePostFutureTradeV1EntrustCreatePlan (this.extend (request, paramsOmitted2));
             }
         } else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
@@ -2761,19 +2751,19 @@ export default class xt extends Exchange {
             } else {
                 request['triggerProfitPrice'] = this.priceToPrecision (symbol, takeProfit);
             }
-            params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
+            const paramsOmitted: Dict = this.omit (paramsOmitted4, [ 'stopLoss', 'takeProfit' ]);
             if (market['linear'] === true) {
-                response = await this.privateLinearPostFutureTradeV1EntrustCreateProfit (this.extend (request, params));
+                response = await this.privateLinearPostFutureTradeV1EntrustCreateProfit (this.extend (request, paramsOmitted));
             } else if (market['inverse'] === true) {
-                response = await this.privateInversePostFutureTradeV1EntrustCreateProfit (this.extend (request, params));
+                response = await this.privateInversePostFutureTradeV1EntrustCreateProfit (this.extend (request, paramsOmitted));
             }
         } else {
             request['orderSide'] = side.toUpperCase ();
             request['orderType'] = type.toUpperCase ();
             if (market['linear'] === true) {
-                response = await this.privateLinearPostFutureTradeV1OrderCreate (this.extend (request, params));
+                response = await this.privateLinearPostFutureTradeV1OrderCreate (this.extend (request, paramsOmitted4));
             } else if (market['inverse'] === true) {
-                response = await this.privateInversePostFutureTradeV1OrderCreate (this.extend (request, params));
+                response = await this.privateInversePostFutureTradeV1OrderCreate (this.extend (request, paramsOmitted4));
             }
         }
         //
@@ -2813,14 +2803,12 @@ export default class xt extends Exchange {
             market = this.market (symbol);
         }
         const request: Dict = {};
-        let type: Str = undefined;
-        let subType: SubType = undefined;
         let response = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
-        const trigger = this.safeBool2 (params, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
-        const trailing = this.safeBool (params, 'trailing');
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchOrder', market, paramsMarketType);
+        const trigger = this.safeBool2 (paramsSubType, 'trigger', 'stop');
+        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit');
+        const trailing = this.safeBool (paramsSubType, 'trailing');
         if (trailing === true) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
@@ -2837,32 +2825,32 @@ export default class xt extends Exchange {
             request['orderId'] = id;
         }
         if (trigger === true) {
-            params = this.omit (params, [ 'trigger', 'stop' ]);
+            const paramsOmitted3: Dict = this.omit (paramsSubType, [ 'trigger', 'stop' ]);
             if (subType === 'inverse') {
-                response = await this.privateInverseGetFutureTradeV1EntrustPlanDetail (this.extend (request, params));
+                response = await this.privateInverseGetFutureTradeV1EntrustPlanDetail (this.extend (request, paramsOmitted3));
             } else {
-                response = await this.privateLinearGetFutureTradeV1EntrustPlanDetail (this.extend (request, params));
+                response = await this.privateLinearGetFutureTradeV1EntrustPlanDetail (this.extend (request, paramsOmitted3));
             }
         } else if (stopLossTakeProfit === true) {
-            params = this.omit (params, 'stopLossTakeProfit');
+            const paramsOmitted2: Dict = this.omit (paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
-                response = await this.privateInverseGetFutureTradeV1EntrustProfitDetail (this.extend (request, params));
+                response = await this.privateInverseGetFutureTradeV1EntrustProfitDetail (this.extend (request, paramsOmitted2));
             } else {
-                response = await this.privateLinearGetFutureTradeV1EntrustProfitDetail (this.extend (request, params));
+                response = await this.privateLinearGetFutureTradeV1EntrustProfitDetail (this.extend (request, paramsOmitted2));
             }
         } else if (trailing === true) {
-            params = this.omit (params, 'trailing');
+            const paramsOmitted: Dict = this.omit (paramsSubType, 'trailing');
             if (subType === 'inverse') {
-                response = await this.privateInverseGetFutureTradeV1EntrustTrackDetail (this.extend (request, params));
+                response = await this.privateInverseGetFutureTradeV1EntrustTrackDetail (this.extend (request, paramsOmitted));
             } else {
-                response = await this.privateLinearGetFutureTradeV1EntrustTrackDetail (this.extend (request, params));
+                response = await this.privateLinearGetFutureTradeV1EntrustTrackDetail (this.extend (request, paramsOmitted));
             }
         } else if (subType === 'inverse') {
-            response = await this.privateInverseGetFutureTradeV1OrderDetail (this.extend (request, params));
+            response = await this.privateInverseGetFutureTradeV1OrderDetail (this.extend (request, paramsSubType));
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
-            response = await this.privateLinearGetFutureTradeV1OrderDetail (this.extend (request, params));
+            response = await this.privateLinearGetFutureTradeV1OrderDetail (this.extend (request, paramsSubType));
         } else {
-            response = await this.privateSpotGetOrderOrderId (this.extend (request, params));
+            response = await this.privateSpotGetOrderOrderId (this.extend (request, paramsSubType));
         }
         //
         // spot
@@ -3017,13 +3005,11 @@ export default class xt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let type: Str = undefined;
-        let subType: SubType = undefined;
         let response = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
-        const trigger = this.safeBool2 (params, 'trigger', 'stop');
-        const trailing = this.safeBool (params, 'trailing');
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchOrders', market, paramsMarketType);
+        const trigger = this.safeBool2 (paramsSubType, 'trigger', 'stop');
+        const trailing = this.safeBool (paramsSubType, 'trailing');
         if (trailing === true) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
@@ -3031,29 +3017,28 @@ export default class xt extends Exchange {
             }
         }
         if (trigger === true) {
-            params = this.omit (params, [ 'trigger', 'stop' ]);
+            const paramsOmitted2: Dict = this.omit (paramsSubType, [ 'trigger', 'stop' ]);
             if (subType === 'inverse') {
-                response = await this.privateInverseGetFutureTradeV1EntrustPlanListHistory (this.extend (request, params));
+                response = await this.privateInverseGetFutureTradeV1EntrustPlanListHistory (this.extend (request, paramsOmitted2));
             } else {
-                response = await this.privateLinearGetFutureTradeV1EntrustPlanListHistory (this.extend (request, params));
+                response = await this.privateLinearGetFutureTradeV1EntrustPlanListHistory (this.extend (request, paramsOmitted2));
             }
         } else if (trailing === true) {
-            params = this.omit (params, 'trailing');
+            const paramsOmitted: Dict = this.omit (paramsSubType, 'trailing');
             if (subType === 'inverse') {
-                response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory (this.extend (request, params));
+                response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory (this.extend (request, paramsOmitted));
             } else {
-                response = await this.privateLinearGetFutureTradeV1EntrustTrackListHistory (this.extend (request, params));
+                response = await this.privateLinearGetFutureTradeV1EntrustTrackListHistory (this.extend (request, paramsOmitted));
             }
         } else if (subType === 'inverse') {
-            response = await this.privateInverseGetFutureTradeV1OrderListHistory (this.extend (request, params));
+            response = await this.privateInverseGetFutureTradeV1OrderListHistory (this.extend (request, paramsSubType));
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
-            response = await this.privateLinearGetFutureTradeV1OrderListHistory (this.extend (request, params));
+            response = await this.privateLinearGetFutureTradeV1OrderListHistory (this.extend (request, paramsSubType));
         } else {
-            let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
+            const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchOrders', paramsSubType);
             const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
             request['bizType'] = marginOrSpotRequest;
-            response = await this.privateSpotGetHistoryOrder (this.extend (request, params));
+            response = await this.privateSpotGetHistoryOrder (this.extend (request, paramsMarginMode));
         }
         //
         //  spot and margin
@@ -3186,14 +3171,12 @@ export default class xt extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        let type: Str = undefined;
-        let subType: SubType = undefined;
         let response = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
-        const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
-        const trailing = this.safeBool (params, 'trailing');
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, paramsMarketType);
+        const trigger = this.safeBool2 (paramsSubType, 'stop', 'trigger');
+        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit');
+        const trailing = this.safeBool (paramsSubType, 'trailing');
         if (trailing === true) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
@@ -3233,43 +3216,42 @@ export default class xt extends Exchange {
             }
         }
         if (trigger === true) {
-            params = this.omit (params, [ 'stop', 'trigger' ]);
+            const paramsOmitted3: Dict = this.omit (paramsSubType, [ 'stop', 'trigger' ]);
             if (subType === 'inverse') {
-                response = await this.privateInverseGetFutureTradeV1EntrustPlanList (this.extend (request, params));
+                response = await this.privateInverseGetFutureTradeV1EntrustPlanList (this.extend (request, paramsOmitted3));
             } else {
-                response = await this.privateLinearGetFutureTradeV1EntrustPlanList (this.extend (request, params));
+                response = await this.privateLinearGetFutureTradeV1EntrustPlanList (this.extend (request, paramsOmitted3));
             }
         } else if (stopLossTakeProfit === true) {
-            params = this.omit (params, 'stopLossTakeProfit');
+            const paramsOmitted2: Dict = this.omit (paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
-                response = await this.privateInverseGetFutureTradeV1EntrustProfitList (this.extend (request, params));
+                response = await this.privateInverseGetFutureTradeV1EntrustProfitList (this.extend (request, paramsOmitted2));
             } else {
-                response = await this.privateLinearGetFutureTradeV1EntrustProfitList (this.extend (request, params));
+                response = await this.privateLinearGetFutureTradeV1EntrustProfitList (this.extend (request, paramsOmitted2));
             }
         } else if (trailing === true) {
-            params = this.omit (params, 'trailing');
+            const paramsOmitted: Dict = this.omit (paramsSubType, 'trailing');
             if (status === 'open') {
                 if (subType === 'inverse') {
-                    response = await this.privateInverseGetFutureTradeV1EntrustTrackList (this.extend (request, params));
+                    response = await this.privateInverseGetFutureTradeV1EntrustTrackList (this.extend (request, paramsOmitted));
                 } else {
-                    response = await this.privateLinearGetFutureTradeV1EntrustTrackList (this.extend (request, params));
+                    response = await this.privateLinearGetFutureTradeV1EntrustTrackList (this.extend (request, paramsOmitted));
                 }
             } else {
                 if (subType === 'inverse') {
-                    response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory (this.extend (request, params));
+                    response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory (this.extend (request, paramsOmitted));
                 } else {
-                    response = await this.privateLinearGetFutureTradeV1EntrustTrackListHistory (this.extend (request, params));
+                    response = await this.privateLinearGetFutureTradeV1EntrustTrackListHistory (this.extend (request, paramsOmitted));
                 }
             }
         } else if ((subType !== undefined) || (type === 'swap') || (type === 'future')) {
             if (subType === 'inverse') {
-                response = await this.privateInverseGetFutureTradeV1OrderList (this.extend (request, params));
+                response = await this.privateInverseGetFutureTradeV1OrderList (this.extend (request, paramsSubType));
             } else {
-                response = await this.privateLinearGetFutureTradeV1OrderList (this.extend (request, params));
+                response = await this.privateLinearGetFutureTradeV1OrderList (this.extend (request, paramsSubType));
             }
         } else {
-            let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
+            const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', paramsSubType);
             const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
             request['bizType'] = marginOrSpotRequest;
             if (status !== 'open') {
@@ -3280,9 +3262,9 @@ export default class xt extends Exchange {
                     request = this.omit (request, 'size');
                     request['limit'] = limit;
                 }
-                response = await this.privateSpotGetHistoryOrder (this.extend (request, params));
+                response = await this.privateSpotGetHistoryOrder (this.extend (request, paramsMarginMode));
             } else {
-                response = await this.privateSpotGetOpenOrder (this.extend (request, params));
+                response = await this.privateSpotGetOpenOrder (this.extend (request, paramsMarginMode));
             }
         }
         //
@@ -3573,14 +3555,12 @@ export default class xt extends Exchange {
             market = this.market (symbol);
         }
         const request: Dict = {};
-        let type: Str = undefined;
-        let subType: SubType = undefined;
         let response = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
-        const trigger = this.safeBool2 (params, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
-        const trailing = this.safeBool (params, 'trailing');
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('cancelOrder', market, paramsMarketType);
+        const trigger = this.safeBool2 (paramsSubType, 'trigger', 'stop');
+        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit');
+        const trailing = this.safeBool (paramsSubType, 'trailing');
         if (trailing === true) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
@@ -3597,32 +3577,32 @@ export default class xt extends Exchange {
             request['orderId'] = id;
         }
         if (trigger === true) {
-            params = this.omit (params, [ 'trigger', 'stop' ]);
+            const paramsOmitted3: Dict = this.omit (paramsSubType, [ 'trigger', 'stop' ]);
             if (subType === 'inverse') {
-                response = await this.privateInversePostFutureTradeV1EntrustCancelPlan (this.extend (request, params));
+                response = await this.privateInversePostFutureTradeV1EntrustCancelPlan (this.extend (request, paramsOmitted3));
             } else {
-                response = await this.privateLinearPostFutureTradeV1EntrustCancelPlan (this.extend (request, params));
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelPlan (this.extend (request, paramsOmitted3));
             }
         } else if (stopLossTakeProfit === true) {
-            params = this.omit (params, 'stopLossTakeProfit');
+            const paramsOmitted2: Dict = this.omit (paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
-                response = await this.privateInversePostFutureTradeV1EntrustCancelProfitStop (this.extend (request, params));
+                response = await this.privateInversePostFutureTradeV1EntrustCancelProfitStop (this.extend (request, paramsOmitted2));
             } else {
-                response = await this.privateLinearPostFutureTradeV1EntrustCancelProfitStop (this.extend (request, params));
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelProfitStop (this.extend (request, paramsOmitted2));
             }
         } else if (trailing === true) {
-            params = this.omit (params, 'trailing');
+            const paramsOmitted: Dict = this.omit (paramsSubType, 'trailing');
             if (subType === 'inverse') {
-                response = await this.privateInversePostFutureTradeV1EntrustCancelTrack (this.extend (request, params));
+                response = await this.privateInversePostFutureTradeV1EntrustCancelTrack (this.extend (request, paramsOmitted));
             } else {
-                response = await this.privateLinearPostFutureTradeV1EntrustCancelTrack (this.extend (request, params));
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelTrack (this.extend (request, paramsOmitted));
             }
         } else if (subType === 'inverse') {
-            response = await this.privateInversePostFutureTradeV1OrderCancel (this.extend (request, params));
+            response = await this.privateInversePostFutureTradeV1OrderCancel (this.extend (request, paramsSubType));
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
-            response = await this.privateLinearPostFutureTradeV1OrderCancel (this.extend (request, params));
+            response = await this.privateLinearPostFutureTradeV1OrderCancel (this.extend (request, paramsSubType));
         } else {
-            response = await this.privateSpotDeleteOrderOrderId (this.extend (request, params));
+            response = await this.privateSpotDeleteOrderOrderId (this.extend (request, paramsSubType));
         }
         //
         // spot
@@ -3676,14 +3656,12 @@ export default class xt extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let type: Str = undefined;
-        let subType: SubType = undefined;
         let response = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
-        const trigger = this.safeBool2 (params, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
-        const trailing = this.safeBool (params, 'trailing');
+        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('cancelAllOrders', market, paramsMarketType);
+        const trigger = this.safeBool2 (paramsSubType, 'trigger', 'stop');
+        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit');
+        const trailing = this.safeBool (paramsSubType, 'trailing');
         if (trailing === true) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
@@ -3691,36 +3669,35 @@ export default class xt extends Exchange {
             }
         }
         if (trigger === true) {
-            params = this.omit (params, [ 'trigger', 'stop' ]);
+            const paramsOmitted3: Dict = this.omit (paramsSubType, [ 'trigger', 'stop' ]);
             if (subType === 'inverse') {
-                response = await this.privateInversePostFutureTradeV1EntrustCancelAllPlan (this.extend (request, params));
+                response = await this.privateInversePostFutureTradeV1EntrustCancelAllPlan (this.extend (request, paramsOmitted3));
             } else {
-                response = await this.privateLinearPostFutureTradeV1EntrustCancelAllPlan (this.extend (request, params));
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelAllPlan (this.extend (request, paramsOmitted3));
             }
         } else if (stopLossTakeProfit === true) {
-            params = this.omit (params, 'stopLossTakeProfit');
+            const paramsOmitted2: Dict = this.omit (paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
-                response = await this.privateInversePostFutureTradeV1EntrustCancelAllProfitStop (this.extend (request, params));
+                response = await this.privateInversePostFutureTradeV1EntrustCancelAllProfitStop (this.extend (request, paramsOmitted2));
             } else {
-                response = await this.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop (this.extend (request, params));
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop (this.extend (request, paramsOmitted2));
             }
         } else if (trailing === true) {
-            params = this.omit (params, 'trailing');
+            const paramsOmitted: Dict = this.omit (paramsSubType, 'trailing');
             if (subType === 'inverse') {
-                response = await this.privateInversePostFutureTradeV1EntrustCancelAllTrack (this.extend (request, params));
+                response = await this.privateInversePostFutureTradeV1EntrustCancelAllTrack (this.extend (request, paramsOmitted));
             } else {
-                response = await this.privateLinearPostFutureTradeV1EntrustCancelAllTrack (this.extend (request, params));
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelAllTrack (this.extend (request, paramsOmitted));
             }
         } else if (subType === 'inverse') {
-            response = await this.privateInversePostFutureTradeV1OrderCancelAll (this.extend (request, params));
+            response = await this.privateInversePostFutureTradeV1OrderCancelAll (this.extend (request, paramsSubType));
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
-            response = await this.privateLinearPostFutureTradeV1OrderCancelAll (this.extend (request, params));
+            response = await this.privateLinearPostFutureTradeV1OrderCancelAll (this.extend (request, paramsSubType));
         } else {
-            let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+            const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('cancelAllOrders', paramsSubType);
             const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
             request['bizType'] = marginOrSpotRequest;
-            response = await this.privateSpotDeleteOpenOrder (this.extend (request, params));
+            response = await this.privateSpotDeleteOpenOrder (this.extend (request, paramsMarginMode));
         }
         //
         // spot and margin
@@ -4711,12 +4688,12 @@ export default class xt extends Exchange {
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
             const marketId = this.safeString (info, 'symbol');
-            market = this.safeMarket (marketId, market, '_', 'contract');
+            const marketResolved: Market = this.safeMarket (marketId, market, '_', 'contract');
             const minNotional = this.safeNumber (brackets[i - 1], 'maxNominalValue', 0);
             tiers.push ({
                 'tier': this.safeInteger (tier, 'bracket'),
-                'symbol': this.safeSymbol (marketId, market, '_', 'contract'),
-                'currency': market['settle'],
+                'symbol': this.safeSymbol (marketId, marketResolved, '_', 'contract'),
+                'currency': marketResolved['settle'],
                 'minNotional': minNotional,
                 'maxNotional': this.safeNumber (tier, 'maxNominalValue'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintMarginRate'),
@@ -5614,20 +5591,16 @@ export default class xt extends Exchange {
         if (market['spot'] === true) {
             throw new NotSupported (this.id + ' setMarginMode() supports contract markets only');
         }
-        marginMode = marginMode.toLowerCase ();
-        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+        const marginModeLower = marginMode.toLowerCase ();
+        if (marginModeLower !== 'isolated' && marginModeLower !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
-        if (marginMode === 'cross') {
-            marginMode = 'CROSSED';
-        } else {
-            marginMode = 'ISOLATED';
-        }
+        const positionType = (marginModeLower === 'cross') ? 'CROSSED' : 'ISOLATED';
         const posSide = this.safeStringUpper (params, 'positionSide');
         this.checkRequiredArgument ('setMarginMode', posSide, 'positionSide', [ 'LONG', 'SHORT' ]);
         const paramsOmitted: Dict = this.omit (params, 'positionSide');
         const request: Dict = {
-            'positionType': marginMode,
+            'positionType': positionType,
             'positionSide': posSide,
             'symbol': market['id'],
         };
@@ -5681,7 +5654,7 @@ export default class xt extends Exchange {
         const request: Dict = {};
         const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');
-        params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
         const isStopLoss = (stopLoss !== undefined);
         const isTakeProfit = (takeProfit !== undefined);
         if (isStopLoss || isTakeProfit) {
@@ -5699,13 +5672,12 @@ export default class xt extends Exchange {
             } else {
                 request['origQty'] = this.amountToPrecision (symbol, amount);
             }
-            let subType: SubType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('editOrder', market, params);
+            const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('editOrder', market, paramsOmitted);
             if (subType === 'inverse') {
                 if (isStopLoss || isTakeProfit) {
-                    response = await this.privateInversePostFutureTradeV1EntrustUpdateProfitStop (this.extend (request, params));
+                    response = await this.privateInversePostFutureTradeV1EntrustUpdateProfitStop (this.extend (request, paramsSubType));
                 } else {
-                    response = await this.privateInversePostFutureTradeV1OrderUpdate (this.extend (request, params));
+                    response = await this.privateInversePostFutureTradeV1OrderUpdate (this.extend (request, paramsSubType));
                     //
                     //     {
                     //         "returnCode": 0,
@@ -5717,9 +5689,9 @@ export default class xt extends Exchange {
                 }
             } else {
                 if (isStopLoss || isTakeProfit) {
-                    response = await this.privateLinearPostFutureTradeV1EntrustUpdateProfitStop (this.extend (request, params));
+                    response = await this.privateLinearPostFutureTradeV1EntrustUpdateProfitStop (this.extend (request, paramsSubType));
                 } else {
-                    response = await this.privateLinearPostFutureTradeV1OrderUpdate (this.extend (request, params));
+                    response = await this.privateLinearPostFutureTradeV1OrderUpdate (this.extend (request, paramsSubType));
                     //
                     //     {
                     //         "returnCode": 0,
@@ -5732,7 +5704,7 @@ export default class xt extends Exchange {
             }
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
-            response = await this.privateSpotPutOrderOrderId (this.extend (request, params));
+            response = await this.privateSpotPutOrderOrderId (this.extend (request, paramsOmitted));
             //
             //     {
             //         "rc": 0,
@@ -5838,31 +5810,31 @@ export default class xt extends Exchange {
         const headersValue: NullableDict = {
             'Content-Type': 'application/json',
         };
+        let signedBody: Str = undefined;
         if (signed) {
             this.checkRequiredCredentials ();
             const defaultRecvWindow = this.safeString (this.options, 'recvWindow');
             const recvWindow = this.safeString (query, 'recvWindow', defaultRecvWindow);
             const timestamp = this.numberToString (this.nonce ());
-            body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
-                if (body === undefined) {
+                if (query === undefined) {
                     throw new NullResponse (this.id + ' sign() returned empty body');
                 }
                 if (payload.indexOf ('future') > -1) {
-                    body['clientMedia'] = id;
-                    if (body === undefined) {
+                    query['clientMedia'] = id;
+                    if (query === undefined) {
                         throw new NullResponse (this.id + ' sign() returned empty body');
                     }
                 } else {
-                    body['media'] = id;
+                    query['media'] = id;
                 }
             }
             let isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}') || (path === 'ws-token'));
             if ((method === 'PUT') && (endpoint === 'spot')) {
                 isUndefinedBody = false;
             }
-            body = isUndefinedBody ? undefined : this.json (body);
+            signedBody = isUndefinedBody ? undefined : this.json (query);
             let payloadString: Str = undefined;
             if ((endpoint === 'spot') || (endpoint === 'user')) {
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
@@ -5874,7 +5846,7 @@ export default class xt extends Exchange {
                         payloadString += '#' + method + '#' + payload;
                     }
                 } else {
-                    payloadString += '#' + method + '#' + payload + '#' + body;
+                    payloadString += '#' + method + '#' + payload + '#' + signedBody;
                 }
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 headersValue['xt-validate-recvwindow'] = recvWindow;
@@ -5888,7 +5860,7 @@ export default class xt extends Exchange {
                         payloadString += '#' + payload;
                     }
                 } else {
-                    payloadString += '#' + payload + '#' + body;
+                    payloadString += '#' + payload + '#' + signedBody;
                 }
             }
             const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), sha256);
@@ -5900,6 +5872,7 @@ export default class xt extends Exchange {
                 url += '?' + urlencoded;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headersValue };
+        const bodyValue = (signed) ? signedBody : body;
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
 }

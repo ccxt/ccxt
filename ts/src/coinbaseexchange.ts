@@ -1443,8 +1443,8 @@ export default class coinbaseexchange extends Exchange {
             response = await this.privateGetOrdersId (this.extend (request, params));
         } else {
             request['client_oid'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
-            response = await this.privateGetOrdersClientClientOid (this.extend (request, params));
+            const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+            response = await this.privateGetOrdersClientClientOid (this.extend (request, paramsOmitted));
         }
         return this.parseOrder (response);
     }

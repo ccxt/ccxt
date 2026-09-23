@@ -2133,12 +2133,12 @@ export default class grvt extends Exchange {
             orderRequest['builder'] = this.safeString (this.options, 'builder');
             orderRequest['builder_fee'] = this.safeString (this.options, 'builderRate');
         }
-        params = this.omit (params, [ 'builderFee' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'builderFee' ]);
         const signedOrderRequest = this.createSignedRequest (orderRequest, eipType);
         const request: Dict = {
             'order': signedOrderRequest,
         };
-        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (request, params));
+        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (request, paramsOmitted));
         //
         //    {
         //        "result": {
