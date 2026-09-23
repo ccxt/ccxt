@@ -4000,7 +4000,7 @@ final Object finalClobTokenId = clobTokenId;
                     hasArrayParam = true;
                 }
             }
-            Object querystring = ((Boolean.TRUE.equals(hasArrayParam))) ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
+            String querystring = ((Boolean.TRUE.equals(hasArrayParam))) ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
             if (!java.util.Objects.equals(querystring, ""))
             {
                 url = (url + ("?" + querystring));

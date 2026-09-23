@@ -7668,9 +7668,9 @@ public class Binance extends BinanceApi
         String marketType = ((Boolean.TRUE.equals(isSpotTrade))) ? "spot" : "contract";
         market = (Map<String, Object>) (this.safeMarket(marketId, market, null, marketType));
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
-        Object side = null;
+        String side = null;
         Boolean buyerMaker = (Boolean) this.safeBool2(trade, "m", "isBuyerMaker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (!java.util.Objects.equals(buyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
@@ -7723,8 +7723,8 @@ public class Binance extends BinanceApi
                 }
             }
         }
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final String finalAmount = amount;
         final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -17603,7 +17603,7 @@ final Map<String, Object> finalMarket = market;
                     ((Map<String, Object>)parameters).put("newClientOrderId", (brokerId + this.uuid22()));
                 }
             }
-            Object query = null;
+            String query = null;
             // handle batchOrders
             if ((java.util.Objects.equals(path, "batchOrders")) && ((java.util.Objects.equals(method, "POST")) || (java.util.Objects.equals(method, "PUT"))))
             {
@@ -17697,7 +17697,7 @@ final Map<String, Object> finalMarket = market;
             {
                 signature = this.hmac(this.encode(query), this.encode(this.secret), sha256());
             }
-            query = Helpers.add(query, (("&" + "signature=") + signature));
+            query = (query + (("&" + "signature=") + signature));
             headers = new HashMap<String, Object>() {{
                 put( "X-MBX-APIKEY", Binance.this.apiKey );
             }};
@@ -17706,7 +17706,7 @@ final Map<String, Object> finalMarket = market;
                 url = (url + ("?" + query));
             } else
             {
-                body = (String) (query);
+                body = query;
                 ((Map<String, Object>)headers).put("Content-Type", "application/x-www-form-urlencoded");
             }
         } else

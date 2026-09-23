@@ -9958,7 +9958,7 @@ final Object finalI = i;
         {
             this.checkRequiredCredentials();
             Object queryString = "";
-            Object rawQueryString = "";
+            String rawQueryString = "";
             Boolean requiresURLEncoding = false;
             if (((java.util.Objects.equals(type, "futures")) || (java.util.Objects.equals(type, "delivery"))) && java.util.Objects.equals(method, "POST"))
             {

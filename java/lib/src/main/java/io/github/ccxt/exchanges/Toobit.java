@@ -4276,7 +4276,7 @@ public class Toobit extends ToobitApi
             ((Map<String, Object>)extraQuery).put("recvWindow", this.safeString(this.options, "recvWindow", "5000"));
             ((Map<String, Object>)extraQuery).put("timestamp", String.valueOf(timestamp));
             Map<String, Object> queryExtended = this.extend(query, extraQuery);
-            Object queryString = "";
+            String queryString = "";
             if (Boolean.TRUE.equals(isPost) || Boolean.TRUE.equals(isDelete))
             {
                 // everything else except Batch-Orders
@@ -4300,7 +4300,7 @@ public class Toobit extends ToobitApi
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
             if (!java.util.Objects.equals(queryString, ""))
             {
-                queryString = Helpers.add(queryString, ("&signature=" + signature));
+                queryString = (queryString + ("&signature=" + signature));
                 url = (url + ("?" + queryString));
             } else
             {

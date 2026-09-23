@@ -8654,7 +8654,7 @@ final Object finalMinNotional = minNotional;
                 }
                 String marginModeRequest = (((java.util.Objects.equals(marginMode, "cross")))) ? "crossed" : "isolated";
                 ((Map<String, Object>)request).put("marginMode", marginModeRequest);
-                Object requestSide = side;
+                String requestSide = side;
                 if (java.util.Objects.equals(reduceOnly, true))
                 {
                     if (!java.util.Objects.equals(hedged, true))
@@ -14699,12 +14699,12 @@ final Object finalMinNotional = minNotional;
         //
         String currencyId = this.safeString(info, "coin");
         String marketId = this.safeString(info, "symbol");
-        Object symbol = null;
+        String symbol = null;
         if (!java.util.Objects.equals(marketId, null))
         {
             symbol = this.safeSymbol(marketId, market, null, "spot");
         }
-        final Object finalSymbol = symbol;
+        final String finalSymbol = symbol;
         return new HashMap<String, Object>() {{
             put( "id", Bitget.this.safeString2(info, "loanId", "repayId") );
             put( "currency", Bitget.this.safeCurrencyCode(currencyId, currency) );

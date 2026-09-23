@@ -2762,7 +2762,7 @@ public class Htx extends HtxApi
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 Object baseId = null;
-                Object quoteId = null;
+                String quoteId = null;
                 Object settleId = null;
                 Object id = null;
                 Object lowercaseId = null;
@@ -2831,11 +2831,11 @@ public class Htx extends HtxApi
                     {
                         throw new ExchangeError((this.id + " method() missing baseId")) ;
                     }
-                    id = Helpers.add(baseId, quoteId);
+                    id = (baseId + quoteId);
                     lowercaseId = ((String)id).toLowerCase();
                 }
                 String base = this.safeCurrencyCode((String) (baseId));
-                String quote = this.safeCurrencyCode((String) (quoteId));
+                String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode((String) (settleId));
                 String symbol = ((base + "/") + quote);
                 Long expiry = null;
@@ -2918,7 +2918,7 @@ public class Htx extends HtxApi
                 final String finalSymbol = symbol;
                 final String finalBase = base;
                 final Object finalBaseId = baseId;
-                final Object finalQuoteId = quoteId;
+                final String finalQuoteId = quoteId;
                 final Object finalSettleId = settleId;
                 final String finalType = type;
                 final Boolean finalSpot = spot;

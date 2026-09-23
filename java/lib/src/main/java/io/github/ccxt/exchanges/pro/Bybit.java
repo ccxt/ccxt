@@ -3179,7 +3179,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String topic = this.safeString(message, "topic");
         Object info = null;
         Object rawBalances = new ArrayList<Object>(Arrays.asList());
-        Object account = null;
+        String account = null;
         if (java.util.Objects.equals(topic, "outboundAccountInfo"))
         {
             account = "spot";

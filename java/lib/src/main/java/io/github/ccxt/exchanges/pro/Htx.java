@@ -1876,7 +1876,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String avgPrice = this.safeString(order, "trade_avg_price");
         Object rawTrades = this.safeValue(order, "trade");
         Object typeSideParts = new ArrayList<Object>(Arrays.asList());
-        Object type = null;
+        String type = null;
         if (!java.util.Objects.equals(typeSide, null))
         {
             if (((String)typeSide).indexOf("-") >= 0)
@@ -1898,7 +1898,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             side = this.safeString2(order, "direction", "side");
         }
         String cost = this.safeString2(order, "orderValue", "trade_turnover");
-        final Object finalType = type;
+        final String finalType = type;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -3417,7 +3417,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("tradeTime", "updated_time", "created_time")));
         String orderType = this.safeString2(trade, "orderType", "type");
         Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {
             takerOrMaker = (((java.util.Objects.equals(aggressor, true)))) ? "taker" : "maker";
@@ -3443,7 +3443,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }};
         }
         final String finalType = type;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
         return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );

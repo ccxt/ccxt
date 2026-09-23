@@ -1057,7 +1057,7 @@ public class Bydfi extends BydfiApi
             }};
         }
         String orderId = this.safeString(trade, "orderId");
-        Object side = null; // fetchMyTrades always returns side BUY
+        String side = null; // fetchMyTrades always returns side BUY
         if (java.util.Objects.equals(orderId, null))
         {
             // from fetchTrades
@@ -1065,7 +1065,7 @@ public class Bydfi extends BydfiApi
         }
         final Map<String, Object> finalMarket_2 = market;
         final String finalOrderId = orderId;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );

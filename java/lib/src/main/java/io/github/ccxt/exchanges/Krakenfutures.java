@@ -5083,11 +5083,11 @@ final Object finalI = i;
         String endpoint = Helpers.add((version + "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         String query = endpoint;
-        Object postData = "";
+        String postData = "";
         if (java.util.Objects.equals(path, "batchorder"))
         {
             postData = ("json=" + this.json(parameters));
-            body = (String) (postData);
+            body = postData;
         } else if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
         {
             if (((Map<?, ?>)parameters).containsKey("orderIds"))
