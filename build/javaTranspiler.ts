@@ -334,6 +334,100 @@ function retypeWrittenValueMatches (rhs: string, token: string): boolean {
     return false;
 }
 
+// async-param copy `x = x3` writes the typed snapshot token admits: returns the printed write
+// (a checkcast or `L` suffix where javac needs one) or undefined when the value may be another box.
+// Map sources: omit of a Map, extend/deepExtend/keysort, safeDict and handle*-tuple element reads.
+const RETYPE_COPY_MAP_TOKEN = /^(?:java\.util\.)?Map<String, Object>$/;
+const RETYPE_COPY_EXTRA_CALLEES = /^(?:Helpers\.(?:mathMin|mathMax|subtract|isLessThanOrEqual|isGreaterThanOrEqual|callDynamically|addElementToObject)|String\.valueOf)$/;
+
+function retypeTopLevelArgCount (args: string): number {
+    let depth = 0;
+    let count = 1;
+    let quoted = false;
+    for (let k = 0; k < args.length; k++) {
+        const c = args[k];
+        if (c === '\\' && quoted) { k++; continue; }
+        if (c === '"') quoted = !quoted;
+        if (quoted) continue;
+        if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') depth--;
+        else if (c === ',' && depth === 0) count++;
+    }
+    return count;
+}
+
+function retypeCopyWrite (rhs: string, token: string, name: string): string | undefined {
+    const tail = rhs.match (/;\s*(\/\/.*)?$/);
+    const comment = tail !== null && tail[1] !== undefined ? ' ' + tail[1] : '';
+    const value = rhs.replace (/;\s*(\/\/.*)?$/, '').trim ();
+    const write = (v: string) => `${v};${comment}`;
+    if (value === 'null' || retypeWrittenValueMatches (value, token)) return rhs;
+    const tupleRead = /^\(\(List<Object>\) [A-Za-z_$][\w$]*Variable\)\.get\(\d\)$/.test (value);
+    if (RETYPE_COPY_MAP_TOKEN.test (token)) {
+        const extend = value.match (/^this\.extend\((.*)\)$/);
+        if (extend !== null) {
+            const fixed = retypeTopLevelArgCount (extend[1]) === 2 && extend[1].indexOf ('...') === -1;
+            return fixed ? rhs : write (`(${token}) ${value}`);
+        }
+        if (/^this\.(?:deepExtend|keysort)\(/.test (value)) return rhs;
+        const castable = tupleRead
+            || new RegExp (`^this\\.omit\\(${name},`).test (value)
+            || /^this\.safeDict\(/.test (value);
+        return castable ? write (`(${token}) ${value}`) : undefined;
+    }
+    if (token === 'Long') {
+        if (/^-?\d+$/.test (value)) return write (`${value}L`);
+        if (/^this\.(?:safeInteger|parseToInt|milliseconds)\(/.test (value)) return rhs;
+        return undefined;
+    }
+    if (token === 'String') {
+        if (/^\(\(Map<String, Object>\)[A-Za-z_$][\w$]*\)\.get\("[^"]*"\)$/.test (value)) return write (`(String) ${value}`);
+        if (tupleRead && value.endsWith ('.get(0)')) return write (`(String) ${value}`);
+        if (new RegExp (`^\\(\\(String\\)${name}\\)\\.to(?:Upper|Lower)Case\\(\\)$`).test (value)) return rhs;
+    }
+    return undefined;
+}
+
+// a use of the copy may sit on a continuation line of a multi-line call: resolve its callee
+// over the preceding code, and admit the Object-parameter Helpers the base declares
+function retypeCopyUseIsAudited (lines: string[], j: number, from: number, name: string, token: string): boolean {
+    if (retypeUseIsAudited (lines[j], name, token)) return true;
+    const code = retypeCodeOnly (lines[j]);
+    let prefix = '';
+    for (let k = Math.max (from, j - 12); k < j; k++) prefix += retypeCodeOnly (lines[k]);
+    const re = new RegExp (`\\b${name}\\b`, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec (code)) !== null) {
+        const pre = prefix + code.slice (0, m.index);
+        let depth = 0;
+        let callee: string | undefined = undefined;
+        for (let k = pre.length - 1; k >= 0; k--) {
+            const c = pre[k];
+            if (c === ')') depth++;
+            else if (c === '(') {
+                if (depth === 0) {
+                    const head = pre.slice (0, k).trim ().match (/([\w$.]+)\s*$/);
+                    callee = head !== null ? head[1] : undefined;
+                    break;
+                }
+                depth--;
+            }
+        }
+        if (callee !== undefined && (RETYPE_AUDITED_CALLEES.test (callee) || RETYPE_COPY_EXTRA_CALLEES.test (callee))) continue;
+        const local = code.slice (0, m.index);
+        if ((/\+\s*$/.test (local) || /^\s*\+/.test (code.slice (m.index + name.length))) && /"/.test (lines[j])) continue;
+        const cast = local.match (/\(([\w$.<>,? ]+)\)\s*\(?\s*$/);
+        if (cast !== null) {
+            const c = cast[1].replace (/\s+/g, '').replace (/^java\.util\./, '');
+            const own = token.replace (/\s+/g, '').replace (/^java\.util\./, '');
+            if (c === own || c === 'Object' || c === 'java.lang.Object') continue;
+            if (RETYPE_COPY_MAP_TOKEN.test (token) && c === 'Map<?,?>') continue;
+        }
+        return false;
+    }
+    return true;
+}
+
 // a later declaration of the same name is a DIFFERENT variable (Java forbids
 // redeclaring a name in one scope), so its LHS is not a use of the hoisted name.
 function retypeDeclaresName (code: string, name: string): boolean {
@@ -4289,21 +4383,34 @@ class NewTranspiler {
             // 2. every later mention of the hoisted name inside the member must be an audited
             //    fixed-parameter Object position
             let audited = true;
+            // the async-param copy `x = x3` joins its writes against the snapshot type
+            const isParamCopy = isCopy && sourceName === `${hoistedName}3`;
+            const rewrites: [number, string][] = [];
             for (let j = i + 1; j <= end; j++) {
                 if (isCopy) {
                     // the copy is not final, so every later write is audited too
-                    const write = lines[j].match (new RegExp (`^\\s*${hoistedName}\\s*=\\s*(?!=)(.+)$`));
+                    const write = lines[j].match (new RegExp (`^(\\s*${hoistedName}\\s*=\\s*)(?!=)(.+)$`));
                     if (write !== null) {
-                        if (!retypeWrittenValueMatches (write[1], reference)) { audited = false; break; }
+                        if (isParamCopy) {
+                            const printed = retypeCopyWrite (write[2], reference, hoistedName);
+                            if (printed === undefined) { audited = false; break; }
+                            if (printed !== write[2]) rewrites.push ([j, write[1] + printed]);
+                            continue;
+                        }
+                        if (!retypeWrittenValueMatches (write[2], reference)) { audited = false; break; }
                         continue;
                     }
                 }
-                if (!retypeUseIsAudited (lines[j], hoistedName, reference)) { audited = false; break; }
+                const useOk = isParamCopy
+                    ? retypeCopyUseIsAudited (lines, j, i, hoistedName, reference)
+                    : retypeUseIsAudited (lines[j], hoistedName, reference);
+                if (!useOk) { audited = false; break; }
             }
             if (!audited) {
                 if (debug) console.log (`final-hoist decline ${hoistedName} (use not audited)`);
                 continue;
             }
+            for (const [j, text] of rewrites) lines[j] = text;
 
             lines[i] = isCopy
                 ? `${indent}${reference} ${hoistedName} = ${sourceName};`

@@ -1129,16 +1129,43 @@ function thisPropName (node) {
 function wsMapReadType (node) {
     node = unwrapParens (node);
     if (node !== undefined && ts.isElementAccessExpression (node)) {
+        if (isOhlcvsSymbolRead (node.expression)) {
+            return ARRAYCACHE_TYPE;
+        }
         return WS_MAP_READ_TYPES[thisPropName (node.expression)];
     }
     if (isThisCall (node)) {
         const name = node.expression.name.escapedText;
+        if (name === 'safeValue' && node.arguments.length === 2 && isOhlcvsSymbolRead (node.arguments[0])) {
+            return ARRAYCACHE_TYPE;
+        }
         if (name === 'safeValue' || name === 'safeValue2' || name === 'safeValueN') {
             return WS_MAP_READ_TYPES[thisPropName (node.arguments[0])];
         }
     }
     return undefined;
 }
+
+// `this.ohlcvs[symbol]` / `this.safeValue|safeDict (this.ohlcvs, symbol)`: the per-symbol
+// timeframe map, whose values are ArrayCacheByTimestamp (base `ohlcvs` field declaration)
+function isOhlcvsSymbolRead (node) {
+    node = unwrapParens (node);
+    if (node === undefined) {
+        return false;
+    }
+    if (ts.isElementAccessExpression (node)) {
+        return thisPropName (unwrapParens (node.expression)) === 'ohlcvs';
+    }
+    if (isThisCall (node) && node.arguments.length === 2) {
+        const name = node.expression.name.escapedText;
+        return (name === 'safeValue' || name === 'safeDict') && thisPropName (unwrapParens (node.arguments[0])) === 'ohlcvs';
+    }
+    return false;
+}
+
+const ARRAYCACHE_CONSTRUCTORS = new Set ([
+    'ArrayCache', 'ArrayCacheByTimestamp', 'ArrayCacheBySymbolById', 'ArrayCacheBySymbolBySide',
+]);
 
 const WS_TYPES = new Set ([
     ARRAYCACHE_TYPE, ORDERBOOK_TYPE,
@@ -2196,6 +2223,177 @@ function structureKeyReadLocalType (printer, initializer) {
         '((Map<?, ?>)', '((java.util.Map<?, ?>)', 'Helpers.GetValue(' ] };
 }
 
+// ===== string element reads =====
+//
+// `x['symbol']` where the checker resolves the key to a ts/src/base interface field declared
+// string/Str (Market, Trade, Ticker, ..): the unified producers write those keys from
+// safeSymbol / safeCurrencyCode / literals only. Raw ids (id, baseId, ..) stay Object.
+const STRING_ELEMENT_READ_KEYS = new Set ([ 'symbol', 'code', 'base', 'quote', 'settle' ]);
+const ELEMENT_READ_PREFIXES = [ '((Map<String, Object>)', '((java.util.Map<String, Object>)',
+    'Helpers.GetValue(', 'this.safeValue(' ];
+
+function typeNodeIsString (checker, typeNode) {
+    const type = checker.getTypeFromTypeNode (typeNode);
+    const parts = type.isUnion () ? type.types : [ type ];
+    const allowed = ts.TypeFlags.StringLike | ts.TypeFlags.Undefined | ts.TypeFlags.Null;
+    return parts.some ((t) => (t.flags & ts.TypeFlags.StringLike) !== 0)
+        && parts.every ((t) => (t.flags & allowed) !== 0);
+}
+
+function structureStringFieldRead (printer, node) {
+    const key = node.argumentExpression;
+    if (key === undefined || !ts.isStringLiteral (key) || !STRING_ELEMENT_READ_KEYS.has (key.text)) {
+        return false;
+    }
+    try {
+        const checker = printer.getChecker ();
+        const property = checker.getTypeAtLocation (node.expression).getProperty (key.text);
+        const declaration = property?.valueDeclaration ?? property?.declarations?.[0];
+        return declaration !== undefined && ts.isPropertySignature (declaration) && declaration.type !== undefined
+            && BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName)
+            && typeNodeIsString (checker, declaration.type);
+    } catch (e) {
+        return false;
+    }
+}
+
+// `this.urls[k1][k2]..` or `this.safeValue (this.urls[..], k)`: the key path, a non-literal
+// key as null (every sibling), or undefined for any other shape
+function urlsReadPath (node) {
+    const keys = [];
+    let current = unwrapParens (node);
+    if (isThisCall (current) && current.expression.name.escapedText === 'safeValue' && current.arguments.length === 2) {
+        keys.unshift (current.arguments[1]);
+        current = unwrapParens (current.arguments[0]);
+    }
+    while (current !== undefined && ts.isElementAccessExpression (current)) {
+        keys.unshift (current.argumentExpression);
+        current = unwrapParens (current.expression);
+    }
+    if (keys.length === 0 || thisPropName (current) !== 'urls') {
+        return undefined;
+    }
+    return keys.map ((k) => (k !== undefined && ts.isStringLiteral (k)) ? k.text : null);
+}
+
+function objectKeyText (name) {
+    return (ts.isIdentifier (name) || ts.isStringLiteral (name)) ? String (name.text) : undefined;
+}
+
+// the `'urls': {..}` literal of a class's own describe(), or undefined
+const describeUrlsLiterals = new WeakMap ();
+function describeUrlsLiteral (classDeclaration) {
+    if (describeUrlsLiterals.has (classDeclaration)) {
+        return describeUrlsLiterals.get (classDeclaration);
+    }
+    let found;
+    const describe = classDeclaration.members.find ((m) => ts.isMethodDeclaration (m) && m.body !== undefined
+        && m.name !== undefined && objectKeyText (m.name) === 'describe');
+    const visit = (n) => {
+        if (found === undefined && ts.isPropertyAssignment (n) && objectKeyText (n.name) === 'urls'
+            && ts.isObjectLiteralExpression (n.initializer)) {
+            found = n.initializer;
+        }
+        ts.forEachChild (n, visit);
+    };
+    if (describe !== undefined) {
+        visit (describe.body);
+    }
+    describeUrlsLiterals.set (classDeclaration, found);
+    return found;
+}
+
+function baseClassDeclaration (checker, classDeclaration) {
+    const clause = (classDeclaration.heritageClauses ?? []).find ((h) => h.token === ts.SyntaxKind.ExtendsKeyword);
+    const expression = clause?.types?.[0]?.expression;
+    if (expression === undefined) {
+        return undefined;
+    }
+    let symbol = checker.getSymbolAtLocation (expression);
+    if (symbol !== undefined && (symbol.flags & ts.SymbolFlags.Alias) !== 0) {
+        symbol = checker.getAliasedSymbol (symbol);
+    }
+    const declaration = symbol?.valueDeclaration ?? symbol?.declarations?.[0];
+    return (declaration !== undefined && ts.isClassDeclaration (declaration)) ? declaration : undefined;
+}
+
+// the values a describe() urls literal holds at `keys`; 'other' marks a non-object step
+function urlsLeaves (node, keys) {
+    if (node === undefined || (ts.isIdentifier (node) && node.escapedText === 'undefined')) {
+        return [];
+    }
+    if (keys.length === 0) {
+        return [ node ];
+    }
+    if (!ts.isObjectLiteralExpression (node)) {
+        return [ 'other' ];
+    }
+    const [ key, ...rest ] = keys;
+    const out = [];
+    for (const property of node.properties) {
+        if (!ts.isPropertyAssignment (property)) {
+            return [ 'other' ];
+        }
+        if (key === null || objectKeyText (property.name) === key) {
+            out.push (...urlsLeaves (property.initializer, rest));
+        }
+    }
+    return out;
+}
+
+function isStringLeaf (node) {
+    return node !== 'other' && (ts.isStringLiteral (node) || ts.isNoSubstitutionTemplateLiteral (node)
+        || ts.isTemplateExpression (node));
+}
+
+// every describe() layer of the class chain gives string leaves at the path; an `api` path
+// also checks the test/demo roots setSandboxMode / enableDemoTrading swap into `api`
+function urlsReadIsString (printer, node) {
+    const keys = urlsReadPath (node);
+    if (keys === undefined) {
+        return false;
+    }
+    const paths = [ keys ];
+    if (keys[0] === 'api') {
+        for (const root of [ 'test', 'demo', 'demotrading' ]) {
+            paths.push ([ root, ...keys.slice (1) ]);
+        }
+    }
+    let classDeclaration = node.parent;
+    while (classDeclaration !== undefined && !ts.isClassDeclaration (classDeclaration)) {
+        classDeclaration = classDeclaration.parent;
+    }
+    let seen = false;
+    try {
+        const checker = printer.getChecker ();
+        for (let depth = 0; classDeclaration !== undefined && depth < 8; depth++) {
+            const urls = describeUrlsLiteral (classDeclaration);
+            if (urls !== undefined) {
+                for (let i = 0; i < paths.length; i++) {
+                    const leaves = urlsLeaves (urls, paths[i]);
+                    if (!leaves.every (isStringLeaf)) {
+                        return false;
+                    }
+                    seen = seen || (i === 0 && leaves.length > 0);
+                }
+            }
+            classDeclaration = baseClassDeclaration (checker, classDeclaration);
+        }
+    } catch (e) {
+        return false;
+    }
+    return seen;
+}
+
+function stringElementReadLocalType (printer, initializer) {
+    const proven = (ts.isElementAccessExpression (initializer) && structureStringFieldRead (printer, initializer))
+        || urlsReadIsString (printer, initializer);
+    if (!proven) {
+        return undefined;
+    }
+    return { type: 'String', cast: '(String)', valuePrefixes: ELEMENT_READ_PREFIXES, strictPlus: true };
+}
+
 function localInitializerType (printer, declaration, isProFile, narrowed) {
     const initializer = unwrapParens (declaration.initializer);
     if (initializer === undefined) {
@@ -2216,6 +2414,12 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     const structureKeyRead = structureKeyReadLocalType (printer, initializer);
     if (structureKeyRead !== undefined) {
         return structureKeyRead;
+    }
+    // element reads whose value is a String on every path: a base structure field declared
+    // string, or a describe() urls leaf
+    const stringElementRead = stringElementReadLocalType (printer, initializer);
+    if (stringElementRead !== undefined) {
+        return stringElementRead;
     }
     // awaited generated api calls: `(this.<endpoint>(...)).join()` has the T of the
     // endpoint's on-disk `CompletableFuture<T>` — cast-free
@@ -2389,6 +2593,10 @@ function isProvablyOfType (printer, node, javaType, selfName) {
         case ts.SyntaxKind.ElementAccessExpression:
             // `x = this.trades[key]` / `this.orderbooks[key]` — a ws map read
             return isWsType (javaType) && wsMapReadType (node) === javaType;
+        case ts.SyntaxKind.NewExpression:
+            // every ArrayCache* constructor prints a subclass of io.github.ccxt.ws.ArrayCache
+            return javaType === ARRAYCACHE_TYPE && ts.isIdentifier (node.expression)
+                && ARRAYCACHE_CONSTRUCTORS.has (String (node.expression.escapedText));
         case ts.SyntaxKind.CallExpression: {
             const callee = node.expression;
             if (ts.isIdentifier (callee)) {
@@ -3850,6 +4058,23 @@ function handleTupleElementParameterType (printer, index, element) {
     return type === HANDLE_ELEMENT_1_TYPE ? type : undefined;
 }
 
+// element 0 of `[x, y] = this.handleUntilOption (k, x, ...)` is x's own box: the write takes
+// the Map type x's declaration was printed with
+function handleUntilOptionEchoType (printer, assignment, index, element) {
+    if (index !== 0 || !ts.isIdentifier (element) || !untilOptionEchoesElement0 (printer, assignment, element)) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (element)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    const printed = (declaration === undefined || typeof printer.javaDeclaredLocalTypeResolver !== 'function')
+        ? undefined : printer.javaDeclaredLocalTypeResolver (declaration);
+    return (printed === JAVA_STRUCTURE_TYPE || printed === 'Map<String, Object>') ? JAVA_STRUCTURE_TYPE : undefined;
+}
+
 // `[a, b] = this.handleX (...)` printed by printCustomBinaryExpressionIfAny: type the
 // holder and cast the element writes whose target declaration this section retyped
 function handleRetypeDestructuringAssignment (printer, tupleTypes, node, printed) {
@@ -3874,7 +4099,8 @@ function handleRetypeDestructuringAssignment (printer, tupleTypes, node, printed
         // the target's own declaration was retyped by this section, or the target is a
         // parameter the printer declares `java.util.Map<String, Object>` (the typed core)
         const declared = handleTupleTargetType (printer, tupleTypes, element)
-            ?? handleTupleElementParameterType (printer, i, element);
+            ?? handleTupleElementParameterType (printer, i, element)
+            ?? handleUntilOptionEchoType (printer, node, i, element);
         if (declared === undefined) {
             continue;
         }
@@ -5149,6 +5375,8 @@ export function installJavaLocalTypes (transpiler) {
     // (7) hx2 java-02: safeList* locals -> java.util.List<Object> (additive section at the
     // bottom of this file; the wrapper only moves declarations still printing `Object x = `)
     patchJavaSafeListLocalTypes (transpiler);
+    // (8) null-initialised locals whose every write awaits one typed api endpoint
+    patchJavaAwaitedAccumulatorTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -6554,6 +6782,68 @@ function literalIsNumberIsIntegerArgument (n) {
         && callee.name.escapedText === 'isInteger';
 }
 
+// `x = this.<collection helper>(...)` whose Java declaration already returns the local's
+// Map/List type (no checkcast): the same box the literal family names
+function literalCollectionWriteIsTyped (printer, node, javaType) {
+    const info = collectionCallInfo (printer, unwrapParens (node));
+    return info !== undefined && info.cast !== true && info.type === javaType;
+}
+
+// the `this.<async>()` call `n` feeds (through the propagating forms) is declared in the
+// local's own file and overrides nothing, so no typed wrapper overload can take the argument
+function literalFeedsVenueOwnAsyncCall (printer, n, scope) {
+    let child = n;
+    let current = n.parent;
+    while (current !== undefined && current !== scope && !ts.isCallExpression (current)) {
+        child = current;
+        current = current.parent;
+    }
+    if (current === undefined || current === scope || current.arguments.indexOf (child) === -1) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (current)?.declaration;
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || !ts.isMethodDeclaration (declaration)
+        || declaration.getSourceFile () !== n.getSourceFile ()) {
+        return false;
+    }
+    try {
+        return printer.getMethodOverride (declaration) === undefined;
+    } catch (e) {
+        return false;
+    }
+}
+
+// `[x, y] = this.handleUntilOption (k, x, ...)`: the base returns its own `request` argument
+// as element 0, so the write hands the local back its own box
+function untilOptionEchoesElement0 (printer, assignment, n) {
+    const call = unwrapParens (assignment.right);
+    const target = assignment.left.elements?.[0];
+    if (!isThisCall (call) || String (call.expression.name.escapedText) !== 'handleUntilOption'
+        || target === undefined || unwrapParens (target) !== n) {
+        return false;
+    }
+    const echoed = unwrapParens (call.arguments[1]);
+    if (echoed === undefined || !ts.isIdentifier (echoed)) {
+        return false;
+    }
+    try {
+        const checker = printer.getChecker ();
+        const declaration = checker.getResolvedSignature (call)?.declaration;
+        if (declaration === undefined || !HANDLE_DECLARATION_FILE.test (declaration.getSourceFile ().fileName)) {
+            return false;
+        }
+        const own = checker.getSymbolAtLocation (n);
+        return own !== undefined && checker.getSymbolAtLocation (echoed) === own;
+    } catch (e) {
+        return false;
+    }
+}
+
 // reject the refinement when a later use needs the local to stay `Object` (see the
 // header for the per-parent rule set)
 function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, isProFile) {
@@ -6581,7 +6871,8 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
             continue;
         }
         // a use that would move a `this.<async>()` argument onto a typed wrapper overload
-        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
+        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)
+            && !((isMap || isList) && literalFeedsVenueOwnAsyncCall (printer, n, scope))) {
             return false;
         }
         switch (parent.kind) {
@@ -6643,7 +6934,7 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                 if (parent.parent !== undefined && ts.isBinaryExpression (parent.parent)
                     && parent.parent.left === parent
                     && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
-                    && !isList) {
+                    && !isList && !(isMap && untilOptionEchoesElement0 (printer, parent.parent, n))) {
                     return false;
                 }
                 break;
@@ -6703,7 +6994,8 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                 const op = parent.operatorToken.kind;
                 if (parent.left === n) {
                     if (op === ts.SyntaxKind.EqualsToken) {
-                        if (!literalAssignable (javaType, literalTypeOfValue (printer, parent.right))) {
+                        if (!literalAssignable (javaType, literalTypeOfValue (printer, parent.right))
+                            && !((isMap || isList) && literalCollectionWriteIsTyped (printer, parent.right, javaType))) {
                             return false;
                         }
                     } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
@@ -9266,3 +9558,114 @@ const JAVA_DECLARED_DEBUG = typeof process !== 'undefined' && process.env !== un
 // a Java type token: a possibly qualified name, optional generic arguments, optional
 // array/varargs suffixes (`Map<String, Object>`, `java.util.List<Object>`, `Long`, `var`)
 const JAVA_EMITTED_TYPE_TEXT = /^[A-Za-z_$][\w$.]*(?:\s*<[^\n;=]*>)?(?:\s*\[\s*\])*$/;
+
+// ===== 11. awaited null accumulators: `Object x = null;` whose every non-null write is
+// `x = await this.<endpoint>(...)` with one Map/List CompletableFuture<T> in the generated api file.
+// Returns, ternary arms and nested-function reads keep Object (they move javac's inferred types).
+const AWAITED_ACCUMULATOR_TYPES = new Set ([ JAVA_STRUCTURE_TYPE, JAVA_ARRAY_TYPE ]);
+
+function isNullishInitializer (initializer) {
+    const value = unwrapParens (initializer);
+    return value === undefined || value.kind === ts.SyntaxKind.NullKeyword
+        || (ts.isIdentifier (value) && value.escapedText === 'undefined');
+}
+
+function awaitedAccumulatorWriteType (node) {
+    const value = unwrapParens (node);
+    if (value === undefined || value.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    return awaitedThisCallType (value);
+}
+
+function awaitedAccumulatorTypeOf (printer, declaration) {
+    if (!isNullishInitializer (declaration.initializer)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const index = dataflowIndex (printer, scope);
+    const name = dataflowCanonicalName (printer, declaration.name);
+    const declarations = index.declarations.get (name);
+    if (declarations === undefined || declarations.length !== 1 || declarations[0] !== declaration
+        || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || (index.bindingCounts.get (String (declaration.name.escapedText)) ?? 0) !== 1) {
+        return undefined;
+    }
+    let type;
+    for (const n of (index.identifiers.get (name) ?? [])) {
+        if (n === declaration.name || dataflowNotAUse (n)) {
+            continue;
+        }
+        if (enclosingFunction (n) !== scope) {
+            return undefined; // captured by a nested function
+        }
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        if (isClassThrowArgument (n)) {
+            return undefined; // `throw new X((String)x)`
+        }
+        if (parent !== undefined && ts.isReturnStatement (parent)) {
+            return undefined;
+        }
+        if (parent !== undefined && ts.isConditionalExpression (parent) && parent.condition !== host) {
+            return undefined;
+        }
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host
+            && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            if (isNullishInitializer (parent.right)) {
+                continue;
+            }
+            const written = awaitedAccumulatorWriteType (parent.right);
+            if (written === undefined || (type !== undefined && written !== type)) {
+                return undefined;
+            }
+            type = written;
+        }
+    }
+    if (type === undefined || !AWAITED_ACCUMULATOR_TYPES.has (type) || dataflowTypeTokenCollides (index, type)) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    if (!isSafeToNarrow (printer, declaration, String (declaration.name.escapedText), type, isProFile, { noCastAssertions: true })) {
+        return undefined;
+    }
+    return type;
+}
+
+// additive patcher: rewrites only a declaration still printing `Object <name> = null;`
+export function patchJavaAwaitedAccumulatorTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaAwaitedAccumulatorPatched) {
+        return;
+    }
+    printer._javaAwaitedAccumulatorPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declarations = node?.declarations;
+        if (declarations === undefined || declarations.length !== 1
+            || declarations[0].name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        let type;
+        try {
+            type = awaitedAccumulatorTypeOf (printer, declarations[0]);
+        } catch (e) {
+            return printed;
+        }
+        if (type === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declarations[0].name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = null;`;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        return printed.slice (0, at) + `${iden}${type} ${printedName} = null;` + printed.slice (at + marker.length);
+    };
+}
