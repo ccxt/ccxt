@@ -2937,10 +2937,10 @@ public class Coinbase extends CoinbaseApi
                     String code = this.safeCurrencyCode(currencyId);
                     String total = this.safeString(value, "amount");
                     Object free = total;
-                    Object account = this.safeDict(result, code);
+                    Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code);
                     if (java.util.Objects.equals(account, null))
                     {
-                        account = this.account();
+                        account = (Map<String, Object>) this.account();
                         ((Map<String, Object>)account).put("free", free);
                         ((Map<String, Object>)account).put("total", total);
                     } else
@@ -2964,10 +2964,10 @@ public class Coinbase extends CoinbaseApi
                     String used = this.safeString(hold, "value");
                     String free = this.safeString(available, "value");
                     Object total = Precise.stringAdd(used, free);
-                    Object account = this.safeDict(result, code);
+                    Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code);
                     if (java.util.Objects.equals(account, null))
                     {
-                        account = this.account();
+                        account = (Map<String, Object>) this.account();
                         ((Map<String, Object>)account).put("free", free);
                         ((Map<String, Object>)account).put("used", used);
                         ((Map<String, Object>)account).put("total", total);
@@ -6290,10 +6290,10 @@ public class Coinbase extends CoinbaseApi
             Object position = (spotPositions == null || i < 0 || i >= spotPositions.size() ? null : spotPositions.get(i));
             String currencyCode = this.safeString(position, "asset", "Unknown");
             String availableBalanceStr = this.safeString(position, "available_to_trade_fiat", "0");
-            Object availableBalance = this.parseNumber(availableBalanceStr);
+            Double availableBalance = this.parseNumber(availableBalanceStr);
             String totalBalanceFiatStr = this.safeString(position, "total_balance_fiat", "0");
-            Object totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
-            Object holdAmount = Helpers.subtract(totalBalanceFiat, availableBalance);
+            Double totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
+            Object holdAmount = (totalBalanceFiat - availableBalance);
             Map<String, Object> costBasisDict = (Map<String, Object>) this.safeDict(position, "cost_basis", new HashMap<String, Object>() {{}});
             String costBasisStr = this.safeString(costBasisDict, "value", "0");
             Map<String, Object> averageEntryPriceDict = (Map<String, Object>) this.safeDict(position, "average_entry_price", new HashMap<String, Object>() {{}});

@@ -3347,7 +3347,7 @@ public class Htx extends HtxApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object type = null;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLastPrices", market, parameters);
@@ -4860,7 +4860,7 @@ public class Htx extends HtxApi
                     Object balance = (details == null || i < 0 || i >= details.size() ? null : details.get(i));
                     String currencyId = this.safeString(balance, "currency");
                     String code = this.safeCurrencyCode(currencyId);
-                    Object account = this.account();
+                    Map<String, Object> account = (Map<String, Object>) this.account();
                     ((Map<String, Object>)account).put("free", this.safeString(balance, "available_margin"));
                     ((Map<String, Object>)account).put("total", this.safeString(balance, "equity"));
                     if (!java.util.Objects.equals(code, null))
@@ -4918,7 +4918,7 @@ public class Htx extends HtxApi
                     Object balance = Helpers.GetValue(data, i);
                     String currencyId = this.safeString(balance, "symbol");
                     String code = this.safeCurrencyCode(currencyId);
-                    Object account = this.account();
+                    Map<String, Object> account = (Map<String, Object>) this.account();
                     ((Map<String, Object>)account).put("free", this.safeString(balance, "margin_available"));
                     ((Map<String, Object>)account).put("used", this.safeString(balance, "margin_frozen"));
                     if (!java.util.Objects.equals(code, null))

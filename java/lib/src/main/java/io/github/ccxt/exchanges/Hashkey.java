@@ -2137,7 +2137,7 @@ public class Hashkey extends HashkeyApi
             Object balanceEntry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(balanceEntry, "asset");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balanceEntry, "total"));
             ((Map<String, Object>)account).put("free", this.safeString(balanceEntry, "free"));
             ((Map<String, Object>)account).put("used", this.safeString(balanceEntry, "locked"));
@@ -2163,7 +2163,7 @@ public class Hashkey extends HashkeyApi
         //
         String currencyId = this.safeString(balance, "asset");
         String code = this.safeCurrencyCode(currencyId);
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
         String positionMargin = this.safeString(balance, "positionMargin");
         String orderMargin = this.safeString(balance, "orderMargin");
@@ -2880,14 +2880,14 @@ public class Hashkey extends HashkeyApi
         String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amountString = this.safeString(item, "change");
-        Object amount = this.parseNumber(amountString);
+        Double amount = this.parseNumber(amountString);
         String direction = "in";
         if (((String)amountString).indexOf("-") >= 0)
         {
             direction = "out";
         }
         String afterString = this.safeString(item, "total");
-        Object after = this.parseNumber(afterString);
+        Double after = this.parseNumber(afterString);
         String status = "ok";
         final Object finalDirection = direction;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{

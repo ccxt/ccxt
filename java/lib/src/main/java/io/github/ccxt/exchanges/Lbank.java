@@ -1607,7 +1607,7 @@ public class Lbank extends LbankApi
             {
                 Object currencyId = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
                 String code = this.safeCurrencyCode((String) (currencyId));
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("used", this.safeString(used, currencyId));
                 ((Map<String, Object>)account).put("free", this.safeString(free, currencyId));
                 if (!java.util.Objects.equals(code, null))
@@ -1626,7 +1626,7 @@ public class Lbank extends LbankApi
                 Object item = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(item, "asset");
                 String codeInner = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(item, "free"));
                 ((Map<String, Object>)account).put("used", this.safeString(item, "locked"));
                 if (!java.util.Objects.equals(codeInner, null))
@@ -1645,7 +1645,7 @@ public class Lbank extends LbankApi
                 Object item = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
                 String currencyId = this.safeString(item, "coin");
                 String codeInner = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(item, "usableAmt"));
                 ((Map<String, Object>)account).put("used", this.safeString(item, "freezeAmt"));
                 if (!java.util.Objects.equals(codeInner, null))

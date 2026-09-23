@@ -792,7 +792,7 @@ public class Latoken extends LatokenApi
                     }
                 }
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "blocked"));
                 if (!java.util.Objects.equals(code, null))

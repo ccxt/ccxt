@@ -2271,7 +2271,7 @@ public class Gate extends GateApi
                 String quote = this.safeCurrencyCode((String) (quoteId));
                 String takerPercent = this.safeString(market, "fee");
                 String makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
-                Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "amount_precision")));
+                Double amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "amount_precision")));
                 String tradeStatus = this.safeString(market, "trade_status");
                 Long marginStatus = this.safeInteger(market, "status", 1); // 0 disabled, 1 enabled
                 Double leverage = this.safeNumber(market, "leverage");
@@ -4275,7 +4275,7 @@ public class Gate extends GateApi
 
     public Object parseBalanceHelper(Map<String, Object> entry)
     {
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("used", this.safeString2(entry, "freeze", "locked"));
         ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
         ((Map<String, Object>)account).put("total", this.safeString(entry, "total"));
@@ -9895,7 +9895,7 @@ final Object finalI = i;
         }
         String balanceString = this.safeString(item, "balance");
         String changeString = this.safeString(item, "change");
-        Object before = this.parseNumber(Precise.stringSub(balanceString, changeString));
+        Double before = this.parseNumber(Precise.stringSub(balanceString, changeString));
         final Object finalDirection = direction;
         final Object finalCurrency = currency;
         final Object finalAmount = amount;

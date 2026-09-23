@@ -1339,7 +1339,7 @@ public class Btse extends BtseApi
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(totals, code));
             ((Map<String, Object>)account).put("free", this.safeString(frees, code));
             ((Map<String, Object>)account).put("used", this.safeString(useds, code));

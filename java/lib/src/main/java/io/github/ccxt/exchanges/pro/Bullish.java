@@ -813,7 +813,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             String assetId = this.safeString(data, "assetSymbol");
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(data, "availableQuantity"));
             ((Map<String, Object>)account).put("used", this.safeString(data, "lockedQuantity"));
             String code = this.safeCurrencyCode((String) (assetId));

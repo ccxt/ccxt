@@ -825,7 +825,7 @@ public class Mudrex extends MudrexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         String futuresBalance = this.safeString(data, "balance");
         if (!java.util.Objects.equals(futuresBalance, null))
         {

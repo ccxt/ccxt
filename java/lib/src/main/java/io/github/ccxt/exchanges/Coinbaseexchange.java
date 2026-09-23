@@ -1012,7 +1012,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "hold"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
@@ -2287,9 +2287,9 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             direction = "in";
         }
-        Object amount = this.parseNumber(amountString);
-        Object after = this.parseNumber(afterString);
-        Object before = this.parseNumber(beforeString);
+        Double amount = this.parseNumber(amountString);
+        Double after = this.parseNumber(afterString);
+        Double before = this.parseNumber(beforeString);
         Long timestamp = this.parse8601(this.safeString(item, "created_at"));
         String type = this.parseLedgerEntryType(this.safeString(item, "type"));
         String code = this.safeCurrencyCode((String) (null), currency);

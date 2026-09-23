@@ -1399,7 +1399,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object balance = (positionBalances == null || i < 0 || i >= positionBalances.size() ? null : positionBalances.get(i));
             String currencyId = this.safeString(balance, "instrument_name");
             String code = this.safeCurrencyCode((String) (currencyId));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "quantity"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "reserved_qty"));
             if (!java.util.Objects.equals(code, null))

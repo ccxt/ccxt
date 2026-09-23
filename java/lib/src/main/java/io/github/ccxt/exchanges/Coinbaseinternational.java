@@ -2163,7 +2163,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object rawBalance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(rawBalance, "asset_name");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(rawBalance, "quantity"));
             ((Map<String, Object>)account).put("used", this.safeString(rawBalance, "hold"));
             if (!java.util.Objects.equals(code, null))

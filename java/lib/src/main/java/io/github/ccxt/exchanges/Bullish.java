@@ -3085,7 +3085,7 @@ public class Bullish extends BullishApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("free", this.safeString(response, "availableQuantity"));
         ((Map<String, Object>)account).put("used", this.safeString(response, "lockedQuantity"));
         ((Map<String, Object>)result).put((String)((String)code), account);
@@ -3102,7 +3102,7 @@ public class Bullish extends BullishApi
             Object balance = Helpers.GetValue(response, i);
             String symbol = this.safeString(balance, "assetSymbol");
             String code = this.safeCurrencyCode(symbol);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "availableQuantity"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "lockedQuantity"));
             if (!java.util.Objects.equals(code, null))

@@ -1435,7 +1435,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //     }
         //
         Object accountType = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         String currencyId = this.safeString(balance, "coin");
         Object code = null;
         if (java.util.Objects.equals(currencyId, null))

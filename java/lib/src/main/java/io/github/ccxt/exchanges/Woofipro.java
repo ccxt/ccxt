@@ -3396,7 +3396,7 @@ public class Woofipro extends WoofiproApi
         {
             Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String code = this.safeCurrencyCode(this.safeString(balance, "token"));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "holding"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "frozen"));
             if (!java.util.Objects.equals(code, null))

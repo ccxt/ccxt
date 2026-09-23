@@ -2737,7 +2737,7 @@ public class Alpaca extends AlpacaApi
         String code = this.safeCurrencyCode(currencyId);
         if (!java.util.Objects.equals(code, null))
         {
-            Object cashAccount = this.account();
+            Map<String, Object> cashAccount = (Map<String, Object>) this.account();
             ((Map<String, Object>)cashAccount).put("free", this.safeString(account, "cash")); // cash already excludes the amounts held for open orders, verified live 2026-09-16
             String equity = this.safeString(account, "equity");
             String positionsValue = this.safeString(account, "position_market_value");
@@ -2773,7 +2773,7 @@ public class Alpaca extends AlpacaApi
             String positionCode = this.safeCurrencyCode((String) (baseId));
             if ((!java.util.Objects.equals(positionCode, null)) && !(result.containsKey(positionCode)))
             {
-                Object positionAccount = this.account();
+                Map<String, Object> positionAccount = (Map<String, Object>) this.account();
                 ((Map<String, Object>)positionAccount).put("free", this.safeString(position, "qty_available"));
                 ((Map<String, Object>)positionAccount).put("total", this.safeString(position, "qty"));
                 ((Map<String, Object>)result).put((String)positionCode, positionAccount);

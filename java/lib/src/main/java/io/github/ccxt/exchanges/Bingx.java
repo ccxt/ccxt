@@ -1384,7 +1384,7 @@ public class Bingx extends BingxApi
                     put( "max", null );
                 }} );
             }};
-            Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
+            Double precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
@@ -2387,7 +2387,7 @@ public class Bingx extends BingxApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, "swap", true, true, true);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object subType = "linear";
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
@@ -3342,7 +3342,7 @@ public class Bingx extends BingxApi
                     break;
                 }
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString2(balance, "availableMargin", "availableBalance"));
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "usedMargin"));
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "maxWithdrawAmount"));
@@ -3358,7 +3358,7 @@ public class Bingx extends BingxApi
                 Object balance = (spotBalances == null || i < 0 || i >= spotBalances.size() ? null : spotBalances.get(i));
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "free"));
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
                 if (!java.util.Objects.equals(code, null))
@@ -6895,7 +6895,7 @@ public class Bingx extends BingxApi
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("walletType", "network")));
             Map<String, Object> response = (this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, parameters))).join();
-            Object data = this.safeValue(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             //    {
             //        "code":0,
             //        "timestamp":1689258953651,

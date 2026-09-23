@@ -712,7 +712,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList("myLiquidations"));
             if (!this.isEmpty(symbols))
             {
@@ -4435,7 +4435,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             String currencyId = this.safeString(message, "a");
             String code = this.safeCurrencyCode((String) (currencyId));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             String delta = this.safeString(message, "d");
             if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)) && (Helpers.inOp((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code)))
             {
@@ -4466,7 +4466,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Object entry = (B == null || i < 0 || i >= B.size() ? null : B.get(i));
                 String currencyId = this.safeString(entry, "a");
                 String code = this.safeCurrencyCode((String) (currencyId));
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(entry, "f"));
                 ((Map<String, Object>)account).put("used", this.safeString(entry, "l"));
                 ((Map<String, Object>)account).put("total", this.safeString(entry, wallet));
@@ -6857,7 +6857,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String code = this.safeCurrencyCode((String) (currencyId));
             if (!java.util.Objects.equals(code, null))
             {
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("total", this.safeString(entry, "b"));
                 Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code, account);
             }

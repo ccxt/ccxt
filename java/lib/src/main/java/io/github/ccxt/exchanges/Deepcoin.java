@@ -723,7 +723,7 @@ public class Deepcoin extends DeepcoinApi
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         String maxMarketSize = this.safeString(market, "maxMktSz");
         String maxLimitSize = this.safeString(market, "maxLmtSz");
-        Object maxAmount = this.parseNumber(Precise.stringMax(maxMarketSize, maxLimitSize));
+        Double maxAmount = this.parseNumber(Precise.stringMax(maxMarketSize, maxLimitSize));
         String state = this.safeString(market, "state");
         Boolean isMargin = Boolean.TRUE.equals(spot) && (Precise.stringGt(maxLeverage, "1"));
         Object isInverse = ((Boolean.TRUE.equals(swap))) ? (!java.util.Objects.equals(isLinear, true)) : null;
@@ -1006,7 +1006,7 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -1284,7 +1284,7 @@ public class Deepcoin extends DeepcoinApi
             Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String symbol = this.safeString(balance, "ccy");
             Object code = this.safeCurrencyCode(symbol);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "bal"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "frozenBal"));
             ((Map<String, Object>)account).put("free", this.safeString(balance, "availBal"));

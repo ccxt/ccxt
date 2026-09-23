@@ -1766,7 +1766,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString2(data, "c", "coin");
         String code = this.safeCurrencyCode((String) (currencyId));
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("free", this.safeString(data, "availableBalance"));
         ((Map<String, Object>)account).put("used", this.safeString(data, "f"));
         ((Map<String, Object>)account).put("total", this.safeString2(data, "b", "walletBalance"));

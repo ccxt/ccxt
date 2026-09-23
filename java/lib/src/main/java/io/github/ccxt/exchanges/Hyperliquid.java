@@ -1325,7 +1325,7 @@ public class Hyperliquid extends HyperliquidApi
                     Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                     String unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"));
                     Object code = (((java.util.Objects.equals(isSpot, true)))) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
-                    Object account = this.account();
+                    Map<String, Object> account = (Map<String, Object>) this.account();
                     String total = this.safeString(balance, "total");
                     String used = this.safeString(balance, "hold");
                     ((Map<String, Object>)account).put("total", total);

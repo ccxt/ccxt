@@ -2159,7 +2159,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
             String code = this.safeCurrencyCode((String) (currencyId));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("info", balance);
             ((Map<String, Object>)account).put("used", this.safeString(balance, "lk"));
             ((Map<String, Object>)account).put("free", this.safeString(balance, "wb"));

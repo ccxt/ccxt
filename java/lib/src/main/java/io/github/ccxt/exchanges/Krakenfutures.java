@@ -604,7 +604,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 String settle = null;
                 Object settleId = null;
                 String cvtp = this.safeString(market, "contractValueTradePrecision");
-                Object amountPrecision = this.parseNumber(this.integerPrecisionToAmount(cvtp));
+                Double amountPrecision = this.parseNumber(this.integerPrecisionToAmount(cvtp));
                 Double pricePrecision = this.safeNumber(market, "tickSize");
                 Boolean contract = (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future) || Boolean.TRUE.equals(index));
                 Boolean swapOrFutures = (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future));
@@ -3577,7 +3577,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 continue;
             }
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             if (Boolean.TRUE.equals(isFlex))
             {
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "quantity"));

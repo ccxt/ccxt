@@ -442,7 +442,7 @@ public class Apex extends ApexApi
             put( "datetime", null );
         }};
         String code = "USDT";
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("free", this.safeString(response, "availableBalance"));
         ((Map<String, Object>)account).put("total", this.safeString(response, "totalEquityValue"));
         ((Map<String, Object>)result).put((String)code, account);
@@ -795,8 +795,8 @@ public class Apex extends ApexApi
         String settle = this.safeCurrencyCode(settleId);
         Object symbol = ((((baseId + "/") + quote) + ":") + settle);
         Object expiry = 0;
-        Object takerFee = this.parseNumber("0.0002");
-        Object makerFee = this.parseNumber("0.0005");
+        Double takerFee = this.parseNumber("0.0002");
+        Double makerFee = this.parseNumber("0.0005");
         final Object finalBaseId = baseId;
         final Object finalExpiry = expiry;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -1829,7 +1829,7 @@ public class Apex extends ApexApi
                 Map<String, Object> response = (this.privatePostV3ContractTransferOut(this.extend(request, parameters))).join();
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long currentTime = this.milliseconds();
-                Object parsedAmount = this.parseNumber(amount);
+                Double parsedAmount = this.parseNumber(amount);
                 return this.extend(this.parseTransfer(data, this.currency((String) (code))), new HashMap<String, Object>() {{
                     put( "timestamp", currentTime );
                     put( "datetime", Apex.this.iso8601(currentTime) );

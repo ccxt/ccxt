@@ -1622,7 +1622,7 @@ public class Bigone extends BigoneApi
             Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String symbol = this.safeString(balance, "asset_symbol");
             String code = this.safeCurrencyCode(symbol);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "locked_balance"));
             if (!java.util.Objects.equals(code, null))

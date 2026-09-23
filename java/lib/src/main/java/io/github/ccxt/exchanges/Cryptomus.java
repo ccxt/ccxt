@@ -855,7 +855,7 @@ public class Cryptomus extends CryptomusApi
             Object balanceEntry = Helpers.GetValue(balance, i);
             String currencyId = this.safeString(balanceEntry, "ticker");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balanceEntry, "available"));
             ((Map<String, Object>)account).put("used", this.safeString(balanceEntry, "held"));
             if (!java.util.Objects.equals(code, null))

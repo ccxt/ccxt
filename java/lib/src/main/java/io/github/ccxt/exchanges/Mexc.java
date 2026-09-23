@@ -4683,7 +4683,7 @@ public class Mexc extends MexcApi
                 Object entry = (wallet == null || i < 0 || i >= ((List<?>)wallet).size() ? null : ((List<?>)wallet).get(i));
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(entry, "availableBalance"));
                 ((Map<String, Object>)account).put("used", this.safeString(entry, "frozenBalance"));
                 if (!java.util.Objects.equals(code, null))
@@ -4699,7 +4699,7 @@ public class Mexc extends MexcApi
                 Object entry = (wallet == null || i < 0 || i >= ((List<?>)wallet).size() ? null : ((List<?>)wallet).get(i));
                 String currencyId = this.safeString(entry, "asset");
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(entry, "free"));
                 ((Map<String, Object>)account).put("used", this.safeString(entry, "locked"));
                 if (!java.util.Objects.equals(code, null))
@@ -4713,7 +4713,7 @@ public class Mexc extends MexcApi
 
     public Object parseBalanceHelper(Map<String, Object> entry)
     {
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("used", this.safeString(entry, "locked"));
         ((Map<String, Object>)account).put("free", this.safeString(entry, "free"));
         ((Map<String, Object>)account).put("total", this.safeString(entry, "totalAsset"));
@@ -5616,9 +5616,9 @@ public class Mexc extends MexcApi
         while (Precise.stringLt(floor, maxVol))
         {
             String cap = Precise.stringAdd(floor, riskIncrVol);
-            Object minNotional = this.parseNumber(floor);
-            Object mainMarginRate = this.parseNumber(maintenanceMarginRate);
-            Object maxLev = this.parseNumber(Precise.stringDiv("1", initialMarginRate));
+            Double minNotional = this.parseNumber(floor);
+            Double mainMarginRate = this.parseNumber(maintenanceMarginRate);
+            Double maxLev = this.parseNumber(Precise.stringDiv("1", initialMarginRate));
 final Object finalRiskIncrVol = riskIncrVol;
                         ((List<Object>)tiers).add(new HashMap<String, Object>() {{
                 put( "tier", Mexc.this.parseNumber(Precise.stringDiv(cap, finalRiskIncrVol)) );

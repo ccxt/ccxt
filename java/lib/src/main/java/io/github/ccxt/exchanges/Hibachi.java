@@ -537,7 +537,7 @@ public class Hibachi extends HibachiApi
         }};
         // Hibachi only supports USDT on Arbitrum at this time
         String code = this.safeCurrencyCode("USDT");
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("total", this.safeString(response, "balance"));
         ((Map<String, Object>)account).put("free", this.safeString(response, "maximalWithdraw"));
         if (!java.util.Objects.equals(code, null))

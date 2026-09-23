@@ -825,7 +825,7 @@ public class Bithumb extends BithumbApi
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
                 Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
                 String lowerCurrencyId = this.safeStringLower(currency, "id");
                 ((Map<String, Object>)account).put("total", this.safeString(balances, ("total_" + lowerCurrencyId)));
@@ -838,7 +838,7 @@ public class Bithumb extends BithumbApi
             for (var i = 0; i < Helpers.getArrayLength(response); i++)
             {
                 Object entry = Helpers.GetValue(response, i);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId);
                 if (java.util.Objects.equals(code, null))

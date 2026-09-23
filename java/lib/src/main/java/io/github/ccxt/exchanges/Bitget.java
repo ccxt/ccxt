@@ -7120,7 +7120,7 @@ final Object finalMinNotional = minNotional;
         for (var i = 0; i < ((List<?>)balance).size(); i++)
         {
             Object entry = (balance == null || i < 0 || i >= ((List<?>)balance).size() ? null : ((List<?>)balance).get(i));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             String currencyId = this.safeString(entry, "coin");
             String code = this.safeCurrencyCode(currencyId);
             ((Map<String, Object>)account).put("debt", this.safeString(entry, "debt"));
@@ -7190,7 +7190,7 @@ final Object finalMinNotional = minNotional;
         for (var i = 0; i < Helpers.getArrayLength(balance); i++)
         {
             Object entry = Helpers.GetValue(balance, i);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             String currencyId = this.safeString2(entry, "marginCoin", "coin");
             String code = this.safeCurrencyCode(currencyId);
             String borrow = this.safeString(entry, "borrow");
@@ -10832,7 +10832,7 @@ final Object finalMinNotional = minNotional;
         currency = this.safeCurrency(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(item, "cTime", "ts");
         String balanceString = this.safeString(item, "balance");
-        Object after = this.parseNumber(balanceString);
+        Double after = this.parseNumber(balanceString);
         String feeCostString = this.safeString2(item, "fees", "fee");
         Object feeCost = null;
         if (!java.util.Objects.equals(feeCostString, null))
@@ -10840,7 +10840,7 @@ final Object finalMinNotional = minNotional;
             feeCost = this.parseNumber(Precise.stringAbs(feeCostString)); // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
         }
         String amountRaw = this.safeString2(item, "size", "amount", "");
-        Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
+        Double amount = this.parseNumber(Precise.stringAbs(amountRaw));
         Object before = null;
         if ((!java.util.Objects.equals(balanceString, null)) && (!java.util.Objects.equals(amountRaw, "")))
         {

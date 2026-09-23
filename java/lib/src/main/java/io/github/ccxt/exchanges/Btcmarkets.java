@@ -681,11 +681,11 @@ public class Btcmarkets extends BtcmarketsApi
         String quote = this.safeCurrencyCode(quoteId);
         Object symbol = ((base + "/") + quote);
         Object fees = this.safeDict(this.safeDict(this.options, "fees", new HashMap<String, Object>() {{}}), quote, this.fees);
-        Object pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
+        Double pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
         Double minAmount = this.safeNumber(market, "minOrderAmount");
         Double maxAmount = this.safeNumber(market, "maxOrderAmount");
         String status = this.safeString(market, "status");
-        Object minPrice = null;
+        Double minPrice = null;
         if (java.util.Objects.equals(quote, "AUD"))
         {
             minPrice = pricePrecision;
@@ -782,7 +782,7 @@ public class Btcmarkets extends BtcmarketsApi
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "assetName");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))

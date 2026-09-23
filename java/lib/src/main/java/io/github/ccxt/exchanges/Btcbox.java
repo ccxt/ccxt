@@ -444,7 +444,7 @@ public class Btcbox extends BtcboxApi
             String free = (currencyId + "_balance");
             if (Helpers.inOp(response, free))
             {
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 String used = (currencyId + "_lock");
                 ((Map<String, Object>)account).put("free", this.safeString(response, free));
                 ((Map<String, Object>)account).put("used", this.safeString(response, used));

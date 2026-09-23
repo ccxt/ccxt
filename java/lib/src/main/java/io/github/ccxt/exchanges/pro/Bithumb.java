@@ -971,7 +971,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Object asset = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
             String currencyId = this.safeString(asset, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(asset, "balance"));
             ((Map<String, Object>)account).put("used", this.safeString(asset, "locked"));
             if (!java.util.Objects.equals(code, null))

@@ -1019,7 +1019,7 @@ public class Revolutx extends RevolutxApi
                 {
                     continue;
                 }
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
                 String reserved = this.safeString(balance, "reserved");
                 String staked = this.safeString(balance, "staked");

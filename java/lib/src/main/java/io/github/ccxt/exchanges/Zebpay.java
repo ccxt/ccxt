@@ -558,7 +558,7 @@ public class Zebpay extends ZebpayApi
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId);
         String name = this.safeString(rawCurrency, "name");
-        Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
+        Double precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         List<Object> chains = (List<Object>) this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String minWithdrawFeeString = null;
@@ -2239,7 +2239,7 @@ public class Zebpay extends ZebpayApi
         for (var i = 0; i < ((List<?>)currencyList).size(); i++)
         {
             Object entry = (currencyList == null || i < 0 || i >= currencyList.size() ? null : currencyList.get(i));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(entry, "total"));
             ((Map<String, Object>)account).put("free", this.safeString(entry, "free"));
             ((Map<String, Object>)account).put("used", this.safeString(entry, "used"));

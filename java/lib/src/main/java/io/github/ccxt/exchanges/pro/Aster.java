@@ -207,7 +207,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = ((List<?>)symbols).size();
             String methodName = null;
@@ -273,7 +273,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = ((List<?>)symbols).size();
             String methodName = null;
@@ -383,7 +383,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = ((List<?>)symbols).size();
             String methodName = null;
@@ -450,7 +450,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = ((List<?>)symbols).size();
             String methodName = null;
@@ -599,7 +599,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = ((List<?>)symbols).size();
             if (java.util.Objects.equals(symbolsLength, 0))
@@ -660,7 +660,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = ((List<?>)symbols).size();
             if (java.util.Objects.equals(symbolsLength, 0))
@@ -808,7 +808,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = ((List<?>)symbols).size();
             String methodName = null;
@@ -869,7 +869,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = ((List<?>)symbols).size();
             String methodName = null;
@@ -1177,7 +1177,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = ((List<?>)symbols).size();
             String methodName = null;
@@ -1237,7 +1237,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = ((List<?>)symbols).size();
             String methodName = null;
@@ -1862,7 +1862,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object entry = (B == null || i < 0 || i >= B.size() ? null : B.get(i));
             String currencyId = this.safeString(entry, "a");
             String code = this.safeCurrencyCode((String) (currencyId));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(entry, "f"));
             ((Map<String, Object>)account).put("used", this.safeString(entry, "l"));
             ((Map<String, Object>)account).put("total", this.safeString(entry, wallet));

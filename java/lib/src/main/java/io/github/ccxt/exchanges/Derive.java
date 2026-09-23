@@ -3221,10 +3221,10 @@ public class Derive extends DeriveApi
             {
                 Object balance = (collaterals == null || j < 0 || j >= collaterals.size() ? null : collaterals.get(j));
                 String code = this.safeCurrencyCode(this.safeString(balance, "currency"));
-                Object account = this.safeDict(result, code);
+                Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code);
                 if (java.util.Objects.equals(account, null))
                 {
-                    account = this.account();
+                    account = (Map<String, Object>) this.account();
                     ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
                 } else
                 {

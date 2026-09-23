@@ -375,7 +375,7 @@ public class Bit2c extends Bit2cApi
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object uppercase = ((String)((Map<String, Object>)currency).get("id")).toUpperCase();
             if (Helpers.inOp(response, uppercase))
@@ -691,8 +691,8 @@ public class Bit2c extends Bit2cApi
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, marketId);
                 String makerString = this.safeString(fee, "FeeMaker");
                 String takerString = this.safeString(fee, "FeeTaker");
-                Object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
-                Object taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
+                Double maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
+                Double taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
                 ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );

@@ -438,7 +438,7 @@ public class Zaif extends ZaifApi
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode((String) (currencyId));
             String balance = this.safeString(funds, currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", balance);
             ((Map<String, Object>)account).put("total", balance);
             if (!java.util.Objects.equals(deposit, null))

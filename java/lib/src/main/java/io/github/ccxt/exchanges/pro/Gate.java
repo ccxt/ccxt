@@ -1671,7 +1671,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         for (var i = 0; i < ((List<?>)result).size(); i++)
         {
             Object rawBalance = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             String currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
             String code = this.safeCurrencyCode((String) (currencyId));
             Long timestamp = (Long) this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
@@ -2167,7 +2167,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object type = null;
             Object query = null;
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);

@@ -1828,7 +1828,7 @@ public class Grvt extends GrvtApi
             Object balance = (spotBalances == null || i < 0 || i >= spotBalances.size() ? null : spotBalances.get(i));
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             ((Map<String, Object>)account).put("free", availableBalance); // todo: revise after API team clarification
             if (!java.util.Objects.equals(code, null))

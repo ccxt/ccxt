@@ -2128,7 +2128,7 @@ public class Aster extends AsterApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -2197,7 +2197,7 @@ public class Aster extends AsterApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -2287,7 +2287,7 @@ public class Aster extends AsterApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -2632,7 +2632,7 @@ public class Aster extends AsterApi
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString2(balance, "free", "availableBalance"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
@@ -2903,7 +2903,7 @@ public class Aster extends AsterApi
         String statusId = this.safeStringUpper(order, "status");
         String rawType = this.safeStringUpper(order, "type");
         String stopPriceString = this.safeString(order, "stopPrice");
-        Object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
+        Double triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         final Object finalMarket = market;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", info );
@@ -4432,13 +4432,13 @@ public class Aster extends AsterApi
             }
             maintenanceMarginPercentageString = Helpers.GetValue(bracket, 1);
         }
-        Object notional = this.parseNumber(notionalStringAbs);
+        Double notional = this.parseNumber(notionalStringAbs);
         String contractsAbs = Precise.stringAbs(this.safeString(position, "positionAmt"));
-        Object contracts = this.parseNumber(contractsAbs);
+        Double contracts = this.parseNumber(contractsAbs);
         String unrealizedPnlString = this.safeString(position, "unRealizedProfit");
-        Object unrealizedPnl = this.parseNumber(unrealizedPnlString);
+        Double unrealizedPnl = this.parseNumber(unrealizedPnlString);
         Object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
-        Object liquidationPrice = this.parseNumber(liquidationPriceString);
+        Double liquidationPrice = this.parseNumber(liquidationPriceString);
         Object collateralString = null;
         String marginMode = this.safeString(position, "marginType");
         if (java.util.Objects.equals(marginMode, null) && !java.util.Objects.equals(isolatedMarginString, null))
@@ -4454,7 +4454,7 @@ public class Aster extends AsterApi
             side = "short";
         }
         String entryPriceString = this.safeString(position, "entryPrice");
-        Object entryPrice = this.parseNumber(entryPriceString);
+        Double entryPrice = this.parseNumber(entryPriceString);
         Double contractSize = this.safeNumber(market, "contractSize");
         Object contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
@@ -4515,21 +4515,21 @@ public class Aster extends AsterApi
             collateralString = this.safeString(position, "isolatedMargin");
         }
         collateralString = (((java.util.Objects.equals(collateralString, null)))) ? "0" : collateralString;
-        Object collateral = this.parseNumber(collateralString);
-        Object markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
+        Double collateral = this.parseNumber(collateralString);
+        Double markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         Long timestamp = this.safeInteger(position, "updateTime");
         if ((timestamp != null && timestamp == 0))
         {
             timestamp = null;
         }
-        Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
+        Double maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         String maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
         if (java.util.Objects.equals(maintenanceMarginString, null))
         {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
             maintenanceMarginString = this.safeString(position, "maintMargin");
         }
-        Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
+        Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
         String initialMarginString = null;
         String initialMarginPercentageString = null;
         String leverageString = this.safeString(position, "leverage");
@@ -4762,7 +4762,7 @@ public class Aster extends AsterApi
         String leverageString = this.safeString(position, "leverage");
         Object leverage = (((!java.util.Objects.equals(leverageString, null)))) ? Helpers.parseInt(leverageString) : null;
         String initialMarginString = this.safeString(position, "initialMargin");
-        Object initialMargin = this.parseNumber(initialMarginString);
+        Double initialMargin = this.parseNumber(initialMarginString);
         String initialMarginPercentageString = null;
         if (!java.util.Objects.equals(leverageString, null))
         {
@@ -4780,12 +4780,12 @@ public class Aster extends AsterApi
         // as oppose to notionalValue
         Boolean usdm = (position.containsKey("notional"));
         String maintenanceMarginString = this.safeString(position, "maintMargin");
-        Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
+        Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
         String entryPriceString = this.safeString(position, "entryPrice");
-        Object entryPrice = this.parseNumber(entryPriceString);
+        Double entryPrice = this.parseNumber(entryPriceString);
         String notionalString = this.safeString2(position, "notional", "notionalValue");
         String notionalStringAbs = Precise.stringAbs(notionalString);
-        Object notional = this.parseNumber(notionalStringAbs);
+        Double notional = this.parseNumber(notionalStringAbs);
         String contractsString = this.safeString(position, "positionAmt");
         String contractsStringAbs = Precise.stringAbs(contractsString);
         if (java.util.Objects.equals(contractsString, null))
@@ -4795,7 +4795,7 @@ public class Aster extends AsterApi
             contractsString = Precise.stringDiv(entryNotional, contractSizeNew);
             contractsStringAbs = Precise.stringDiv(Precise.stringAdd(contractsString, "0.5"), "1", 0);
         }
-        Object contracts = this.parseNumber(contractsStringAbs);
+        Double contracts = this.parseNumber(contractsStringAbs);
         Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
         List<Object> leverageBracket = (List<Object>) this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
         Object maintenanceMarginPercentageString = null;
@@ -4808,9 +4808,9 @@ public class Aster extends AsterApi
             }
             maintenanceMarginPercentageString = Helpers.GetValue(bracket, 1);
         }
-        Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
+        Double maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         String unrealizedPnlString = this.safeString(position, "unrealizedProfit");
-        Object unrealizedPnl = this.parseNumber(unrealizedPnlString);
+        Double unrealizedPnl = this.parseNumber(unrealizedPnlString);
         Long timestamp = this.safeInteger(position, "updateTime");
         if ((timestamp != null && timestamp == 0))
         {
@@ -4836,7 +4836,7 @@ public class Aster extends AsterApi
             walletBalance = this.safeString(position, "crossWalletBalance");
             collateralString = this.safeString(position, "crossMargin");
         }
-        Object collateral = this.parseNumber(collateralString);
+        Double collateral = this.parseNumber(collateralString);
         Object marginRatio = null;
         String side = null;
         Object percentage = null;

@@ -2049,7 +2049,7 @@ public class Toobit extends ToobitApi
         {
             Object balance = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
             String code = this.safeCurrencyCode(this.safeString(balance, "asset"));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString2(balance, "free", "availableBalance"));
             ((Map<String, Object>)account).put("total", this.safeString2(balance, "total", "balance"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
@@ -3067,7 +3067,7 @@ public class Toobit extends ToobitApi
         Long timestamp = this.safeInteger(item, "created");
         Double after = this.safeNumber(item, "total");
         String amountRaw = this.safeString(item, "change", "");
-        Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
+        Double amount = this.parseNumber(Precise.stringAbs(amountRaw));
         String direction = "in";
         if (Helpers.isTrue(amountRaw.startsWith(((String)"-"))))
         {

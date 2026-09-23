@@ -2292,7 +2292,7 @@ public class Coinex extends CoinexApi
                 Map<String, Object> used = (Map<String, Object>) this.safeDict(entry, "frozen", new HashMap<String, Object>() {{}});
                 Map<String, Object> loan = (Map<String, Object>) this.safeDict(entry, "repaid", new HashMap<String, Object>() {{}});
                 Map<String, Object> interest = (Map<String, Object>) this.safeDict(entry, "interest", new HashMap<String, Object>() {{}});
-                Object baseAccount = this.account();
+                Map<String, Object> baseAccount = (Map<String, Object>) this.account();
                 String baseCurrencyId = this.safeString(entry, "base_ccy");
                 String baseCurrencyCode = this.safeCurrencyCode(baseCurrencyId);
                 ((Map<String, Object>)baseAccount).put("free", this.safeString(free, "base_ccy"));
@@ -2343,7 +2343,7 @@ public class Coinex extends CoinexApi
                 Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(entry, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
                 ((Map<String, Object>)account).put("used", this.safeString(entry, "frozen"));
                 if (!java.util.Objects.equals(code, null))
@@ -2392,7 +2392,7 @@ public class Coinex extends CoinexApi
                 Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(entry, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
                 ((Map<String, Object>)account).put("used", this.safeString(entry, "frozen"));
                 if (!java.util.Objects.equals(code, null))
@@ -2438,7 +2438,7 @@ public class Coinex extends CoinexApi
                 Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(entry, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
                 ((Map<String, Object>)account).put("used", this.safeString(entry, "frozen"));
                 if (!java.util.Objects.equals(code, null))

@@ -1779,7 +1779,7 @@ public class Backpack extends BackpackApi
             Object id = (balanceKeys == null || i < 0 || i >= balanceKeys.size() ? null : balanceKeys.get(i));
             String code = this.safeCurrencyCode((String) (id));
             Object balance = Helpers.GetValue(response, id);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             String locked = this.safeString(balance, "locked");
             String staked = this.safeString(balance, "staked");
             String used = Precise.stringAdd(locked, staked);

@@ -1632,7 +1632,7 @@ public class Ndax extends NdaxApi
             if ((!java.util.Objects.equals(currencyId, null)) && (!java.util.Objects.equals(this.currencies_by_id, null)) && (((Map<?, ?>)this.currencies_by_id).containsKey(currencyId)))
             {
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "Amount"));
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "Hold"));
                 if (!java.util.Objects.equals(code, null))

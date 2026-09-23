@@ -959,8 +959,8 @@ public class Hitbtc extends HitbtcApi
                 }
                 String lotString = this.safeString(market, "quantity_increment");
                 String stepString = this.safeString(market, "tick_size");
-                Object lot = this.parseNumber(lotString);
-                Object step = this.parseNumber(stepString);
+                Double lot = this.parseNumber(lotString);
+                Double step = this.parseNumber(stepString);
     final Object finalSymbol = symbol;
                 final Object finalBase = base;
                 final Object finalQuote = quote;
@@ -1263,7 +1263,7 @@ public class Hitbtc extends HitbtcApi
             Object entry = Helpers.GetValue(response, i);
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
             ((Map<String, Object>)account).put("used", this.safeString(entry, "reserved"));
             if (!java.util.Objects.equals(code, null))
@@ -4218,7 +4218,7 @@ public class Hitbtc extends HitbtcApi
             //         "positions": null
             //     }
             //
-            Object parsedAmount = this.parseNumber(amount);
+            Double parsedAmount = this.parseNumber(amount);
             return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
                 put( "amount", parsedAmount );
                 put( "type", type );

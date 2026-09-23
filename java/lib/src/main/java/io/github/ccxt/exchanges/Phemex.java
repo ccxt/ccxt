@@ -2510,7 +2510,7 @@ public class Phemex extends PhemexApi
             Object code = this.safeCurrencyCode(currencyId);
             Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             String balanceEv = this.safeString(balance, "balanceEv");
             String lockedTradingBalanceEv = this.safeString(balance, "lockedTradingBalanceEv");
             String lockedWithdrawEv = this.safeString(balance, "lockedWithdrawEv");
@@ -2570,7 +2570,7 @@ public class Phemex extends PhemexApi
         Object code = this.safeCurrencyCode(currencyId);
         Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
         Long valueScale = this.safeInteger(currency, "valueScale", 8);
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         String accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
         String totalUsedBalanceEv = this.safeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv");
         Boolean needsConversion = (!java.util.Objects.equals(code, "USDT"));
@@ -2922,7 +2922,7 @@ public class Phemex extends PhemexApi
             }};
         }
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        Object triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"), market)));
+        Double triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"), market)));
         Boolean postOnly = (java.util.Objects.equals(timeInForce, "PO"));
         final Object finalClientOrderId = clientOrderId;
         final Object finalTimeInForce = timeInForce;
@@ -4939,7 +4939,7 @@ public class Phemex extends PhemexApi
         String contracts = this.safeStringN(position, new ArrayList<Object>(Arrays.asList("size", "sizeRq", "closedSizeRq")));
         Double contractSize = this.safeNumber(market, "contractSize");
         Object contractSizeString = this.numberToString(contractSize);
-        Object leverage = this.parseNumber(Precise.stringAbs((this.safeString2(position, "leverage", "leverageRr"))));
+        Double leverage = this.parseNumber(Precise.stringAbs((this.safeString2(position, "leverage", "leverageRr"))));
         String entryPriceString = this.safeStringN(position, new ArrayList<Object>(Arrays.asList("avgEntryPrice", "avgEntryPriceRp", "openPrice")));
         String rawSide = this.safeString(position, "side");
         String side = null;

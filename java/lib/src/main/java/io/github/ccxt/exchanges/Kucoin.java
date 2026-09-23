@@ -2963,7 +2963,7 @@ public class Kucoin extends KucoinApi
         }
         // kucoin has determined 'fiat' currencies with below logic
         String rawPrecision = this.safeString(entry, "precision");
-        Object precision = this.parseNumber(this.parsePrecision(rawPrecision));
+        Double precision = this.parseNumber(this.parsePrecision(rawPrecision));
         Boolean isFiat = java.util.Objects.equals(chainsLength, 0);
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -9870,7 +9870,7 @@ public class Kucoin extends KucoinApi
 
     public Object parseBalanceHelper(Map<String, Object> entry)
     {
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("used", this.safeString2(entry, "holdBalance", "hold"));
         ((Map<String, Object>)account).put("free", this.safeString2(entry, "availableBalance", "available"));
         ((Map<String, Object>)account).put("total", this.safeString2(entry, "totalBalance", "total"));
@@ -10095,7 +10095,7 @@ public class Kucoin extends KucoinApi
                     {
                         String currencyId = this.safeString(balance, "currency");
                         String codeInner2 = this.safeCurrencyCode(currencyId);
-                        Object account = this.account();
+                        Map<String, Object> account = (Map<String, Object>) this.account();
                         ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
                         ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
                         ((Map<String, Object>)account).put("used", this.safeString(balance, "holds"));
@@ -10167,7 +10167,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             String currencyId = this.safeString(data, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId, currency);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(data, "availableBalance"));
             ((Map<String, Object>)account).put("total", this.safeString(data, "accountEquity"));
             if (!java.util.Objects.equals(currencyCode, null))

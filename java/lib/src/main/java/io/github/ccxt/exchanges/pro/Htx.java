@@ -2346,7 +2346,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             // spot balance
             String currencyId = this.safeString(data, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(data, "available"));
             ((Map<String, Object>)account).put("total", this.safeString(data, "balance"));
             if (!java.util.Objects.equals(code, null))
@@ -2377,7 +2377,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     {
                         continue;
                     }
-                    Object account = this.account();
+                    Map<String, Object> account = (Map<String, Object>) this.account();
                     ((Map<String, Object>)account).put("free", this.safeString(detail, "withdraw_available"));
                     ((Map<String, Object>)account).put("total", this.safeString(detail, "equity"));
                     Helpers.addElementToObject(this.balance, code, account);
@@ -2429,7 +2429,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 String marginAsset = this.safeString(first, "margin_asset");
                 String code = this.safeCurrencyCode((String) (marginAsset));
                 String marginFrozen = this.safeString(first, "margin_frozen");
-                Object unifiedAccount = this.account();
+                Map<String, Object> unifiedAccount = (Map<String, Object>) this.account();
                 ((Map<String, Object>)unifiedAccount).put("free", this.safeString(first, "withdraw_available"));
                 ((Map<String, Object>)unifiedAccount).put("used", marginFrozen);
                 if (!java.util.Objects.equals(code, null))
@@ -2448,7 +2448,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     String code = this.safeCurrencyCode((String) (currencyId));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Object account = this.account();
+                        Map<String, Object> account = (Map<String, Object>) this.account();
                         ((Map<String, Object>)account).put("free", this.safeString2(first, "withdraw_available", "margin_available"));
                         ((Map<String, Object>)account).put("used", this.safeString(first, "margin_frozen"));
                         ((Map<String, Object>)account).put("total", this.safeString(first, "margin_balance"));
@@ -2461,7 +2461,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     for (var i = 0; i < ((List<?>)data).size(); i++)
                     {
                         Object isolatedBalance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                        Object account = this.account();
+                        Map<String, Object> account = (Map<String, Object>) this.account();
                         ((Map<String, Object>)account).put("free", this.safeString(isolatedBalance, "margin_balance", "margin_available"));
                         ((Map<String, Object>)account).put("used", this.safeString(isolatedBalance, "margin_frozen"));
                         String currencyId = this.safeString2(isolatedBalance, "margin_asset", "symbol");
@@ -2481,7 +2481,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                     String currencyId = this.safeString(balance, "symbol");
                     String code = this.safeCurrencyCode((String) (currencyId));
-                    Object account = this.account();
+                    Map<String, Object> account = (Map<String, Object>) this.account();
                     ((Map<String, Object>)account).put("free", this.safeString(balance, "margin_available"));
                     ((Map<String, Object>)account).put("used", this.safeString(balance, "margin_frozen"));
                     if (!java.util.Objects.equals(code, null))

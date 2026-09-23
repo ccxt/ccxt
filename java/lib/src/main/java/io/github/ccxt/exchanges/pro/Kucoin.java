@@ -585,7 +585,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -657,7 +657,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object subscription = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object requestId = String.valueOf(this.requestId());
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Boolean isContract = (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true));
             String urlType = ((Boolean.TRUE.equals(isContract))) ? "futures" : "spot";
             Object tradeType = urlType.toUpperCase();
@@ -964,7 +964,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true, false);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("contract"), true));
             Object channelName = "/spotMarket/level1:";
             if (Boolean.TRUE.equals(isFuturesMethod))
@@ -1431,7 +1431,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("contract"), true));
             Object marketIds = this.marketIds(symbols);
             Object url = (this.negotiate(false, isFuturesMethod)).join();
@@ -1484,7 +1484,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             symbols = this.marketSymbols(symbols, null, false, true);
             Object marketIds = this.marketIds(symbols);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("contract"), true));
             Object url = (this.negotiate(false, isFuturesMethod)).join();
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -1863,7 +1863,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             symbols = this.marketSymbols(symbols);
             Object marketIds = this.marketIds(symbols);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("contract"), true));
             Object url = (this.negotiate(false, isFuturesMethod)).join();
             Object method = ((Boolean.TRUE.equals(isFuturesMethod))) ? "/contractMarket/level2" : "/market/level2";
@@ -1938,7 +1938,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             symbols = this.marketSymbols(symbols, null, false, true);
             Object marketIds = this.marketIds(symbols);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("contract"), true));
             Object url = (this.negotiate(false, isFuturesMethod)).join();
             Object method = ((Boolean.TRUE.equals(isFuturesMethod))) ? "/contractMarket/level2" : "/market/level2";
@@ -3305,7 +3305,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), "timestamp", timestamp);
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), "datetime", this.iso8601(timestamp));
         String code = this.safeCurrencyCode((String) (currencyId));
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         String used = this.safeString2(data, "hold", "holdBalance");
         Object isolatedPosMargin = this.omitZero(this.safeString(data, "isolatedPosMargin"));
         if (!java.util.Objects.equals(isolatedPosMargin, null))
@@ -3353,7 +3353,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Long timestamp = this.safeIntegerProduct(data, "U", 0.000001);
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "timestamp", timestamp);
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "datetime", this.iso8601(timestamp));
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("free", this.safeString(data, "a"));
         ((Map<String, Object>)account).put("used", this.safeString(data, "h"));
         ((Map<String, Object>)account).put("total", this.safeString(data, "b"));

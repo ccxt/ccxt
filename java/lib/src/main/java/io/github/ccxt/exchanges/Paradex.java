@@ -942,7 +942,7 @@ public class Paradex extends ParadexApi
         Long expiry = this.safeInteger(market, "expiry_at");
         String optionType = this.safeString(market, "option_type");
         String strikePrice = this.safeString(market, "strike_price");
-        Object takerFee = this.parseNumber("0.0003");
+        Double takerFee = this.parseNumber("0.0003");
         Object makerFee = this.parseNumber("-0.00005");
         if (Boolean.TRUE.equals(isOption))
         {
@@ -3078,7 +3078,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "size"));
             if (!java.util.Objects.equals(code, null))
             {
@@ -3290,7 +3290,7 @@ public class Paradex extends ParadexApi
             quantity = Precise.stringMul("-1", quantity);
         }
         Long timestamp = this.safeInteger(position, "time");
-        Object liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
+        Double liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
         final Object finalSide = side;
         final Object finalQuantity = quantity;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{

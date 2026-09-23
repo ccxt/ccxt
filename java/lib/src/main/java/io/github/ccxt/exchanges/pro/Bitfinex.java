@@ -660,7 +660,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Long timestamp = this.safeInteger(trade, createdKey);
         String price = this.safeString(trade, priceKey);
         String amountString = this.safeString(trade, amountKey);
-        Object amount = this.parseNumber(Precise.stringAbs(amountString));
+        Double amount = this.parseNumber(Precise.stringAbs(amountString));
         String side = null;
         if (!java.util.Objects.equals(amount, null))
         {
@@ -1083,7 +1083,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Object data = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(updateType, "ws"))
         {
-            data = this.safeValue(message, 2);
+            data = this.safeList(message, 2);
         } else
         {
             data = new ArrayList<Object>(Arrays.asList(this.safeValue(message, 2)));
@@ -1129,7 +1129,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //
         String totalBalance = this.safeString(balance, 2);
         String availableBalance = this.safeString(balance, 4);
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         if (!java.util.Objects.equals(availableBalance, null))
         {
             ((Map<String, Object>)account).put("free", availableBalance);

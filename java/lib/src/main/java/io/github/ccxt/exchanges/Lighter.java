@@ -2942,9 +2942,9 @@ public class Lighter extends LighterApi
             Long typeAsInteger = this.safeInteger(order, "order_type");
             type = this.parseOrderTypeInteger(typeAsInteger);
         }
-        Object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "trigger_price")));
-        Object stopLossPrice = null;
-        Object takeProfitPrice = null;
+        Double triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "trigger_price")));
+        Double stopLossPrice = null;
+        Double takeProfitPrice = null;
         if (!java.util.Objects.equals(type, null))
         {
             if (((String)type).indexOf("stop-loss") >= 0)

@@ -543,7 +543,7 @@ public class Independentreserve extends IndependentreserveApi
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "CurrencyCode");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "AvailableBalance"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "TotalBalance"));
             if (!java.util.Objects.equals(code, null))
@@ -1033,9 +1033,9 @@ public class Independentreserve extends IndependentreserveApi
         String orderId = this.safeString(trade, "OrderGuid");
         String priceString = this.safeString2(trade, "Price", "SecondaryCurrencyTradePrice");
         String amountString = this.safeString2(trade, "VolumeTraded", "PrimaryCurrencyAmount");
-        Object price = this.parseNumber(priceString);
-        Object amount = this.parseNumber(amountString);
-        Object cost = this.parseNumber(Precise.stringMul(priceString, amountString));
+        Double price = this.parseNumber(priceString);
+        Double amount = this.parseNumber(amountString);
+        Double cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         String baseId = this.safeString(trade, "PrimaryCurrencyCode");
         String quoteId = this.safeString(trade, "SecondaryCurrencyCode");
         Object marketId = null;

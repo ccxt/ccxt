@@ -807,7 +807,7 @@ public class Bitbank extends BitbankApi
             Object balance = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "free_amount"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "locked_amount"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "onhand_amount"));

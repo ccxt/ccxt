@@ -1484,7 +1484,7 @@ public class Deribit extends DeribitApi
             Object data = (summaries == null || i < 0 || i >= ((List<?>)summaries).size() ? null : ((List<?>)summaries).get(i));
             String currencyId = this.safeString(data, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(data, "available_funds"));
             ((Map<String, Object>)account).put("used", this.safeString(data, "maintenance_margin"));
             ((Map<String, Object>)account).put("total", this.safeString(data, "equity"));

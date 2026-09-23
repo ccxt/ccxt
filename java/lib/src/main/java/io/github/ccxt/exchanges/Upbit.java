@@ -625,7 +625,7 @@ public class Upbit extends UpbitApi
             String state = this.safeString(marketInfo, "state");
             String bidFee = this.safeString(response, "bid_fee");
             String askFee = this.safeString(response, "ask_fee");
-            Object fee = this.parseNumber(Precise.stringMax(bidFee, askFee));
+            Double fee = this.parseNumber(Precise.stringMax(bidFee, askFee));
             final Object finalBase = base;
             final Object finalState = state;
             return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -792,7 +792,7 @@ public class Upbit extends UpbitApi
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "balance"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))

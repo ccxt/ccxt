@@ -405,7 +405,7 @@ public class Blockchaincom extends BlockchaincomApi
                 String minOrderSizeScaleString = this.safeString(market, "min_order_size_scale");
                 Object minOrderSizeScalePrecisionString = this.parsePrecision(minOrderSizeScaleString);
                 String minOrderSizePreciseString = Precise.stringMul(minOrderSizeString, minOrderSizeScalePrecisionString);
-                Object minOrderSize = this.parseNumber(minOrderSizePreciseString);
+                Double minOrderSize = this.parseNumber(minOrderSizePreciseString);
                 // maximum order size
                 Object maxOrderSize = null;
                 String maxOrderSizeRaw = this.safeString(market, "max_order_size");
@@ -1508,7 +1508,7 @@ public class Blockchaincom extends BlockchaincomApi
                 Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(entry, "currency");
                 Object code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
                 ((Map<String, Object>)account).put("total", this.safeString(entry, "balance"));
                 ((Map<String, Object>)result).put((String)((String)code), account);

@@ -1020,7 +1020,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchLiquidationsForSymbols", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);

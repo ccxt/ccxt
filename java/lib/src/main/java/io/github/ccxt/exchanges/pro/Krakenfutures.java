@@ -1686,7 +1686,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 Object key = (holdingKeys == null || i < 0 || i >= holdingKeys.size() ? null : holdingKeys.get(i));
                 String code = this.safeCurrencyCode((String) (key));
-                Object newAccount = this.account();
+                Map<String, Object> newAccount = (Map<String, Object>) this.account();
                 ((Map<String, Object>)newAccount).put("total", this.safeString(holding, key));
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -1709,7 +1709,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 Object key = (futuresKeys == null || i < 0 || i >= futuresKeys.size() ? null : futuresKeys.get(i));
                 String symbol = this.safeSymbol(key);
-                Object newAccount = this.account();
+                Map<String, Object> newAccount = (Map<String, Object>) this.account();
                 Map<String, Object> future = (Map<String, Object>) this.safeDict(futures, key);
                 String currencyId = this.safeString(future, "unit");
                 String code = this.safeCurrencyCode((String) (currencyId));
@@ -1740,7 +1740,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Object key = (flexFuturesKeys == null || i < 0 || i >= flexFuturesKeys.size() ? null : flexFuturesKeys.get(i));
                 Map<String, Object> flexFuture = (Map<String, Object>) this.safeDict(flexFutureCurrencies, key);
                 String code = this.safeCurrencyCode((String) (key));
-                Object newAccount = this.account();
+                Map<String, Object> newAccount = (Map<String, Object>) this.account();
                 ((Map<String, Object>)newAccount).put("free", this.safeString(flexFuture, "available"));
                 ((Map<String, Object>)newAccount).put("used", this.safeString(flexFuture, "collateral_value"));
                 ((Map<String, Object>)newAccount).put("total", this.safeString(flexFuture, "quantity"));

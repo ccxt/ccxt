@@ -1260,7 +1260,7 @@ public class Bitrue extends BitrueApi
             Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString2(balance, "asset", "marginCoin");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString2(balance, "free", "accountNormal"));
             ((Map<String, Object>)account).put("used", this.safeString2(balance, "locked", "accountLock"));
             if (!java.util.Objects.equals(code, null))
@@ -2202,7 +2202,7 @@ public class Bitrue extends BitrueApi
         {
             type = "limit";
         }
-        Object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "stopPrice")));
+        Double triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "stopPrice")));
         final Object finalTimestamp = timestamp;
         final Object finalLastTradeTimestamp = lastTradeTimestamp;
         final Object finalType = type;

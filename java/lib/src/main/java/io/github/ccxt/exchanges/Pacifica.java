@@ -1100,7 +1100,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", data );
             }};
-            Object usdcAccount = this.account();
+            Map<String, Object> usdcAccount = (Map<String, Object>) this.account();
             ((Map<String, Object>)usdcAccount).put("total", this.safeString(data, "balance"));
             ((Map<String, Object>)usdcAccount).put("used", this.safeString(data, "total_margin_used"));
             ((Map<String, Object>)result).put("USDC", usdcAccount);
@@ -1110,7 +1110,7 @@ public class Pacifica extends PacificaApi
                 Object balance = (spotBalances == null || i < 0 || i >= spotBalances.size() ? null : spotBalances.get(i));
                 String currencyId = this.safeString(balance, "symbol");
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "available_to_withdraw"));
                 // skip a spot USDC entry so it can't clobber the perp-collateral account above
@@ -2192,8 +2192,8 @@ public class Pacifica extends PacificaApi
             Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(order, "params", new HashMap<String, Object>() {{}});
             ((Map<String, Object>)orderParams).put("timestamp", timestamp);
             String amount = this.safeString(order, "amount");
-            Object amountNumber = this.parseNumber(amount);
-            Object priceNumber = this.parseNumber(price);
+            Double amountNumber = this.parseNumber(amount);
+            Double priceNumber = this.parseNumber(price);
             if (!java.util.Objects.equals(type, "limit"))
             {
                 throw new NotSupported(((this.id + " createOrders() supports only type = \"limit\"! Your value type=") + type)) ;
@@ -4461,7 +4461,7 @@ public class Pacifica extends PacificaApi
     {
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         String cost = this.safeString(config, "cost", "1");
-        Object costNumber = this.parseNumber(cost);
+        Double costNumber = this.parseNumber(cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (Helpers.isGreaterThan(costNumber, 1))
         {

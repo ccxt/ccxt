@@ -804,7 +804,7 @@ public class Luno extends LunoApi
                 Helpers.addElementToObject(Helpers.GetValue(result, code), "total", Precise.stringAdd(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "total"), balanceUnconfirmed));
             } else if (!java.util.Objects.equals(code, null))
             {
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("used", reservedUnconfirmed);
                 ((Map<String, Object>)account).put("total", balanceUnconfirmed);
                 ((Map<String, Object>)result).put((String)code, account);

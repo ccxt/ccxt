@@ -487,7 +487,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             if ((!java.util.Objects.equals(firstMarket, null)) && (!java.util.Objects.equals(((Map<String, Object>)firstMarket).get("swap"), true)))
             {
                 throw new NotSupported((this.id + " watchTickers() is only supported for swap markets")) ;
@@ -545,7 +545,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true);
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             if ((!java.util.Objects.equals(firstMarket, null)) && (!java.util.Objects.equals(((Map<String, Object>)firstMarket).get("swap"), true)))
             {
                 throw new NotSupported((this.id + " unWatchTickers() is only supported for swap markets")) ;
@@ -1356,7 +1356,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 Object asset = (assets == null || assetId == null ? null : assets.get(assetId));
                 String codeId = this.safeString(asset, "symbol");
                 String code = this.safeCurrencyCode((String) (codeId));
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("used", this.safeString(asset, "locked_balance"));
                 ((Map<String, Object>)account).put("total", this.safeString(asset, "balance"));
                 if (!java.util.Objects.equals(code, null))
@@ -1367,7 +1367,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         } else
         {
             Map<String, Object> stats = (Map<String, Object>) this.safeDict(message, "stats", new HashMap<String, Object>() {{}});
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(stats, "available_balance"));
             ((Map<String, Object>)account).put("total", this.safeString(stats, "collateral"));
             ((Map<String, Object>)account).put("info", stats);

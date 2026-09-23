@@ -2792,7 +2792,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //     }
         //
         Object accountType = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         String currencyId = this.safeString2(balance, "a", "coin");
         String code = this.safeCurrencyCode((String) (currencyId));
         ((Map<String, Object>)account).put("free", this.safeStringN(balance, new ArrayList<Object>(Arrays.asList("availableToWithdraw", "f", "free"))));

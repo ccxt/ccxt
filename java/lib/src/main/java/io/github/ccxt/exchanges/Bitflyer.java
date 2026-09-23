@@ -543,7 +543,7 @@ public class Bitflyer extends BitflyerApi
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
             ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
             if (!java.util.Objects.equals(code, null))

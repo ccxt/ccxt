@@ -358,7 +358,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                Object clientOrderIds = this.safeValue(parameters, "clientOrderId", new ArrayList<Object>(Arrays.asList()));
+                List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderId", new ArrayList<Object>(Arrays.asList()));
                 ((Map<String, Object>)parameters).put("clientOrderIds", this.arrayConcat(clientOrderIds, new ArrayList<Object>(Arrays.asList(clientOrderId))));
             }
             Object orders = (this.cancelOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
@@ -618,7 +618,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object trades = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
-                Object first = this.safeValue(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -1467,7 +1467,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
-            Object newAccount = this.account();
+            Map<String, Object> newAccount = (Map<String, Object>) this.account();
             ((Map<String, Object>)newAccount).put("free", this.safeString(balance, "available"));
             ((Map<String, Object>)newAccount).put("used", this.safeString(balance, "hold"));
             if (!java.util.Objects.equals(code, null))

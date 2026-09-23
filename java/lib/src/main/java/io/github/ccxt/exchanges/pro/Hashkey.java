@@ -998,7 +998,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", message);
         String currencyId = this.safeString(balanceUpdate, "a");
         String code = this.safeCurrencyCode((String) (currencyId));
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("free", this.safeString(balanceUpdate, "f"));
         ((Map<String, Object>)account).put("used", this.safeString(balanceUpdate, "l"));
         if ((!java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(code, null)))

@@ -1582,7 +1582,7 @@ public class Bittrade extends BittradeApi
         String state = this.safeString(currency, "state");
         Boolean active = (java.util.Objects.equals(visible, true)) && (java.util.Objects.equals(depositEnabled, true)) && (java.util.Objects.equals(withdrawEnabled, true)) && (java.util.Objects.equals(state, "online")) && (!java.util.Objects.equals(countryDisabled, true));
         String name = this.safeString(currency, "display-name");
-        Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
+        Double precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
         final Object finalDepositEnabled = depositEnabled;
         final Object finalWithdrawEnabled = withdrawEnabled;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{

@@ -667,7 +667,7 @@ public class Mercado extends MercadoApi
             if (balances.containsKey(currencyId))
             {
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "total"));
                 if (!java.util.Objects.equals(code, null))

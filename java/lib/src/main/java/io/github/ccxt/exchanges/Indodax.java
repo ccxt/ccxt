@@ -526,7 +526,7 @@ public class Indodax extends IndodaxApi
         {
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode((String) (currencyId));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(free, currencyId));
             ((Map<String, Object>)account).put("used", this.safeString(used, currencyId));
             if (!java.util.Objects.equals(code, null))

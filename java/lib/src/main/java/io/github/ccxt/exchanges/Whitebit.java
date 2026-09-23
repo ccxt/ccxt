@@ -840,7 +840,7 @@ public class Whitebit extends WhitebitApi
         Boolean swap = (java.util.Objects.equals(typeId, "futures")) || (java.util.Objects.equals(typeId, "tradfiFutures"));
         Boolean margin = (java.util.Objects.equals(isCollateral, true)) && !Boolean.TRUE.equals(swap);
         Boolean contract = false;
-        Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
+        Double amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
         Object linear = null;
         Object inverse = null;
         if (Boolean.TRUE.equals(swap))
@@ -3059,7 +3059,7 @@ public class Whitebit extends WhitebitApi
             Object balance = Helpers.GetValue(response, id);
             if (!java.util.Objects.equals(balance, null) && Boolean.TRUE.equals(this.isDictionary(balance)))
             {
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString2(balance, "available", "main_balance"));
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "freeze"));
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "main_balance"));
@@ -3069,7 +3069,7 @@ public class Whitebit extends WhitebitApi
                 }
             } else
             {
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("total", balance);
                 if (!java.util.Objects.equals(code, null))
                 {

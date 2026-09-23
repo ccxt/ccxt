@@ -666,7 +666,7 @@ public class Bitbns extends BitbnsApi
             {
                 String currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(data, key));
                 ((Map<String, Object>)account).put("used", this.safeString(data, ("inorder" + currencyId)));
                 if (java.util.Objects.equals(currencyId, "Money"))

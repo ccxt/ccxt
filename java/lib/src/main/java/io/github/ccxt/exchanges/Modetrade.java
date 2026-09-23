@@ -3026,7 +3026,7 @@ public class Modetrade extends ModetradeApi
         {
             Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String code = this.safeCurrencyCode(this.safeString(balance, "token"));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "holding"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "frozen"));
             if (!java.util.Objects.equals(code, null))
@@ -3171,7 +3171,7 @@ public class Modetrade extends ModetradeApi
             direction = (((java.util.Objects.equals(side, "DEPOSIT")))) ? "in" : "out";
         }
         Long timestamp = this.safeInteger(item, "created_time");
-        Object feeCost = this.parseNumber(this.safeString(item, "fee"));
+        Double feeCost = this.parseNumber(this.safeString(item, "fee"));
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
@@ -3265,7 +3265,7 @@ public class Modetrade extends ModetradeApi
         {
             movementDirection = "withdrawal";
         }
-        Object feeCost = this.parseNumber(this.safeString(transaction, "fee"));
+        Double feeCost = this.parseNumber(this.safeString(transaction, "fee"));
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {

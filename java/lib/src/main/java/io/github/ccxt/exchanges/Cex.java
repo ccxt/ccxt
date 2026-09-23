@@ -454,7 +454,7 @@ public class Cex extends CexApi
         String code = this.safeCurrencyCode(id);
         Boolean isFiat = (java.util.Objects.equals(this.safeBool(rawCurrency, "fiat"), true));
         String type = ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto";
-        Object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
+        Double currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Map<String, Object> rawNetworks = (Map<String, Object>) this.safeDict(rawCurrency, "blockchains", new HashMap<String, Object>() {{}});
         List<Object> keys = new ArrayList<Object>(rawNetworks.keySet());

@@ -3036,7 +3036,7 @@ public class Nado extends NadoApi
             }
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(rawBalance, "balance", new HashMap<String, Object>() {{}});
             String amount = Precise.stringDiv(this.safeString(balance, "amount"), "1000000000000000000");
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", amount);
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
             ((Map<String, Object>)account).put("free", amount);

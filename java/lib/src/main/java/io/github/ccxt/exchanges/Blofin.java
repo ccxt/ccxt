@@ -1216,7 +1216,7 @@ public class Blofin extends BlofinApi
         if (Boolean.TRUE.equals(isSpot))
         {
             String spotSymbol = ((((Map<String, Object>)market).get("base") + "/") + ((Map<String, Object>)market).get("quote"));
-            Object cost = this.parseNumber(Precise.stringMul(price, amount));
+            Double cost = this.parseNumber(Precise.stringMul(price, amount));
             final Object finalFeeCost_2 = feeCost;
             final Object finalFeeCurrency_2 = feeCurrency;
             Map<String, Object> result = new HashMap<String, Object>() {{
@@ -1608,7 +1608,7 @@ public class Blofin extends BlofinApi
             Object balance = (details == null || i < 0 || i >= details.size() ? null : details.get(i));
             String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             // it may be incorrect to use total, free and used for swap accounts
             String eq = this.safeString(balance, "equity");
             String availEq = this.safeString(balance, "available");
@@ -1654,7 +1654,7 @@ public class Blofin extends BlofinApi
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             // it may be incorrect to use total, free and used for swap accounts
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
@@ -3269,7 +3269,7 @@ public class Blofin extends BlofinApi
         String contractsAbs = Precise.stringAbs(pos);
         String side = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(side, "net");
-        Object contracts = this.parseNumber(contractsAbs);
+        Double contracts = this.parseNumber(contractsAbs);
         if (!java.util.Objects.equals(pos, null))
         {
             if (java.util.Objects.equals(side, "net"))
@@ -3294,7 +3294,7 @@ public class Blofin extends BlofinApi
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
-        Object notional = this.parseNumber(notionalString);
+        Double notional = this.parseNumber(notionalString);
         String marginMode = this.safeString(position, "marginMode");
         String initialMarginString = null;
         String entryPriceString = this.safeString2(position, "averagePrice", "openAveragePrice");
@@ -3312,7 +3312,7 @@ public class Blofin extends BlofinApi
             collateralString = this.safeString(position, "margin");
         }
         String maintenanceMarginString = this.safeString(position, "maintenanceMargin");
-        Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
+        Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
         String maintenanceMarginPercentageString = Precise.stringDiv(maintenanceMarginString, notionalString);
         if (java.util.Objects.equals(initialMarginPercentage, null))
         {
@@ -3323,12 +3323,12 @@ public class Blofin extends BlofinApi
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         String rounder = "0.00005"; // round to closest 0.01%
-        Object maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
+        Double maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
         Double liquidationPrice = this.safeNumber(position, "liquidationPrice");
         String percentageString = this.safeString(position, "unrealizedPnlRatio");
-        Object percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
+        Double percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Long timestamp = this.safeInteger(position, "updateTime");
-        Object marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
+        Double marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
         final Object finalMarginMode = marginMode;
         final Object finalSide = side;
         final Object finalCollateralString = collateralString;

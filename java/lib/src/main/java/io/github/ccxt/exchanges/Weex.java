@@ -1378,7 +1378,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -1474,7 +1474,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -1627,7 +1627,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -2302,7 +2302,7 @@ public class Weex extends WeexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbolsLength, 1))
             {
-                Object market = this.getMarketFromSymbols(symbols);
+                Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
                 ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
             }
             List<Object> response = (this.contractGetCapiV3MarketPremiumIndex(this.extend(request, parameters))).join();
@@ -2539,7 +2539,7 @@ public class Weex extends WeexApi
                 currencyId = "USDT"; // demo trading balances are denominated in the demo asset SUSDT
             }
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString2(entry, "availableBalance", "free"));
             ((Map<String, Object>)account).put("used", this.safeString2(entry, "frozen", "locked"));
             ((Map<String, Object>)account).put("total", this.safeString(entry, "balance"));
@@ -4378,7 +4378,7 @@ public class Weex extends WeexApi
         String amountRaw = this.safeString2(item, "deltaAmount", "income");
         String after = this.safeString2(item, "afterAmount", "balance");
         String before = Precise.stringSub(after, amountRaw);
-        Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
+        Double amount = this.parseNumber(Precise.stringAbs(amountRaw));
         String direction = "in";
         if (java.util.Objects.equals(amountRaw, null))
         {

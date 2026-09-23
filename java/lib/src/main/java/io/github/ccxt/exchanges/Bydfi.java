@@ -3244,7 +3244,7 @@ public class Bydfi extends BydfiApi
             Object balance = Helpers.GetValue(response, i);
             String symbol = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(symbol);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString2(balance, "total", "balance"));
             ((Map<String, Object>)account).put("free", this.safeString2(balance, "available", "availableBalance"));
             if (!java.util.Objects.equals(code, null))

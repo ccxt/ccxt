@@ -753,7 +753,7 @@ public class Bitteam extends BitteamApi
         Long numericId = this.safeInteger(currency, "id");
         String code = this.safeCurrencyCode(id);
         Boolean active = (Boolean) this.safeBool(currency, "active", false);
-        Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
+        Double precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         Map<String, Object> txLimits = (Map<String, Object>) this.safeDict(currency, "txLimits", new HashMap<String, Object>() {{}});
         String minWithdraw = this.safeString(txLimits, "minWithdraw");
         String maxWithdraw = this.safeString(txLimits, "maxWithdraw");
@@ -776,7 +776,7 @@ public class Bitteam extends BitteamApi
         Boolean withdraw = (Boolean) this.safeBool(statuses, "withdrawStatus");
         List<Object> networkIds = new ArrayList<Object>(((Map<String, Object>)feesByNetworkId).keySet());
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
+        Double networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
         String typeRaw = this.safeString(currency, "type");
         for (var j = 0; j < ((List<?>)networkIds).size(); j++)
         {

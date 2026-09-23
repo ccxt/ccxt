@@ -1319,7 +1319,7 @@ public class Bitfinex extends BitfinexApi
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 String interest = this.safeString(balance, 3);
                 if (!java.util.Objects.equals(interest, "0"))
                 {

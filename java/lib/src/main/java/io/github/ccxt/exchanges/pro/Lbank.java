@@ -891,7 +891,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         Helpers.addElementToObject(this.balance, "datetime", datetime);
         String currencyId = this.safeString(data, "assetCode");
         String code = this.safeCurrencyCode((String) (currencyId));
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("free", this.safeString(data, "free"));
         ((Map<String, Object>)account).put("used", this.safeString(data, "freeze"));
         ((Map<String, Object>)account).put("total", this.safeString(data, "asset"));

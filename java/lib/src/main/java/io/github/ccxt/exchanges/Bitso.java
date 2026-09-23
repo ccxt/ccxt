@@ -643,8 +643,8 @@ public class Bitso extends BitsoApi
                 Map<String, Object> flatRate = (Map<String, Object>) this.safeDict(fees, "flat_rate", new HashMap<String, Object>() {{}});
                 String takerString = this.safeString(flatRate, "taker");
                 String makerString = this.safeString(flatRate, "maker");
-                Object taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
-                Object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
+                Double taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
+                Double maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
                 List<Object> feeTiers = (List<Object>) this.safeList(fees, "structure", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> fee = new HashMap<String, Object>() {{
                     put( "taker", taker );
@@ -826,7 +826,7 @@ public class Bitso extends BitsoApi
             Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "total"));
@@ -2192,7 +2192,7 @@ public class Bitso extends BitsoApi
             String code = this.safeCurrencyCode((String) (currencyId));
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || (Helpers.inOp(codes, code))))
             {
-                Object withdrawFee = this.parseNumber(Helpers.GetValue(withdrawalResponse, currencyId));
+                Double withdrawFee = this.parseNumber(Helpers.GetValue(withdrawalResponse, currencyId));
                 Map<String, Object> resultValue = (Map<String, Object>) this.safeDict(result, code);
                 if (java.util.Objects.equals(resultValue, null))
                 {

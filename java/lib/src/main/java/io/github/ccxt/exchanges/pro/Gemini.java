@@ -614,7 +614,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             {
                 continue;
             }
-            Object size = this.parseNumber(sizeString);
+            Double size = this.parseNumber(sizeString);
             if (java.util.Objects.equals(rawSide, "bid"))
             {
                 Helpers.addElementToObject(currentBidAsk, "bid", price);

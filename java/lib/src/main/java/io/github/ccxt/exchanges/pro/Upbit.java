@@ -872,7 +872,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             String code = this.safeCurrencyCode((String) (currencyId));
             String available = this.safeString(balance, "balance");
             String frozen = this.safeString(balance, "locked");
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", available);
             ((Map<String, Object>)account).put("used", frozen);
             if (!java.util.Objects.equals(code, null))

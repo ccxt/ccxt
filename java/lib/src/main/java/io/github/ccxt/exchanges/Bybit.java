@@ -3013,8 +3013,8 @@ public class Bybit extends BybitApi
             Map<String, Object> responseResult = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> markets = (List<Object>) this.safeList(responseResult, "list", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Object takerFee = this.parseNumber("0.001");
-            Object makerFee = this.parseNumber("0.001");
+            Double takerFee = this.parseNumber("0.001");
+            Double makerFee = this.parseNumber("0.001");
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
@@ -4836,7 +4836,7 @@ public class Bybit extends BybitApi
         {
             // usdc wallet
             String code = "USDC";
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(responseResult, "availableBalance"));
             ((Map<String, Object>)account).put("total", this.safeString(responseResult, "walletBalance"));
             ((Map<String, Object>)result).put((String)code, account);
@@ -4851,7 +4851,7 @@ public class Bybit extends BybitApi
                     List<Object> coins = (List<Object>) this.safeList(entry, "coin", new ArrayList<Object>(Arrays.asList()));
                     for (var j = 0; j < ((List<?>)coins).size(); j++)
                     {
-                        Object account = this.account();
+                        Map<String, Object> account = (Map<String, Object>) this.account();
                         Object coinEntry = (coins == null || j < 0 || j >= coins.size() ? null : coins.get(j));
                         String loan = this.safeString(coinEntry, "borrowAmount");
                         String interest = this.safeString(coinEntry, "accruedInterest");
@@ -4883,7 +4883,7 @@ public class Bybit extends BybitApi
                     }
                 } else
                 {
-                    Object account = this.account();
+                    Map<String, Object> account = (Map<String, Object>) this.account();
                     String loan = this.safeString(entry, "loan");
                     String interest = this.safeString(entry, "interest");
                     if ((!java.util.Objects.equals(loan, null)) && (!java.util.Objects.equals(interest, null)))
@@ -12233,7 +12233,7 @@ final Object finalMarket = market;
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
             {

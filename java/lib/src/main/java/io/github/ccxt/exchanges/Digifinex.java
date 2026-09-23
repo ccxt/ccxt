@@ -1120,7 +1120,7 @@ public class Digifinex extends DigifinexApi
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             String free = this.safeString2(balance, "free", "avail_balance");
             String total = this.safeString2(balance, "total", "equity");
             ((Map<String, Object>)account).put("free", free);
@@ -2385,7 +2385,7 @@ public class Digifinex extends DigifinexApi
                     {
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
-                        Object costRequest = this.parseNumber(Precise.stringMul(amountString, priceString));
+                        Double costRequest = this.parseNumber(Precise.stringMul(amountString, priceString));
                         quantity = this.costToPrecision(symbol, costRequest);
                     }
                 } else

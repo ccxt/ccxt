@@ -795,14 +795,14 @@ public class Bitmex extends BitmexApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String scale = this.safeString(currency, "scale");
         Object precisionString = this.parsePrecision(scale);
-        Object precision = this.parseNumber(precisionString);
+        Double precision = this.parseNumber(precisionString);
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "asset");
             Object network = this.networkIdToCode(networkId, code);
             String withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
-            Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
+            Double withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
             Boolean isDepositEnabled = (Boolean) this.safeBool(chain, "depositEnabled", false);
             Boolean isWithdrawEnabled = (Boolean) this.safeBool(chain, "withdrawalEnabled", false);
             Boolean active = ((java.util.Objects.equals(isDepositEnabled, true)) && (java.util.Objects.equals(isWithdrawEnabled, true)));
@@ -844,11 +844,11 @@ public class Bitmex extends BitmexApi
         Boolean currencyEnabled = (Boolean) this.safeBool(currency, "enabled");
         Boolean currencyActive = (java.util.Objects.equals(currencyEnabled, true)) || (Boolean.TRUE.equals(depositEnabled) || Boolean.TRUE.equals(withdrawEnabled));
         String minWithdrawalString = this.safeString(currency, "minWithdrawalAmount");
-        Object minWithdrawal = this.parseNumber(Precise.stringMul(minWithdrawalString, precisionString));
+        Double minWithdrawal = this.parseNumber(Precise.stringMul(minWithdrawalString, precisionString));
         String maxWithdrawalString = this.safeString(currency, "maxWithdrawalAmount");
-        Object maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
+        Double maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
         String minDepositString = this.safeString(currency, "minDepositAmount");
-        Object minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
+        Double minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
         Boolean isCrypto = java.util.Objects.equals(this.safeString(currency, "currencyType"), "Crypto");
         final Object finalDepositEnabled = depositEnabled;
         final Object finalWithdrawEnabled = withdrawEnabled;
@@ -1221,7 +1221,7 @@ public class Bitmex extends BitmexApi
         Boolean positionIsQuote = (java.util.Objects.equals(position, quote));
         Object maxOrderQty = this.safeNumber(market, "maxOrderQty");
         String initMargin = this.safeString(market, "initMargin", "1");
-        Object maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
+        Double maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
         // subtype should be undefined for spot markets
         if (Boolean.TRUE.equals(spot))
         {
@@ -1358,7 +1358,7 @@ public class Bitmex extends BitmexApi
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             String free = this.safeString(balance, "availableMargin");
             String total = this.safeString(balance, "marginBalance");
             ((Map<String, Object>)account).put("free", this.convertToRealAmount(code, free));
@@ -1877,7 +1877,7 @@ public class Bitmex extends BitmexApi
         {
             after = this.convertToRealAmount(code, (String) (after));
         }
-        Object before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
+        Double before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
         String direction = null;
         if (Precise.stringLt(amountString, "0"))
         {
@@ -3397,7 +3397,7 @@ public class Bitmex extends BitmexApi
         String settleCurrencyCode = this.safeString(market, "settle");
         Object maintenanceMargin = this.convertToRealAmount(settleCurrencyCode, this.safeString(position, "maintMargin"));
         Object unrealisedPnl = this.convertToRealAmount(settleCurrencyCode, this.safeString(position, "unrealisedPnl"));
-        Object contracts = this.parseNumber(Precise.stringAbs(this.safeString(position, "currentQty")));
+        Double contracts = this.parseNumber(Precise.stringAbs(this.safeString(position, "currentQty")));
         Double contractSize = this.safeNumber(market, "contractSize");
         String side = null;
         String homeNotional = this.safeString(position, "homeNotional");
@@ -3888,7 +3888,7 @@ public class Bitmex extends BitmexApi
                 String currencyCode = this.safeString(currency, "code");
                 Object networkCode = this.networkIdToCode(networkId, currencyCode);
                 String withdrawalFeeId = this.safeString(network, "withdrawalFee");
-                Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeId, precision));
+                Double withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeId, precision));
                 if (!java.util.Objects.equals(networkCode, null))
                 {
                     Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{

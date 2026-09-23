@@ -741,7 +741,7 @@ public class Gemini extends GeminiApi
         String fiatFlag = this.safeString(rawCurrency, 7);
         Boolean isFiat = (!java.util.Objects.equals(fiatFlag, null)) && (!java.util.Objects.equals(fiatFlag, ""));
         String type = ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto";
-        Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
+        Double precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String networkId = this.safeString(rawCurrency, 9);
         Object networkCode = null;
@@ -1674,7 +1674,7 @@ public class Gemini extends GeminiApi
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
             if (!java.util.Objects.equals(code, null))
@@ -1736,8 +1736,8 @@ public class Gemini extends GeminiApi
             String takerBps = this.safeString(response, "api_taker_fee_bps");
             String makerString = Precise.stringDiv(makerBps, "10000");
             String takerString = Precise.stringDiv(takerBps, "10000");
-            Object maker = this.parseNumber(makerString);
-            Object taker = this.parseNumber(takerString);
+            Double maker = this.parseNumber(makerString);
+            Double taker = this.parseNumber(takerString);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)

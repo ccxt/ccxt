@@ -1860,7 +1860,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             String currencyId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "asset");
             Object code = ((String)this.safeCurrencyCode((String) (currencyId)));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             String eq = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "balance");
             ((Map<String, Object>)account).put("total", eq);
             ((Map<String, Object>)result).put((String)code, account);

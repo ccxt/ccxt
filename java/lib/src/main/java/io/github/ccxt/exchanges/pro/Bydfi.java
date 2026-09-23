@@ -1254,7 +1254,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(balance, "a");
                 String code = this.safeCurrencyCode((String) (currencyId));
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "wb"));
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "tfm"));
                 if (!java.util.Objects.equals(code, null))

@@ -146,14 +146,14 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Object symbol = ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         Object lastString = this.fromEp(this.safeString(ticker, "close"), market);
-        Object last = this.parseNumber(lastString);
-        Object quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, "turnover"), market));
-        Object baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, "volume"), market));
+        Double last = this.parseNumber(lastString);
+        Double quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, "turnover"), market));
+        Double baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, "volume"), market));
         Object change = null;
         Object percentage = null;
         Object average = null;
         Object openString = this.omitZero(this.fromEp(this.safeString(ticker, "open"), market));
-        Object open = this.parseNumber(openString);
+        Double open = this.parseNumber(openString);
         if ((!java.util.Objects.equals(openString, null)) && (!java.util.Objects.equals(lastString, null)))
         {
             change = this.parseNumber(Precise.stringSub(lastString, openString));
@@ -214,14 +214,14 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         market = marketResolved;
         Object symbol = ((Map<String, Object>)marketResolved).get("symbol");
         Object lastString = this.fromEp(this.safeString(ticker, 4), market);
-        Object last = this.parseNumber(lastString);
-        Object quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), market));
-        Object baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 5), market));
+        Double last = this.parseNumber(lastString);
+        Double quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), market));
+        Double baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 5), market));
         Object change = null;
         Object percentage = null;
         Object average = null;
         Object openString = this.omitZero(this.fromEp(this.safeString(ticker, 1), market));
-        Object open = this.parseNumber(openString);
+        Double open = this.parseNumber(openString);
         if ((!java.util.Objects.equals(openString, null)) && (!java.util.Objects.equals(lastString, null)))
         {
             change = this.parseNumber(Precise.stringSub(lastString, openString));
@@ -448,7 +448,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             String used = this.safeString(balance, "totalUsedBalanceRv");
             if (java.util.Objects.equals(used, null))
             {

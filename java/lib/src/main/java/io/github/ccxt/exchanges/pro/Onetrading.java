@@ -1165,7 +1165,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //
         String currencyId = this.safeString(balance, "currency_code");
         String code = this.safeCurrencyCode((String) (currencyId));
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("free", this.safeString(balance, "new_available"));
         ((Map<String, Object>)account).put("used", this.safeString(balance, "new_locked"));
         if (!java.util.Objects.equals(code, null))
@@ -1217,7 +1217,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Object subscription = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(client, null))
             {
-                subscription = this.safeValue(client.subscriptions, subscriptionHash);
+                subscription = this.safeDict(client.subscriptions, subscriptionHash);
                 if (!java.util.Objects.equals(subscription, null))
                 {
                     Map<String, Object> ohlcvMarket = (Map<String, Object>) this.safeDict(subscription, marketId, new HashMap<String, Object>() {{}});
@@ -1503,7 +1503,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Object subscription = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(client, null))
             {
-                subscription = this.safeValue(client.subscriptions, subscriptionHash);
+                subscription = this.safeDict(client.subscriptions, subscriptionHash);
                 if (!java.util.Objects.equals(subscription, null))
                 {
                     for (var i = 0; i < ((List<?>)marketIds).size(); i++)

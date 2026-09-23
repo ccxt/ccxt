@@ -624,7 +624,7 @@ public class Coinspot extends CoinspotApi
                     Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                     Object balance = Helpers.GetValue(currencies, currencyId);
                     String code = this.safeCurrencyCode((String) (currencyId));
-                    Object account = this.account();
+                    Map<String, Object> account = (Map<String, Object>) this.account();
                     ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
                     if (!java.util.Objects.equals(code, null))
                     {
@@ -639,7 +639,7 @@ public class Coinspot extends CoinspotApi
             {
                 Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
                 String code = this.safeCurrencyCode((String) (currencyId));
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("total", this.safeString(balances, currencyId));
                 if (!java.util.Objects.equals(code, null))
                 {

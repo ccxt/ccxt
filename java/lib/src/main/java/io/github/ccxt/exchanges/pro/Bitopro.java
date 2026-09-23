@@ -579,7 +579,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, currency, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
             if (!java.util.Objects.equals(code, null))

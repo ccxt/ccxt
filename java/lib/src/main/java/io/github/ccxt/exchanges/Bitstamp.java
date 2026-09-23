@@ -1324,7 +1324,7 @@ public class Bitstamp extends BitstampApi
         {
             currencyType = "fiat";
         }
-        Object tickSize = this.parseNumber(this.parsePrecision(this.numberToString(precision)));
+        Double tickSize = this.parseNumber(this.parsePrecision(this.numberToString(precision)));
         final Object finalCurrencyType = currencyType;
         return new HashMap<String, Object>() {{
             put( "id", id );
@@ -2093,7 +2093,7 @@ public class Bitstamp extends BitstampApi
             Object currencyBalance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(currencyBalance, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(currencyBalance, "available"));
             ((Map<String, Object>)account).put("used", this.safeString(currencyBalance, "reserved"));
             ((Map<String, Object>)account).put("total", this.safeString(currencyBalance, "total"));

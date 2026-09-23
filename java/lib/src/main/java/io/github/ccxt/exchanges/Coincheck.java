@@ -385,7 +385,7 @@ public class Coincheck extends CoincheckApi
             Object currencyId = ((Map<String, Object>)currency).get("id");
             if (Helpers.inOp(response, currencyId))
             {
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 String reserved = (currencyId + "_reserved");
                 ((Map<String, Object>)account).put("free", this.safeString(response, currencyId));
                 ((Map<String, Object>)account).put("used", this.safeString(response, reserved));

@@ -327,7 +327,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String code = this.safeCurrencyCode((String) (currencyId));
             if (!java.util.Objects.equals(code, null))
             {
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "availableForWithdrawal"));
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
                 ((Map<String, Object>)result).put((String)code, account);
@@ -341,7 +341,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String code = this.safeCurrencyCode((String) (currencyId));
             if (!java.util.Objects.equals(code, null))
             {
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(spotBalance, "availableToWithdraw"));
                 ((Map<String, Object>)account).put("total", this.safeString(spotBalance, "balance"));
                 ((Map<String, Object>)result).put((String)code, account);

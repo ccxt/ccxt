@@ -2993,7 +2993,7 @@ public class Poloniex extends PoloniexApi
                 Object balance = (details == null || i < 0 || i >= details.size() ? null : details.get(i));
                 String currencyId = this.safeString(balance, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "avail"));
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "im"));
                 if (!java.util.Objects.equals(code, null))
@@ -3013,7 +3013,7 @@ public class Poloniex extends PoloniexApi
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, j);
                 String currencyId = this.safeString(balance, "currency");
                 String code = this.safeCurrencyCode(currencyId);
-                Object newAccount = this.account();
+                Map<String, Object> newAccount = (Map<String, Object>) this.account();
                 ((Map<String, Object>)newAccount).put("free", this.safeString(balance, "available"));
                 ((Map<String, Object>)newAccount).put("used", this.safeString(balance, "hold"));
                 if (!java.util.Objects.equals(code, null))

@@ -147,7 +147,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
             ((Map<String, Object>)account).put("total", this.safeString(entry, "balance"));
             if (!java.util.Objects.equals(code, null))

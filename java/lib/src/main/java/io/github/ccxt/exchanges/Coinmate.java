@@ -606,7 +606,7 @@ public class Coinmate extends CoinmateApi
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Object code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId);
-            Object account = this.account();
+            Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
             ((Map<String, Object>)account).put("used", this.safeString(balance, "reserved"));
             ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
@@ -1265,8 +1265,8 @@ public class Coinmate extends CoinmateApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String makerString = this.safeString(data, "maker");
             String takerString = this.safeString(data, "taker");
-            Object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
-            Object taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
+            Double maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
+            Double taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
             return new HashMap<String, Object>() {{
                 put( "info", data );
                 put( "symbol", ((Map<String, Object>)market).get("symbol") );

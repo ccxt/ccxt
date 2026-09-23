@@ -246,7 +246,7 @@ public class Paymium extends PaymiumApi
             String free = ("balance_" + currencyId);
             if (Helpers.inOp(response, free))
             {
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 String used = ("locked_" + currencyId);
                 ((Map<String, Object>)account).put("free", this.safeString(response, free));
                 ((Map<String, Object>)account).put("used", this.safeString(response, used));

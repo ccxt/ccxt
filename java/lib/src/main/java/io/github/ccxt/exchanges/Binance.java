@@ -5626,7 +5626,7 @@ public class Binance extends BinanceApi
 
     public Object parseBalanceHelper(Object entry)
     {
-        Object account = this.account();
+        Map<String, Object> account = (Map<String, Object>) this.account();
         ((Map<String, Object>)account).put("used", this.safeString(entry, "locked"));
         ((Map<String, Object>)account).put("free", this.safeString(entry, "free"));
         String interest = this.safeString(entry, "interest");
@@ -5651,7 +5651,7 @@ public class Binance extends BinanceApi
             for (var i = 0; i < Helpers.getArrayLength(response); i++)
             {
                 Object entry = Helpers.GetValue(response, i);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 String currencyId = this.safeString(entry, "asset");
                 String code = this.safeCurrencyCode(currencyId);
                 if (java.util.Objects.equals(type, "linear"))
@@ -5692,7 +5692,7 @@ public class Binance extends BinanceApi
                 Object balance = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "free"));
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
                 if (Boolean.TRUE.equals(cross))
@@ -5733,7 +5733,7 @@ public class Binance extends BinanceApi
                 Object entry = (positionAmountVos == null || i < 0 || i >= positionAmountVos.size() ? null : positionAmountVos.get(i));
                 String currencyId = this.safeString(entry, "asset");
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 String usedAndTotal = this.safeString(entry, "amount");
                 ((Map<String, Object>)account).put("total", usedAndTotal);
                 ((Map<String, Object>)account).put("used", usedAndTotal);
@@ -5747,7 +5747,7 @@ public class Binance extends BinanceApi
             for (var i = 0; i < Helpers.getArrayLength(response); i++)
             {
                 Object entry = Helpers.GetValue(response, i);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 String currencyId = this.safeString(entry, "asset");
                 String code = this.safeCurrencyCode(currencyId);
                 ((Map<String, Object>)account).put("free", this.safeString(entry, "free"));
@@ -5778,7 +5778,7 @@ public class Binance extends BinanceApi
                 }
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId);
-                Object account = this.account();
+                Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "availableBalance"));
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "initialMargin"));
                 ((Map<String, Object>)account).put("total", this.safeString2(balance, "marginBalance", "balance"));
@@ -6558,7 +6558,7 @@ public class Binance extends BinanceApi
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             this.checkNoStockSymbols(symbols, "fetchBidsAsks");
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -6630,7 +6630,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -6730,7 +6730,7 @@ public class Binance extends BinanceApi
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             this.checkNoStockSymbols(symbols, "fetchTickers");
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -6880,7 +6880,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -8883,7 +8883,7 @@ public class Binance extends BinanceApi
         }
         Boolean postOnly = (java.util.Objects.equals(type, "limit_maker")) || (java.util.Objects.equals(timeInForce, "PO"));
         String stopPriceString = this.safeString2(order, "stopPrice", "triggerPrice");
-        Object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
+        Double triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         Double feeCost = this.safeNumber(order, "fee");
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
@@ -11860,9 +11860,9 @@ public class Binance extends BinanceApi
             }
         }
         Object id = null;
-        Object amount = this.parseNumber(amountString);
-        Object price = this.parseNumber(priceString);
-        Object cost = this.parseNumber(costString);
+        Double amount = this.parseNumber(amountString);
+        Double price = this.parseNumber(priceString);
+        Double cost = this.parseNumber(costString);
         Object type = null;
         Object takerOrMaker = null;
         final Object finalSymbol = symbol;
@@ -13899,7 +13899,7 @@ public class Binance extends BinanceApi
         Object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         Object leverage = (((!java.util.Objects.equals(leverageString, null)))) ? Helpers.parseInt(leverageString) : null;
         String initialMarginString = this.safeString(position, "initialMargin");
-        Object initialMargin = this.parseNumber(initialMarginString);
+        Double initialMargin = this.parseNumber(initialMarginString);
         String initialMarginPercentageString = null;
         if (!java.util.Objects.equals(leverageString, null))
         {
@@ -13917,12 +13917,12 @@ public class Binance extends BinanceApi
         // as oppose to notionalValue
         Boolean usdm = (Helpers.inOp(position, "notional"));
         String maintenanceMarginString = this.safeString(position, "maintMargin");
-        Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
+        Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
         String entryPriceString = this.safeString(position, "entryPrice");
-        Object entryPrice = this.parseNumber(entryPriceString);
+        Double entryPrice = this.parseNumber(entryPriceString);
         String notionalString = this.safeString2(position, "notional", "notionalValue");
         String notionalStringAbs = Precise.stringAbs(notionalString);
-        Object notional = this.parseNumber(notionalStringAbs);
+        Double notional = this.parseNumber(notionalStringAbs);
         String contractsString = this.safeString(position, "positionAmt");
         String contractsStringAbs = Precise.stringAbs(contractsString);
         if (java.util.Objects.equals(contractsString, null))
@@ -13932,7 +13932,7 @@ public class Binance extends BinanceApi
             contractsString = Precise.stringDiv(entryNotional, contractSizeNew);
             contractsStringAbs = Precise.stringDiv(Precise.stringAdd(contractsString, "0.5"), "1", 0);
         }
-        Object contracts = this.parseNumber(contractsStringAbs);
+        Double contracts = this.parseNumber(contractsStringAbs);
         Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
         List<Object> leverageBracket = (List<Object>) this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
         Object maintenanceMarginPercentageString = null;
@@ -13945,9 +13945,9 @@ public class Binance extends BinanceApi
             }
             maintenanceMarginPercentageString = Helpers.GetValue(bracket, 1);
         }
-        Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
+        Double maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         String unrealizedPnlString = this.safeString(position, "unrealizedProfit");
-        Object unrealizedPnl = this.parseNumber(unrealizedPnlString);
+        Double unrealizedPnl = this.parseNumber(unrealizedPnlString);
         Long timestamp = this.safeInteger(position, "updateTime");
         if ((timestamp != null && timestamp == 0))
         {
@@ -13973,7 +13973,7 @@ public class Binance extends BinanceApi
             walletBalance = this.safeString(position, "crossWalletBalance");
             collateralString = this.safeString(position, "crossMargin");
         }
-        Object collateral = this.parseNumber(collateralString);
+        Double collateral = this.parseNumber(collateralString);
         Object marginRatio = null;
         String side = null;
         Object percentage = null;
@@ -14192,13 +14192,13 @@ public class Binance extends BinanceApi
             }
             maintenanceMarginPercentageString = Helpers.GetValue(bracket, 1);
         }
-        Object notional = this.parseNumber(notionalStringAbs);
+        Double notional = this.parseNumber(notionalStringAbs);
         String contractsAbs = Precise.stringAbs(this.safeString(position, "positionAmt"));
-        Object contracts = this.parseNumber(contractsAbs);
+        Double contracts = this.parseNumber(contractsAbs);
         String unrealizedPnlString = this.safeString(position, "unRealizedProfit");
-        Object unrealizedPnl = this.parseNumber(unrealizedPnlString);
+        Double unrealizedPnl = this.parseNumber(unrealizedPnlString);
         Object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
-        Object liquidationPrice = this.parseNumber(liquidationPriceString);
+        Double liquidationPrice = this.parseNumber(liquidationPriceString);
         Object collateralString = null;
         String marginMode = this.safeString(position, "marginType");
         if (java.util.Objects.equals(marginMode, null) && !java.util.Objects.equals(isolatedMarginString, null))
@@ -14214,7 +14214,7 @@ public class Binance extends BinanceApi
             side = "short";
         }
         String entryPriceString = this.safeString(position, "entryPrice");
-        Object entryPrice = this.parseNumber(entryPriceString);
+        Double entryPrice = this.parseNumber(entryPriceString);
         Double contractSize = this.safeNumber(market, "contractSize");
         Object contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
@@ -14275,21 +14275,21 @@ public class Binance extends BinanceApi
             collateralString = this.safeString(position, "isolatedMargin");
         }
         collateralString = (((java.util.Objects.equals(collateralString, null)))) ? "0" : collateralString;
-        Object collateral = this.parseNumber(collateralString);
-        Object markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
+        Double collateral = this.parseNumber(collateralString);
+        Double markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         Long timestamp = this.safeInteger(position, "updateTime");
         if ((timestamp != null && timestamp == 0))
         {
             timestamp = null;
         }
-        Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
+        Double maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         String maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
         if (java.util.Objects.equals(maintenanceMarginString, null))
         {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
             maintenanceMarginString = this.safeString(position, "maintMargin");
         }
-        Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
+        Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
         String initialMarginString = null;
         String initialMarginPercentageString = null;
         Object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
@@ -19110,7 +19110,7 @@ final Object finalMarket = market;
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object market = this.getMarketFromSymbols(symbols);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
