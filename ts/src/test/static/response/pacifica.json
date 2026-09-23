@@ -375,7 +375,7 @@
                         "markPrice": null,
                         "notional": null,
                         "leverage": null,
-                        "collateral": "0",
+                        "collateral": 0,
                         "initialMargin": null,
                         "maintenanceMargin": null,
                         "initialMarginPercentage": null,
