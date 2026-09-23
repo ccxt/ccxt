@@ -30,6 +30,9 @@ func (this *Bybitid) Describe() any {
 			"fees":     "https://help.bybit.com/hc/en-us/articles/360039261154",
 			"referral": nil,
 		},
+		"httpExceptions": map[string]any{
+			"403": PermissionDenied,
+		},
 	})
 }
 
