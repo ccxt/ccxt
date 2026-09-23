@@ -371,7 +371,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {Market[]} array of market structures
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         //
         // outcomeMeta response:
         //
@@ -628,7 +628,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    override async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+    override async fetchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -662,7 +662,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    override async fetchTickers (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionTickers> {
         const requestedOutcomeSymbols: Dict = {};
         if (outcomes !== undefined) {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
@@ -789,7 +789,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -839,7 +839,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.until] end timestamp in ms
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
@@ -936,7 +936,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address (defaults to this.walletAddress)
      * @returns {Balances} balance structure
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
         const request = {
@@ -982,7 +982,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+    override async fetchPositions (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionPosition[]> {
         const requestedOutcomeSymbols: Dict = {};
         if (outcomes !== undefined) {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
@@ -1222,7 +1222,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.initializeClient ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -1361,7 +1361,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         const orders = await this.cancelOrders ([ id ], outcome, params);
         return this.safeDict (orders, 0) as PredictionOrder;
     }
@@ -1376,7 +1376,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async cancelOrders (ids: string[], outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         this.checkRequiredCredentials ();
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires an outcome argument');
@@ -1471,7 +1471,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
         let method: Str;
@@ -1509,7 +1509,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrders', params);
         const request = { 'type': 'historicalOrders', 'user': userAddress };
@@ -1562,7 +1562,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.clientOrderId] fetch by client order id instead
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    async fetchOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrder', params);
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -1722,7 +1722,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -1754,7 +1754,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.until] end timestamp in ms
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         let outcomeHandle: Str = undefined;
         if (outcome !== undefined) {
             const outcomeObj = await this.loadOutcome (outcome);
@@ -2233,7 +2233,7 @@ export default class hyperliquid extends Exchange {
         return normalized.toLowerCase ();
     }
 
-    override sign (path: any, api: any = 'public', method = 'POST', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'POST', params: Dict = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup = Array.isArray (api) ? api[0] : api;
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let baseUrl: string;

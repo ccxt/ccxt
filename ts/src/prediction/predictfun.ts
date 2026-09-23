@@ -270,7 +270,7 @@ export default class predictfun extends Exchange {
      * @param {int} [params.limit] the maximum number of events to collect markets from
      * @returns {Market[]} array of market structures
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const events = await this.fetchEvents (params);
         const eventsLength = events.length;
         const markets: Market[] = [];
@@ -294,7 +294,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.slug] event slug, overrides the id argument when both are given
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+    override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
         // overrides it so a caller can pass the slug the same way fetchEvents () takes it
         const paramSlug = this.safeString (params, 'slug');
@@ -591,7 +591,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
      * @returns {object[]} an array of raw market topics, each with a nested markets list
      */
-    async fetchRawTopicsByQueries (queries: string[], params = {}): Promise<any[]> {
+    async fetchRawTopicsByQueries (queries: string[], params: Dict = {}): Promise<any[]> {
         // always ask for the venue's maximum page size - this is the per-type page size of the
         // search endpoint (it caps at 25 and defaults to 10), not the caller's event limit, which
         // applyEventFetchParams () applies to the parsed events afterwards
@@ -1249,7 +1249,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -1323,7 +1323,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    override async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
+    override async fetchTicker (outcome: Str, params: Dict = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -1469,7 +1469,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.signerAddress] read another wallet's matches instead of the configured one
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         const signerAddress = this.safeString (params, 'signerAddress', this.walletAddress);
         if (signerAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress, or a "signerAddress" parameter for any other address');
@@ -1538,7 +1538,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.minValueUsdtWei] only return matches worth at least this many wei
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -1780,7 +1780,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {string} the JWT
      */
-    async authenticate (params = {}): Promise<Str> {
+    async authenticate (params: Dict = {}): Promise<Str> {
         if ((this.walletAddress === undefined) || (this.privateKey === undefined)) {
             throw new ArgumentsRequired (this.id + ' authenticate() requires a walletAddress and a privateKey');
         }
@@ -1895,7 +1895,7 @@ export default class predictfun extends Exchange {
      * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.authenticate ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -2083,7 +2083,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.after] cursor from a previous response
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+    override async fetchPositions (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionPosition[]> {
         let outcomesLength = 0;
         if (outcomes !== undefined) {
             outcomesLength = outcomes.length;
@@ -2162,7 +2162,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.address] read another wallet's position, which needs no JWT
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    override async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
+    override async fetchPosition (outcome: string, params: Dict = {}): Promise<PredictionPosition> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -2266,7 +2266,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         const orders = await this.cancelOrders ([ id ], outcome, params);
         const order = this.safeDict (orders, 0);
         if (order === undefined) {
@@ -2285,7 +2285,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async cancelOrders (ids: string[], outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
@@ -2348,7 +2348,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    async fetchOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.authenticate ();
         let outcomeObj = undefined;
         if (outcome !== undefined) {
@@ -2408,7 +2408,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         const request: Dict = {
             'status': 'OPEN',
         };
@@ -2427,7 +2427,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         // the venue's status filter is an enum of OPEN and FILLED only - expired and cancelled
         // orders cannot be asked for, so a closed order here means one that filled
         const request: Dict = {
@@ -2450,7 +2450,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOrdersHelper (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    async fetchOrdersHelper (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
@@ -2800,7 +2800,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.gasLimit] gas limit as hex, defaults to 0x186a0
      * @returns {object} the transaction receipt when buying, and the list of receipts when selling - a neg risk market needs two
      */
-    async approve (outcome: Str = undefined, params = {}): Promise<any> {
+    async approve (outcome: Str = undefined, params: Dict = {}): Promise<any> {
         if (this.privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' approve() requires a privateKey to sign the on-chain transaction');
         }
@@ -2906,7 +2906,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    override async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async watchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -2949,7 +2949,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    override async unWatchOrderBook (outcome: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (outcome: string, params: Dict = {}): Promise<any> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -3108,7 +3108,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let messageHash = 'orders';
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
@@ -3141,7 +3141,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         let messageHash = 'myTrades';
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
@@ -3169,7 +3169,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    override async unWatchOrders (outcome: Str = undefined, params = {}): Promise<any> {
+    override async unWatchOrders (outcome: Str = undefined, params: Dict = {}): Promise<any> {
         return await this.unWatchWalletEvents ('orders', params);
     }
 
@@ -3182,7 +3182,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    override async unWatchMyTrades (outcome: Str = undefined, params = {}): Promise<any> {
+    override async unWatchMyTrades (outcome: Str = undefined, params: Dict = {}): Promise<any> {
         return await this.unWatchWalletEvents ('myTrades', params);
     }
 
@@ -3213,7 +3213,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} whatever the channel resolves with
      */
-    async watchWalletEvents (messageHash: string, params = {}): Promise<any> {
+    async watchWalletEvents (messageHash: string, params: Dict = {}): Promise<any> {
         const topic = await this.walletEventsTopic ();
         const requestId = this.requestId ();
         const request: Dict = {
@@ -3272,7 +3272,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    async unWatchWalletEvents (channel: string, params = {}): Promise<any> {
+    async unWatchWalletEvents (channel: string, params: Dict = {}): Promise<any> {
         const topic = await this.walletEventsTopic ();
         const requestId = this.requestId ();
         const request: Dict = {
@@ -3891,7 +3891,7 @@ export default class predictfun extends Exchange {
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: any, api: any = 'predictfun', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'predictfun', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
         // the testnet is the exception, it is served without an API key at all

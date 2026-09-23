@@ -215,7 +215,7 @@ export default class limitless extends Exchange {
      * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); caps the pages fetched
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const queries = this.parseSearchQueries (params);
         const rest = this.omit (params, [ 'query', 'queries', 'limit' ]);
         // scope the listing: without a search query loadMarkets would otherwise page through
@@ -561,7 +561,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+    override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         const request: Dict = { 'addressOrSlug': id };
         const response = await this.limitlessPublicGetMarketsAddressOrSlug (this.extend (request, params));
         // a group response carries its tradeable children in `markets` (each a full market row
@@ -894,7 +894,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    override async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
+    override async fetchTicker (outcome: Str, params: Dict = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
@@ -1155,7 +1155,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    override async fetchTickers (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionTickers> {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
@@ -1220,7 +1220,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
@@ -1277,7 +1277,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
@@ -1362,7 +1362,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (outcome: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (outcome: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
@@ -1498,7 +1498,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires an outcome argument');
         }
@@ -1549,7 +1549,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires an outcome argument');
         }
@@ -1571,7 +1571,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires an outcome argument');
         }
@@ -1592,7 +1592,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOrdersByIds (ids: any, outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    async fetchOrdersByIds (ids: any, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }
@@ -1730,7 +1730,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    async fetchOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }
@@ -2019,7 +2019,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [account structures]
      */
-    override async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         const response = await this.limitlessPrivateGetProfilesMe (params);
         const responseList = [ response ];
         return this.parseAccounts (responseList);
@@ -2038,7 +2038,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         const accounts = await this.loadAccounts ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -2279,7 +2279,7 @@ export default class limitless extends Exchange {
      * @param {string} [params.gasLimit] gas limit hex for the approve tx (default '0x186a0')
      * @returns {object} the transaction receipt
      */
-    async approve (params = {}): Promise<any> {
+    async approve (params: Dict = {}): Promise<any> {
         this.checkRequiredCredentials ();
         if (this.privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' approve() requires a privateKey to sign the on-chain transaction');
@@ -2320,7 +2320,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }
@@ -2349,7 +2349,7 @@ export default class limitless extends Exchange {
      * @param {string} [params.conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an outcome
      * @returns {object} the raw redemption response
      */
-    async redeem (outcome: Str = undefined, params = {}): Promise<any> {
+    async redeem (outcome: Str = undefined, params: Dict = {}): Promise<any> {
         let conditionId = this.safeString2 (params, 'conditionId', 'condition_id');
         if (conditionId === undefined) {
             if (outcome === undefined) {
@@ -2384,7 +2384,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async cancelOrders (ids: string[], outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }
@@ -2413,7 +2413,7 @@ export default class limitless extends Exchange {
      * @param {string} [params.slug] the market slug to cancel all orders for
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    async cancelAllOrders (outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
             let warn = true;
             [ warn, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
@@ -2449,7 +2449,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         // resolve the handle for the final filter — the caller may have passed an outcomeId
         let outcomeSymbol = outcome;
         if (outcome !== undefined) {
@@ -2701,7 +2701,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+    override async fetchPositions (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionPosition[]> {
         let symbolsLength = 0;
         if (outcomes !== undefined) {
             symbolsLength = outcomes.length;
@@ -3018,7 +3018,7 @@ export default class limitless extends Exchange {
      * @param {string} [categoryId] a limitless category id — pages only that category's listing
      * @returns {object[]} raw limitless market objects
      */
-    async fetchRawActiveMarkets (params = {}, categoryId: Str = undefined): Promise<any[]> {
+    async fetchRawActiveMarkets (params: Dict = {}, categoryId: Str = undefined): Promise<any[]> {
         const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
         const pageSize = this.safeInteger (this.options, 'marketsPageSize', 25);
         const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ]);
@@ -3063,7 +3063,7 @@ export default class limitless extends Exchange {
      * @param {int} [params.limit] max number of raw markets to collect per category
      * @returns {object[]} raw limitless market objects, deduped by slug
      */
-    async fetchRawMarketsByTags (tags: string[], params = {}): Promise<any[]> {
+    async fetchRawMarketsByTags (tags: string[], params: Dict = {}): Promise<any[]> {
         const categoriesResponse = await this.limitlessPublicGetCategories ();
         let categories: List = [];
         if (Array.isArray (categoriesResponse)) {
@@ -3127,7 +3127,7 @@ export default class limitless extends Exchange {
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: any, api: any = 'limitless', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'limitless', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'];

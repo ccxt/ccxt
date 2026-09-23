@@ -168,7 +168,7 @@ export default class opinion extends Exchange {
      * @param {int} [params.limit] max number of markets to collect (defaults to options.marketsPageLimit * options.maxMarketsPages, 1000)
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const rest = this.omit (params, [ 'limit' ]);
         const userLimit = this.safeInteger (params, 'limit');
         const pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 20);
@@ -488,7 +488,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+    override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         const isSlug = (id.indexOf ('-') >= 0);
         let response = undefined;
         if (isSlug) {
@@ -649,7 +649,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    override async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+    override async fetchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
         const promises = [
@@ -733,7 +733,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    override async fetchTickers (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionTickers> {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
         }
@@ -773,7 +773,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
         const request: Dict = {
@@ -813,7 +813,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (outcome: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (outcome: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (!(timeframe in this.timeframes)) {
             const supportedKeys = Object.keys (this.timeframes);
             throw new BadRequest (this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join (', '));
@@ -1007,7 +1007,7 @@ export default class opinion extends Exchange {
      * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadApiKey ();
         this.checkRequiredCredentials ();
         const outcomeObj = await this.loadOutcome (outcome);
@@ -1104,7 +1104,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadApiKey ();
         const request: Dict = { 'orderId': id };
         const response = await this.opinionPrivatePostOrderCancel (this.extend (request, params));
@@ -1209,7 +1209,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         await this.loadApiKey ();
         let outcomeObj: any = undefined;
         const request: Dict = {};
@@ -1234,7 +1234,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    async fetchOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadApiKey ();
         let outcomeObj: any = undefined;
         if (outcome !== undefined) {
@@ -1257,7 +1257,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         // 1 = pending - open status
         const request: Dict = { 'status': '1' };
         return await this.fetchOrders (outcome, since, limit, this.extend (request, params));
@@ -1274,7 +1274,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         // 2 = filled, 3 = canceled, 4 = expired, 5 = failed
         const request: Dict = { 'status': '2,3,4,5' };
         return await this.fetchOrders (outcome, since, limit, this.extend (request, params));
@@ -1291,7 +1291,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress');
         }
@@ -1398,7 +1398,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadApiKey ();
         const request: Dict = { 'chain_id': '56' };
         const response = await this.opinionPrivateGetUserBalance (this.extend (request, params));
@@ -1448,7 +1448,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+    override async fetchPositions (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionPosition[]> {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPositions() requires a walletAddress');
         }
@@ -1570,7 +1570,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {object} the api credentials { apiKey, walletAddress }
      */
-    async createApiKey (params = {}): Promise<Dict> {
+    async createApiKey (params: Dict = {}): Promise<Dict> {
         const response = await this.opinionPrivatePostAuthApiKey (params);
         const result = this.safeDict (response, 'result', {});
         return this.setApiCredentials (result);
@@ -1584,7 +1584,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {object} the api credentials { apiKey, walletAddress }
      */
-    async fetchApiKey (params = {}): Promise<Dict> {
+    async fetchApiKey (params: Dict = {}): Promise<Dict> {
         const response = await this.opinionPrivateGetAuthApiKey (params);
         const result = this.safeDict (response, 'result', {});
         return this.setApiCredentials (result);
@@ -1598,7 +1598,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {object} raw response, result.deleted confirms revocation
      */
-    async deleteApiKey (params = {}): Promise<Dict> {
+    async deleteApiKey (params: Dict = {}): Promise<Dict> {
         const response = await this.opinionPrivateDeleteAuthApiKey (params);
         this.options['apiKey'] = undefined;
         // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
@@ -1757,7 +1757,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    override async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async watchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const marketId = this.safeInteger (info, 'marketId');
@@ -1836,7 +1836,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    override async watchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+    override async watchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const marketId = this.safeInteger (info, 'marketId');
@@ -1888,7 +1888,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         const outcomeObj = await this.loadOutcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const marketId = this.safeInteger (info, 'marketId');
@@ -1958,7 +1958,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires an outcome (the order update channel is per-market)');
         }
@@ -2073,7 +2073,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires an outcome (the trade record channel is per-market)');
         }
@@ -2171,7 +2171,7 @@ export default class opinion extends Exchange {
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: any, api: any = 'opinion', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'opinion', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;

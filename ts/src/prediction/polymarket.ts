@@ -351,7 +351,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const queries = this.parseSearchQueries (params) as any[];
         const rest = this.omit (params, [ 'query', 'queries' ]);
         const queriesLength = queries.length;
@@ -391,7 +391,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of raw gamma event objects
      */
-    async fetchRawEventsBySearch (queries: string[], params = {}): Promise<any[]> {
+    async fetchRawEventsBySearch (queries: string[], params: Dict = {}): Promise<any[]> {
         const resultLimit = this.safeInteger (params, 'limit');
         // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
         // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event).
@@ -521,7 +521,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
      * @returns {object[]} an array of raw gamma event objects
      */
-    async fetchRawEventsList (params = {}): Promise<any[]> {
+    async fetchRawEventsList (params: Dict = {}): Promise<any[]> {
         // gamma hard-caps each response at 100 events regardless of the requested limit, so the
         // page size must be that cap or pagination never advances (the > check below stays false)
         const pageSize = this.safeInteger (this.options, 'eventsPageSize', 100);
@@ -980,7 +980,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    override async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+    override async fetchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = outcomeObj['outcomeId'];
         const promises = [
@@ -1040,7 +1040,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    override async fetchTickers (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionTickers> {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
         }
@@ -1222,7 +1222,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = outcomeObj['outcomeId'];
         const request: Dict = {
@@ -1266,7 +1266,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (!(timeframe in this.timeframes)) {
             // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
             const supportedKeys = Object.keys (this.timeframes);
@@ -1382,7 +1382,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current server time in milliseconds
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.clobPublicGetTime (params);
         //
         //     1781273248
@@ -1398,7 +1398,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
      */
-    override async fetchStatus (params = {}): Promise<any> {
+    override async fetchStatus (params: Dict = {}): Promise<any> {
         const response = await this.gammaPublicGetStatus (params);
         //
         //     OK
@@ -1422,7 +1422,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    override async fetchOpenInterest (outcome: string, params = {}): Promise<PredictionOpenInterest> {
+    override async fetchOpenInterest (outcome: string, params: Dict = {}): Promise<PredictionOpenInterest> {
         const outcomeObj = await this.loadOutcome (outcome);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const conditionId = this.safeString (outcomeInfo, 'conditionId');
@@ -1468,7 +1468,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
-    override async fetchTradingFee (outcome: string, params = {}): Promise<PredictionTradingFee> {
+    override async fetchTradingFee (outcome: string, params: Dict = {}): Promise<PredictionTradingFee> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const request: Dict = { 'token_id': tokenId };
@@ -1501,7 +1501,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = outcomeObj['outcomeId'];
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
@@ -1542,7 +1542,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         await this.loadApiCredentials ();
         const request: Dict = {};
         let outcomeObj: any = undefined;
@@ -1567,7 +1567,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchOrderTrades (id: string, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchOrderTrades (id: string, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
         // the ones where this order was the taker or one of the matched makers
         const trades = await this.fetchMyTrades (outcome, undefined, undefined, params);
@@ -1652,7 +1652,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadApiCredentials ();
         // the collateral balance is tied to the signature type / funder that holds the USDC
         const signatureType = this.safeInteger2 (params, 'signatureType', 'signature_type', this.safeInteger (this.options, 'signatureType', 3));
@@ -1698,7 +1698,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+    override async fetchPositions (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionPosition[]> {
         let outcomesLength = 0;
         if (outcomes !== undefined) {
             outcomesLength = outcomes.length;
@@ -1749,7 +1749,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    override async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
+    override async fetchPosition (outcome: string, params: Dict = {}): Promise<PredictionPosition> {
         const positions = await this.fetchPositions ([ outcome ], params);
         return this.safeDict (positions, 0) as PredictionPosition;
     }
@@ -1819,7 +1819,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
         const request: Dict = {};
         let outcomeObj: any = undefined;
@@ -1842,7 +1842,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    async fetchOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         // the request only needs the order id; the outcome is a labelling hint, so resolve it from
         // cache (no network) — fetchOrder stays a single request even on a cold cache.
         await this.loadApiCredentials ();
@@ -1957,7 +1957,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadApiCredentials ();
         await this.loadOutcome (outcome);
         const built = this.buildClobOrderBody (outcome, type, side, amount, price, params);
@@ -1978,7 +1978,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrders (orders: PredictionOrderRequest[], params = {}): Promise<PredictionOrder[]> {
+    override async createOrders (orders: PredictionOrderRequest[], params: Dict = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
         // buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
         // requested outcomes first (one gamma request for all uncached token ids)
@@ -2030,7 +2030,7 @@ export default class polymarket extends Exchange {
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    buildClobOrderBody (outcome: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
+    buildClobOrderBody (outcome: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         // pure builder, no network I/O — intentionally synchronous. a no-op async method
         // transpiles in php to a promise-typed wrapper around a body that returns a plain
         // dict, which throws a TypeError
@@ -2197,7 +2197,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createMarketBuyOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
+    override async createMarketBuyOrderWithCost (outcome: string, cost: number, params: Dict = {}): Promise<PredictionOrder> {
         const request = this.extend (params, { 'cost': cost });
         return await this.createOrder (outcome, 'market', 'buy', cost, undefined, request);
     }
@@ -2338,7 +2338,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadApiCredentials ();
         // cancelling by id needs no market data, so events do not have to be loaded first
         const request: Dict = { 'orderID': id };
@@ -2361,7 +2361,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async cancelOrders (ids: string[], outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
         // the request body is the bare array of order ids (DELETE /orders), so params are not merged
         const response = await this.clobPrivateDeleteOrders (ids);
@@ -2383,7 +2383,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    async cancelAllOrders (outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
         let response = undefined;
         if (outcome !== undefined) {
@@ -2515,7 +2515,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+    override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         let response = undefined;
         if (id.indexOf ('-') >= 0) {
             response = await this.gammaPublicGetEventsSlugSlug (this.extend ({ 'slug': id }, params));
@@ -2686,7 +2686,7 @@ export default class polymarket extends Exchange {
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: any, api: any = 'gamma', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'gamma', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
         // api is either a string ('gamma') or array (['gamma', 'public'])
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
@@ -2874,7 +2874,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.nonce] the nonce used to derive the credentials, defaults to 0
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    async deriveApiKey (params = {}): Promise<Dict> {
+    async deriveApiKey (params: Dict = {}): Promise<Dict> {
         const response = await this.clobPrivateGetAuthDeriveApiKey (params);
         return this.setApiCredentials (response);
     }
@@ -2888,7 +2888,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.nonce] the nonce used to create the credentials, defaults to 0
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    async createApiKey (params = {}): Promise<Dict> {
+    async createApiKey (params: Dict = {}): Promise<Dict> {
         const response = await this.clobPrivatePostAuthApiKey (params);
         return this.setApiCredentials (response);
     }
@@ -2901,7 +2901,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    async createOrDeriveApiKey (params = {}): Promise<Dict> {
+    async createOrDeriveApiKey (params: Dict = {}): Promise<Dict> {
         let creds: NullableDict = undefined;
         try {
             creds = await this.deriveApiKey (params);
@@ -3114,7 +3114,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra params (currently unused)
      * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
      */
-    override async watchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async watchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         outcome = this.safeString (outcomeObj, 'outcome');
@@ -3136,7 +3136,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra params (unused)
      * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
      */
-    override async watchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async watchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         outcome = this.safeString (outcomeObj, 'outcome');
@@ -3156,7 +3156,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra params (unused)
      * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
      */
-    override async watchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
+    override async watchTicker (outcome: Str, params: Dict = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         outcome = this.safeString (outcomeObj, 'outcome');
@@ -3244,7 +3244,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
         let messageHash = 'orders';
         if (outcome !== undefined) {
@@ -3270,7 +3270,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         await this.loadApiCredentials ();
         let messageHash = 'myTrades';
         if (outcome !== undefined) {
@@ -3285,7 +3285,7 @@ export default class polymarket extends Exchange {
         return this.filterByOutcomeSinceLimit (trades, outcome, since, limit, true);
     }
 
-    async subscribeUserChannel (messageHash: string, params = {}) {
+    async subscribeUserChannel (messageHash: string, params: Dict = {}) {
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
         const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'l2ApiKey');
         const secret = (this.secret !== undefined) ? this.secret : this.safeString (this.options, 'l2Secret');

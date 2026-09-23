@@ -219,7 +219,7 @@ export default class kalshi extends Exchange {
      * @param {int} [params.limit] for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const queries = this.parseSearchQueries (params);
         const queriesLength = queries.length;
         // kalshi's public markets endpoint has no free-text search, so a query would otherwise
@@ -480,7 +480,7 @@ export default class kalshi extends Exchange {
         return undefined;
     }
 
-    override calculateFee (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker = 'taker', params = {}) {
+    override calculateFee (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker = 'taker', params: Dict = {}) {
         // kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * price * (1 - price), which
         // peaks at price 0.5 and vanishes near 0 or 1. the describe() `taker: 0.07` is only the
         // coefficient; compute the real per-contract formula here so fee estimates are accurate
@@ -699,7 +699,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    override async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
+    override async fetchTicker (outcome: Str, params: Dict = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
@@ -774,7 +774,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
      */
-    override async fetchStatus (params = {}): Promise<any> {
+    override async fetchStatus (params: Dict = {}): Promise<any> {
         const response = await this.kalshiPublicGetExchangeStatus (params);
         //
         //     { "exchange_active": true, "trading_active": true }
@@ -798,7 +798,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    override async fetchOpenInterest (outcome: string, params = {}): Promise<PredictionOpenInterest> {
+    override async fetchOpenInterest (outcome: string, params: Dict = {}): Promise<PredictionOpenInterest> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
@@ -970,7 +970,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    override async fetchTickers (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionTickers> {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
@@ -1047,7 +1047,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
@@ -1138,7 +1138,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (outcome: Str, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (outcome: Str, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
@@ -1299,7 +1299,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
@@ -1392,7 +1392,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }
@@ -1517,7 +1517,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         const response = await this.kalshiPrivateGetPortfolioBalance (params);
         return this.parseBalance (response);
     }
@@ -1551,7 +1551,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+    override async fetchPositions (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionPosition[]> {
         let outcomesLength = 0;
         if (outcomes !== undefined) {
             outcomesLength = outcomes.length;
@@ -1604,7 +1604,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of prediction settlement structures
      */
-    override async fetchSettlements (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionSettlement[]> {
+    override async fetchSettlements (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionSettlement[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }
@@ -1759,7 +1759,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }
@@ -1788,7 +1788,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }
@@ -1818,7 +1818,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
         // both executed and canceled, so fetch every order and keep the non-open ones client-side
         const orders = await this.fetchOrders (outcome, undefined, undefined, params);
@@ -1843,7 +1843,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    async fetchOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         // outcome is only a labelling hint here — the request needs just the id, and
         // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
         if (outcome !== undefined) {
@@ -1963,7 +1963,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         // kalshi has no market orders — every order is a limit order and the price is required
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }");
@@ -2057,7 +2057,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async editOrder (id: string, outcome: string, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    async editOrder (id: string, outcome: string, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
         // so edit = cancel the resting order then place a fresh one with the new terms. validate the
         // new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
@@ -2083,7 +2083,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         let outcomeObj: Market = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
@@ -2112,7 +2112,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    async cancelAllOrders (outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }
@@ -2239,7 +2239,7 @@ export default class kalshi extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    async fetchEventsByQuery (queries: string[], limit: Int, rest = {}): Promise<any[]> {
+    async fetchEventsByQuery (queries: string[], limit: Int, rest: Dict = {}): Promise<any[]> {
         const pageSize = (limit !== undefined) ? limit : this.safeInteger (this.options, 'searchSeriesLimit', 25);
         // free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
         const seen: Dict = {};
@@ -2294,7 +2294,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra params forwarded verbatim to the events endpoint
      * @returns {object} the raw kalshi event object with nested markets
      */
-    async fetchRawEventByTicker (ticker: string, params = {}): Promise<any> {
+    async fetchRawEventByTicker (ticker: string, params: Dict = {}): Promise<any> {
         const request: Dict = { 'event_ticker': ticker, 'with_nested_markets': true };
         const response = await this.kalshiPublicGetEventsEventTicker (this.extend (request, params));
         const fullEvent = this.safeDict (response, 'event', response);
@@ -2313,7 +2313,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] the fetchEvents params carrying tags / category / series_ticker
      * @returns {string[]} deduplicated series tickers
      */
-    async resolveEventSeriesTickers (params = {}): Promise<string[]> {
+    async resolveEventSeriesTickers (params: Dict = {}): Promise<string[]> {
         const collected: any[] = [];
         // tags / category -> documented /series listing
         const tags = this.safeList (params, 'tags', []);
@@ -2376,7 +2376,7 @@ export default class kalshi extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    async fetchSeriesEvents (seriesTickers: string[], status: Str, limit: Int, rest = {}): Promise<any[]> {
+    async fetchSeriesEvents (seriesTickers: string[], status: Str, limit: Int, rest: Dict = {}): Promise<any[]> {
         const rawEvents: any[] = [];
         const seriesTickersLength = seriesTickers.length;
         const pageLimit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 200);
@@ -2435,7 +2435,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+    override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         const fullEvent = await this.fetchRawEventByTicker (id, params);
         const event = this.parseEvent (fullEvent);
         this.indexEventOutcomes (event);
@@ -2609,7 +2609,7 @@ export default class kalshi extends Exchange {
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: any, api: any = 'kalshi', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'kalshi', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'];
