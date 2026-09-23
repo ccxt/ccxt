@@ -1115,6 +1115,42 @@ export function ccxtGoUnboxCurrencyDeclaration (goTranspiler, printed) {
     return match[1] + tail.substring (0, close) + '.(' + CCXT_GO_CURRENCY_LOCAL_TYPE + ')' + rest;
 }
 
+// `var x *float64 = Float64PtrTyped(this.ParseNumber (v))`: one-argument parseNumber answers a
+// float64 or nil (no default to hand back), which the pointer carries unchanged. Declarations only.
+const CCXT_GO_PARSE_NUMBER_LOCAL_TYPE = '*float64';
+
+function ccxtGoTypeOfParseNumberInitializer (goTranspiler, initializer, printedValue) {
+    if ((initializer?.kind !== ts.SyntaxKind.CallExpression) || (initializer.arguments.length !== 1)
+        || (initializer.parent?.kind !== ts.SyntaxKind.VariableDeclaration) || (initializer.parent.initializer !== initializer)
+        || (initializer.parent.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)) {
+        return undefined;
+    }
+    if (ccxtGoWholePrintedCallee (goTranspiler, printedValue) !== 'this.ParseNumber') {
+        return undefined;
+    }
+    return typeNameIsUsable (goTranspiler, initializer, CCXT_GO_PARSE_NUMBER_LOCAL_TYPE) ? CCXT_GO_PARSE_NUMBER_LOCAL_TYPE : undefined;
+}
+
+export function ccxtGoUnboxParseNumberDeclaration (goTranspiler, printed) {
+    if (typeof printed !== 'string') {
+        return printed;
+    }
+    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ \*float64 = )(this\.ParseNumber\([^\n]*)$/.exec (printed);
+    if (match === null) {
+        return printed;
+    }
+    const tail = match[2];
+    const close = ccxtGoPrintedCallEnd (tail, tail.indexOf ('('));
+    if (close < 0) {
+        return printed;
+    }
+    const rest = tail.substring (close);
+    if (!/^\s*(;?\s*(\/\/[^\n]*)?)$/.test (rest)) {
+        return printed;
+    }
+    return match[1] + 'Float64PtrTyped(' + tail.substring (0, close) + ')' + rest;
+}
+
 function installCcxtGoCurrencyUnbox (goTranspiler) {
     if (typeof goTranspiler.printVariableDeclarationList !== 'function' || goTranspiler.__ccxtGoCurrencyUnboxInstalled) {
         return;
@@ -1122,7 +1158,7 @@ function installCcxtGoCurrencyUnbox (goTranspiler) {
     const upstream = goTranspiler.printVariableDeclarationList;
     goTranspiler.printVariableDeclarationList = function (node, identation) {
         const printed = upstream.call (this, node, identation);
-        return ccxtGoUnboxCurrencyDeclaration (this, printed);
+        return ccxtGoUnboxParseNumberDeclaration (this, ccxtGoUnboxCurrencyDeclaration (this, printed));
     };
     goTranspiler.__ccxtGoCurrencyUnboxInstalled = true;
 }
@@ -5006,6 +5042,10 @@ export function installCcxtGoLocalTypes (goTranspiler) {
             if (currencyType !== undefined) {
                 return currencyType;
             }
+            const parseNumberType = ccxtGoTypeOfParseNumberInitializer (this, initializer, printedValue);
+            if (parseNumberType !== undefined) {
+                return parseNumberType;
+            }
             return ccxtGoTypeOfCopiedLocal (this, initializer, printedValue);
         }
         if (!typeNameIsUsable (this, initializer, goType)) {
@@ -5248,6 +5288,12 @@ const CCXT_GO_PRODUCER_DECLARATIONS = {
     'this.ParseMarketLeverageTiers': 'list',
     'this.ParseOHLCVs': 'list',
     'this.ParseTrade': 'map',
+    'this.ParseOrder': 'map',
+    'this.ParseTicker': 'map',
+    'this.ParseWsOrder': 'map',
+    'this.ParseWsTicker': 'map',
+    'this.Omit': 'map',
+    'this.SafeMarket': 'map',
     'this.ParseTransaction': 'map',
     'this.ParseWsOHLCVs': 'list',
     'this.PolymarketOrderRawAmounts': 'map',
@@ -5352,10 +5398,43 @@ function ccxtGoProducerDeclarationType (goTranspiler, declaration, family) {
         || (typeof goTranspiler.goSafeListUseReadsTheList !== 'function')) {
         return undefined; // older printer without the container read scans: nothing to extend
     }
-    const readsTheValue = dictLike
-        ? (n) => goTranspiler.goSafeDictUseReadsTheMap (n)
-        : (n) => goTranspiler.goSafeListUseReadsTheList (n);
+    const neverAbsent = dictLike && ((CCXT_GO_PRODUCER_NEVER_ABSENT.indexOf (goName) >= 0)
+        || ((goName === 'Omit') && ccxtGoProducerArgIsMap (goTranspiler, initializer.arguments[0])));
+    const readsTheValue = neverAbsent
+        ? (n) => !ccxtGoProducerUseRebinds (n)
+        : (dictLike
+            ? (n) => goTranspiler.goSafeDictUseReadsTheMap (n)
+            : (n) => goTranspiler.goSafeListUseReadsTheList (n));
     return goTranspiler.goDeclaredLocalTypeIfSafe (declaration, goType, readsTheValue);
+}
+
+// every ts return path of these (all overrides) yields a Dict, so the local is never a nil map:
+// handing it out, returning it or writing into it keeps the boxed value's meaning
+const CCXT_GO_PRODUCER_NEVER_ABSENT = [ 'ParseOrder', 'ParseTrade', 'ParseTicker', 'ParsePosition', 'ParseTransaction', 'ParseWsOrder', 'ParseWsTicker', 'ParseWsTrade',
+    // safeMarket: every override returns super.safeMarket or createExpiredOptionMarket (a dict literal)
+    'SafeMarket' ];
+
+// Omit rebuilds a map argument into a fresh map (OmitMap/OmitN), even a nil typed one
+function ccxtGoProducerArgIsMap (goTranspiler, arg) {
+    if (arg === undefined) {
+        return false;
+    }
+    if (arg.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+        return true;
+    }
+    if ((arg.kind === ts.SyntaxKind.Identifier) && (typeof goTranspiler.goDeclaredTypeOfIdentifier === 'function')) {
+        return goTranspiler.goDeclaredTypeOfIdentifier (arg) === CCXT_GO_PRODUCER_DICT_TYPE;
+    }
+    return false;
+}
+
+function ccxtGoProducerUseRebinds (n) {
+    const parent = n.parent;
+    if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n) && isAssignmentOperator (parent.operatorToken.kind)) {
+        return true;
+    }
+    return (parent?.kind === ts.SyntaxKind.PostfixUnaryExpression) || (parent?.kind === ts.SyntaxKind.PrefixUnaryExpression)
+        || (parent?.kind === ts.SyntaxKind.DeleteExpression);
 }
 
 // the initializer a typed producer local is declared with: the same call, its boxed result
