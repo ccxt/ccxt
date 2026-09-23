@@ -254,13 +254,13 @@ func NewMarketInterface(data any) MarketInterface {
 
 	// Handle precision if present
 	var precision Precision
-	if v, ok := m["precision"]; ok && v != nil {
+	if v, ok := m["precision"]; ok && derefScalar(v) != nil {
 		precision = NewPrecision(v)
 	}
 
 	// Handle marginModes if present
 	var marginModes *MarketMarginModes
-	if v, ok := m["marginModes"]; ok && v != nil {
+	if v, ok := m["marginModes"]; ok && derefScalar(v) != nil {
 		if marginModesMap, ok := v.(map[string]any); ok {
 			marginModesValue := NewMarketMarginModes(marginModesMap)
 			marginModes = &marginModesValue
@@ -724,7 +724,7 @@ type Transaction struct {
 func NewTransaction(transaction2 any) Transaction {
 	transaction := transaction2.(map[string]any)
 	var fee *Fee
-	if v, ok := transaction["fee"]; ok && v != nil {
+	if v, ok := transaction["fee"]; ok && derefScalar(v) != nil {
 		if feeMap, ok := v.(map[string]any); ok {
 			feeValue := NewFee(feeMap)
 			fee = &feeValue
@@ -2694,21 +2694,21 @@ func NewDepositWithdrawFee(data any) DepositWithdrawFee {
 		info = m
 	}
 	var withdraw *DepositWithdrawFeeNetwork
-	if v, ok := m["withdraw"]; ok && v != nil {
+	if v, ok := m["withdraw"]; ok && derefScalar(v) != nil {
 		if withdrawMap, ok := v.(map[string]any); ok {
 			withdrawValue := NewDepositWithdrawFeeNetwork(withdrawMap)
 			withdraw = &withdrawValue
 		}
 	}
 	var deposit *DepositWithdrawFeeNetwork
-	if v, ok := m["deposit"]; ok && v != nil {
+	if v, ok := m["deposit"]; ok && derefScalar(v) != nil {
 		if depositMap, ok := v.(map[string]any); ok {
 			depositValue := NewDepositWithdrawFeeNetwork(depositMap)
 			deposit = &depositValue
 		}
 	}
 	networks := make(map[string]DepositWithdrawFeeNetwork)
-	if v, ok := m["networks"]; ok && v != nil {
+	if v, ok := m["networks"]; ok && derefScalar(v) != nil {
 		if networksMap, ok := v.(map[string]any); ok {
 			for key, value := range networksMap {
 				if networkMap, ok := value.(map[string]any); ok {

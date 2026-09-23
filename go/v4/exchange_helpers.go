@@ -996,6 +996,9 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 			// return fmt.Errorf("invalid key type for slice: expected int")
 		}
 	case map[string]any:
+		if obj == nil {
+			return // a typed-nil map is absent: a no-op, like untyped nil
+		}
 		if key, ok := stringOrInt.(string); ok {
 			addElementMu.Lock()
 			obj[key] = value
@@ -1833,6 +1836,15 @@ func derefScalar(v any) any {
 			return nil
 		}
 		return derefScalar(*p)
+	case map[string]any:
+		// a typed-nil container local boxed into `any` reads as absent, like untyped nil
+		if p == nil {
+			return nil
+		}
+	case []any:
+		if p == nil {
+			return nil
+		}
 	}
 	return v
 }
