@@ -1361,6 +1361,162 @@ function goTypedConcatInitializer (goTranspiler, node, declaration) {
     return initializer;
 }
 
+// true when the printer printed `Add(` / `ccxt.Add(` at the TOP LEVEL of `text`, i.e.
+// it did not concatenate this `+` expression natively. An `Add(` inside parentheses
+// (an argument of a string-returning call) or inside a string literal does not count.
+function goPrintedTextHasBareAddCall (text) {
+    let depth = 0;
+    for (let i = 0; i < text.length; i++) {
+        const character = text[i];
+        if (character === '"') {
+            i += 1;
+            while ((i < text.length) && (text[i] !== '"')) {
+                i += (text[i] === '\\') ? 2 : 1;
+            }
+            continue;
+        }
+        if ((character === '(') || (character === '[') || (character === '{')) {
+            depth += 1;
+        } else if ((character === ')') || (character === ']') || (character === '}')) {
+            depth -= 1;
+        } else if ((depth === 0) && text.startsWith ('Add(', i)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// the leaves of a `+` tree, left to right (a nested `+` is flattened: the printer
+// prints `this.Id + " " + *errorText` as one native chain)
+function goNativeConcatLeaves (node) {
+    if ((node?.kind === ts.SyntaxKind.BinaryExpression) && (node.operatorToken?.kind === ts.SyntaxKind.PlusToken)) {
+        return goNativeConcatLeaves (node.left).concat (goNativeConcatLeaves (node.right));
+    }
+    return [ node ];
+}
+
+// a leaf whose printed text is a deref the printer emitted itself (`*baseCurr`,
+// `*this.SafeString(market, "baseId", "")`): the deref is a Go string when the pointer is
+// a `*string` or when the chain carries another positively proven Go string leaf.
+function goPrinterDerefStringOperand (goTranspiler, node, chainHasStringProof) {
+    if ((node?.kind !== ts.SyntaxKind.Identifier) && (node?.kind !== ts.SyntaxKind.CallExpression)) {
+        return false;
+    }
+    const printed = (goTranspiler.printNode (node, 0) ?? '').trim ();
+    if (!printed.startsWith ('*') || printed.startsWith ('**')) {
+        return false;
+    }
+    const target = printed.substring (1).trim ();
+    const isWholeTarget = /^[A-Za-z_]\w*$/.test (target)
+        || ((typeof goTranspiler.isWholePrintedCall === 'function') && goTranspiler.isWholePrintedCall (target, 0));
+    if (!isWholeTarget) {
+        return false;
+    }
+    let targetType;
+    try {
+        targetType = (node.kind === ts.SyntaxKind.Identifier)
+            ? ((typeof goTranspiler.goDeclaredTypeOfIdentifier === 'function')
+                ? goTranspiler.goDeclaredTypeOfIdentifier (node)
+                : undefined)
+            : goTranspiler.goTypeOfInitializer (node, target);
+    } catch (e) {
+        targetType = undefined;
+    }
+    return (targetType === '*string') || chainHasStringProof;
+}
+
+// the `+` chain the printer already concatenated natively, or undefined: a natively
+// printed chain is a Go expression whose `+` binds, so the declaration may only say
+// `string` when every leaf is provably a non-nil Go string.
+function goNativeConcatInitializer (goTranspiler, node, declaration) {
+    const initializer = declaration?.initializer;
+    if (initializer?.kind !== ts.SyntaxKind.BinaryExpression
+        || initializer.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    // the same statement-level guard goTypedConcatInitializer applies: a `for`
+    // initializer prints as `x := ...`, there is nothing to declare
+    if (node?.parent?.kind !== ts.SyntaxKind.FirstStatement) {
+        return undefined;
+    }
+    const nameText = goTranspiler.printNode (declaration.name, 0);
+    if (goPrintedTextHasBareAddCall (goTranspiler.printNode (initializer, 0))) {
+        return undefined; // the `Add(...)` shape: `goTypedConcatInitializer` below owns it
+    }
+    const leaves = goNativeConcatLeaves (initializer);
+    if (leaves.length < 2) {
+        return undefined;
+    }
+    const chainHasStringProof = leaves.some ((leaf) => goStringOperand (goTranspiler, leaf));
+    const allLeavesProvenString = leaves.every ((leaf) => goStringOperand (goTranspiler, leaf)
+        || goPrinterDerefStringOperand (goTranspiler, leaf, chainHasStringProof));
+    if (!allLeavesProvenString) {
+        concatDebugLog ('native-leaf-reject', node, nameText,
+            leaves.map ((leaf) => (ts.SyntaxKind[leaf.kind] ?? '?')).join (','), '');
+        return undefined;
+    }
+    if (goNativeConcatVetoed (goTranspiler, declaration, declaration.name.escapedText)) {
+        concatDebugLog ('native-veto', node, nameText, 'read-or-write', '');
+        return undefined;
+    }
+    return initializer;
+}
+
+// a local this shape would declare `string` may not be compared to nil (`x == nil`
+// not compile against a Go string) and may not be rewritten later, so any later write,
+// nil comparison, `++` or member/element read keeps the declaration `any`.
+function goNativeConcatVetoed (goTranspiler, declaration, varName) {
+    if (typeof goTranspiler.goEnclosingFunction !== 'function') {
+        return true; // no scope to scan: never answer a type
+    }
+    const scope = goTranspiler.goEnclosingFunction (declaration);
+    if (scope === undefined) {
+        return true;
+    }
+    let vetoed = false;
+    const visit = (n) => {
+        if (vetoed) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== declaration.name)) {
+            const parent = n.parent;
+            if (parent !== undefined) {
+                if ((parent.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)
+                    && (parent.operatorToken.kind >= ASSIGNMENT_KIND_MIN)
+                    && (parent.operatorToken.kind <= ASSIGNMENT_KIND_MAX)) {
+                    vetoed = true; // a later write: `x = ...` / `x += ...`
+                    return;
+                }
+                if ((parent.kind === ts.SyntaxKind.BinaryExpression)
+                    && ((parent.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken)
+                        || (parent.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsToken)
+                        || (parent.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken)
+                        || (parent.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken))
+                    && (isNilLiteralExpression (parent.left) || isNilLiteralExpression (parent.right))) {
+                    vetoed = true; // `x == nil` / `x != nil` (TS `x === undefined`)
+                    return;
+                }
+                if (((parent.kind === ts.SyntaxKind.PrefixUnaryExpression) || (parent.kind === ts.SyntaxKind.PostfixUnaryExpression))
+                    && ((parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken))) {
+                    vetoed = true; // `x++`
+                    return;
+                }
+                if (((parent.kind === ts.SyntaxKind.PropertyAccessExpression) || (parent.kind === ts.SyntaxKind.ElementAccessExpression))
+                    && (parent.expression === n)) {
+                    vetoed = true; // `x.key` / `x[i]`: a non-value read the printer may rewrite into a type assertion
+                    return;
+                }
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    return vetoed;
+}
+
 // wrap printVariableDeclarationList: the declaration whose initializer is a typed
 // concatenation is emitted as `var x string = <left> + <right>`. Idempotent.
 function installCcxtGoTypedConcat (goTranspiler) {
@@ -1370,6 +1526,23 @@ function installCcxtGoTypedConcat (goTranspiler) {
     const upstream = goTranspiler.printVariableDeclarationList.bind (goTranspiler);
     goTranspiler.printVariableDeclarationList = (node, identation) => {
         const declaration = (node?.declarations?.length === 1) ? node.declarations[0] : undefined;
+        // shape 2: the printer already printed this chain as a native `a + b + c`, so
+        // there is nothing to re-print — only the declared type is answered, and the
+        // printer's own reject filters still decide whether to use it.
+        const nativeConcatenation = goNativeConcatInitializer (goTranspiler, node, declaration);
+        if (nativeConcatenation !== undefined) {
+            const nativeName = goTranspiler.printNode (declaration.name, 0);
+            TYPED_CONCAT_IN_FLIGHT.add (nativeConcatenation);
+            let nativePrinted;
+            try {
+                nativePrinted = upstream (node, identation);
+            } finally {
+                TYPED_CONCAT_IN_FLIGHT.delete (nativeConcatenation);
+            }
+            concatDebugLog (nativePrinted.indexOf ('var ' + nativeName + ' string = ') >= 0 ? 'typed-native' : 'native-any',
+                node, nativeName, '', '');
+            return nativePrinted;
+        }
         const concatenation = goTypedConcatInitializer (goTranspiler, node, declaration);
         if (concatenation === undefined) {
             return upstream (node, identation);
