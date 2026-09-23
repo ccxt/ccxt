@@ -2107,7 +2107,7 @@ function retypeArrayBindingHolder (goTranspiler, node, printed) {
     }
     const match = ARRAY_BINDING_HOLDER_RE.exec (printed); // `^`-anchored: no scan of the block
     if (match === null) {
-        return printed;
+        return retypeAsyncArrayBindingHolder (goTranspiler, node, printed);
     }
     const indent = match[1];
     const name = match[2];
@@ -2132,6 +2132,35 @@ function retypeArrayBindingHolder (goTranspiler, node, printed) {
         return printed;
     }
     return indent + 'var ' + name + ' []any = ' + printed.slice (prefix.length);
+}
+
+// `<indent><a><b>Variable := (<-this.XAsync(..))`: a tuple core whose channel carries a []any
+const ASYNC_ARRAY_BINDING_HOLDER_RE = /^([ \t]*)([A-Za-z_]\w*Variable) := (\(<-(?:this\.)?([A-Za-z_]\w*)\([^\n]*\)\))\n/;
+
+// the async holder declared []any and received through PanicOnError, like every typed receive
+function retypeAsyncArrayBindingHolder (goTranspiler, node, printed) {
+    const match = ASYNC_ARRAY_BINDING_HOLDER_RE.exec (printed);
+    if ((match === null) || (CCXT_GO_ASYNC_ELEM_TYPES[match[4]] !== '[]any')
+        || (CCXT_GO_ASYNC_ELEM_EXCLUDED.indexOf (match[4]) >= 0)) {
+        return printed;
+    }
+    const recv = match[3];
+    const bare = recv.replace (/"(?:[^"\\]|\\.)*"/g, '""');
+    let depth = 0;
+    for (let i = 0; i < bare.length; i++) {
+        depth += (bare[i] === '(') ? 1 : ((bare[i] === ')') ? -1 : 0);
+        if ((depth === 0) && (i < bare.length - 1)) {
+            return printed;                     // the outer parens do not span the receive
+        }
+    }
+    if ((depth !== 0) || (printed.indexOf ('GetValue(' + match[2] + ',') < 0)) {
+        return printed;
+    }
+    const scope = (typeof goTranspiler.goEnclosingFunction === 'function') ? goTranspiler.goEnclosingFunction (node) : undefined;
+    if ((typeof goTranspiler.goTypeNameIsShadowed === 'function') && goTranspiler.goTypeNameIsShadowed (scope, '[]any')) {
+        return printed;
+    }
+    return match[1] + 'var ' + match[2] + ' []any = ListTyped(PanicOnError(' + recv + '))\n' + printed.slice (match[0].length);
 }
 
 // wrap both destructuring paths on a Transpiler's Go printer. Idempotent; everything the
@@ -4162,6 +4191,11 @@ export const CCXT_GO_ASYNC_ELEM_TYPES = {
     'FetchOrdersWsAsync': '[]any',
     // same FilterBy* tail
     'FetchPaginatedCallCursorAsync': '[]any',
+    // every send is `this.FilterBySinceLimit(..)`, which answers a []any or nil
+    'FetchPaginatedCallDeterministicAsync': '[]any',
+    'FetchPaginatedCallIncrementalAsync': '[]any',
+    // loadOutcome sends a cached/fetched outcome dict (SafeOutcome / fetchOutcome)
+    'LoadOutcomeAsync': 'map[string]any',
     // exchange_generated.go fetchPaginatedCallDynamicBody `ch <- this.FilterBySinceLimit(sortedRes, since,
     'FetchPaginatedCallDynamicAsync': '[]any',
     // R1 concrete container send in the body
@@ -4489,8 +4523,6 @@ export const CCXT_GO_ASYNC_ELEM_EXCLUDED = [
     'FetchOrderStatusAsync',
     'FetchOutcomeAsync',
     'FetchOutcomesAsync',
-    'FetchPaginatedCallDeterministicAsync',
-    'FetchPaginatedCallIncrementalAsync',
     'FetchPaymentMethodsAsync',
     'FetchPrivateDepositWithdrawFeesAsync',
     'FetchPublicDepositWithdrawFeesAsync',
@@ -4526,7 +4558,6 @@ export const CCXT_GO_ASYNC_ELEM_EXCLUDED = [
     'LoadDydxProtosAsync',
     'LoadMarketsAndSignInAsync',
     'LoadMultiSignAddressAsync',
-    'LoadOutcomeAsync',
     'LoadOutcomesAsync',
     'LoadTimeDifferenceAsync',
     'LoadUnifiedStatusAsync',
