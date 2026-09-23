@@ -5997,12 +5997,24 @@ function literalTypeOfValue (printer, node) {
         case ts.SyntaxKind.ParenthesizedExpression:
         case ts.SyntaxKind.NonNullExpression:
             return literalTypeOfValue (printer, node.expression);
-        case ts.SyntaxKind.BinaryExpression:
+        case ts.SyntaxKind.BinaryExpression: {
             // `a < b`, `a === b`, `a && b`, `k in o`, `a instanceof T` all print boolean
             // helpers — except the assignment/arithmetic operators
-            return LITERAL_BOOLEAN_BINARY_OPERATORS.has (node.operatorToken.kind)
-                ? { type: LITERAL_BOOLEAN_TYPE, nonNull: true }
-                : undefined;
+            if (LITERAL_BOOLEAN_BINARY_OPERATORS.has (node.operatorToken.kind)) {
+                return { type: LITERAL_BOOLEAN_TYPE, nonNull: true };
+            }
+            // `<read> + "lit"` keeps the native `+` (the printer proves an operand is a
+            // String there), and one String operand makes the whole concat statically
+            // String — null included, JLS 15.18.1 — so the local needs no checkcast
+            const plusRight = node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                ? unwrapParens (node.right) : undefined;
+            if (plusRight !== undefined
+                && (ts.isStringLiteral (plusRight) || ts.isNoSubstitutionTemplateLiteral (plusRight))
+                && printedConcatIsNative (printer, node.left, node.right)) {
+                return { type: LITERAL_STRING_TYPE, nonNull: true };
+            }
+            return undefined;
+        }
         case ts.SyntaxKind.PrefixUnaryExpression:
             // `!x` prints `!Helpers.isTrue(x)`
             return node.operator === ts.SyntaxKind.ExclamationToken
