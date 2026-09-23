@@ -1698,7 +1698,7 @@ final Object finalJ = j;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -2410,11 +2410,11 @@ final Object finalJ = j;
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2430,7 +2430,7 @@ final Object finalJ = j;
             {
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
                 String requestedNetwork = this.safeStringUpper(parameters, "network");
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
                 String networkId = (((java.util.Objects.equals(requestedNetwork, null)))) ? null : this.safeString(networks, requestedNetwork);
                 if (java.util.Objects.equals(networkId, null))
                 {

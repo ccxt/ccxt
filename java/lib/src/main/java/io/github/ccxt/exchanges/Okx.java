@@ -3284,7 +3284,7 @@ public class Okx extends OkxApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3296,11 +3296,11 @@ public class Okx extends OkxApi
             Boolean rpi = false;
             List<Object> rpiparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "rpi");
             rpi = Boolean.TRUE.equals(((List<Object>) rpiparametersVariable).get(0));
-            parameters = ((List<Object>) rpiparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) rpiparametersVariable).get(1);
             Object method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
             method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             if (java.util.Objects.equals(method, "publicGetMarketBooksFull") && java.util.Objects.equals(limit, null))
             {
                 limit = 5000;
@@ -3316,7 +3316,7 @@ public class Okx extends OkxApi
             {
                 ((Map<String, Object>)request).put("sz", limit); // max 400
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(rpi))
             {
                 response = (this.publicGetMarketBooksRpi(this.extend(request, parameters))).join();
@@ -3542,7 +3542,7 @@ public class Okx extends OkxApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3552,7 +3552,7 @@ public class Okx extends OkxApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Okx.this.convertToInstrumentType(finalMarketType) );
@@ -3686,7 +3686,7 @@ public class Okx extends OkxApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3696,7 +3696,7 @@ public class Okx extends OkxApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Okx.this.convertToInstrumentType(finalMarketType) );
@@ -3857,7 +3857,7 @@ public class Okx extends OkxApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3865,7 +3865,7 @@ public class Okx extends OkxApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "tradeId", "after", null, 100)).join();
@@ -3874,7 +3874,7 @@ public class Okx extends OkxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 response = (this.publicGetPublicOptionTrades(this.extend(request, parameters))).join();
@@ -3887,7 +3887,7 @@ public class Okx extends OkxApi
                 Object method = null;
                 List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
                 method = ((List<Object>) methodparametersVariable).get(0);
-                parameters = ((List<Object>) methodparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
                 if (java.util.Objects.equals(method, "publicGetMarketTrades"))
                 {
                     response = (this.publicGetMarketTrades(this.extend(request, parameters))).join();
@@ -4010,7 +4010,7 @@ public class Okx extends OkxApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4019,14 +4019,14 @@ public class Okx extends OkxApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 200)).join();
             }
             String priceType = this.safeString(parameters, "price");
             boolean isMarkOrIndex = this.inArray(priceType, new ArrayList<Object>(Arrays.asList("mark", "index")));
-            parameters = this.omit(parameters, "price");
+            parameters = (Map<String, Object>) this.omit(parameters, "price");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
             String timezone = this.safeString(options, "timezone", "UTC");
             Boolean limitIsUndefined = (java.util.Objects.equals(limit, null));
@@ -4072,13 +4072,13 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("after", until);
-                parameters = this.omit(parameters, "until");
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
             }
             defaultType = this.safeString(options, "type", defaultType); // Candles or HistoryCandles
             String type = this.safeString(parameters, "type", defaultType);
-            parameters = this.omit(parameters, "type");
+            parameters = (Map<String, Object>) this.omit(parameters, "type");
             Boolean isHistoryCandles = (java.util.Objects.equals(type, "HistoryCandles"));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(priceType, "mark"))
             {
                 if (Boolean.TRUE.equals(isHistoryCandles))
@@ -4178,7 +4178,7 @@ public class Okx extends OkxApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -4190,7 +4190,7 @@ public class Okx extends OkxApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100)).join();
@@ -4461,7 +4461,7 @@ public class Okx extends OkxApi
             var marketType = ((List<Object>) marketTypequeryVariable).get(0);
             var query = ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "funding"))
             {
                 response = (this.privateGetAssetBalances(this.extend(request, query))).join();
@@ -5118,7 +5118,7 @@ public class Okx extends OkxApi
                 // because it has a lower ratelimit
                 request = new ArrayList<Object>(Arrays.asList(request));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privatePostTradeOrder"))
             {
                 response = (this.privatePostTradeOrder(request)).join();
@@ -5420,7 +5420,7 @@ public class Okx extends OkxApi
             {
                 isAlgoOrder = true;
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isAlgoOrder))
             {
                 response = (this.privatePostTradeAmendAlgos(this.extend(request, parameters))).join();
@@ -5679,7 +5679,7 @@ public class Okx extends OkxApi
                     }
                 }
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privatePostTradeCancelAlgos"))
             {
                 response = (this.privatePostTradeCancelAlgos(request)).join(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -5799,7 +5799,7 @@ public class Okx extends OkxApi
                 ((Map<String, Object>)requestItem).put((String)idKey, (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : id);
                 ((List<Object>)request).add(requestItem);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privatePostTradeCancelAlgos"))
             {
                 response = (this.privatePostTradeCancelAlgos(request)).join(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -6302,7 +6302,7 @@ public class Okx extends OkxApi
                 }
             }
             Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "clOrdId", "clientOrderId", "stop", "trigger")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetTradeOrderAlgo"))
             {
                 response = (this.privateGetTradeOrderAlgo(this.extend(request, query))).join();
@@ -6454,7 +6454,7 @@ public class Okx extends OkxApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6463,7 +6463,7 @@ public class Okx extends OkxApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters, maxLimit)).join();
@@ -6499,7 +6499,7 @@ public class Okx extends OkxApi
                 ((Map<String, Object>)request).put("ordType", "trigger");
             }
             Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "trailing")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetTradeOrdersAlgoPending"))
             {
                 response = (this.privateGetTradeOrdersAlgoPending(this.extend(request, query))).join();
@@ -6721,7 +6721,7 @@ public class Okx extends OkxApi
                 }
             }
             Object send = this.omit(query, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "trailing")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetTradeOrdersAlgoHistory"))
             {
                 response = (this.privateGetTradeOrdersAlgoHistory(this.extend(request, send))).join();
@@ -6885,7 +6885,7 @@ public class Okx extends OkxApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6894,7 +6894,7 @@ public class Okx extends OkxApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters, maxLimit)).join();
@@ -6952,7 +6952,7 @@ public class Okx extends OkxApi
                 ((Map<String, Object>)request).put("state", "filled");
             }
             Object send = this.omit(query, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "trailing")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetTradeOrdersAlgoHistory"))
             {
                 response = (this.privateGetTradeOrdersAlgoHistory(this.extend(request, send))).join();
@@ -7111,7 +7111,7 @@ public class Okx extends OkxApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7119,7 +7119,7 @@ public class Okx extends OkxApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
@@ -7137,7 +7137,7 @@ public class Okx extends OkxApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             var type = ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
@@ -7260,7 +7260,7 @@ public class Okx extends OkxApi
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7268,7 +7268,7 @@ public class Okx extends OkxApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters)).join();
@@ -7276,12 +7276,12 @@ public class Okx extends OkxApi
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchLedger", new HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method");
             method = this.safeString(parameters, "method", method);
-            parameters = this.omit(parameters, "method");
+            parameters = (Map<String, Object>) this.omit(parameters, "method");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLedger", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 marginMode = this.safeString(parameters, "mgnMode");
@@ -7312,8 +7312,8 @@ public class Okx extends OkxApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetAccountBillsArchive"))
             {
                 response = (this.privateGetAccountBillsArchive(this.extend(request, query))).join();
@@ -7747,11 +7747,11 @@ public class Okx extends OkxApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String address = address3;
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -7775,7 +7775,7 @@ public class Okx extends OkxApi
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
                 network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
                 ((Map<String, Object>)request).put("chain", ((((Map<String, Object>)currency).get("id") + "-") + network));
-                parameters = this.omit(parameters, "network");
+                parameters = (Map<String, Object>) this.omit(parameters, "network");
             }
             String fee = this.safeString(parameters, "fee");
             if (java.util.Objects.equals(fee, null))
@@ -7852,7 +7852,7 @@ public class Okx extends OkxApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7860,7 +7860,7 @@ public class Okx extends OkxApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, parameters)).join();
@@ -7882,7 +7882,7 @@ public class Okx extends OkxApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
             //
             //     {
@@ -8018,7 +8018,7 @@ public class Okx extends OkxApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -8026,7 +8026,7 @@ public class Okx extends OkxApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters)).join();
@@ -8048,7 +8048,7 @@ public class Okx extends OkxApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
             //
             //     {
@@ -8361,7 +8361,7 @@ public class Okx extends OkxApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -8369,7 +8369,7 @@ public class Okx extends OkxApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 marginMode = this.safeString(parameters, "mgnMode", "cross"); // cross as default marginMode
@@ -8600,7 +8600,7 @@ public class Okx extends OkxApi
             }
             Map<String, Object> fetchPositionsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchPositions", new HashMap<String, Object>() {{}});
             String method = this.safeString(fetchPositionsOptions, "method", "privateGetAccountPositions");
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetAccountPositionsHistory"))
             {
                 response = (this.privateGetAccountPositionsHistory(this.extend(request, parameters))).join();
@@ -9615,7 +9615,7 @@ public class Okx extends OkxApi
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -9632,7 +9632,7 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
                 {
                     if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -9751,7 +9751,7 @@ public class Okx extends OkxApi
         return BaseExchange.supplyAsync(() -> {
             Object leverage = leverage3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -9770,7 +9770,7 @@ public class Okx extends OkxApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 marginMode = this.safeString(parameters, "mgnMode", "cross"); // cross as default marginMode
@@ -10564,7 +10564,7 @@ public class Okx extends OkxApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -10582,7 +10582,7 @@ public class Okx extends OkxApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 marginMode = this.safeString(parameters, "tdMode", "cross"); // cross as default marginMode
@@ -10716,7 +10716,7 @@ public class Okx extends OkxApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -10724,7 +10724,7 @@ public class Okx extends OkxApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 marginMode = this.safeString(parameters, "mgnMode", "cross"); // cross as default marginMode
@@ -11069,7 +11069,7 @@ public class Okx extends OkxApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -11083,7 +11083,7 @@ public class Okx extends OkxApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "swap");
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             String instType = "SWAP";
             if (java.util.Objects.equals(marketType, "future"))
             {
@@ -11172,7 +11172,7 @@ public class Okx extends OkxApi
             Object symbol = symbol3;
             Object timeframe = timeframe3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOpenInterestHistory", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, "timeframes", new HashMap<String, Object>() {{}});
             timeframe = this.safeString(timeframes, timeframe, timeframe);
@@ -11203,10 +11203,10 @@ public class Okx extends OkxApi
                 put( "period", finalTimeframe );
             }};
             Object type = null;
-            Object response = null;
+            Map<String, Object> response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (java.util.Objects.equals(type, "option"))
             {
                 response = (this.publicGetRubikStatOptionOpenInterestVolume(this.extend(request, parameters))).join();
@@ -11220,7 +11220,7 @@ public class Okx extends OkxApi
                 if (!java.util.Objects.equals(until, null))
                 {
                     ((Map<String, Object>)request).put("end", until);
-                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+                    parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                 }
                 response = (this.publicGetRubikStatContractsOpenInterestVolume(this.extend(request, parameters))).join();
             }
@@ -11533,7 +11533,7 @@ public class Okx extends OkxApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchSettlementHistory() requires a symbol argument")) ;
@@ -11546,7 +11546,7 @@ public class Okx extends OkxApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "future") && !java.util.Objects.equals(type, "option"))
             {
                 throw new NotSupported((this.id + " fetchSettlementHistory() supports futures and options markets only")) ;
@@ -11670,7 +11670,7 @@ public class Okx extends OkxApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -11678,7 +11678,7 @@ public class Okx extends OkxApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchUnderlyingAssets", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if ((java.util.Objects.equals(marketType, null)) || (java.util.Objects.equals(marketType, "spot")))
             {
                 marketType = "option";
@@ -11996,7 +11996,7 @@ public class Okx extends OkxApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object side = side3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12007,7 +12007,7 @@ public class Okx extends OkxApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             final Object finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
@@ -12525,7 +12525,7 @@ public class Okx extends OkxApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12533,7 +12533,7 @@ public class Okx extends OkxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("before", since);
@@ -12861,7 +12861,7 @@ public class Okx extends OkxApi
             {
                 ((Map<String, Object>)request).put("endTime", until);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             Long now = this.milliseconds();
             Long oneWeekAgo = (now - 604800000L);
             Long threeMonthsAgo = (now - 7776000000L);

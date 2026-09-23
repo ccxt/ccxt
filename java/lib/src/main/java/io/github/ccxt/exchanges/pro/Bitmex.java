@@ -1765,14 +1765,14 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String table = ("tradeBin" + this.safeString(this.timeframes, timeframe, timeframe));
             String messageHash = ((table + ":") + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");

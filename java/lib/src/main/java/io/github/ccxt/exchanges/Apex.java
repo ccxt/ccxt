@@ -1069,7 +1069,7 @@ public class Apex extends ApexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1087,7 +1087,7 @@ public class Apex extends ApexApi
             ((Map<String, Object>)request).put("limit", limit); // max 200, default 200
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters, 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
@@ -2180,7 +2180,7 @@ public class Apex extends ApexApi
             Map<String, Object> parameters = parameters3;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("id", clientOrderId);
@@ -2234,7 +2234,7 @@ public class Apex extends ApexApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("id", clientOrderId);

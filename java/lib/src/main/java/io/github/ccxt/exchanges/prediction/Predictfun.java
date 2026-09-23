@@ -2339,7 +2339,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.authenticate()).join();
             (this.loadOutcome((String) (outcome))).join();
             Object outcomeObj = this.outcome((String) (outcome));
@@ -2370,7 +2370,7 @@ final Object finalMarketSymbol = marketSymbol;
             Boolean warnOnMarketOrderWithoutPrice = true;
             List<Object> warnOnMarketOrderWithoutPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
             warnOnMarketOrderWithoutPrice = Helpers.isTrue(((List<Object>) warnOnMarketOrderWithoutPriceparametersVariable).get(0));
-            parameters = ((List<Object>) warnOnMarketOrderWithoutPriceparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) warnOnMarketOrderWithoutPriceparametersVariable).get(1);
             if (java.util.Objects.equals(price, null))
             {
                 // a priceless limit order already threw above, so this is a market order
@@ -2438,13 +2438,13 @@ final Object finalMarketSymbol = marketSymbol;
             Object taker = "0x0000000000000000000000000000000000000000";
             List<Object> takerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "taker", taker);
             taker = ((List<Object>) takerparametersVariable).get(0);
-            parameters = ((List<Object>) takerparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) takerparametersVariable).get(1);
             final Object finalTaker = taker;
             final String finalTokenId = tokenId;
             final String finalMakerAmount = makerAmount;
             final String finalTakerAmount = takerAmount;
             final Object finalExpiration = expiration;
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> contractOrder = new HashMap<String, Object>() {{
                 put( "salt", salt );
                 put( "maker", Predictfun.this.walletAddress );
@@ -2473,7 +2473,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object postOnly = this.safeBool(parameters, "isPostOnly", false);
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarket, postOnly, parameters);
             postOnly = ((List<Object>) postOnlyparametersVariable).get(0);
-            parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
             if (Helpers.isTrue(postOnly))
             {
                 ((Map<String, Object>)data).put("isPostOnly", postOnly);
@@ -2491,7 +2491,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             // every param the method consumes itself has to come out, otherwise it survives into the
             // extend below and is posted as a top level key next to 'data'
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker")));
             // the JWT authorises the order, the api key only authorises the request
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "data", data );
@@ -2596,7 +2596,7 @@ final Object finalMarketSymbol = marketSymbol;
                 (this.loadOutcomes(outcomes)).join();
             }
             String address = this.safeString(parameters, "address");
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(address, null))
             {
                 // the by-address endpoint reads any wallet and is happy with just the api key

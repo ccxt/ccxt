@@ -131,14 +131,14 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String topic = ("kline_" + interval);
             String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
@@ -259,13 +259,13 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object topic = "realtimes";
             String messageHash = ("ticker:" + symbol);
             return (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
@@ -346,14 +346,14 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object topic = "trade";
             String messageHash = ("trades:" + symbol);
             Object trades = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
@@ -450,13 +450,13 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object topic = "depth";
             String messageHash = ("orderbook:" + symbol);
             Object orderbook = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
@@ -1011,7 +1011,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object listenKey = (this.authenticate()).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1020,7 +1020,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Object type = "spot";
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String messageHash = ("balance:" + type);
             Object url = this.getPrivateUrl(listenKey);
             Client client = this.client(url);
@@ -1029,10 +1029,10 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Object awaitBalanceSnapshot = null;
             List<Object> fetchBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true);
             fetchBalanceSnapshot = ((List<Object>) fetchBalanceSnapshotparametersVariable).get(0);
-            parameters = ((List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
             List<Object> awaitBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false);
             awaitBalanceSnapshot = ((List<Object>) awaitBalanceSnapshotparametersVariable).get(0);
-            parameters = ((List<Object>) awaitBalanceSnapshotparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) awaitBalanceSnapshotparametersVariable).get(1);
             if (Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();

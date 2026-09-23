@@ -181,13 +181,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTicker", new HashMap<String, Object>() {{}});
             String topic = this.safeString(options, "name", "market.{marketId}.detail");
             if (java.util.Objects.equals(topic, "market.{marketId}.ticker") && !java.util.Objects.equals(((Map<String, Object>)market).get("type"), "spot"))
@@ -344,14 +344,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("market." + ((Map<String, Object>)market).get("id")) + ".trade.detail");
             Object url = this.getUrlByMarketType(((Map<String, Object>)market).get("type"), ((Map<String, Object>)market).get("linear"));
             Object trades = (this.subscribePublic((String) (url), (String) (symbol), messageHash, null, parameters)).join();
@@ -500,14 +500,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String messageHash = ((("market." + ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
             Object url = this.getUrlByMarketType(((Map<String, Object>)market).get("type"), ((Map<String, Object>)market).get("linear"));
@@ -652,7 +652,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -660,7 +660,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             List<Object> allowedLimits = new ArrayList<Object>(Arrays.asList(5, 20, 150, 400));
             // 2) 5-level/20-level incremental MBP is a tick by tick feed,
             // which means whenever there is an order book change at that level, it pushes an update;
@@ -1159,7 +1159,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
             this.checkRequiredCredentials();
@@ -1177,7 +1177,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 type = ((Map<String, Object>)market).get("type");
                 subType = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? "linear" : "inverse";
                 marketId = ((Map<String, Object>)market).get("lowercaseId");
@@ -1350,7 +1350,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -1364,7 +1364,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 type = ((Map<String, Object>)market).get("type");
                 suffix = ((Map<String, Object>)market).get("lowercaseId");
                 subType = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? "linear" : "inverse";
@@ -2021,7 +2021,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2043,20 +2043,20 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchPositions", market, parameters);
                 type = ((List<Object>) typeparametersVariable).get(0);
-                parameters = ((List<Object>) typeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
                 if (java.util.Objects.equals(type, "spot"))
                 {
                     type = "future";
                 }
                 List<Object> subTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "subType", subType);
                 subType = ((List<Object>) subTypeparametersVariable).get(0);
-                parameters = ((List<Object>) subTypeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             }
             symbols = this.marketSymbols(symbols);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("watchPositions", parameters, "cross");
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
             Boolean swap = (java.util.Objects.equals(type, "swap"));
             Boolean future = (java.util.Objects.equals(type, "future"));
@@ -2074,7 +2074,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 }
                 Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("positions", v5Market, parameters);
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
-                parameters = this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
+                parameters = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
             }
             final Object finalMarginMode = marginMode;
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
@@ -2276,17 +2276,17 @@ public class Htx extends io.github.ccxt.exchanges.Htx
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", null, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isUnifiedAccount = (Boolean) this.safeBool2(parameters, "isUnifiedAccount", "unified", false);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("isUnifiedAccount", "unified")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("isUnifiedAccount", "unified")));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2307,7 +2307,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             } else if (Boolean.TRUE.equals(isV5Linear))
             {
                 marginMode = this.safeString(parameters, "margin", "cross");
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "symbol", "margin")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "symbol", "margin")));
                 channel = "account";
                 messageHash = "account";
             } else
@@ -2317,7 +2317,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Object market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
                 Object currencyCode = (((!java.util.Objects.equals(currency, null)))) ? this.currency((String) (currency)) : null;
                 marginMode = this.safeString(parameters, "margin", "cross");
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "symbol", "margin")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "symbol", "margin")));
                 Object prefix = "accounts";
                 messageHash = prefix;
                 if (java.util.Objects.equals(subType, "linear"))

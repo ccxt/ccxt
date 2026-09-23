@@ -593,13 +593,13 @@ public class Bithumb extends BithumbApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isEqual(generation, 2))
             {
                 ((Map<String, Object>)request).put("isDetails", true);
@@ -880,7 +880,7 @@ public class Bithumb extends BithumbApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -888,7 +888,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Object response = null;
             if (Helpers.isEqual(generation, 2))
             {
@@ -937,7 +937,7 @@ public class Bithumb extends BithumbApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -945,7 +945,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
@@ -1215,7 +1215,7 @@ public class Bithumb extends BithumbApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1223,7 +1223,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             if (Helpers.isEqual(generation, 2))
@@ -1447,7 +1447,7 @@ public class Bithumb extends BithumbApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1455,7 +1455,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTicker", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
@@ -1613,7 +1613,7 @@ public class Bithumb extends BithumbApi
         return BaseExchange.supplyAsync(() -> {
             Object timeframe = timeframe3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1621,7 +1621,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
@@ -1903,7 +1903,7 @@ public class Bithumb extends BithumbApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1911,7 +1911,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -2001,7 +2001,7 @@ public class Bithumb extends BithumbApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2009,7 +2009,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrders", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " createOrders is only supported for the generation 2 API")) ;
@@ -2227,7 +2227,7 @@ public class Bithumb extends BithumbApi
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2235,10 +2235,10 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Object request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object response = null;
+            Map<String, Object> response = null;
             if (Helpers.isEqual(generation, 2))
             {
                 request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
@@ -2274,7 +2274,7 @@ public class Bithumb extends BithumbApi
             {
                 throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
             }
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             final Object finalType = type;
             final Object finalSide = side;
             final String finalId = id;
@@ -2330,7 +2330,7 @@ public class Bithumb extends BithumbApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2338,7 +2338,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
@@ -2387,7 +2387,7 @@ public class Bithumb extends BithumbApi
         return BaseExchange.supplyAsync(() -> {
             Object side = side3;
             Object amount = amount3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2395,7 +2395,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createTwapOrder", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " createTwapOrder() is only supported for the generation 2 API")) ;
@@ -2472,7 +2472,7 @@ public class Bithumb extends BithumbApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2480,16 +2480,16 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrder", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
             Boolean twap = (Boolean) this.safeBool(parameters, "twap", false);
-            parameters = this.omit(parameters, "twap");
+            parameters = (Map<String, Object>) this.omit(parameters, "twap");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             Object data = null;
             if (Helpers.isEqual(generation, 2))
             {
@@ -2533,7 +2533,7 @@ public class Bithumb extends BithumbApi
                     if (!java.util.Objects.equals(clientOrderId, null))
                     {
                         ((Map<String, Object>)request).put("client_order_id", clientOrderId);
-                        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+                        parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
                     } else
                     {
                         ((Map<String, Object>)request).put("uuid", id);
@@ -2937,7 +2937,7 @@ public class Bithumb extends BithumbApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2945,10 +2945,10 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            Object response = null;
+            Map<String, Object> response = null;
             if (Helpers.isEqual(generation, 2))
             {
                 Boolean twap = (Boolean) this.safeBool(parameters, "twap", false);
@@ -3031,7 +3031,7 @@ public class Bithumb extends BithumbApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3039,21 +3039,21 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " fetchOrders is only supported for the generation 2 API")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean twap = (Boolean) this.safeBool(parameters, "twap", false);
-            parameters = this.omit(parameters, "twap");
+            parameters = (Map<String, Object>) this.omit(parameters, "twap");
             if (!Boolean.TRUE.equals(twap))
             {
                 List<Object> clientOrderIds = (List<Object>) this.safeList2(parameters, "client_order_ids", "clientOrderIds");
                 if (!java.util.Objects.equals(clientOrderIds, null))
                 {
                     ((Map<String, Object>)request).put("client_order_ids", clientOrderIds);
-                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds")));
+                    parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds")));
                 }
             }
             Map<String, Object> market = null;
@@ -3262,7 +3262,7 @@ public class Bithumb extends BithumbApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3270,16 +3270,16 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             Boolean twap = (Boolean) this.safeBool(parameters, "twap", false);
-            parameters = this.omit(parameters, "twap");
+            parameters = (Map<String, Object>) this.omit(parameters, "twap");
             if (Boolean.TRUE.equals(twap))
             {
                 ((Map<String, Object>)request).put("algo_order_id", id);
@@ -3289,7 +3289,7 @@ public class Bithumb extends BithumbApi
                 if ((Helpers.isEqual(generation, 2)) && (!java.util.Objects.equals(clientOrderId, null)))
                 {
                     ((Map<String, Object>)request).put("client_order_id", clientOrderId);
-                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+                    parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
                 } else
                 {
                     ((Map<String, Object>)request).put("order_id", id);
@@ -3330,7 +3330,7 @@ public class Bithumb extends BithumbApi
                 {
                     side = "ask";
                 }
-                parameters = this.omit(parameters, "side");
+                parameters = (Map<String, Object>) this.omit(parameters, "side");
                 // https://github.com/ccxt/ccxt/issues/6771
                 ((Map<String, Object>)request).put("type", side);
                 ((Map<String, Object>)request).put("order_currency", base);
@@ -3381,7 +3381,7 @@ public class Bithumb extends BithumbApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3389,7 +3389,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " cancelOrders is only supported for the generation 2 API")) ;
@@ -3404,7 +3404,7 @@ public class Bithumb extends BithumbApi
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
                 ((Map<String, Object>)request).put("client_order_ids", clientOrderIds);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds")));
             } else
             {
                 ((Map<String, Object>)request).put("order_ids", ids);
@@ -3494,7 +3494,7 @@ public class Bithumb extends BithumbApi
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
             Object tag = tag3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3502,21 +3502,21 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "withdraw", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             String network = this.safeString2(parameters, "network", "net_type");
-            parameters = this.omit(parameters, "network");
+            parameters = (Map<String, Object>) this.omit(parameters, "network");
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             Object destinationRequest = null;
             if (java.util.Objects.equals(code, "XRP") || java.util.Objects.equals(code, "XMR") || java.util.Objects.equals(code, "EOS") || java.util.Objects.equals(code, "STEEM") || java.util.Objects.equals(code, "TON"))
             {
                 String destination = this.safeString2(parameters, "destination", "secondary_address");
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("destination", "secondary_address")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("destination", "secondary_address")));
                 if ((java.util.Objects.equals(tag, null)) && (java.util.Objects.equals(destination, null)))
                 {
                     throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a tag argument or an extra destination param")) ;
@@ -3529,7 +3529,7 @@ public class Bithumb extends BithumbApi
                 }
             }
             String receiverType = this.safeString2(parameters, "receiver_type", "cust_type_cd");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("receiver_type", "cust_type_cd")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("receiver_type", "cust_type_cd")));
             if (Helpers.isEqual(generation, 2))
             {
                 if (java.util.Objects.equals(code, "KRW"))
@@ -3810,7 +3810,7 @@ public class Bithumb extends BithumbApi
         return BaseExchange.supplyAsync(() -> {
             String id = id3;
             String code = code3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3818,7 +3818,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawal", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " fetchWithdrawal() is only supported for the generation 2 API")) ;
@@ -3898,7 +3898,7 @@ public class Bithumb extends BithumbApi
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3906,7 +3906,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " fetchWithdrawals() is only supported for the generation 2 API")) ;
@@ -3916,7 +3916,7 @@ public class Bithumb extends BithumbApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            List<Object> response = null;
             Map<String, Object> currency = null;
             if (java.util.Objects.equals(code, "KRW"))
             {
@@ -3995,7 +3995,7 @@ public class Bithumb extends BithumbApi
         return BaseExchange.supplyAsync(() -> {
             String id = id3;
             String code = code3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4003,7 +4003,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposit", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " fetchDeposit() is only supported for the generation 2 API")) ;
@@ -4083,7 +4083,7 @@ public class Bithumb extends BithumbApi
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4091,7 +4091,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " fetchDeposits() is only supported for the generation 2 API")) ;
@@ -4101,7 +4101,7 @@ public class Bithumb extends BithumbApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            List<Object> response = null;
             Map<String, Object> currency = null;
             if (java.util.Objects.equals(code, "KRW"))
             {
@@ -4175,7 +4175,7 @@ public class Bithumb extends BithumbApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4183,7 +4183,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createDepositAddress", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " createDepositAddress() is only supported for the generation 2 API")) ;
@@ -4193,7 +4193,7 @@ public class Bithumb extends BithumbApi
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
             String network = this.safeString2(parameters, "network", "net_type");
-            parameters = this.omit(parameters, "network");
+            parameters = (Map<String, Object>) this.omit(parameters, "network");
             if (java.util.Objects.equals(network, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
@@ -4243,7 +4243,7 @@ public class Bithumb extends BithumbApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4251,7 +4251,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddress", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " fetchDepositAddress() is only supported for the generation 2 API")) ;
@@ -4261,7 +4261,7 @@ public class Bithumb extends BithumbApi
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
             String network = this.safeString2(parameters, "network", "net_type");
-            parameters = this.omit(parameters, "network");
+            parameters = (Map<String, Object>) this.omit(parameters, "network");
             if (java.util.Objects.equals(network, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;
@@ -4310,7 +4310,7 @@ public class Bithumb extends BithumbApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4318,7 +4318,7 @@ public class Bithumb extends BithumbApi
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddresses", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " fetchDepositAddresses() is only supported for the generation 2 API")) ;

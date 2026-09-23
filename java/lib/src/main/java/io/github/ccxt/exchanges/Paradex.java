@@ -1775,7 +1775,7 @@ public class Paradex extends ParadexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1783,7 +1783,7 @@ public class Paradex extends ParadexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
@@ -1802,7 +1802,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
             //     {
@@ -2882,7 +2882,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("client_id", clientOrderId);
@@ -3105,7 +3105,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("client_id", clientOrderId);
@@ -3186,7 +3186,7 @@ public class Paradex extends ParadexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.authenticateRest()).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3195,7 +3195,7 @@ public class Paradex extends ParadexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "next", "cursor", null, 50)).join();
@@ -3217,7 +3217,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetOrdersHistory(this.extend(request, parameters))).join();
             //
             // {
@@ -3458,7 +3458,7 @@ public class Paradex extends ParadexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.authenticateRest()).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3467,7 +3467,7 @@ public class Paradex extends ParadexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
@@ -3489,7 +3489,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
             //
             //     {
@@ -3732,7 +3732,7 @@ public class Paradex extends ParadexApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.authenticateRest()).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3753,7 +3753,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetLiquidations(this.extend(request, parameters))).join();
             //
             //     {
@@ -3835,7 +3835,7 @@ public class Paradex extends ParadexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.authenticateRest()).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3844,7 +3844,7 @@ public class Paradex extends ParadexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "next", "cursor", null, 100)).join();
@@ -3860,7 +3860,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
             //
             //     {
@@ -3936,7 +3936,7 @@ public class Paradex extends ParadexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.authenticateRest()).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3945,7 +3945,7 @@ public class Paradex extends ParadexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "next", "cursor", null, 100)).join();
@@ -3961,7 +3961,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
             //
             //     {
@@ -4039,7 +4039,7 @@ public class Paradex extends ParadexApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.authenticateRest()).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -4048,7 +4048,7 @@ public class Paradex extends ParadexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "next", "cursor", null, 100)).join();
@@ -4069,7 +4069,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
             //
             //     {
@@ -4323,7 +4323,7 @@ public class Paradex extends ParadexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkRequiredArgument("setMarginMode", symbol, "symbol");
             (this.authenticateRest()).join();
             if (java.util.Objects.equals(this.markets, null))
@@ -4334,7 +4334,7 @@ public class Paradex extends ParadexApi
             Object leverage = 1;
             List<Object> leverageparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "leverage", leverage);
             leverage = ((List<Object>) leverageparametersVariable).get(0);
-            parameters = ((List<Object>) leverageparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) leverageparametersVariable).get(1);
             final Object finalLeverage = leverage;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -4459,7 +4459,7 @@ public class Paradex extends ParadexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkRequiredArgument("setLeverage", symbol, "symbol");
             (this.authenticateRest()).join();
             if (java.util.Objects.equals(this.markets, null))
@@ -4470,7 +4470,7 @@ public class Paradex extends ParadexApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             final Object finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -4740,7 +4740,7 @@ public class Paradex extends ParadexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingHistory() requires a symbol argument")) ;
@@ -4753,7 +4753,7 @@ public class Paradex extends ParadexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
@@ -4775,7 +4775,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetFundingPayments(this.extend(request, parameters))).join();
             //
             // {

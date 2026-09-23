@@ -186,14 +186,14 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String channel = "candles";
             String key = ((("trade:" + interval) + ":") + ((Map<String, Object>)market).get("id"));
@@ -244,13 +244,13 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String channel = "candles";
             String subMessageHash = ((((channel + ":") + interval) + ":") + ((Map<String, Object>)market).get("id"));
@@ -265,7 +265,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }};
             String unSubChanMsg = ("unsubscribe:" + channelId);
             ((Map)client.subscriptions).put((String)unSubChanMsg, subMessageHash);
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
                 put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash)) );

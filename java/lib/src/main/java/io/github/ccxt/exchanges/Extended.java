@@ -1329,12 +1329,12 @@ public class Extended extends ExtendedApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "cursor", "cursor", null, 100)).join();
@@ -1437,12 +1437,12 @@ public class Extended extends ExtendedApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "cursor", "cursor", null, 100)).join();
@@ -1785,10 +1785,10 @@ public class Extended extends ExtendedApi
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -1797,20 +1797,20 @@ public class Extended extends ExtendedApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "cursor", "cursor", null, 10000)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             if (java.util.Objects.equals(limit, null))
             {
                 limit = 100L;
             }
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Long endTime = this.safeInteger(parameters, "endTime", until);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if (java.util.Objects.equals(since, null))
             {
                 since = Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(Helpers.multiply(limit, 60), 60), 1000)));
@@ -2247,12 +2247,12 @@ public class Extended extends ExtendedApi
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
@@ -2387,12 +2387,12 @@ public class Extended extends ExtendedApi
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransactions", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransactions", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
@@ -2664,12 +2664,12 @@ public class Extended extends ExtendedApi
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
@@ -3381,7 +3381,7 @@ public class Extended extends ExtendedApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             if ((symbols instanceof String))
             {
@@ -3390,7 +3390,7 @@ public class Extended extends ExtendedApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchPositionsHistory", symbols, since, limit, parameters, "cursor", "cursor", null, 10000)).join();
@@ -3720,7 +3720,7 @@ public class Extended extends ExtendedApi
             String type = type3;
             String side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(type, null))
             {
                 throw new ArgumentsRequired((this.id + " requires a type argument")) ;
@@ -3761,15 +3761,15 @@ public class Extended extends ExtendedApi
             {
                 builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
                 builderId = this.safeString2(parameters, "builderId", "defaultBuilderId");
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId")));
             } else
             {
                 List<Object> builderFeeRateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
                 builderFeeRate = ((List<Object>) builderFeeRateparametersVariable).get(0);
-                parameters = ((List<Object>) builderFeeRateparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) builderFeeRateparametersVariable).get(1);
                 List<Object> builderIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "builderId");
                 builderId = ((List<Object>) builderIdparametersVariable).get(0);
-                parameters = ((List<Object>) builderIdparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) builderIdparametersVariable).get(1);
             }
             Object totalFee = fee;
             if (!java.util.Objects.equals(builderFeeRate, null))
@@ -3956,8 +3956,8 @@ public class Extended extends ExtendedApi
                     ((Map<String, Object>)request).put("trigger", trigger);
                 }
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")));
-            final Object finalParameters = parameters;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")));
+            final Map<String, Object> finalParameters = parameters;
             final Long finalNow = now;
             return new HashMap<String, Object>() {{
                 put( "request", Extended.this.extend(request, finalParameters) );
@@ -4221,7 +4221,7 @@ public class Extended extends ExtendedApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -4250,7 +4250,7 @@ public class Extended extends ExtendedApi
             //
             Object orderId = (((java.util.Objects.equals(clientOrderId, null)))) ? id : null;
             Object orderSymbol = (((java.util.Objects.equals(market, null)))) ? symbol : ((Map<String, Object>)market).get("symbol");
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             final String finalClientOrderId_2 = clientOrderId;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
@@ -4477,7 +4477,7 @@ public class Extended extends ExtendedApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             Object order = null;
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
@@ -4618,12 +4618,12 @@ public class Extended extends ExtendedApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 100)).join();

@@ -915,7 +915,7 @@ public class Luno extends LunoApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(limit, null) && Helpers.isLessThanOrEqual(limit, 100))
             {
                 response = (this.publicGetOrderbookTop(this.extend(request, parameters))).join();
@@ -1800,7 +1800,7 @@ public class Luno extends LunoApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(side, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
@@ -1828,7 +1828,7 @@ public class Luno extends LunoApi
             {
                 throw new NullResponse((this.id + " createOrder() returned empty response")) ;
             }
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "id", ((Map<String, Object>)finalResponse).get("order_id") );

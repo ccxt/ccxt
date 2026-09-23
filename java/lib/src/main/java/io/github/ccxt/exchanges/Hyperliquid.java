@@ -1327,25 +1327,25 @@ public class Hyperliquid extends HyperliquidApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
             Boolean shouldRefresh = (!java.util.Objects.equals(this.safeString2(parameters, "user", "address"), null)) && java.util.Objects.equals(this.safeBool(parameters, "enableUnifiedMargin"), null);
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchBalance", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Object isUnifiedEnabled = null;
             var isUnifiedEnabledparametersVariable = (this.isUnifiedEnabled("fetchBalance", userAddress, shouldRefresh, parameters)).join();
             isUnifiedEnabled = ((List<Object>) isUnifiedEnabledparametersVariable).get(0);
-            parameters = ((List<Object>) isUnifiedEnabledparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isUnifiedEnabledparametersVariable).get(1);
             String dex = this.safeString(parameters, "dex");
             Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(isUnifiedEnabled, true))) && (java.util.Objects.equals(dex, null));
             final Boolean finalIsSpot = isSpot;
@@ -1545,7 +1545,7 @@ public class Hyperliquid extends HyperliquidApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1554,11 +1554,11 @@ public class Hyperliquid extends HyperliquidApi
             // at this stage, to get tickers data, we use fetchMarkets endpoints
             Object response = new ArrayList<Object>(Arrays.asList());
             String type = this.safeString(parameters, "type");
-            parameters = this.omit(parameters, "type");
+            parameters = (Map<String, Object>) this.omit(parameters, "type");
             Object hip3 = false;
             List<Object> hip3parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "hip3", false);
             hip3 = ((List<Object>) hip3parametersVariable).get(0);
-            parameters = ((List<Object>) hip3parametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) hip3parametersVariable).get(1);
             if (!java.util.Objects.equals(symbols, null))
             {
                 // infer from first symbol
@@ -1574,7 +1574,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             if (Boolean.TRUE.equals(hip3))
             {
-                parameters = this.omit(parameters, "hip3");
+                parameters = (Map<String, Object>) this.omit(parameters, "hip3");
                 response = (this.fetchHip3Markets(parameters)).join();
             } else if (java.util.Objects.equals(type, "spot"))
             {
@@ -1977,11 +1977,11 @@ public class Hyperliquid extends HyperliquidApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchTrades", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2004,7 +2004,7 @@ public class Hyperliquid extends HyperliquidApi
                 ((Map<String, Object>)request).put("type", "userFills");
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -2476,7 +2476,7 @@ public class Hyperliquid extends HyperliquidApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object address = address3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             if (!java.util.Objects.equals(address, null))
             {
@@ -2485,12 +2485,12 @@ public class Hyperliquid extends HyperliquidApi
             {
                 List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("isUnifiedEnabled", (Map<String, Object>) (parameters));
                 userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-                parameters = ((List<Object>) userAddressparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             }
             Object enableUnifiedMargin = null;
             List<Object> enableUnifiedMarginparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "enableUnifiedMargin");
             enableUnifiedMargin = ((List<Object>) enableUnifiedMarginparametersVariable).get(0);
-            parameters = ((List<Object>) enableUnifiedMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) enableUnifiedMarginparametersVariable).get(1);
             if (java.util.Objects.equals(enableUnifiedMargin, null) || Helpers.isTrue(shouldRefresh))
             {
                 final Object finalUserAddress = userAddress;
@@ -2560,15 +2560,15 @@ public class Hyperliquid extends HyperliquidApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("setUserAbstraction", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Object nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String type = this.safeString(parameters, "type", "userSetAbstraction");
-            parameters = this.omit(parameters, "type");
+            parameters = (Map<String, Object>) this.omit(parameters, "type");
             final Boolean finalIsSandboxMode = isSandboxMode;
             final Object finalUserAddress = userAddress;
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -2632,15 +2632,15 @@ public class Hyperliquid extends HyperliquidApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("enableUserDexAbstraction", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Object nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String type = this.safeString(parameters, "type", "userDexAbstraction");
-            parameters = this.omit(parameters, "type");
+            parameters = (Map<String, Object>) this.omit(parameters, "type");
             final Boolean finalIsSandboxMode = isSandboxMode;
             final Object finalUserAddress = userAddress;
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -2819,7 +2819,7 @@ public class Hyperliquid extends HyperliquidApi
         return BaseExchange.supplyAsync(() -> {
             Object side = side3;
             Object duration = duration3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2830,13 +2830,13 @@ public class Hyperliquid extends HyperliquidApi
             Boolean isBuy = (java.util.Objects.equals(side, "BUY"));
             Object vaultAddress = null;
             Boolean randomize = (Boolean) this.safeBool(parameters, "randomize", false);
-            parameters = this.omit(parameters, "randomize");
+            parameters = (Map<String, Object>) this.omit(parameters, "randomize");
             List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "vaultAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
-            parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
             Double durationMins = (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(duration, 1000), 60))))); // convert from ms to minutes
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> orderObj = new HashMap<String, Object>() {{
                 put( "a", Hyperliquid.this.parseToInt(((Map<String, Object>)market).get("baseId")) );
                 put( "b", isBuy );
@@ -2857,14 +2857,14 @@ public class Hyperliquid extends HyperliquidApi
             }};
             if (!java.util.Objects.equals(vaultAddress, null))
             {
-                parameters = this.omit(parameters, "vaultAddress");
+                parameters = (Map<String, Object>) this.omit(parameters, "vaultAddress");
                 ((Map<String, Object>)request).put("vaultAddress", vaultAddress);
             }
             Long expiresAfter = this.safeInteger(parameters, "expiresAfter");
             if (!java.util.Objects.equals(expiresAfter, null))
             {
                 ((Map<String, Object>)request).put("expiresAfter", expiresAfter);
-                parameters = this.omit(parameters, "expiresAfter");
+                parameters = (Map<String, Object>) this.omit(parameters, "expiresAfter");
             }
             Map<String, Object> response = (this.privatePostExchange(request)).join();
             // {
@@ -3381,7 +3381,7 @@ public class Hyperliquid extends HyperliquidApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3394,7 +3394,7 @@ public class Hyperliquid extends HyperliquidApi
             Object vaultAddress = null;
             List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelTwapOrder", "vaultAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
-            parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "type", "twapCancel" );
@@ -3410,14 +3410,14 @@ public class Hyperliquid extends HyperliquidApi
             }};
             if (!java.util.Objects.equals(vaultAddress, null))
             {
-                parameters = this.omit(parameters, "vaultAddress");
+                parameters = (Map<String, Object>) this.omit(parameters, "vaultAddress");
                 ((Map<String, Object>)request).put("vaultAddress", vaultAddress);
             }
             Long expiresAfter = this.safeInteger(parameters, "expiresAfter");
             if (!java.util.Objects.equals(expiresAfter, null))
             {
                 ((Map<String, Object>)request).put("expiresAfter", expiresAfter);
-                parameters = this.omit(parameters, "expiresAfter");
+                parameters = (Map<String, Object>) this.omit(parameters, "expiresAfter");
             }
             Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
@@ -3549,7 +3549,7 @@ final Object finalClientOrderId = clientOrderId;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3597,14 +3597,14 @@ final Object finalClientOrderId = clientOrderId;
             Object vaultAddress = null;
             List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
-            parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
             Object signature = this.signL1Action(cancelAction, nonce, vaultAddress);
             ((Map<String, Object>)request).put("action", cancelAction);
             ((Map<String, Object>)request).put("signature", signature);
             if (!java.util.Objects.equals(vaultAddress, null))
             {
-                parameters = this.omit(parameters, "vaultAddress");
+                parameters = (Map<String, Object>) this.omit(parameters, "vaultAddress");
                 ((Map<String, Object>)request).put("vaultAddress", vaultAddress);
             }
             Map<String, Object> response = (this.privatePostExchange(request)).join();
@@ -3658,14 +3658,14 @@ final Object finalClientOrderId = clientOrderId;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             (this.initializeClient()).join();
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             Object nonce = this.incrementingNonce();
             final Object finalNonce = nonce;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3678,14 +3678,14 @@ final Object finalClientOrderId = clientOrderId;
             Object vaultAddress = null;
             List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
-            parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
             Object signature = this.signL1Action(cancelAction, nonce, vaultAddress);
             ((Map<String, Object>)request).put("action", cancelAction);
             ((Map<String, Object>)request).put("signature", signature);
             if (!java.util.Objects.equals(vaultAddress, null))
             {
-                parameters = this.omit(parameters, "vaultAddress");
+                parameters = (Map<String, Object>) this.omit(parameters, "vaultAddress");
                 ((Map<String, Object>)request).put("vaultAddress", vaultAddress);
             }
             Map<String, Object> response = (this.privatePostExchange(request)).join();
@@ -4203,15 +4203,15 @@ final Object finalClientOrderId = clientOrderId;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchOpenOrders", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Object method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "frontendOpenOrders");
             method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4432,11 +4432,11 @@ final Object finalClientOrderId = clientOrderId;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchOrders", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4551,11 +4551,11 @@ final Object finalClientOrderId = clientOrderId;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchOrder", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4573,7 +4573,7 @@ final Object finalClientOrderId = clientOrderId;
             }};
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                parameters = this.omit(parameters, "clientOrderId");
+                parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
                 ((Map<String, Object>)request).put("oid", clientOrderId);
             } else
             {
@@ -4887,11 +4887,11 @@ final Object finalClientOrderId = clientOrderId;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchMyTrades", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4914,7 +4914,7 @@ final Object finalClientOrderId = clientOrderId;
                 ((Map<String, Object>)request).put("type", "userFills");
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -5130,7 +5130,7 @@ final Object finalClientOrderId = clientOrderId;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5138,7 +5138,7 @@ final Object finalClientOrderId = clientOrderId;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchPositions", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
             final Object finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5334,7 +5334,7 @@ final Object finalClientOrderId = clientOrderId;
         return BaseExchange.supplyAsync(() -> {
             String marginMode = marginMode3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol argument")) ;
@@ -5352,7 +5352,7 @@ final Object finalClientOrderId = clientOrderId;
             Long asset = this.parseToInt(((Map<String, Object>)market).get("baseId"));
             Boolean isCross = (java.util.Objects.equals(marginMode, "cross"));
             Object nonce = this.incrementingNonce();
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage")));
             final Long finalLeverage = leverage;
             Map<String, Object> updateAction = new HashMap<String, Object>() {{
                 put( "type", "updateLeverage" );
@@ -5363,7 +5363,7 @@ final Object finalClientOrderId = clientOrderId;
             Object vaultAddress = null;
             List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "setMarginMode", "vaultAddress", "subAccountAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
-            parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             if (!java.util.Objects.equals(vaultAddress, null))
             {
                 if (Helpers.isTrue(((String)vaultAddress).startsWith("0x")))
@@ -5427,7 +5427,7 @@ final Object finalClientOrderId = clientOrderId;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -5441,7 +5441,7 @@ final Object finalClientOrderId = clientOrderId;
             Boolean isCross = (java.util.Objects.equals(marginMode, "cross"));
             Long asset = this.parseToInt(((Map<String, Object>)market).get("baseId"));
             Object nonce = this.incrementingNonce();
-            parameters = this.omit(parameters, "marginMode");
+            parameters = (Map<String, Object>) this.omit(parameters, "marginMode");
             Map<String, Object> updateAction = new HashMap<String, Object>() {{
                 put( "type", "updateLeverage" );
                 put( "asset", asset );
@@ -5451,7 +5451,7 @@ final Object finalClientOrderId = clientOrderId;
             Object vaultAddress = null;
             List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "setLeverage", "vaultAddress", "subAccountAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
-            parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
             Object signature = this.signL1Action(updateAction, nonce, vaultAddress);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5461,7 +5461,7 @@ final Object finalClientOrderId = clientOrderId;
             }};
             if (!java.util.Objects.equals(vaultAddress, null))
             {
-                parameters = this.omit(parameters, "vaultAddress");
+                parameters = (Map<String, Object>) this.omit(parameters, "vaultAddress");
                 ((Map<String, Object>)request).put("vaultAddress", vaultAddress);
             }
             Map<String, Object> response = (this.privatePostExchange(request)).join();
@@ -5574,7 +5574,7 @@ final Object finalClientOrderId = clientOrderId;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5597,7 +5597,7 @@ final Object finalClientOrderId = clientOrderId;
             Object vaultAddress = null;
             List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "modifyMargin", "vaultAddress", "subAccountAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
-            parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
             Object signature = this.signL1Action(updateAction, nonce, vaultAddress);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5868,7 +5868,7 @@ final Object finalClientOrderId = clientOrderId;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -5886,9 +5886,9 @@ final Object finalClientOrderId = clientOrderId;
             Object vaultAddress = null;
             List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "withdraw", "vaultAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
-            parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
-            parameters = this.omit(parameters, "vaultAddress");
+            parameters = (Map<String, Object>) this.omit(parameters, "vaultAddress");
             Object nonce = this.incrementingNonce();
             Map<String, Object> action = new HashMap<String, Object>() {{}};
             Object sig = null;
@@ -6031,7 +6031,7 @@ final Object finalClientOrderId = clientOrderId;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6039,7 +6039,7 @@ final Object finalClientOrderId = clientOrderId;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchTradingFee", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -6175,7 +6175,7 @@ final Object finalClientOrderId = clientOrderId;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6183,7 +6183,7 @@ final Object finalClientOrderId = clientOrderId;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchLedger", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "userNonFundingLedgerUpdates" );
@@ -6197,7 +6197,7 @@ final Object finalClientOrderId = clientOrderId;
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             }
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             //
@@ -6313,7 +6313,7 @@ final Object finalClientOrderId = clientOrderId;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6321,7 +6321,7 @@ final Object finalClientOrderId = clientOrderId;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchDepositsWithdrawals", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "userNonFundingLedgerUpdates" );
@@ -6339,7 +6339,7 @@ final Object finalClientOrderId = clientOrderId;
                     throw new ArgumentsRequired((this.id + " fetchDeposits requires since while until is set")) ;
                 }
                 ((Map<String, Object>)request).put("endTime", until);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             }
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             //
@@ -6364,7 +6364,7 @@ final Object finalClientOrderId = clientOrderId;
             Object vaultAddress = null;
             List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
-            parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
             Object deposits = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(vaultAddress, null))
@@ -6426,7 +6426,7 @@ final Object finalClientOrderId = clientOrderId;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6434,7 +6434,7 @@ final Object finalClientOrderId = clientOrderId;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchDepositsWithdrawals", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "userNonFundingLedgerUpdates" );
@@ -6448,7 +6448,7 @@ final Object finalClientOrderId = clientOrderId;
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             }
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             //
@@ -6473,7 +6473,7 @@ final Object finalClientOrderId = clientOrderId;
             Object vaultAddress = null;
             List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
-            parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
             Object withdrawals = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(vaultAddress, null))
@@ -6650,7 +6650,7 @@ final Object finalClientOrderId = clientOrderId;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6663,7 +6663,7 @@ final Object finalClientOrderId = clientOrderId;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchFundingHistory", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "user", finalUserAddress );
@@ -6674,7 +6674,7 @@ final Object finalClientOrderId = clientOrderId;
                 ((Map<String, Object>)request).put("startTime", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);

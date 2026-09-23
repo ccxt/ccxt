@@ -196,8 +196,8 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = parameters3;
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -206,9 +206,9 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
             List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "name", name);
             name = ((List<Object>) nameparametersVariable).get(0);
-            parameters = ((List<Object>) nameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) nameparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("tickerSubs")), ((String)((Map<String, Object>)market).get("id")), true); // we need to re-subscribe to all tickers upon watching a new ticker
             Object tickerSubs = ((Map<String, Object>)this.options).get("tickerSubs");
             Object request = Helpers.objectKeys(tickerSubs);
@@ -250,7 +250,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -260,7 +260,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
             List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "name", name);
             name = ((List<Object>) nameparametersVariable).get(0);
-            parameters = ((List<Object>) nameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) nameparametersVariable).get(1);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)

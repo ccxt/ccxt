@@ -547,7 +547,7 @@ public class Kalshi extends KalshiApi
                 String suffix = Helpers.slice(outcomeSymbol, (symbolLength - 3L), null);
                 Boolean isNo = (java.util.Objects.equals(suffix, "-NO"));
                 Object baseTicker = ((Boolean.TRUE.equals(isNo))) ? Helpers.slice(outcomeSymbol, 0, (symbolLength - 3L)) : outcomeSymbol;
-                Object response = null;
+                Map<String, Object> response = null;
                 try
                 {
                     response = (this.kalshiPublicGetMarketsTicker(new HashMap<String, Object>() {{
@@ -2808,7 +2808,7 @@ final Object finalOi = oi;
             Object side = side3;
             Object amount = amount3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             // kalshi has no market orders — every order is a limit order and the price is required
             if (java.util.Objects.equals(price, null))
             {
@@ -2836,7 +2836,7 @@ final Object finalOi = oi;
             // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
             // `time_in_force` param (handled below) still overrides
             String unifiedTif = this.safeStringUpper(parameters, "timeInForce");
-            parameters = this.omit(parameters, "timeInForce");
+            parameters = (Map<String, Object>) this.omit(parameters, "timeInForce");
             String defaultTif = ((Boolean.TRUE.equals(isMarket))) ? "immediate_or_cancel" : "good_till_canceled";
             // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
             // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
@@ -2853,11 +2853,11 @@ final Object finalOi = oi;
             Object timeInForce = null;
             List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "time_in_force", defaultTif);
             timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
-            parameters = ((List<Object>) timeInForceparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             Object stp = null;
             List<Object> stpparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
             stp = ((List<Object>) stpparametersVariable).get(0);
-            parameters = ((List<Object>) stpparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stpparametersVariable).get(1);
             final String finalBookSide = bookSide;
             final Object finalAmount = amount;
             final Object finalTimeInForce = timeInForce;

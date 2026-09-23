@@ -1520,7 +1520,7 @@ public class Kraken extends KrakenApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1528,7 +1528,7 @@ public class Kraken extends KrakenApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 720)).join();
@@ -2377,7 +2377,7 @@ public class Kraken extends KrakenApi
                 ((List<Object>)ordersRequests).add(((List<Object>)orderRequest).get(0));
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Object response = null;
+            Map<String, Object> response = null;
             final Map<String, Object> finalMarket = market;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
@@ -3013,7 +3013,7 @@ final String finalId = id;
             Object type = type3;
             Object amount = amount3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3030,14 +3030,14 @@ final String finalId = id;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("cl_ord_id", clientOrderId);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "cl_ord_id")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "cl_ord_id")));
                 request = this.omit(request, "txid");
             }
             Boolean isMarket = (java.util.Objects.equals(type, "market"));
             Boolean postOnly = null;
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarket, false, parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-            parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
             if (java.util.Objects.equals(postOnly, true))
             {
                 ((Map<String, Object>)request).put("post_only", "true"); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
@@ -3054,7 +3054,7 @@ final String finalId = id;
             if (!java.util.Objects.equals(allTriggerPrices, null))
             {
                 String offset = this.safeString(parameters, "offset");
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset")));
                 if (!java.util.Objects.equals(offset, null))
                 {
                     allTriggerPrices = (offset + allTriggerPrices);
@@ -3495,7 +3495,7 @@ final String finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = null;
+            Map<String, Object> response = null;
             Object requestId = this.safeValue(parameters, "userref", id); // string or integer
             parameters = (Map<String, Object>) this.omit(parameters, "userref");
             Object request = new HashMap<String, Object>() {{
@@ -3522,7 +3522,7 @@ final String finalId = id;
                 }
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }}));
@@ -3845,7 +3845,7 @@ final String finalId = id;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3859,17 +3859,17 @@ final String finalId = id;
             if (!java.util.Objects.equals(userref, null))
             {
                 ((Map<String, Object>)request).put("userref", userref);
-                parameters = this.omit(parameters, "userref");
+                parameters = (Map<String, Object>) this.omit(parameters, "userref");
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("cl_ord_id", clientOrderId);
-                parameters = this.omit(parameters, "clientOrderId");
+                parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privatePostClosedOrders(this.extend(request, parameters))).join();
             //
             //     {
@@ -4254,7 +4254,7 @@ final String finalId = id;
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4262,7 +4262,7 @@ final String finalId = id;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 ((Map<String, Object>)parameters).put("cursor", true);
@@ -4282,7 +4282,7 @@ final String finalId = id;
             String until = this.safeString2(parameters, "until", "till");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
                 String untilDivided = Precise.stringDiv(until, "1000");
                 ((Map<String, Object>)request).put("end", Precise.stringAdd(untilDivided, "1"));
             }
@@ -4614,11 +4614,11 @@ final String finalId = id;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String address = address3;
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (((Map<?, ?>)parameters).containsKey("key"))
             {
                 (this.loadMarkets()).join();

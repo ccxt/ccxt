@@ -2800,7 +2800,7 @@ public class Bitstamp extends BitstampApi
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -2994,7 +2994,7 @@ public class Bitstamp extends BitstampApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            List<Object> response = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 response = (this.privatePostUserTransactionsPair(this.extend(request, parameters))).join();
@@ -3048,11 +3048,11 @@ public class Bitstamp extends BitstampApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
@@ -3074,7 +3074,7 @@ public class Bitstamp extends BitstampApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until_timestamp", request, parameters, 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)request).put("limit", limit);
@@ -3981,13 +3981,13 @@ public class Bitstamp extends BitstampApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             // For fiat withdrawals please provide all required additional parameters in the 'params'
             // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4076,7 +4076,7 @@ public class Bitstamp extends BitstampApi
                 put( "amount", Bitstamp.this.parseToNumeric(Bitstamp.this.currencyToPrecision((String) (code), amount)) );
                 put( "currency", ((String)((Map<String, Object>)currency).get("id")).toUpperCase() );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(fromAccount, "main"))
             {
                 ((Map<String, Object>)request).put("subAccount", toAccount);

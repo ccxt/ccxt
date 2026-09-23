@@ -2634,7 +2634,7 @@ public class Limitless extends LimitlessApi
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             List<Account> accounts = (this.loadAccounts()).join();
             (this.loadOutcome((String) (outcome))).join();
             Object outcomeObj = this.outcome((String) (outcome));
@@ -2649,7 +2649,7 @@ public class Limitless extends LimitlessApi
             Object maker = (((!java.util.Objects.equals(this.walletAddress, "")))) ? this.walletAddress : walletFromAccount;
             List<Object> makerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "maker", maker);
             maker = ((List<Object>) makerparametersVariable).get(0);
-            parameters = ((List<Object>) makerparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) makerparametersVariable).get(1);
             try
             {
                 this.checkAddress(maker);
@@ -2669,7 +2669,7 @@ public class Limitless extends LimitlessApi
             }
             List<Object> signerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "signer", signer);
             signer = ((List<Object>) signerparametersVariable).get(0);
-            parameters = ((List<Object>) signerparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) signerparametersVariable).get(1);
             try
             {
                 this.checkAddress(signer);
@@ -2680,7 +2680,7 @@ public class Limitless extends LimitlessApi
             Object taker = this.safeString(this.options, "nullAddress", "0x0000000000000000000000000000000000000000");
             List<Object> takerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "taker", taker);
             taker = ((List<Object>) takerparametersVariable).get(0);
-            parameters = ((List<Object>) takerparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) takerparametersVariable).get(1);
             try
             {
                 this.checkAddress(taker);
@@ -2703,7 +2703,7 @@ public class Limitless extends LimitlessApi
             Object signatureType = ((Boolean.TRUE.equals(isSmartWallet))) ? 2 : 0;
             List<Object> signatureTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "signatureType", signatureType);
             signatureType = ((List<Object>) signatureTypeparametersVariable).get(0);
-            parameters = ((List<Object>) signatureTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) signatureTypeparametersVariable).get(1);
             final Object finalMaker = maker;
             final Object finalSigner = signer;
             final Object finalTaker = taker;
@@ -2723,7 +2723,7 @@ public class Limitless extends LimitlessApi
             Long expirationInt = this.safeInteger(parameters, "expiration");
             if (!java.util.Objects.equals(expirationInt, null))
             {
-                parameters = this.omit(parameters, "expiration");
+                parameters = (Map<String, Object>) this.omit(parameters, "expiration");
                 ((Map<String, Object>)signRequest).put("expiration", this.numberToString(expirationInt));
             } else
             {
@@ -2737,9 +2737,9 @@ public class Limitless extends LimitlessApi
             Boolean postOnly = false;
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarket, false, parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-            parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
             String timeInForce = this.safeString(parameters, "timeInForce");
-            parameters = this.omit(parameters, "timeInForce");
+            parameters = (Map<String, Object>) this.omit(parameters, "timeInForce");
             if (java.util.Objects.equals(timeInForce, null))
             {
                 timeInForce = ((Boolean.TRUE.equals(isMarket))) ? "FOK" : "GTC";
@@ -2750,9 +2750,9 @@ public class Limitless extends LimitlessApi
                 Boolean createMarketBuyOrderRequiresPrice = true;
                 List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
-                parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Double cost = this.safeNumber(parameters, "cost");
-                parameters = this.omit(parameters, "cost");
+                parameters = (Map<String, Object>) this.omit(parameters, "cost");
                 if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
@@ -3189,13 +3189,13 @@ public class Limitless extends LimitlessApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String outcome = outcome3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (!java.util.Objects.equals(outcome, null))
             {
                 Object warn = true;
                 List<Object> warnparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
                 warn = ((List<Object>) warnparametersVariable).get(0);
-                parameters = ((List<Object>) warnparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) warnparametersVariable).get(1);
                 if (Boolean.TRUE.equals(warn))
                 {
                     throw new BadRequest((this.id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.")) ;
@@ -3257,7 +3257,7 @@ public class Limitless extends LimitlessApi
         return BaseExchange.supplyAsync(() -> {
             String outcome = outcome3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             // resolve the handle for the final filter — the caller may have passed an outcomeId
             String outcomeSymbol = outcome;
             if (!java.util.Objects.equals(outcome, null))
@@ -3269,10 +3269,10 @@ public class Limitless extends LimitlessApi
             Integer maxLimit = 100;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", paginate);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                parameters = this.omit(parameters, "paginate");
+                parameters = (Map<String, Object>) this.omit(parameters, "paginate");
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, parameters, "nextCursor", "cursor", null, maxLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -4000,7 +4000,7 @@ public class Limitless extends LimitlessApi
                     put( "page", finalPage );
                     put( "limit", pageSize );
                 }};
-                Object response = null;
+                Map<String, Object> response = null;
                 if (!java.util.Objects.equals(categoryId, null))
                 {
                     ((Map<String, Object>)request).put("categoryId", categoryId);

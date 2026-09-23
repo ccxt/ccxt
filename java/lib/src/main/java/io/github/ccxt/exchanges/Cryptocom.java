@@ -835,7 +835,7 @@ public class Cryptocom extends CryptocomApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             // this endpoint requires authentication
             if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
@@ -844,7 +844,7 @@ public class Cryptocom extends CryptocomApi
             Boolean skipFetchCurrencies = false;
             List<Object> skipFetchCurrenciesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
             skipFetchCurrencies = Boolean.TRUE.equals(((List<Object>) skipFetchCurrenciesparametersVariable).get(0));
-            parameters = ((List<Object>) skipFetchCurrenciesparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) skipFetchCurrenciesparametersVariable).get(1);
             if (Boolean.TRUE.equals(skipFetchCurrencies))
             {
                 // sub-accounts can't access this endpoint
@@ -1350,7 +1350,7 @@ public class Cryptocom extends CryptocomApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1358,7 +1358,7 @@ public class Cryptocom extends CryptocomApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters)).join();
@@ -1379,7 +1379,7 @@ public class Cryptocom extends CryptocomApi
                 ((Map<String, Object>)request).put("limit", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("end_time", until);
@@ -1469,7 +1469,7 @@ public class Cryptocom extends CryptocomApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1477,7 +1477,7 @@ public class Cryptocom extends CryptocomApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
@@ -1495,7 +1495,7 @@ public class Cryptocom extends CryptocomApi
                 ((Map<String, Object>)request).put("count", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("end_ts", until);
@@ -1567,7 +1567,7 @@ public class Cryptocom extends CryptocomApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1575,7 +1575,7 @@ public class Cryptocom extends CryptocomApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 300)).join();
@@ -1596,7 +1596,7 @@ public class Cryptocom extends CryptocomApi
             Object now = this.microseconds();
             int duration = this.parseTimeframe(timeframe);
             Long until = this.safeInteger(parameters, "until", now);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_ts", Helpers.subtract(since, (((long) duration) * 1000L)));
@@ -2812,7 +2812,7 @@ public class Cryptocom extends CryptocomApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2820,7 +2820,7 @@ public class Cryptocom extends CryptocomApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100)).join();
@@ -2841,7 +2841,7 @@ public class Cryptocom extends CryptocomApi
                 ((Map<String, Object>)request).put("limit", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("end_time", until);
@@ -2936,11 +2936,11 @@ public class Cryptocom extends CryptocomApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2958,7 +2958,7 @@ public class Cryptocom extends CryptocomApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, code);
             if (!java.util.Objects.equals(networkId, null))
             {
@@ -4198,7 +4198,7 @@ public class Cryptocom extends CryptocomApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4211,7 +4211,7 @@ public class Cryptocom extends CryptocomApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             this.checkRequiredArgument("fetchSettlementHistory", type, "type", new ArrayList<Object>(Arrays.asList("future", "option", "WARRANT", "FUTURE")));
             if (java.util.Objects.equals(type, "option"))
             {
@@ -4448,7 +4448,7 @@ public class Cryptocom extends CryptocomApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -4460,7 +4460,7 @@ public class Cryptocom extends CryptocomApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
@@ -4483,7 +4483,7 @@ public class Cryptocom extends CryptocomApi
                 ((Map<String, Object>)request).put("count", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("end_ts", until);

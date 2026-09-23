@@ -1841,7 +1841,7 @@ public class Onetrading extends OnetradingApi
             {
                 ((Map<String, Object>)request).put("order_id", id);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateDeleteAccountOrdersOrderId"))
             {
                 response = (this.privateDeleteAccountOrdersOrderId(this.extend(request, parameters))).join();

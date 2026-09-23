@@ -1014,7 +1014,7 @@ public class Bigone extends BigoneApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1023,7 +1023,7 @@ public class Bigone extends BigoneApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTicker", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (java.util.Objects.equals(type, "spot"))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1085,7 +1085,7 @@ public class Bigone extends BigoneApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1099,7 +1099,7 @@ public class Bigone extends BigoneApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = java.util.Objects.equals(type, "spot");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             symbols = this.marketSymbols(symbols);
@@ -1228,7 +1228,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1763,7 +1763,7 @@ public class Bigone extends BigoneApi
             }
             String type = this.safeString(parameters, "type", "");
             parameters = (Map<String, Object>) this.omit(parameters, "type");
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "funding") || java.util.Objects.equals(type, "fund"))
             {
                 response = (this.privateGetFundAccounts(parameters)).join();
@@ -1976,7 +1976,7 @@ public class Bigone extends BigoneApi
         return BaseExchange.supplyAsync(() -> {
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1990,7 +1990,7 @@ public class Bigone extends BigoneApi
             Boolean postOnly = null;
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), java.util.Objects.equals(exchangeSpecificParam, true), parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-            parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset_pair_name", ((Map<String, Object>)market).get("id") );
@@ -2020,9 +2020,9 @@ public class Bigone extends BigoneApi
                     Object createMarketBuyOrderRequiresPrice = null;
                     List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
-                    parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                    parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Double cost = this.safeNumber(parameters, "cost");
-                    parameters = this.omit(parameters, "cost");
+                    parameters = (Map<String, Object>) this.omit(parameters, "cost");
                     if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
                     {
                         if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
@@ -2063,7 +2063,7 @@ public class Bigone extends BigoneApi
             {
                 ((Map<String, Object>)request).put("client_order_id", clientOrderId);
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId")));
             Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
             //
             //    {
@@ -3053,11 +3053,11 @@ public class Bigone extends BigoneApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3075,7 +3075,7 @@ public class Bigone extends BigoneApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 ((Map<String, Object>)request).put("gateway_name", this.networkCodeToId(networkCode, ((Map<String, Object>)currency).get("code")));

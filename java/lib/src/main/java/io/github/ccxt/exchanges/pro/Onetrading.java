@@ -190,13 +190,13 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object subscriptionHash = "MARKET_TICKER";
             String messageHash = ("ticker." + symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -367,7 +367,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -377,7 +377,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
             (this.authenticate(parameters)).join();
@@ -438,14 +438,14 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("book:" + symbol);
             Object subscriptionHash = "ORDER_BOOK";
             Object depth = 0;
@@ -593,7 +593,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -603,7 +603,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
             (this.authenticate(parameters)).join();
@@ -1274,7 +1274,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         final Object timeframe3 = timeframe2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object timeframe = timeframe3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
@@ -1282,7 +1282,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String marketId = (String) ((Map<String, Object>)market).get("id");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});

@@ -307,7 +307,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return BaseExchange.supplyAsync(() -> {
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -337,9 +337,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 Boolean createMarketBuyOrderRequiresPrice = true;
                 List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
-                parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Double cost = this.safeNumber(parameters, "cost");
-                parameters = this.omit(parameters, "cost");
+                parameters = (Map<String, Object>) this.omit(parameters, "cost");
                 if (!java.util.Objects.equals(cost, null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
@@ -803,7 +803,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -812,7 +812,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
             List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "name", name);
             name = ((List<Object>) nameparametersVariable).get(0);
-            parameters = ((List<Object>) nameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) nameparametersVariable).get(1);
             Object orderbook = (this.subscribe(name, name, false, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);

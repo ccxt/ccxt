@@ -1701,7 +1701,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.v2PublicGetFuturesTicker(this.extend(request, parameters))).join();
@@ -1806,7 +1806,7 @@ public class Coinex extends CoinexApi
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             var marketType = ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.v2PublicGetFuturesTicker(query)).join();
@@ -1953,7 +1953,7 @@ public class Coinex extends CoinexApi
                 put( "limit", finalLimit );
                 put( "interval", "0" );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.v2PublicGetFuturesDepth(this.extend(request, parameters))).join();
@@ -2097,7 +2097,7 @@ public class Coinex extends CoinexApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.v2PublicGetFuturesDeals(this.extend(request, parameters))).join();
@@ -2166,7 +2166,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.v2PublicGetSpotMarket(this.extend(request, parameters))).join();
@@ -2208,7 +2208,7 @@ public class Coinex extends CoinexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2216,8 +2216,8 @@ public class Coinex extends CoinexApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "swap"))
             {
                 response = (this.v2PublicGetFuturesMarket(parameters)).join();
@@ -2323,7 +2323,7 @@ public class Coinex extends CoinexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.v2PublicGetFuturesKline(this.extend(request, parameters))).join();
@@ -2614,15 +2614,15 @@ public class Coinex extends CoinexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
             if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -3188,7 +3188,7 @@ public class Coinex extends CoinexApi
             Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
             Boolean isStopLossOrTakeProfitTrigger = Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder);
             Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 if (Boolean.TRUE.equals(isTriggerOrder))
@@ -3323,7 +3323,7 @@ public class Coinex extends CoinexApi
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "orders", ordersRequests );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 if (Boolean.TRUE.equals(isTriggerOrder))
@@ -3438,7 +3438,7 @@ public class Coinex extends CoinexApi
             }};
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            Object response = null;
+            Map<String, Object> response = null;
             List<Object> requestIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
@@ -3531,7 +3531,7 @@ public class Coinex extends CoinexApi
             String symbol = symbol3;
             Object amount = amount3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires a symbol argument")) ;
@@ -3552,9 +3552,9 @@ public class Coinex extends CoinexApi
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "trigger_price")));
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice")));
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
             if (Boolean.TRUE.equals(isTriggerOrder))
             {
@@ -3567,7 +3567,7 @@ public class Coinex extends CoinexApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("editOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 if (!java.util.Objects.equals(marginMode, null))
@@ -3691,7 +3691,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("spot"), true))
             {
                 response = (this.v2PrivatePostSpotBatchModifyOrder(this.extend(request, parameters))).join();
@@ -3761,7 +3761,7 @@ public class Coinex extends CoinexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
@@ -3779,7 +3779,7 @@ public class Coinex extends CoinexApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(swap, true))
             {
                 ((Map<String, Object>)request).put("market_type", "FUTURES");
@@ -3794,8 +3794,8 @@ public class Coinex extends CoinexApi
                 }
             }
             String clientOrderId = this.safeString2(parameters, "client_id", "clientOrderId");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clientOrderId")));
-            Object response = null;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clientOrderId")));
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("client_id", clientOrderId);
@@ -3896,7 +3896,7 @@ public class Coinex extends CoinexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
@@ -3909,7 +3909,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 ((Map<String, Object>)request).put("market_type", "FUTURES");
@@ -3919,7 +3919,7 @@ public class Coinex extends CoinexApi
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 if (!java.util.Objects.equals(marginMode, null))
                 {
                     ((Map<String, Object>)request).put("market_type", "MARGIN");
@@ -3929,7 +3929,7 @@ public class Coinex extends CoinexApi
                 }
                 response = (this.v2PrivatePostSpotCancelAllOrder(this.extend(request, parameters))).join();
             }
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }}))));
@@ -3981,7 +3981,7 @@ public class Coinex extends CoinexApi
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "order_id", Coinex.this.parseToNumeric(id) );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.v2PrivateGetFuturesOrderStatus(this.extend(request, parameters))).join();
@@ -4037,7 +4037,7 @@ public class Coinex extends CoinexApi
             Object status = status3;
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4054,12 +4054,12 @@ public class Coinex extends CoinexApi
                 ((Map<String, Object>)request).put("limit", limit);
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             Boolean isClosed = (java.util.Objects.equals(status, "finished")) || (java.util.Objects.equals(status, "closed"));
             Boolean isOpen = (java.util.Objects.equals(status, "pending")) || (java.util.Objects.equals(status, "open"));
             if (java.util.Objects.equals(marketType, "swap"))
@@ -4089,7 +4089,7 @@ public class Coinex extends CoinexApi
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 if (!java.util.Objects.equals(marginMode, null))
                 {
                     ((Map<String, Object>)request).put("market_type", "MARGIN");
@@ -4317,7 +4317,7 @@ public class Coinex extends CoinexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4329,7 +4329,7 @@ public class Coinex extends CoinexApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress() requires a \"network\" parameter")) ;
@@ -4426,7 +4426,7 @@ public class Coinex extends CoinexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
@@ -4449,8 +4449,8 @@ public class Coinex extends CoinexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 ((Map<String, Object>)request).put("market_type", "FUTURES");
@@ -4460,7 +4460,7 @@ public class Coinex extends CoinexApi
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 if (!java.util.Objects.equals(marginMode, null))
                 {
                     ((Map<String, Object>)request).put("market_type", "MARGIN");
@@ -4511,7 +4511,7 @@ public class Coinex extends CoinexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4519,7 +4519,7 @@ public class Coinex extends CoinexApi
             Object defaultMethod = null;
             List<Object> defaultMethodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
             defaultMethod = ((List<Object>) defaultMethodparametersVariable).get(0);
-            parameters = ((List<Object>) defaultMethodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) defaultMethodparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_type", "FUTURES" );
@@ -4543,7 +4543,7 @@ public class Coinex extends CoinexApi
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(defaultMethod, "v2PrivateGetFuturesPendingPosition"))
             {
                 response = (this.v2PrivateGetFuturesPendingPosition(this.extend(request, parameters))).join();
@@ -4875,7 +4875,7 @@ public class Coinex extends CoinexApi
         return BaseExchange.supplyAsync(() -> {
             Object leverage = leverage3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -4892,7 +4892,7 @@ public class Coinex extends CoinexApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Long minLeverage = this.safeInteger(((Map<String, Object>)((Map<String, Object>)market).get("limits")).get("leverage"), "min", 1);
             Long maxLeverage = this.safeInteger(((Map<String, Object>)((Map<String, Object>)market).get("limits")).get("leverage"), "max", 100);
             if ((Helpers.isLessThan(leverage, minLeverage)) || (Helpers.isGreaterThan(leverage, maxLeverage)))
@@ -5272,7 +5272,7 @@ final Object finalI = i;
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingHistory() requires a symbol argument")) ;
@@ -5288,7 +5288,7 @@ final Object finalI = i;
             }};
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_time", since);
@@ -5607,11 +5607,11 @@ final Object finalI = i;
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -5630,7 +5630,7 @@ final Object finalI = i;
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 ((Map<String, Object>)request).put("chain", this.networkCodeToId(networkCode, ((Map<String, Object>)currency).get("code"))); // required for on-chain, not required for inter-user transfer
@@ -5725,7 +5725,7 @@ final Object finalI = i;
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -5737,7 +5737,7 @@ final Object finalI = i;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 1000)).join();
@@ -5756,7 +5756,7 @@ final Object finalI = i;
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v2PublicGetFuturesFundingRateHistory(this.extend(request, parameters))).join();
             //
             //     {
@@ -6085,7 +6085,7 @@ final Object finalI = i;
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6101,7 +6101,7 @@ final Object finalI = i;
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchTransfers", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
                 ((Map<String, Object>)request).put("transfer_type", "MARGIN");
@@ -6119,7 +6119,7 @@ final Object finalI = i;
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v2PrivateGetAssetsTransferHistory(this.extend(request, parameters))).join();
             //
             //     {
@@ -7094,7 +7094,7 @@ final Object finalI = i;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7114,7 +7114,7 @@ final Object finalI = i;
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v2PrivateGetFuturesFinishedPosition(this.extend(request, parameters))).join();
             //
             //     {
@@ -7487,7 +7487,7 @@ final Object finalI = i;
             String symbol = symbol3;
             Object since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7497,7 +7497,7 @@ final Object finalI = i;
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory() requires a symbol argument")) ;
             }
             Long positionId = (Long) this.safeInteger2(parameters, "positionId", "position_id");
-            parameters = this.omit(parameters, "positionId");
+            parameters = (Map<String, Object>) this.omit(parameters, "positionId");
             if (java.util.Objects.equals(positionId, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory() requires a positionId parameter")) ;
@@ -7511,7 +7511,7 @@ final Object finalI = i;
             }};
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_time", since);

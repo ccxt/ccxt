@@ -183,7 +183,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             String currentSymbol = this.safeString(((Map<String, Object>)this.options).get("watchTrades"), "symbol");
             if (!java.util.Objects.equals(currentSymbol, null) && !java.util.Objects.equals(currentSymbol, symbol))
             {
@@ -195,7 +195,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = "trades";
             String subscriptionHash = ("old:" + symbol);
@@ -354,13 +354,13 @@ public class Cex extends io.github.ccxt.exchanges.Cex
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("ticker:" + symbol);
             String method = this.safeString(parameters, "method", "private"); // default to private because the specified ticker is received quicker
@@ -661,7 +661,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(symbol, null))
             {
@@ -674,9 +674,9 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             (this.authenticate(parameters)).join();
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orders:" + symbol);
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "e", "open-orders" );
                 put( "data", new HashMap<String, Object>() {{
@@ -1249,7 +1249,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1257,7 +1257,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }
             (this.authenticate()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("orderbook:" + symbol);
             Object depth = (((java.util.Objects.equals(limit, null)))) ? 0 : limit;
@@ -1413,14 +1413,14 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("ohlcv:" + symbol);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{

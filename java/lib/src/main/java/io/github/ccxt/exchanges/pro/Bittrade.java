@@ -86,13 +86,13 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
             String messageHash = (("market." + ((Map<String, Object>)market).get("id")) + ".detail");
             String api = this.safeString(this.options, "api", "api");
@@ -105,7 +105,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "sub", messageHash );
                 put( "id", requestId );
             }};
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "messageHash", messageHash );
@@ -182,14 +182,14 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
             String messageHash = (("market." + ((Map<String, Object>)market).get("id")) + ".trade.detail");
             String api = this.safeString(this.options, "api", "api");
@@ -202,7 +202,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "sub", messageHash );
                 put( "id", requestId );
             }};
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "messageHash", messageHash );
@@ -298,14 +298,14 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String messageHash = ((("market." + ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
             String api = this.safeString(this.options, "api", "api");
@@ -318,7 +318,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "sub", messageHash );
                 put( "id", requestId );
             }};
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "messageHash", messageHash );
@@ -408,7 +408,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if ((!java.util.Objects.equals(limit, null)) && (!Helpers.isEqual(limit, 150)))
             {
@@ -419,7 +419,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
             limit = (((java.util.Objects.equals(limit, null)))) ? 150 : limit;
             String messageHash = ((("market." + ((Map<String, Object>)market).get("id")) + ".mbp.") + String.valueOf(limit));
@@ -433,7 +433,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "sub", messageHash );
                 put( "id", requestId );
             }};
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             final Object finalLimit = limit;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", requestId );

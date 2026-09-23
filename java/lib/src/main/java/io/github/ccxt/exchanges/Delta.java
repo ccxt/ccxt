@@ -2823,7 +2823,7 @@ public class Delta extends DeltaApi
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid", "clientOid")));
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid", "clientOid")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("client_oid", clientOrderId);
@@ -2978,7 +2978,7 @@ public class Delta extends DeltaApi
             {
                 ((Map<String, Object>)request).put("page_size", limit);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetOrders"))
             {
                 response = (this.privateGetOrders(this.extend(request, parameters))).join();

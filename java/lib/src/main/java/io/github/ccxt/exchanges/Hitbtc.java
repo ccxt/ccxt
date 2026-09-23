@@ -1343,7 +1343,7 @@ public class Hitbtc extends HitbtcApi
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("type")));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String account = (((java.util.Objects.equals(type, null)))) ? null : this.safeString(accountsByType, type, type);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(account, "wallet"))
             {
                 response = (this.privateGetWalletBalance(parameters)).join();
@@ -1658,7 +1658,7 @@ public class Hitbtc extends HitbtcApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1683,11 +1683,11 @@ public class Hitbtc extends HitbtcApi
             Object response = new ArrayList<Object>(Arrays.asList());
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privateGetMarginHistoryTrade(this.extend(request, parameters))).join();
@@ -2290,7 +2290,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("type"), "spot"))
             {
                 response = (this.privateGetSpotFeeSymbol(this.extend(request, parameters))).join();
@@ -2347,7 +2347,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             var marketType = ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.privateGetSpotFee(query)).join();
@@ -2420,7 +2420,7 @@ public class Hitbtc extends HitbtcApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2428,7 +2428,7 @@ public class Hitbtc extends HitbtcApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
@@ -2444,13 +2444,13 @@ public class Hitbtc extends HitbtcApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
             String price = this.safeString(parameters, "price");
-            parameters = this.omit(parameters, "price");
+            parameters = (Map<String, Object>) this.omit(parameters, "price");
             Object response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(price, "mark"))
             {
@@ -2576,7 +2576,7 @@ public class Hitbtc extends HitbtcApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2600,12 +2600,12 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchClosedOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            List<Object> response = null;
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privateGetMarginHistoryOrder(this.extend(request, parameters))).join();
@@ -2670,7 +2670,7 @@ public class Hitbtc extends HitbtcApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2687,12 +2687,12 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            List<Object> response = null;
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privateGetMarginHistoryOrder(this.extend(request, parameters))).join();
@@ -2777,7 +2777,7 @@ public class Hitbtc extends HitbtcApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2794,11 +2794,11 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrderTrades", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
             Object response = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(marginMode, null))
             {
@@ -2903,7 +2903,7 @@ public class Hitbtc extends HitbtcApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2919,12 +2919,12 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            List<Object> response = null;
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privateGetMarginOrder(this.extend(request, parameters))).join();
@@ -3007,7 +3007,7 @@ public class Hitbtc extends HitbtcApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3024,12 +3024,12 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrder", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privateGetMarginOrderClientOrderId(this.extend(request, parameters))).join();
@@ -3091,7 +3091,7 @@ public class Hitbtc extends HitbtcApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3107,12 +3107,12 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            List<Object> response = null;
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privateDeleteMarginOrder(this.extend(request, parameters))).join();
@@ -3174,7 +3174,7 @@ public class Hitbtc extends HitbtcApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3191,12 +3191,12 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privateDeleteMarginOrderClientOrderId(this.extend(request, parameters))).join();
@@ -3249,7 +3249,7 @@ public class Hitbtc extends HitbtcApi
             String symbol = symbol3;
             Object type = type3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3276,12 +3276,12 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("editOrder", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("editOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privatePatchMarginOrderClientOrderId(this.extend(request, parameters))).join();
@@ -3334,7 +3334,7 @@ public class Hitbtc extends HitbtcApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3344,15 +3344,15 @@ public class Hitbtc extends HitbtcApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             var requestparametersVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, type, side, amount, price, marginMode, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.privatePostFuturesOrder(this.extend(request, parameters))).join();
@@ -3631,7 +3631,7 @@ public class Hitbtc extends HitbtcApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3645,8 +3645,8 @@ public class Hitbtc extends HitbtcApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarginMode", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "margin"))
             {
                 response = (this.privateGetMarginConfig(parameters)).join();
@@ -3857,11 +3857,11 @@ public class Hitbtc extends HitbtcApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3886,7 +3886,7 @@ public class Hitbtc extends HitbtcApi
                 {
                     ((Map<String, Object>)request).put("network_code", parsedNetwork);
                 }
-                parameters = this.omit(parameters, "network");
+                parameters = (Map<String, Object>) this.omit(parameters, "network");
             }
             Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
@@ -3936,7 +3936,7 @@ public class Hitbtc extends HitbtcApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3953,7 +3953,7 @@ public class Hitbtc extends HitbtcApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingRates", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "swap"))
             {
                 throw new NotSupported((((this.id + " fetchFundingRates() does not support ") + type) + " markets")) ;
@@ -4029,10 +4029,10 @@ public class Hitbtc extends HitbtcApi
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4040,7 +4040,7 @@ public class Hitbtc extends HitbtcApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 1000)).join();
@@ -4049,11 +4049,11 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 ((Map<String, Object>)request).put("symbols", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -4141,7 +4141,7 @@ public class Hitbtc extends HitbtcApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4151,16 +4151,16 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 marketType = "swap";
             }
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchPositions", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            List<Object> response = null;
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privateGetMarginAccount(this.extend(request, parameters))).join();
@@ -4251,7 +4251,7 @@ public class Hitbtc extends HitbtcApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4264,12 +4264,12 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchPosition", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privateGetMarginAccountIsolatedSymbol(this.extend(request, parameters))).join();
@@ -4716,7 +4716,7 @@ public class Hitbtc extends HitbtcApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object amount = amount3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4751,11 +4751,11 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("modifyMarginHelper", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("modifyMarginHelper", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, parameters))).join();
@@ -4940,7 +4940,7 @@ public class Hitbtc extends HitbtcApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4952,9 +4952,9 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null))
             {
                 response = (this.privateGetMarginAccountIsolatedSymbol(this.extend(request, parameters))).join();
@@ -5249,7 +5249,7 @@ public class Hitbtc extends HitbtcApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5257,7 +5257,7 @@ public class Hitbtc extends HitbtcApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{

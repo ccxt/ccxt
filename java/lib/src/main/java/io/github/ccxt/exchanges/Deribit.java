@@ -1241,14 +1241,14 @@ public class Deribit extends DeribitApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             List<Object> instrumentsResponses = new ArrayList<Object>(Arrays.asList());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> parsedMarkets = new HashMap<String, Object>() {{}};
             Object fetchAllMarkets = null;
             List<Object> fetchAllMarketsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
             fetchAllMarkets = ((List<Object>) fetchAllMarketsparametersVariable).get(0);
-            parameters = ((List<Object>) fetchAllMarketsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) fetchAllMarketsparametersVariable).get(1);
             if (Helpers.isTrue(fetchAllMarkets))
             {
                 Map<String, Object> instrumentsResponse = (this.publicGetGetInstruments(parameters)).join();
@@ -1581,7 +1581,7 @@ public class Deribit extends DeribitApi
             {
                 ((Map<String, Object>)request).put("currency", this.currencyId(code));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(code, null))
             {
                 response = (this.privateGetGetAccountSummaries(parameters)).join();
@@ -2083,7 +2083,7 @@ public class Deribit extends DeribitApi
         return BaseExchange.supplyAsync(() -> {
             Object since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2091,7 +2091,7 @@ public class Deribit extends DeribitApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 5000)).join();
@@ -2126,7 +2126,7 @@ public class Deribit extends DeribitApi
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, "until");
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 ((Map<String, Object>)request).put("end_timestamp", until);
             }
             Map<String, Object> response = (this.publicGetGetTradingviewChartData(this.extend(request, parameters))).join();
@@ -2321,7 +2321,7 @@ public class Deribit extends DeribitApi
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                 ((Map<String, Object>)request).put("end_timestamp", until);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if ((java.util.Objects.equals(since, null)) && !(request.containsKey("end_timestamp")))
             {
                 response = (this.publicGetGetLastTradesByInstrument(this.extend(request, parameters))).join();
@@ -2968,7 +2968,7 @@ public class Deribit extends DeribitApi
                 }
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(this.capitalize(side), "Buy"))
             {
                 response = (this.privateGetBuy(this.extend(request, parameters))).join();
@@ -3197,7 +3197,7 @@ public class Deribit extends DeribitApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(symbol, null))
             {
                 response = (this.privateGetCancelAll(this.extend(request, parameters))).join();
@@ -3217,7 +3217,7 @@ public class Deribit extends DeribitApi
             //        testnet: true
             //    }
             //
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }}))));
@@ -3262,7 +3262,7 @@ public class Deribit extends DeribitApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(symbol, null))
             {
                 String code = this.codeFromOptions("fetchOpenOrders", parameters);
@@ -3322,7 +3322,7 @@ public class Deribit extends DeribitApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)request).put("count", limit);
@@ -3479,7 +3479,7 @@ public class Deribit extends DeribitApi
             {
                 ((Map<String, Object>)request).put("count", limit); // default 10
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(symbol, null))
             {
                 String code = this.codeFromOptions("fetchMyTrades", parameters);
@@ -4246,7 +4246,7 @@ public class Deribit extends DeribitApi
                 Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
                 method = this.safeString(transferOptions, "method", "privateGetSubmitTransferToSubaccount");
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetSubmitTransferToUser"))
             {
                 response = (this.privateGetSubmitTransferToUser(this.extend(request, parameters))).join();
@@ -4360,11 +4360,11 @@ public class Deribit extends DeribitApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -4578,7 +4578,7 @@ public class Deribit extends DeribitApi
         return BaseExchange.supplyAsync(() -> {
             Object since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4587,7 +4587,7 @@ public class Deribit extends DeribitApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
             String eachItemDuration = "1h";
             if (Boolean.TRUE.equals(paginate))
@@ -4616,7 +4616,7 @@ public class Deribit extends DeribitApi
             Long until = (Long) this.safeInteger2(parameters, "until", "end_timestamp");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                 ((Map<String, Object>)request).put("end_timestamp", until);
             } else
             {
@@ -4624,7 +4624,7 @@ public class Deribit extends DeribitApi
             }
             if (((Map<?, ?>)parameters).containsKey("isDeribitPaginationCall"))
             {
-                parameters = this.omit(parameters, "isDeribitPaginationCall");
+                parameters = (Map<String, Object>) this.omit(parameters, "isDeribitPaginationCall");
                 if (java.util.Objects.equals(limit, null))
                 {
                     throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a limit argument")) ;
@@ -4747,7 +4747,7 @@ public class Deribit extends DeribitApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4755,7 +4755,7 @@ public class Deribit extends DeribitApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation")).join();

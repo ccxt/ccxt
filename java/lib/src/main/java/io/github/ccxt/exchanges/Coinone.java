@@ -816,7 +816,7 @@ public class Coinone extends CoinoneApi
                 put( "quote_currency", "KRW" );
             }};
             Map<String, Object> market = null;
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(symbols, null))
             {
                 String first = this.safeString(symbols, 0);

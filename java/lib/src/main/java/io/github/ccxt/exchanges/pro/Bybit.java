@@ -214,7 +214,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             String method = method3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String accessibility = ((Helpers.isTrue(isPrivate))) ? "private" : "public";
             if (java.util.Objects.equals(method, null))
             {
@@ -234,7 +234,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(method, null, parameters);
                 type = ((List<Object>) typeparametersVariable).get(0);
-                parameters = ((List<Object>) typeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
                 String defaultSettle = this.safeString(this.options, "defaultSettle");
                 defaultSettle = this.safeString2(parameters, "settle", "defaultSettle", defaultSettle);
                 isUsdcSettled = (java.util.Objects.equals(defaultSettle, "USDC"));
@@ -262,7 +262,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     Object subType = null;
                     List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams(method, market, parameters, "linear");
                     subType = ((List<Object>) subTypeparametersVariable).get(0);
-                    parameters = ((List<Object>) subTypeparametersVariable).get(1);
+                    parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
                     url = Helpers.GetValue(Helpers.GetValue(url, accessibility), ((String)subType));
                 } else
                 {
@@ -540,14 +540,14 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("ticker:" + symbol);
             Object url = (this.getUrlByMarketType(symbol, false, "watchTicker", parameters)).join();
             parameters = this.cleanParams((Map<String, Object>) (parameters));
@@ -1938,7 +1938,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object method = "watchMyTrades";
             String messageHash = "myTrades";
             if (java.util.Objects.equals(this.markets, null))
@@ -1961,7 +1961,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Boolean executionFast = false;
             List<Object> executionFastparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
             executionFast = Boolean.TRUE.equals(((List<Object>) executionFastparametersVariable).get(0));
-            parameters = ((List<Object>) executionFastparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) executionFastparametersVariable).get(1);
             if (Boolean.TRUE.equals(executionFast))
             {
                 topic = "execution.fast";
@@ -2508,14 +2508,14 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object url = (this.getUrlByMarketType(symbol, false, "watchLiquidations", parameters)).join();
             parameters = this.cleanParams((Map<String, Object>) (parameters));
             Object method = null;
@@ -2946,7 +2946,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2956,11 +2956,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", null, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object unified = (this.isUnifiedEnabled()).join();
             Boolean isUnifiedMargin = (Boolean) this.safeBool(unified, 0, false);
             Boolean isUnifiedAccount = (Boolean) this.safeBool(unified, 1, false);

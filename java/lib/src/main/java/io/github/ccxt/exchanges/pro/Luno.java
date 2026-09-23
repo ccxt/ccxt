@@ -71,7 +71,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.markets, null))
@@ -79,9 +79,9 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
@@ -210,16 +210,16 @@ public class Luno extends io.github.ccxt.exchanges.Luno
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};

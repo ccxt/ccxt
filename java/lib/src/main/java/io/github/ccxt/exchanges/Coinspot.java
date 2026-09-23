@@ -668,7 +668,7 @@ public class Coinspot extends CoinspotApi
                 (this.loadMarkets()).join();
             }
             String method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
-            Object response = null;
+            Map<String, Object> response = null;
             if ((java.util.Objects.equals(method, "private_post_ro_my_balances")) || (java.util.Objects.equals(method, "privatePostRoMyBalances")))
             {
                 response = (this.privatePostRoMyBalances(parameters)).join();
@@ -1178,7 +1178,7 @@ public class Coinspot extends CoinspotApi
                 put( "amount", amount );
                 put( "rate", price );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(sideUpper, "BUY"))
             {
                 response = (this.privatePostMyBuy(this.extend(request, parameters))).join();
@@ -1192,7 +1192,7 @@ public class Coinspot extends CoinspotApi
             //
             // status - ok, error
             //
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }}));
@@ -1242,7 +1242,7 @@ public class Coinspot extends CoinspotApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(side, "buy"))
             {
                 response = (this.privatePostMyBuyCancel(this.extend(request, parameters))).join();
@@ -1253,7 +1253,7 @@ public class Coinspot extends CoinspotApi
             //
             // status - ok, error
             //
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }}));

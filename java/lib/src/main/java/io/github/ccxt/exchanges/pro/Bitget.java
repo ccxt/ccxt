@@ -172,23 +172,23 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = parameters3;
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("ticker:" + symbol);
             Object instType = null;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
-            parameters = ((List<Object>) utaparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchTicker", (Map<String, Object>) (market), uta, parameters);
             instType = ((List<Object>) instTypeparametersVariable).get(0);
-            parameters = ((List<Object>) instTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) instTypeparametersVariable).get(1);
             final Object finalInstType = instType;
             Map<String, Object> args = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
@@ -274,7 +274,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -289,10 +289,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
-            parameters = ((List<Object>) utaparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchTickers", (Map<String, Object>) (market), uta, parameters);
             instType = ((List<Object>) instTypeparametersVariable).get(0);
-            parameters = ((List<Object>) instTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) instTypeparametersVariable).get(1);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -561,7 +561,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -576,10 +576,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
-            parameters = ((List<Object>) utaparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchBidsAsks", (Map<String, Object>) (market), uta, parameters);
             instType = ((List<Object>) instTypeparametersVariable).get(0);
-            parameters = ((List<Object>) instTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) instTypeparametersVariable).get(1);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -687,7 +687,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -695,7 +695,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes");
             String interval = this.safeString(timeframes, timeframe);
             String messageHash = null;
@@ -1139,7 +1139,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1157,7 +1157,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
-            parameters = ((List<Object>) utaparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
@@ -1165,7 +1165,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Object instType = null;
                 var instTypeparametersVariable = this.getInstType("watchOrderBookForSymbols", (Map<String, Object>) (market), uta, parameters);
                 instType = ((List<Object>) instTypeparametersVariable).get(0);
-                parameters = ((List<Object>) instTypeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) instTypeparametersVariable).get(1);
                 final Object finalInstType = instType;
                 Map<String, Object> args = new HashMap<String, Object>() {{
                     put( "instType", finalInstType );
@@ -2116,7 +2116,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -2134,7 +2134,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 marketId = ((Map<String, Object>)market).get("id");
                 messageHash = ((messageHash + ":") + symbol);
             }
@@ -2750,7 +2750,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -2762,7 +2762,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = ((messageHash + ":") + symbol);
             }
             Object type = null;

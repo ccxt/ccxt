@@ -1984,7 +1984,7 @@ public class Xt extends XtApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1992,7 +1992,7 @@ public class Xt extends XtApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
@@ -2025,12 +2025,12 @@ public class Xt extends XtApi
                 ((Map<String, Object>)request).put("limit", 1000);
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 response = (this.publicLinearGetFutureMarketV1PublicQKline(this.extend(request, parameters))).join();
@@ -2169,7 +2169,7 @@ public class Xt extends XtApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 if (!java.util.Objects.equals(limit, null))
@@ -2293,7 +2293,7 @@ public class Xt extends XtApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 response = (this.publicLinearGetFutureMarketV1PublicQAggTicker(this.extend(request, parameters))).join();
@@ -2390,7 +2390,7 @@ public class Xt extends XtApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2404,13 +2404,13 @@ public class Xt extends XtApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object type = null;
             Object subType = null;
-            Object response = null;
+            Map<String, Object> response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicQAggTickers(this.extend(request, parameters))).join();
@@ -2515,7 +2515,7 @@ public class Xt extends XtApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2531,14 +2531,14 @@ public class Xt extends XtApi
             Object subType = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             Boolean isLinear = (java.util.Objects.equals(subType, "linear")) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
             Boolean isContract = Boolean.TRUE.equals(isInverse) || Boolean.TRUE.equals(isLinear);
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isInverse))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicQTickerBooks(this.extend(request, parameters))).join();
@@ -2738,7 +2738,7 @@ public class Xt extends XtApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 if (!java.util.Objects.equals(limit, null))
@@ -2840,7 +2840,7 @@ public class Xt extends XtApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2858,13 +2858,13 @@ public class Xt extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            Map<String, Object> response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMyTrades", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             if ((!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
             {
                 if (!java.util.Objects.equals(limit, null))
@@ -2883,7 +2883,7 @@ public class Xt extends XtApi
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 String marginOrSpotRequest = (((!java.util.Objects.equals(marginMode, null)))) ? "LEVER" : "SPOT";
                 ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
                 if (!java.util.Objects.equals(limit, null))
@@ -3181,20 +3181,20 @@ public class Xt extends XtApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            Map<String, Object> response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchBalance", null, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isContractWallet = ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")));
             if (java.util.Objects.equals(subType, "inverse"))
             {
@@ -3475,7 +3475,7 @@ public class Xt extends XtApi
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3492,7 +3492,7 @@ public class Xt extends XtApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             String marginOrSpotRequest = (((!java.util.Objects.equals(marginMode, null)))) ? "LEVER" : "SPOT";
             ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
             if (java.util.Objects.equals(type, "market"))
@@ -3501,7 +3501,7 @@ public class Xt extends XtApi
                 if (java.util.Objects.equals(side, "buy"))
                 {
                     String cost = this.safeString(parameters, "cost");
-                    parameters = this.omit(parameters, "cost");
+                    parameters = (Map<String, Object>) this.omit(parameters, "cost");
                     Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", true);
                     if (java.util.Objects.equals(createMarketBuyOrderRequiresPrice, true))
                     {
@@ -3536,12 +3536,12 @@ public class Xt extends XtApi
             Boolean postOnly = null;
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(timeInForce, "GTX"), parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-            parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
             if (java.util.Objects.equals(postOnly, true))
             {
                 timeInForce = "GTX";
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")));
             if ((java.util.Objects.equals(side, "sell")) || (java.util.Objects.equals(type, "limit")))
             {
                 ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
@@ -3578,7 +3578,7 @@ public class Xt extends XtApi
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3592,12 +3592,12 @@ public class Xt extends XtApi
             Boolean postOnly = null;
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(timeInForce, "GTX"), parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-            parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
             if (java.util.Objects.equals(postOnly, true))
             {
                 timeInForce = "GTX";
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")));
             if (!java.util.Objects.equals(timeInForce, null))
             {
                 ((Map<String, Object>)request).put("timeInForce", timeInForce);
@@ -3645,7 +3645,7 @@ public class Xt extends XtApi
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, "cross");
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("positionType", (((java.util.Objects.equals(marginMode, "isolated")))) ? "ISOLATED" : "CROSSED");
                 if (!java.util.Objects.equals(trailingPercent, null))
                 {
@@ -3660,7 +3660,7 @@ public class Xt extends XtApi
                 {
                     ((Map<String, Object>)request).put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                 }
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trailingPercent", "trailingAmount", "trailingTriggerPrice")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trailingPercent", "trailingAmount", "trailingTriggerPrice")));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
                     response = (this.privateLinearPostFutureTradeV1EntrustCreateTrack(this.extend(request, parameters))).join();
@@ -3676,7 +3676,7 @@ public class Xt extends XtApi
                 ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 String entrustType = (((java.util.Objects.equals(type, "market")))) ? "STOP_MARKET" : "STOP";
                 ((Map<String, Object>)request).put("entrustType", entrustType);
-                parameters = this.omit(parameters, "triggerPrice");
+                parameters = (Map<String, Object>) this.omit(parameters, "triggerPrice");
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
                     response = (this.privateLinearPostFutureTradeV1EntrustCreatePlan(this.extend(request, parameters))).join();
@@ -3693,7 +3693,7 @@ public class Xt extends XtApi
                 {
                     ((Map<String, Object>)request).put("triggerProfitPrice", this.priceToPrecision(symbol, takeProfit));
                 }
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
                     response = (this.privateLinearPostFutureTradeV1EntrustCreateProfit(this.extend(request, parameters))).join();
@@ -3753,7 +3753,7 @@ public class Xt extends XtApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3766,13 +3766,13 @@ public class Xt extends XtApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object type = null;
             Object subType = null;
-            Object response = null;
+            Map<String, Object> response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrder", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
@@ -3799,7 +3799,7 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustPlanDetail(this.extend(request, parameters))).join();
@@ -3809,7 +3809,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(stopLossTakeProfit, true))
             {
-                parameters = this.omit(parameters, "stopLossTakeProfit");
+                parameters = (Map<String, Object>) this.omit(parameters, "stopLossTakeProfit");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustProfitDetail(this.extend(request, parameters))).join();
@@ -3819,7 +3819,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(trailing, true))
             {
-                parameters = this.omit(parameters, "trailing");
+                parameters = (Map<String, Object>) this.omit(parameters, "trailing");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustTrackDetail(this.extend(request, parameters))).join();
@@ -4007,7 +4007,7 @@ public class Xt extends XtApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4029,13 +4029,13 @@ public class Xt extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            Map<String, Object> response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrders", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             if (java.util.Objects.equals(trailing, true))
@@ -4048,7 +4048,7 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustPlanListHistory(this.extend(request, parameters))).join();
@@ -4058,7 +4058,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(trailing, true))
             {
-                parameters = this.omit(parameters, "trailing");
+                parameters = (Map<String, Object>) this.omit(parameters, "trailing");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, parameters))).join();
@@ -4077,7 +4077,7 @@ public class Xt extends XtApi
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrders", parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 String marginOrSpotRequest = (((!java.util.Objects.equals(marginMode, null)))) ? "LEVER" : "SPOT";
                 ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
                 response = (this.privateSpotGetHistoryOrder(this.extend(request, parameters))).join();
@@ -4231,7 +4231,7 @@ public class Xt extends XtApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4253,13 +4253,13 @@ public class Xt extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            Map<String, Object> response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrdersByStatus", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
@@ -4318,7 +4318,7 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustPlanList(this.extend(request, parameters))).join();
@@ -4328,7 +4328,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(stopLossTakeProfit, true))
             {
-                parameters = this.omit(parameters, "stopLossTakeProfit");
+                parameters = (Map<String, Object>) this.omit(parameters, "stopLossTakeProfit");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustProfitList(this.extend(request, parameters))).join();
@@ -4338,7 +4338,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(trailing, true))
             {
-                parameters = this.omit(parameters, "trailing");
+                parameters = (Map<String, Object>) this.omit(parameters, "trailing");
                 if (java.util.Objects.equals(status, "open"))
                 {
                     if (java.util.Objects.equals(subType, "inverse"))
@@ -4372,7 +4372,7 @@ public class Xt extends XtApi
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 String marginOrSpotRequest = (((!java.util.Objects.equals(marginMode, null)))) ? "LEVER" : "SPOT";
                 ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
                 if (!java.util.Objects.equals(status, "open"))
@@ -4770,7 +4770,7 @@ public class Xt extends XtApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4786,10 +4786,10 @@ public class Xt extends XtApi
             Object response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
@@ -4816,7 +4816,7 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelPlan(this.extend(request, parameters))).join();
@@ -4826,7 +4826,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(stopLossTakeProfit, true))
             {
-                parameters = this.omit(parameters, "stopLossTakeProfit");
+                parameters = (Map<String, Object>) this.omit(parameters, "stopLossTakeProfit");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelProfitStop(this.extend(request, parameters))).join();
@@ -4836,7 +4836,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(trailing, true))
             {
-                parameters = this.omit(parameters, "trailing");
+                parameters = (Map<String, Object>) this.omit(parameters, "trailing");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelTrack(this.extend(request, parameters))).join();
@@ -4925,7 +4925,7 @@ public class Xt extends XtApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4939,13 +4939,13 @@ public class Xt extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            Map<String, Object> response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
@@ -4959,7 +4959,7 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelAllPlan(this.extend(request, parameters))).join();
@@ -4969,7 +4969,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(stopLossTakeProfit, true))
             {
-                parameters = this.omit(parameters, "stopLossTakeProfit");
+                parameters = (Map<String, Object>) this.omit(parameters, "stopLossTakeProfit");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelAllProfitStop(this.extend(request, parameters))).join();
@@ -4979,7 +4979,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(trailing, true))
             {
-                parameters = this.omit(parameters, "trailing");
+                parameters = (Map<String, Object>) this.omit(parameters, "trailing");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelAllTrack(this.extend(request, parameters))).join();
@@ -4998,7 +4998,7 @@ public class Xt extends XtApi
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 String marginOrSpotRequest = (((!java.util.Objects.equals(marginMode, null)))) ? "LEVER" : "SPOT";
                 ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
                 response = (this.privateSpotDeleteOpenOrder(this.extend(request, parameters))).join();
@@ -5063,7 +5063,7 @@ public class Xt extends XtApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5079,7 +5079,7 @@ public class Xt extends XtApi
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrders", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(subType, null))
             {
                 throw new NotSupported((this.id + " cancelOrders() does not support swap and future orders, only spot orders are accepted")) ;
@@ -5363,7 +5363,7 @@ public class Xt extends XtApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5384,13 +5384,13 @@ public class Xt extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            Map<String, Object> response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLedger", null, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.privateInverseGetFutureUserV1BalanceBills(this.extend(request, parameters))).join();
@@ -5521,7 +5521,7 @@ public class Xt extends XtApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5529,7 +5529,7 @@ public class Xt extends XtApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object networkId = this.networkCodeToId(networkCode, code);
             this.checkRequiredArgument("fetchDepositAddress", networkId, "network");
@@ -5785,8 +5785,8 @@ public class Xt extends XtApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -5794,12 +5794,12 @@ public class Xt extends XtApi
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             Map<String, Object> networkIdsByCodes = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String networkId = this.safeString2(networkIdsByCodes, networkCode, code, code);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5960,7 +5960,7 @@ public class Xt extends XtApi
         return BaseExchange.supplyAsync(() -> {
             Object leverage = leverage3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -5989,7 +5989,7 @@ public class Xt extends XtApi
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("setLeverage", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
@@ -6104,7 +6104,7 @@ public class Xt extends XtApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object addOrReduce = addOrReduce3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String positionSide = this.safeString(parameters, "positionSide");
             String methodName = (((java.util.Objects.equals(addOrReduce, "ADD")))) ? "addMargin" : "reduceMargin";
             this.checkRequiredArgument(methodName, positionSide, "positionSide", new ArrayList<Object>(Arrays.asList("LONG", "SHORT")));
@@ -6123,8 +6123,8 @@ public class Xt extends XtApi
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("modifyMarginHelper", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.privateInversePostFutureUserV1PositionMargin(this.extend(request, parameters))).join();
@@ -6184,7 +6184,7 @@ public class Xt extends XtApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6192,8 +6192,8 @@ public class Xt extends XtApi
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLeverageTiers", null, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicLeverageBracketList(parameters)).join();
@@ -6302,7 +6302,7 @@ public class Xt extends XtApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6314,8 +6314,8 @@ public class Xt extends XtApi
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarketLeverageTiers", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicLeverageBracketDetail(this.extend(request, parameters))).join();
@@ -6430,7 +6430,7 @@ final Map<String, Object> finalMarket = market;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -6442,7 +6442,7 @@ final Map<String, Object> finalMarket = market;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "id", "id", 1, 200)).join();
@@ -6465,8 +6465,8 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicQFundingRateRecord(this.extend(request, parameters))).join();
@@ -6595,7 +6595,7 @@ final Map<String, Object> finalMarket = market;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRate", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicQFundingRate(this.extend(request, parameters))).join();
@@ -6697,7 +6697,7 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -6710,8 +6710,8 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenInterest", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicContractOpenInterest(this.extend(request, parameters))).join();
@@ -6792,7 +6792,7 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
@@ -6802,8 +6802,8 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.privateInverseGetFutureUserV1UserStepRate(parameters)).join();
@@ -6865,14 +6865,14 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFees", null, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isInverse))
             {
                 response = (this.privateInverseGetFutureUserV1UserStepRate(parameters)).join();
@@ -6950,7 +6950,7 @@ final Map<String, Object> finalMarket = market;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6974,8 +6974,8 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.privateInverseGetFutureUserV1BalanceFundingRateList(this.extend(request, parameters))).join();
@@ -7122,7 +7122,7 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7134,7 +7134,7 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPosition", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(subType, "inverse"))
             {
@@ -7237,7 +7237,7 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7245,7 +7245,7 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositions", null, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(subType, "inverse"))
             {
@@ -7353,7 +7353,7 @@ final Map<String, Object> finalMarket = market;
             Object symbols = symbols3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -7377,12 +7377,12 @@ final Map<String, Object> finalMarket = market;
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.privateInverseGetFutureTradeV1PositionListHistory(this.extend(request, parameters))).join();
@@ -7655,7 +7655,7 @@ final Map<String, Object> finalMarket = market;
         return BaseExchange.supplyAsync(() -> {
             String marginMode = marginMode3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol argument")) ;
@@ -7683,7 +7683,7 @@ final Map<String, Object> finalMarket = market;
             }
             String posSide = this.safeStringUpper(parameters, "positionSide");
             this.checkRequiredArgument("setMarginMode", posSide, "positionSide", new ArrayList<Object>(Arrays.asList("LONG", "SHORT")));
-            parameters = this.omit(parameters, "positionSide");
+            parameters = (Map<String, Object>) this.omit(parameters, "positionSide");
             final String finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "positionType", finalMarginMode );
@@ -7693,7 +7693,7 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("setMarginMode", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
@@ -7757,7 +7757,7 @@ final Map<String, Object> finalMarket = market;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object amount = amount3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(amount, null))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument")) ;
@@ -7770,7 +7770,7 @@ final Map<String, Object> finalMarket = market;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Double stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
             Double takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
             Boolean isStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean isTakeProfit = (!java.util.Objects.equals(takeProfit, null));
             if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
@@ -7797,7 +7797,7 @@ final Map<String, Object> finalMarket = market;
                 Object subType = null;
                 List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("editOrder", market, parameters);
                 subType = ((List<Object>) subTypeparametersVariable).get(0);
-                parameters = ((List<Object>) subTypeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))

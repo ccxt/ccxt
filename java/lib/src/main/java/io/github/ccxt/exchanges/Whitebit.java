@@ -2106,7 +2106,7 @@ public class Whitebit extends WhitebitApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2132,11 +2132,11 @@ public class Whitebit extends WhitebitApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
             method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             if (java.util.Objects.equals(method, null))
             {
                 // if the user did not specify a method, choose it based on market type and symbols
@@ -2148,7 +2148,7 @@ public class Whitebit extends WhitebitApi
                     method = "v4PublicGetTicker";
                 }
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "v4PublicGetTicker"))
             {
                 //
@@ -2917,7 +2917,7 @@ public class Whitebit extends WhitebitApi
             }
             parameters = this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice", "timeInForce")));
             Boolean useCollateralEndpoint = !java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "swap");
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isStopOrder))
             {
                 ((Map<String, Object>)request).put("activation_price", this.priceToPrecision(symbol, triggerPrice));
@@ -3193,7 +3193,7 @@ public class Whitebit extends WhitebitApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3208,14 +3208,14 @@ public class Whitebit extends WhitebitApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> requestType = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(type, "spot"))
             {
                 Object isMargin = null;
                 List<Object> isMarginparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
                 isMargin = ((List<Object>) isMarginparametersVariable).get(0);
-                parameters = ((List<Object>) isMarginparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) isMarginparametersVariable).get(1);
                 if (Helpers.isTrue(isMargin))
                 {
                     ((List<Object>)requestType).add("margin");
@@ -3427,7 +3427,7 @@ public class Whitebit extends WhitebitApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3435,8 +3435,8 @@ public class Whitebit extends WhitebitApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.v4PrivatePostCollateralAccountBalance(parameters)).join();
@@ -3445,7 +3445,7 @@ public class Whitebit extends WhitebitApi
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchBalance", new HashMap<String, Object>() {{}});
                 String defaultAccount = this.safeString(options, "account");
                 String account = this.safeString2(parameters, "account", "type", defaultAccount);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("account", "type")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("account", "type")));
                 if (java.util.Objects.equals(account, "main") || java.util.Objects.equals(account, "funding"))
                 {
                     response = (this.v4PrivatePostMainAccountBalance(parameters)).join();
@@ -3586,7 +3586,7 @@ public class Whitebit extends WhitebitApi
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3597,7 +3597,7 @@ public class Whitebit extends WhitebitApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -4093,7 +4093,7 @@ public class Whitebit extends WhitebitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ticker", ((Map<String, Object>)currency).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.isFiat(code)))
             {
                 String provider = this.safeString(parameters, "provider");
@@ -4149,7 +4149,7 @@ public class Whitebit extends WhitebitApi
             String address = this.safeString(account, "address", url);
             String tag = this.safeString(account, "memo");
             this.checkAddress(address);
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "currency", code );
@@ -5144,7 +5144,7 @@ public class Whitebit extends WhitebitApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5167,7 +5167,7 @@ public class Whitebit extends WhitebitApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endDate", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, parameters))).join();
             //
             //     {
@@ -5507,7 +5507,7 @@ public class Whitebit extends WhitebitApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5528,7 +5528,7 @@ public class Whitebit extends WhitebitApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", request, parameters, 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v4PrivatePostConvertHistory(this.extend(request, parameters))).join();
             //
             //     {
@@ -5664,7 +5664,7 @@ public class Whitebit extends WhitebitApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5683,7 +5683,7 @@ public class Whitebit extends WhitebitApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endDate", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(request, parameters))).join();
             //
             //     [
@@ -5965,7 +5965,7 @@ public class Whitebit extends WhitebitApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -5974,7 +5974,7 @@ public class Whitebit extends WhitebitApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, maxLimit)).join();
@@ -5993,7 +5993,7 @@ public class Whitebit extends WhitebitApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until_timestamp", request, parameters, 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)request).put("limit", limit);

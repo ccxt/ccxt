@@ -413,7 +413,7 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(method, "privateGetTransfers"))
             {
                 response = (this.privateGetTransfers(this.extend(request, parameters))).join();
@@ -1975,11 +1975,11 @@ public class Btcmarkets extends BtcmarketsApi
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
             String address = address3;
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();

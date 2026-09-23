@@ -1342,7 +1342,7 @@ public class Blofin extends BlofinApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1350,7 +1350,7 @@ public class Blofin extends BlofinApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "tradeId", "after", null, 100)).join();
@@ -1359,7 +1359,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100
@@ -1367,7 +1367,7 @@ public class Blofin extends BlofinApi
             Object method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
             method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             if (java.util.Objects.equals(method, "publicGetMarketTrades"))
             {
                 response = (this.publicGetMarketTrades(this.extend(request, parameters))).join();
@@ -1436,7 +1436,7 @@ public class Blofin extends BlofinApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1445,7 +1445,7 @@ public class Blofin extends BlofinApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 100)).join();
@@ -1464,7 +1464,7 @@ public class Blofin extends BlofinApi
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("after", until);
-                parameters = this.omit(parameters, "until");
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
             }
             Map<String, Object> response = (this.publicGetMarketCandles(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1514,7 +1514,7 @@ public class Blofin extends BlofinApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -1526,7 +1526,7 @@ public class Blofin extends BlofinApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100)).join();
@@ -1547,7 +1547,7 @@ public class Blofin extends BlofinApi
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("after", until);
-                parameters = this.omit(parameters, "until");
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
             }
             Map<String, Object> response = (this.publicGetMarketFundingRateHistory(this.extend(request, parameters))).join();
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
@@ -1831,7 +1831,7 @@ public class Blofin extends BlofinApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1839,9 +1839,9 @@ public class Blofin extends BlofinApi
             Object accountType = null;
             List<Object> accountTypeparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchBalance", "accountType", "type");
             accountType = ((List<Object>) accountTypeparametersVariable).get(0);
-            parameters = ((List<Object>) accountTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(accountType, null) && !java.util.Objects.equals(accountType, "swap"))
             {
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
@@ -2154,7 +2154,7 @@ public class Blofin extends BlofinApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2166,10 +2166,10 @@ public class Blofin extends BlofinApi
             Object isTpslEndpoint = false;
             List<Object> isTpslEndpointparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "tpsl", false);
             isTpslEndpoint = ((List<Object>) isTpslEndpointparametersVariable).get(0);
-            parameters = ((List<Object>) isTpslEndpointparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isTpslEndpointparametersVariable).get(1);
             Boolean isCombinedSlTp = (Boolean.TRUE.equals(isStopLossPriceDefined) && Boolean.TRUE.equals(isTakeProfitPriceDefined)) || Boolean.TRUE.equals(isTpslEndpoint);
             Boolean isSlOrTp = Boolean.TRUE.equals(isStopLossPriceDefined) || Boolean.TRUE.equals(isTakeProfitPriceDefined);
-            Object response = null;
+            Map<String, Object> response = null;
             Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
             if (!java.util.Objects.equals(reduceOnly, null))
             {
@@ -2471,7 +2471,7 @@ public class Blofin extends BlofinApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2479,7 +2479,7 @@ public class Blofin extends BlofinApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters)).join();
@@ -2500,9 +2500,9 @@ public class Blofin extends BlofinApi
             Object method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
             method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
-            Object response = null;
+            Map<String, Object> response = null;
             if ((java.util.Objects.equals(isTpSl, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslPending")))
             {
                 response = (this.privateGetTradeOrdersTpslPending(this.extend(request, query))).join();
@@ -2562,7 +2562,7 @@ public class Blofin extends BlofinApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2570,7 +2570,7 @@ public class Blofin extends BlofinApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
@@ -2584,7 +2584,7 @@ public class Blofin extends BlofinApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100, max 100
@@ -2592,8 +2592,8 @@ public class Blofin extends BlofinApi
             Object type = "swap";
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, type);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 ((Map<String, Object>)request).put("instType", "SPOT");
@@ -2671,7 +2671,7 @@ public class Blofin extends BlofinApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2679,7 +2679,7 @@ public class Blofin extends BlofinApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, parameters)).join();
@@ -2701,7 +2701,7 @@ public class Blofin extends BlofinApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, parameters);
@@ -2749,7 +2749,7 @@ public class Blofin extends BlofinApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2757,7 +2757,7 @@ public class Blofin extends BlofinApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters)).join();
@@ -2779,7 +2779,7 @@ public class Blofin extends BlofinApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, parameters);
@@ -2876,8 +2876,8 @@ public class Blofin extends BlofinApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
             // - addrType is documented optional but the live venue rejects
             //   on-chain withdrawals without it: 152001 "Parameter addrType
@@ -2889,8 +2889,8 @@ public class Blofin extends BlofinApi
             // - 152002 responses omit the offending field name even though the
             //   error table documents the message as "Parameter {} error"
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             (this.loadMarkets()).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2900,7 +2900,7 @@ public class Blofin extends BlofinApi
             }};
             String dest = this.safeString(parameters, "dest", "onchain");
             ((Map<String, Object>)request).put("dest", dest);
-            parameters = this.omit(parameters, "dest");
+            parameters = (Map<String, Object>) this.omit(parameters, "dest");
             if (java.util.Objects.equals(dest, "onchain"))
             {
                 this.checkAddress(address);
@@ -2909,7 +2909,7 @@ public class Blofin extends BlofinApi
                 // it (152001 "Parameter addrType cannot be empty") - default to
                 // 1 = wallet address, callers can override for other kinds
                 ((Map<String, Object>)request).put("addrType", this.safeString(parameters, "addrType", "1"));
-                parameters = this.omit(parameters, "addrType");
+                parameters = (Map<String, Object>) this.omit(parameters, "addrType");
             }
             if (!java.util.Objects.equals(tag, null))
             {
@@ -2920,7 +2920,7 @@ public class Blofin extends BlofinApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             String chain = this.safeString(parameters, "chain");
             if (java.util.Objects.equals(chain, null))
             {
@@ -2996,7 +2996,7 @@ public class Blofin extends BlofinApi
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3004,7 +3004,7 @@ public class Blofin extends BlofinApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters)).join();
@@ -3022,7 +3022,7 @@ public class Blofin extends BlofinApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetBills(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
@@ -3329,7 +3329,7 @@ public class Blofin extends BlofinApi
                     }});
                 }
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privatePostTradeCancelTpsl"))
             {
                 response = (this.privatePostTradeCancelTpsl(request)).join(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -3547,7 +3547,7 @@ public class Blofin extends BlofinApi
             Object symbols = symbols3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3573,7 +3573,7 @@ public class Blofin extends BlofinApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAccountPositionsHistory(this.extend(request, parameters))).join();
             //
             //    {
@@ -3803,7 +3803,7 @@ public class Blofin extends BlofinApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3815,7 +3815,7 @@ public class Blofin extends BlofinApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverages", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 marginMode = this.safeString(parameters, "marginMode", "cross"); // cross as default marginMode
@@ -3893,7 +3893,7 @@ public class Blofin extends BlofinApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3901,7 +3901,7 @@ public class Blofin extends BlofinApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 marginMode = this.safeString(parameters, "marginMode", "cross"); // cross as default marginMode
@@ -3985,7 +3985,7 @@ public class Blofin extends BlofinApi
         return BaseExchange.supplyAsync(() -> {
             Object leverage = leverage3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -4004,7 +4004,7 @@ public class Blofin extends BlofinApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
             {
                 throw new BadRequest((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
@@ -4059,7 +4059,7 @@ public class Blofin extends BlofinApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4069,7 +4069,7 @@ public class Blofin extends BlofinApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             final Object finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
@@ -4130,7 +4130,7 @@ public class Blofin extends BlofinApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4138,7 +4138,7 @@ public class Blofin extends BlofinApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters)).join();
@@ -4162,9 +4162,9 @@ public class Blofin extends BlofinApi
             Object method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
             method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
-            Object response = null;
+            Map<String, Object> response = null;
             if ((java.util.Objects.equals(isTrigger, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslHistory")))
             {
                 response = (this.privateGetTradeOrdersTpslHistory(this.extend(request, query))).join();

@@ -1890,7 +1890,7 @@ public class Coinsph extends CoinsphApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             // todo: add test order low priority
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1898,10 +1898,10 @@ public class Coinsph extends CoinsphApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
-            parameters = this.omit(parameters, "test");
+            parameters = (Map<String, Object>) this.omit(parameters, "test");
             String orderType = this.safeString(parameters, "type", type);
             orderType = this.encodeOrderType(orderType);
-            parameters = this.omit(parameters, "type");
+            parameters = (Map<String, Object>) this.omit(parameters, "type");
             String orderSide = this.encodeOrderSide((String) (side));
             final String finalOrderType = orderType;
             final String finalOrderSide = orderSide;
@@ -1938,9 +1938,9 @@ public class Coinsph extends CoinsphApi
                     Boolean createMarketBuyOrderRequiresPrice = true;
                     List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
-                    parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                    parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Double cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
-                    parameters = this.omit(parameters, "cost");
+                    parameters = (Map<String, Object>) this.omit(parameters, "cost");
                     if (!java.util.Objects.equals(cost, null))
                     {
                         quoteAmount = this.costToPrecision(symbol, cost);
@@ -1973,7 +1973,7 @@ public class Coinsph extends CoinsphApi
                 ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             ((Map<String, Object>)request).put("newOrderRespType", newOrderRespType);
-            parameters = this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
+            parameters = (Map<String, Object>) this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(testOrder, true))
             {

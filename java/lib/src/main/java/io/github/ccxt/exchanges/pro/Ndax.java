@@ -169,7 +169,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
@@ -177,7 +177,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String name = "SubscribeTrades";
             String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -292,7 +292,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
@@ -300,7 +300,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String name = "SubscribeTicker";
             String messageHash = ((((name + ":") + timeframe) + ":") + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -477,7 +477,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (java.util.Objects.equals(this.markets, null))
@@ -485,7 +485,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String name = "SubscribeLevel2";
             String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -504,7 +504,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "n", finalName );
                 put( "o", Ndax.this.json(payload) );
             }};
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "messageHash", messageHash );

@@ -370,13 +370,13 @@ public class Zebpay extends ZebpayApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchStatus", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-            Object response = null;
+            Map<String, Object> response = null;
             Object data = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSpot))
             {
@@ -399,7 +399,7 @@ public class Zebpay extends ZebpayApi
             // }
             //
             String status = this.safeString2(data, "systemStatus", "status");
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return new HashMap<String, Object>() {{
                 put( "status", status );
                 put( "updated", null );
@@ -437,13 +437,13 @@ public class Zebpay extends ZebpayApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-            Object response = null;
+            Map<String, Object> response = null;
             Object data = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSpot))
             {
@@ -720,7 +720,7 @@ public class Zebpay extends ZebpayApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object response = null;
+            Map<String, Object> response = null;
             Object data = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -794,12 +794,12 @@ public class Zebpay extends ZebpayApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 response = (this.publicSpotGetV2ExTradefees(parameters)).join();
@@ -873,7 +873,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 if (!java.util.Objects.equals(limit, null))
@@ -943,7 +943,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.publicSpotGetV2MarketTicker(this.extend(request, parameters))).join();
@@ -986,11 +986,11 @@ public class Zebpay extends ZebpayApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "spot"))
             {
                 throw new NotSupported((((this.id + " fetchTickers() does not support ") + type) + " markets")) ;
@@ -1100,7 +1100,7 @@ public class Zebpay extends ZebpayApi
                 ((Map<String, Object>)request).put("endTime", until);
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endtime", "until")));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 if (java.util.Objects.equals(until, null) || java.util.Objects.equals(since, null))
@@ -1196,7 +1196,7 @@ public class Zebpay extends ZebpayApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.publicSpotGetV2MarketTrades(this.extend(request, parameters))).join();
@@ -1255,7 +1255,7 @@ public class Zebpay extends ZebpayApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1268,8 +1268,8 @@ public class Zebpay extends ZebpayApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 throw new NotSupported((this.id + " fetchMyTrades() does not support spot markets")) ;
@@ -1315,11 +1315,11 @@ public class Zebpay extends ZebpayApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "spot"))
             {
                 throw new NotSupported((((this.id + " fetchOrderTrades() does not support ") + type) + " markets")) ;
@@ -1449,7 +1449,7 @@ public class Zebpay extends ZebpayApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1457,9 +1457,9 @@ public class Zebpay extends ZebpayApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isSpot))
             {
                 response = (this.privateSpotGetV2AccountBalance(parameters)).join();
@@ -1532,7 +1532,7 @@ public class Zebpay extends ZebpayApi
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1541,7 +1541,7 @@ public class Zebpay extends ZebpayApi
             String upperCaseType = ((String)type).toUpperCase();
             String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginAsset", "takeProfitPrice", "takeProfitPrice")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginAsset", "takeProfitPrice", "takeProfitPrice")));
             if (java.util.Objects.equals(side, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
@@ -1551,12 +1551,12 @@ public class Zebpay extends ZebpayApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "side", ((String)finalSide).toUpperCase() );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 var requestparametersVariable = this.orderRequest(symbol, type, amount, (Map<String, Object>) (request), price, parameters);
                 request = ((List<Object>) requestparametersVariable).get(0);
-                parameters = ((List<Object>) requestparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 response = (this.privateSpotPostV2ExOrders(this.extend(request, parameters))).join();
             } else
             {
@@ -1684,7 +1684,7 @@ public class Zebpay extends ZebpayApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object response = null;
+            Map<String, Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
@@ -1744,11 +1744,11 @@ public class Zebpay extends ZebpayApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "spot"))
             {
                 throw new NotSupported((((this.id + " cancelAllOrders() does not support ") + type) + " markets")) ;
@@ -1814,7 +1814,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             Object orders = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
@@ -1910,7 +1910,7 @@ public class Zebpay extends ZebpayApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 ((Map<String, Object>)request).put("orderId", id);

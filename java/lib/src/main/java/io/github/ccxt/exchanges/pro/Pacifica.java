@@ -638,7 +638,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.setupApiKeyHeaders();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -648,7 +648,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object aggLevel = null;
             List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
             aggLevel = ((List<Object>) aggLevelparametersVariable).get(0);
-            parameters = ((List<Object>) aggLevelparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) aggLevelparametersVariable).get(1);
             String messageHash = ("orderbook:" + symbol);
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
@@ -966,11 +966,11 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("watchMyTrades", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1209,14 +1209,14 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trade:" + symbol);
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
@@ -1267,13 +1267,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String subMessageHash = ("trade:" + symbol);
             String messageHash = ("unsubscribe:" + subMessageHash);
             Object isTestnet = this.isSandboxModeEnabled;
@@ -1463,14 +1463,14 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object isTestnet = this.isSandboxModeEnabled;
             String parsedTf = this.safeString(this.timeframes, timeframe, timeframe);
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
@@ -1525,13 +1525,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
             Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
@@ -1633,9 +1633,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1643,13 +1643,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("watchOrders", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Map<String, Object> market = null;
             String messageHash = "order";
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = ((messageHash + ":") + symbol);
             }
             Object isTestnet = this.isSandboxModeEnabled;

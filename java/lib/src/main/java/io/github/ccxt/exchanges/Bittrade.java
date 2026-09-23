@@ -802,7 +802,7 @@ public class Bittrade extends BittradeApi
         return BaseExchange.supplyAsync(() -> {
 
             Object method = this.handleOption("fetchMarkets", "method", "publicGetCommonSymbols");
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "publicGetCommonSymbols"))
             {
                 response = (this.publicGetCommonSymbols(parameters)).join();
@@ -1813,7 +1813,7 @@ public class Bittrade extends BittradeApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", ((Map<String, Object>)(Bittrade.this.accounts == null || 0 >= ((List<?>)Bittrade.this.accounts).size() ? null : ((List<?>)Bittrade.this.accounts).get(0))).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetAccountAccountsIdBalance"))
             {
                 response = (this.privateGetAccountAccountsIdBalance(this.extend(request, parameters))).join();
@@ -1856,7 +1856,7 @@ public class Bittrade extends BittradeApi
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
-            Object response = null;
+            Map<String, Object> response = null;
             if ((java.util.Objects.equals(method, "private_get_order_history")) || (java.util.Objects.equals(method, "privateGetOrderHistory")))
             {
                 response = (this.privateGetOrderHistory(this.extend(request, parameters))).join();
@@ -2303,7 +2303,7 @@ public class Bittrade extends BittradeApi
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2327,16 +2327,16 @@ public class Bittrade extends BittradeApi
             {
                 ((Map<String, Object>)request).put("client-order-id", clientOrderId);
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client-order-id")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client-order-id")));
             if ((java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy")))
             {
                 Object quoteAmount = null;
                 Boolean createMarketBuyOrderRequiresPrice = true;
                 List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
-                parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Double cost = this.safeNumber(parameters, "cost");
-                parameters = this.omit(parameters, "cost");
+                parameters = (Map<String, Object>) this.omit(parameters, "cost");
                 if (!java.util.Objects.equals(cost, null))
                 {
                     quoteAmount = this.amountToPrecision(symbol, cost);
@@ -2371,7 +2371,7 @@ public class Bittrade extends BittradeApi
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             Object method = this.handleOption("createOrder", "method", "privatePostOrderOrdersPlace");
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privatePostOrderOrdersPlace"))
             {
                 response = (this.privatePostOrderOrdersPlace(this.extend(request, parameters))).join();
@@ -2380,7 +2380,7 @@ public class Bittrade extends BittradeApi
                 throw new NotSupported((Helpers.add((this.id + " createOrder() does not support the "), method) + " method")) ;
             }
             String id = this.safeString(response, "data");
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             final Object finalPrice = price;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
@@ -2953,11 +2953,11 @@ public class Bittrade extends BittradeApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2986,7 +2986,7 @@ public class Bittrade extends BittradeApi
                 {
                     ((Map<String, Object>)request).put("chain", (network + ((Map<String, Object>)currency).get("id")));
                 }
-                parameters = this.omit(parameters, "network");
+                parameters = (Map<String, Object>) this.omit(parameters, "network");
             }
             Map<String, Object> response = (this.privatePostDwWithdrawApiCreate(this.extend(request, parameters))).join();
             //

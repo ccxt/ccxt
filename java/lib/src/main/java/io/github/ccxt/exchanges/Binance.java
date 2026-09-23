@@ -4767,15 +4767,15 @@ public class Binance extends BinanceApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String defaultType = this.safeString2(this.options, "fetchTime", "defaultType", "spot");
             String type = this.safeString(parameters, "type", defaultType);
             Object query = this.omit(parameters, "type");
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTime", null, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetTime(query)).join();
@@ -5929,7 +5929,7 @@ public class Binance extends BinanceApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5939,11 +5939,11 @@ public class Binance extends BinanceApi
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchBalance", null, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchBalance", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object marginMode = null;
             Object query = null;
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
@@ -5969,7 +5969,7 @@ public class Binance extends BinanceApi
                 Object useV2 = null;
                 List<Object> useV2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "useV2", false);
                 useV2 = ((List<Object>) useV2parametersVariable).get(0);
-                parameters = ((List<Object>) useV2parametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) useV2parametersVariable).get(1);
                 parameters = this.extend(request, query);
                 if (!Helpers.isTrue(useV2))
                 {
@@ -6268,7 +6268,7 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 response = (this.eapiPublicGetDepth(this.extend(request, parameters))).join();
@@ -6737,7 +6737,7 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6748,11 +6748,11 @@ public class Binance extends BinanceApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if ((!java.util.Objects.equals(symbols, null)) && (Boolean.TRUE.equals(this.isLinear(type, subType)) || Boolean.TRUE.equals(this.isInverse(type, subType))))
             {
@@ -6827,7 +6827,7 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6837,11 +6837,11 @@ public class Binance extends BinanceApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLastPrices", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
@@ -6945,7 +6945,7 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6956,11 +6956,11 @@ public class Binance extends BinanceApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
@@ -6971,7 +6971,7 @@ public class Binance extends BinanceApi
             } else if (java.util.Objects.equals(type, "spot"))
             {
                 Boolean rolling = (Boolean) this.safeBool(parameters, "rolling", false);
-                parameters = this.omit(parameters, "rolling");
+                parameters = (Map<String, Object>) this.omit(parameters, "rolling");
                 if (java.util.Objects.equals(rolling, true))
                 {
                     symbols = this.marketSymbols(symbols);
@@ -7051,7 +7051,7 @@ public class Binance extends BinanceApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7060,15 +7060,15 @@ public class Binance extends BinanceApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrice", market, parameters, "swap");
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarkPrice", market, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 response = (this.eapiPublicGetMark(this.extend(request, parameters))).join();
@@ -7129,7 +7129,7 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7139,12 +7139,12 @@ public class Binance extends BinanceApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarkPrices", market, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(type, "option"))
             {
                 response = (this.eapiPublicGetMark(parameters)).join();
@@ -7273,7 +7273,7 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7281,7 +7281,7 @@ public class Binance extends BinanceApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
@@ -7293,7 +7293,7 @@ public class Binance extends BinanceApi
             Integer maxLimit = 1000;
             String price = this.safeString(parameters, "price");
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
             if (!java.util.Objects.equals(since, null) && !java.util.Objects.equals(until, null) && java.util.Objects.equals(limit, null))
             {
                 limit = maxLimit;
@@ -7341,7 +7341,7 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)request).put("endTime", until);
             }
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 response = (this.eapiPublicGetKlines(this.extend(request, parameters))).join();
@@ -7785,7 +7785,7 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7793,7 +7793,7 @@ public class Binance extends BinanceApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
@@ -7826,7 +7826,7 @@ public class Binance extends BinanceApi
                 Object maxLimitForContractHistorical = ((Boolean.TRUE.equals(isHistoricalEndpoint))) ? 500 : 1000;
                 ((Map<String, Object>)request).put("limit", (((java.util.Objects.equals(isFutureOrSwap, true)))) ? Helpers.mathMin(limit, maxLimitForContractHistorical) : limit); // default = 500, maximum = 1000
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "fetchTradesMethod")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "fetchTradesMethod")));
             if (java.util.Objects.equals(method, null))
             {
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
@@ -7843,7 +7843,7 @@ public class Binance extends BinanceApi
                     method = "publicGetAggTrades";
                 }
             }
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(method, "publicGetAggTrades"))
             {
                 response = (this.publicGetAggTrades(this.extend(request, parameters))).join();
@@ -8331,7 +8331,7 @@ public class Binance extends BinanceApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -8340,9 +8340,9 @@ public class Binance extends BinanceApi
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object request = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -8530,7 +8530,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((((this.id + " editOrders() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
-            Object response = null;
+            List<Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "batchOrders", ordersRequests );
             }};
@@ -9383,7 +9383,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((((this.id + " createOrders() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
-            Object response = null;
+            List<Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "batchOrders", ordersRequests );
             }};
@@ -9526,7 +9526,7 @@ public class Binance extends BinanceApi
             //     params['portfolioMargin'] = isPortfolioMargin;
             // }
             Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 response = (this.eapiPrivatePostOrder(request)).join();
@@ -10333,7 +10333,7 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -10343,7 +10343,7 @@ public class Binance extends BinanceApi
             Object stock = null;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrder", "stock", false);
             stock = ((List<Object>) stockparametersVariable).get(0);
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -10359,19 +10359,19 @@ public class Binance extends BinanceApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters, "spot");
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrder", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Boolean isOptionType = java.util.Objects.equals(type, "option");
             boolean isLinearType = Helpers.isTrue(this.isLinear(type, subType));
@@ -10397,8 +10397,8 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)request).put("orderId", id);
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId", "stop", "trigger", "conditional", "clientAlgoId")));
-            Object response = null;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId", "stop", "trigger", "conditional", "clientAlgoId")));
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isOptionType))
             {
                 response = (this.eapiPrivateGetOrder(this.extend(request, parameters))).join();
@@ -10518,7 +10518,7 @@ public class Binance extends BinanceApi
             String symbol = symbol3;
             Long since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -10526,7 +10526,7 @@ public class Binance extends BinanceApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters)).join();
@@ -10536,7 +10536,7 @@ public class Binance extends BinanceApi
             Object stock = null;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "stock", false);
             stock = ((List<Object>) stockparametersVariable).get(0);
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -10549,25 +10549,25 @@ public class Binance extends BinanceApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters, "spot");
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrders", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Boolean isOptionType = java.util.Objects.equals(type, "option");
             boolean isLinearType = Helpers.isTrue(this.isLinear(type, subType));
             boolean isInverseType = Helpers.isTrue(this.isInverse(type, subType));
             Long until = this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("until", "till", "endTime")));
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional", "until", "till", "endTime")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional", "until", "till", "endTime")));
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("startTime", since);
@@ -10943,7 +10943,7 @@ public class Binance extends BinanceApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -10954,16 +10954,16 @@ public class Binance extends BinanceApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchOpenOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Object stock = null;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "stock", false);
             stock = ((List<Object>) stockparametersVariable).get(0);
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -10983,13 +10983,13 @@ public class Binance extends BinanceApi
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, "spot");
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
+            List<Object> response = null;
             if (java.util.Objects.equals(type, "option"))
             {
                 if (!java.util.Objects.equals(since, null))
@@ -11125,7 +11125,7 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrder() requires a symbol argument")) ;
@@ -11141,13 +11141,13 @@ public class Binance extends BinanceApi
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchOpenOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Boolean isPortfolioMarginConditional = (Helpers.isTrue(isPortfolioMargin) && Boolean.TRUE.equals(isConditional));
             String orderIdRequest = (((java.util.Objects.equals(isPortfolioMarginConditional, true)))) ? "strategyId" : "orderId";
             ((Map<String, Object>)request).put((String)orderIdRequest, id);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -11396,12 +11396,12 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Map<String, Object> market = null;
             Object stock = null;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "stock", false);
             stock = ((List<Object>) stockparametersVariable).get(0);
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -11480,12 +11480,12 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Map<String, Object> market = null;
             Object stock = null;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledOrders", "stock", false);
             stock = ((List<Object>) stockparametersVariable).get(0);
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -11564,12 +11564,12 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Map<String, Object> market = null;
             Object stock = null;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "stock", false);
             stock = ((List<Object>) stockparametersVariable).get(0);
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -11651,7 +11651,7 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -11661,7 +11661,7 @@ public class Binance extends BinanceApi
             Object stock = null;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "stock", false);
             stock = ((List<Object>) stockparametersVariable).get(0);
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -11677,19 +11677,19 @@ public class Binance extends BinanceApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters, "spot");
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "cancelOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Boolean isOptionType = java.util.Objects.equals(type, "option");
             boolean isLinearType = Helpers.isTrue(this.isLinear(type, subType));
@@ -11727,8 +11727,8 @@ public class Binance extends BinanceApi
                     ((Map<String, Object>)request).put("orderId", id);
                 }
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId", "newClientStrategyId", "stop", "trigger", "conditional", "clientAlgoId")));
-            Object response = null;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId", "newClientStrategyId", "stop", "trigger", "conditional", "clientAlgoId")));
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isOptionType))
             {
                 response = (this.eapiPrivateDeleteOrder(this.extend(request, parameters))).join();
@@ -11861,7 +11861,7 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -11871,7 +11871,7 @@ public class Binance extends BinanceApi
             Object stock = null;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "stock", false);
             stock = ((List<Object>) stockparametersVariable).get(0);
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -11887,24 +11887,24 @@ public class Binance extends BinanceApi
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "cancelAllOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, "spot");
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isOptionType = java.util.Objects.equals(type, "option");
             boolean isLinearType = Helpers.isTrue(this.isLinear(type, subType));
             boolean isInverseType = Helpers.isTrue(this.isInverse(type, subType));
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Object response = null;
             if (Boolean.TRUE.equals(isOptionType))
             {
@@ -12056,7 +12056,7 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)request).put("orderidlist", ids);
             }
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 response = (this.fapiPrivateDeleteBatchOrders(this.extend(request, parameters))).join();
@@ -12220,7 +12220,7 @@ public class Binance extends BinanceApi
             String symbol = symbol3;
             Long since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12228,7 +12228,7 @@ public class Binance extends BinanceApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
@@ -12240,7 +12240,7 @@ public class Binance extends BinanceApi
             Object stock = null;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "stock", false);
             stock = ((List<Object>) stockparametersVariable).get(0);
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -12249,7 +12249,7 @@ public class Binance extends BinanceApi
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if ((!java.util.Objects.equals(stock, true)) && (!java.util.Objects.equals(type, "option")) && (java.util.Objects.equals(symbol, null)))
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
@@ -12277,7 +12277,7 @@ public class Binance extends BinanceApi
             if (!java.util.Objects.equals(endTime, null))
             {
                 ((Map<String, Object>)request).put("endTime", endTime);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -12302,11 +12302,11 @@ public class Binance extends BinanceApi
             {
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 Object isPortfolioMargin = null;
                 List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchMyTrades", "papi", "portfolioMargin", false);
                 isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-                parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
                 if (java.util.Objects.equals(stock, true))
                 {
                     if (java.util.Objects.equals(endTime, null))
@@ -12765,7 +12765,7 @@ public class Binance extends BinanceApi
             Object code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12773,7 +12773,7 @@ public class Binance extends BinanceApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, parameters)).join();
@@ -12783,9 +12783,9 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> legalMoney = (Map<String, Object>) this.safeDict(this.options, "legalMoney", new HashMap<String, Object>() {{}});
             Boolean fiatOnly = (Boolean) this.safeBool(parameters, "fiat", false);
-            parameters = this.omit(parameters, "fiatOnly");
+            parameters = (Map<String, Object>) this.omit(parameters, "fiatOnly");
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, "until");
             if ((java.util.Objects.equals(fiatOnly, true)) || ((!java.util.Objects.equals(code, null)) && (legalMoney.containsKey(code))))
             {
                 if (!java.util.Objects.equals(code, null))
@@ -12889,7 +12889,7 @@ public class Binance extends BinanceApi
             Object code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12897,19 +12897,19 @@ public class Binance extends BinanceApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters)).join();
             }
             Map<String, Object> legalMoney = (Map<String, Object>) this.safeDict(this.options, "legalMoney", new HashMap<String, Object>() {{}});
             Boolean fiatOnly = (Boolean) this.safeBool(parameters, "fiat", false);
-            parameters = this.omit(parameters, "fiatOnly");
+            parameters = (Map<String, Object>) this.omit(parameters, "fiatOnly");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, "until");
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 ((Map<String, Object>)request).put("endTime", until);
             }
             Object response = null;
@@ -13511,17 +13511,17 @@ public class Binance extends BinanceApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Boolean intern = (Boolean) this.safeBool(parameters, "internal");
-            parameters = this.omit(parameters, "internal");
+            parameters = (Map<String, Object>) this.omit(parameters, "internal");
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate) && (!java.util.Objects.equals(intern, true)))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters)).join();
@@ -13571,10 +13571,10 @@ public class Binance extends BinanceApi
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, "until");
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 ((Map<String, Object>)request).put("endTime", until);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(intern, true))
             {
                 response = (this.sapiGetPayTransactions(this.extend(request, parameters))).join();
@@ -13620,7 +13620,7 @@ public class Binance extends BinanceApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -13632,7 +13632,7 @@ public class Binance extends BinanceApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 ((Map<String, Object>)request).put("network", this.networkCodeToId(networkCode, ((Map<String, Object>)currency).get("code")));
@@ -14034,11 +14034,11 @@ public class Binance extends BinanceApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -14056,7 +14056,7 @@ public class Binance extends BinanceApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 ((Map<String, Object>)request).put("network", this.networkCodeToId(networkCode, ((Map<String, Object>)currency).get("code")));
@@ -14139,7 +14139,7 @@ public class Binance extends BinanceApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14149,17 +14149,17 @@ public class Binance extends BinanceApi
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchTradingFee", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             boolean isLinear = Helpers.isTrue(this.isLinear(type, subType));
             boolean isInverse = Helpers.isTrue(this.isInverse(type, subType));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (isLinear)
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -14250,7 +14250,7 @@ public class Binance extends BinanceApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14258,15 +14258,15 @@ public class Binance extends BinanceApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFees", null, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isSpotOrMargin = (java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin"));
             boolean isLinear = Helpers.isTrue(this.isLinear(type, subType));
             boolean isInverse = Helpers.isTrue(this.isInverse(type, subType));
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isSpotOrMargin))
             {
                 response = (this.sapiGetAssetTradeFee(parameters)).join();
@@ -14631,10 +14631,10 @@ public class Binance extends BinanceApi
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14643,7 +14643,7 @@ public class Binance extends BinanceApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
@@ -14654,21 +14654,21 @@ public class Binance extends BinanceApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            parameters = this.omit(parameters, "type");
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, "type");
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("startTime", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if (!java.util.Objects.equals(endTime, null))
             {
                 ((Map<String, Object>)request).put("endTime", endTime);
@@ -14677,7 +14677,7 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetFundingRate(this.extend(request, parameters))).join();
@@ -14759,7 +14759,7 @@ public class Binance extends BinanceApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14770,9 +14770,9 @@ public class Binance extends BinanceApi
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", null, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object query = this.omit(parameters, "type");
-            Object response = null;
+            List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetPremiumIndex(query)).join();
@@ -15487,7 +15487,7 @@ public class Binance extends BinanceApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -15503,12 +15503,12 @@ public class Binance extends BinanceApi
                 Object subType = null;
                 List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("loadLeverageBrackets", null, parameters, "linear");
                 subType = ((List<Object>) subTypeparametersVariable).get(0);
-                parameters = ((List<Object>) subTypeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
                 Object isPortfolioMargin = null;
                 List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "loadLeverageBrackets", "papi", "portfolioMargin", false);
                 isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-                parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
-                Object response = null;
+                parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+                List<Object> response = null;
                 if (Boolean.TRUE.equals(this.isLinear(type, subType)))
                 {
                     if (Helpers.isTrue(isPortfolioMargin))
@@ -15581,7 +15581,7 @@ public class Binance extends BinanceApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -15589,16 +15589,16 @@ public class Binance extends BinanceApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLeverageTiers", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLeverageTiers", null, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchLeverageTiers", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -15973,11 +15973,11 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object defaultMethod = null;
             List<Object> defaultMethodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method");
             defaultMethod = ((List<Object>) defaultMethodparametersVariable).get(0);
-            parameters = ((List<Object>) defaultMethodparametersVariable).get(1); // check if there is a key in options|params
+            parameters = (Map<String, Object>) ((List<Object>) defaultMethodparametersVariable).get(1); // check if there is a key in options|params
             if (java.util.Objects.equals(defaultMethod, null))
             {
                 // check if .options['fetchPositions'] dict exist at all
@@ -16053,7 +16053,7 @@ final Map<String, Object> finalMarket = market;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (!java.util.Objects.equals(symbols, null))
             {
                 if (!(symbols instanceof List))
@@ -16068,16 +16068,16 @@ final Map<String, Object> finalMarket = market;
             (this.loadLeverageBrackets(false, parameters)).join();
             String defaultType = this.safeString(this.options, "defaultType", "future");
             String type = this.safeString(parameters, "type", defaultType);
-            parameters = this.omit(parameters, "type");
+            parameters = (Map<String, Object>) this.omit(parameters, "type");
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchAccountPositions", null, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchAccountPositions", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -16088,7 +16088,7 @@ final Map<String, Object> finalMarket = market;
                     Object useV2 = null;
                     List<Object> useV2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchAccountPositions", "useV2", false);
                     useV2 = ((List<Object>) useV2parametersVariable).get(0);
-                    parameters = ((List<Object>) useV2parametersVariable).get(1);
+                    parameters = (Map<String, Object>) ((List<Object>) useV2parametersVariable).get(1);
                     if (!Helpers.isTrue(useV2))
                     {
                         response = (this.fapiPrivateV3GetAccount(parameters)).join();
@@ -16113,7 +16113,7 @@ final Map<String, Object> finalMarket = market;
             Object filterClosed = null;
             List<Object> filterClosedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
             filterClosed = ((List<Object>) filterClosedparametersVariable).get(0);
-            parameters = ((List<Object>) filterClosedparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) filterClosedparametersVariable).get(1);
             Object result = this.parseAccountPositions(response, filterClosed);
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -16166,7 +16166,7 @@ final Map<String, Object> finalMarket = market;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (!java.util.Objects.equals(symbols, null))
             {
                 if (!(symbols instanceof List))
@@ -16186,13 +16186,13 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsRisk", null, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchPositionsRisk", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
-            parameters = this.omit(parameters, "type");
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, "type");
+            List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -16203,7 +16203,7 @@ final Map<String, Object> finalMarket = market;
                     Object useV2 = null;
                     List<Object> useV2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsRisk", "useV2", false);
                     useV2 = ((List<Object>) useV2parametersVariable).get(0);
-                    parameters = ((List<Object>) useV2parametersVariable).get(1);
+                    parameters = (Map<String, Object>) ((List<Object>) useV2parametersVariable).get(1);
                     parameters = this.extend(request, parameters);
                     if (!Helpers.isTrue(useV2))
                     {
@@ -16376,7 +16376,7 @@ final Map<String, Object> finalMarket = market;
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -16397,14 +16397,14 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchFundingHistory", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("startTime", since);
@@ -16415,8 +16415,8 @@ final Map<String, Object> finalMarket = market;
             }
             String defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "future");
             String type = this.safeString(parameters, "type", defaultType);
-            parameters = this.omit(parameters, "type");
-            Object response = null;
+            parameters = (Map<String, Object>) this.omit(parameters, "type");
+            List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -16487,7 +16487,7 @@ final Map<String, Object> finalMarket = market;
         return BaseExchange.supplyAsync(() -> {
             Object leverage = leverage3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -16511,7 +16511,7 @@ final Map<String, Object> finalMarket = market;
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "setLeverage", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
@@ -16693,7 +16693,7 @@ final Map<String, Object> finalMarket = market;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -16702,15 +16702,15 @@ final Map<String, Object> finalMarket = market;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("setPositionMode", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("setPositionMode", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "setPositionMode", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             String dualSidePosition = null;
             if (Helpers.isTrue(hedged))
             {
@@ -16798,7 +16798,7 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -16807,15 +16807,15 @@ final Map<String, Object> finalMarket = market;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLeverages", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLeverages", null, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchLeverages", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
@@ -16933,7 +16933,7 @@ final Map<String, Object> finalMarket = market;
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -16942,7 +16942,7 @@ final Map<String, Object> finalMarket = market;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "option"))
             {
                 throw new NotSupported((this.id + " fetchSettlementHistory() supports option markets only")) ;
@@ -17016,7 +17016,7 @@ final Map<String, Object> finalMarket = market;
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -17025,7 +17025,7 @@ final Map<String, Object> finalMarket = market;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "option"))
             {
                 throw new NotSupported((this.id + " fetchMySettlementHistory() supports option markets only")) ;
@@ -17188,7 +17188,7 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -17196,7 +17196,7 @@ final Map<String, Object> finalMarket = market;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedgerEntry", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "option"))
             {
                 throw new BadRequest((this.id + " fetchLedgerEntry() can only be used for type option")) ;
@@ -17268,7 +17268,7 @@ final Map<String, Object> finalMarket = market;
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -17276,7 +17276,7 @@ final Map<String, Object> finalMarket = market;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, null, false)).join();
@@ -17291,10 +17291,10 @@ final Map<String, Object> finalMarket = market;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLedger", null, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("startTime", since);
@@ -17306,14 +17306,14 @@ final Map<String, Object> finalMarket = market;
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, "until");
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 ((Map<String, Object>)request).put("endTime", until);
             }
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchLedger", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(type, "option"))
             {
                 this.checkRequiredArgument("fetchLedger", code, "code");
@@ -17950,7 +17950,7 @@ final Map<String, Object> finalMarket = market;
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "amount", finalAmount );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             Object code = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
@@ -18598,7 +18598,7 @@ final Map<String, Object> finalMarket = market;
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -18606,7 +18606,7 @@ final Map<String, Object> finalMarket = market;
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchBorrowInterest", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(code, null))
@@ -18624,8 +18624,8 @@ final Map<String, Object> finalMarket = market;
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (Helpers.isTrue(isPortfolioMargin))
             {
                 response = (this.papiGetMarginMarginInterestHistory(this.extend(request, parameters))).join();
@@ -18741,7 +18741,7 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -18751,17 +18751,17 @@ final Map<String, Object> finalMarket = market;
                 put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "repayCrossMargin", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             if (Helpers.isTrue(isPortfolioMargin))
             {
                 Object method = null;
                 List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "repayCrossMargin", "repayCrossMarginMethod", "method");
                 method = ((List<Object>) methodparametersVariable).get(0);
-                parameters = ((List<Object>) methodparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
                 if (java.util.Objects.equals(method, "papiPostMarginRepayDebt"))
                 {
                     response = (this.papiPostMarginRepayDebt(this.extend(request, parameters))).join();
@@ -18871,7 +18871,7 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -18881,11 +18881,11 @@ final Map<String, Object> finalMarket = market;
                 put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Binance.this.currencyToPrecision((String) (code), amount) );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "borrowCrossMargin", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             if (Helpers.isTrue(isPortfolioMargin))
             {
                 response = (this.papiPostMarginLoan(this.extend(request, parameters))).join();
@@ -19038,7 +19038,7 @@ final Map<String, Object> finalMarket = market;
             Object timeframe = timeframe3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(timeframe, "1m"))
             {
                 throw new BadRequest((this.id + " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
@@ -19050,7 +19050,7 @@ final Map<String, Object> finalMarket = market;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, parameters, 500)).join();
@@ -19076,7 +19076,7 @@ final Map<String, Object> finalMarket = market;
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if ((!java.util.Objects.equals(endTime, null)) && ((endTime == null || endTime != 0)))
             {
                 ((Map<String, Object>)request).put("endTime", endTime);
@@ -19089,7 +19089,7 @@ final Map<String, Object> finalMarket = market;
                 int duration = this.parseTimeframe(timeframe);
                 ((Map<String, Object>)request).put("endTime", this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000)));
             }
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 response = (this.dapiDataGetOpenInterestHist(this.extend(request, parameters))).join();
@@ -19147,7 +19147,7 @@ final Map<String, Object> finalMarket = market;
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -19166,7 +19166,7 @@ final Map<String, Object> finalMarket = market;
             {
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 response = (this.eapiPublicGetOpenInterest(this.extend(request, parameters))).join();
@@ -19209,7 +19209,7 @@ final Map<String, Object> finalMarket = market;
             //
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 Object result = this.parseOpenInterestsHistory(response, market);
                 for (var i = 0; i < ((List<?>)result).size(); i++)
                 {
@@ -19299,7 +19299,7 @@ final Map<String, Object> finalMarket = market;
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -19307,7 +19307,7 @@ final Map<String, Object> finalMarket = market;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyLiquidations", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, parameters, "current", 100)).join();
@@ -19320,15 +19320,15 @@ final Map<String, Object> finalMarket = market;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyLiquidations", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMyLiquidations", market, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchMyLiquidations", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(type, "spot"))
             {
@@ -19358,8 +19358,8 @@ final Map<String, Object> finalMarket = market;
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -19817,7 +19817,7 @@ final Map<String, Object> finalMarket = market;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -19826,8 +19826,8 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionMode", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             // we still have two working endpoints but positionMode is common for linear and inverse markets
             // thus we do not throw an error if the subType is not specified and default to linear for now
             if (java.util.Objects.equals(subType, "inverse"))
@@ -19843,7 +19843,7 @@ final Map<String, Object> finalMarket = market;
             //    }
             //
             Boolean dualSidePosition = (Boolean) this.safeBool(response, "dualSidePosition");
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "hedged", dualSidePosition );
@@ -19885,7 +19885,7 @@ final Map<String, Object> finalMarket = market;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -19899,7 +19899,7 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(subType, "linear"))
             {
@@ -19952,7 +19952,7 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -19961,8 +19961,8 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(subType, "linear"))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -19981,7 +19981,7 @@ final Map<String, Object> finalMarket = market;
             {
                 throw new NullResponse((this.id + " fetchMarginMode() returned empty response")) ;
             }
-            return this.parseMarginMode((Map<String, Object>) (Helpers.GetValue(response, 0)), market);
+            return this.parseMarginMode((Map<String, Object>) ((response == null || 0 >= response.size() ? null : response.get(0))), market);
         }).thenApply(MarginMode::new);
 
     }
@@ -20204,7 +20204,7 @@ final Map<String, Object> finalMarket = market;
             {
                 ((Map<String, Object>)request).put("endTime", until);
             }
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 response = (this.fapiPrivateGetPositionMarginHistory(this.extend(request, parameters))).join();
@@ -20436,7 +20436,7 @@ final Map<String, Object> finalMarket = market;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if ((java.util.Objects.equals(fromCode, "BUSD")) || (java.util.Objects.equals(toCode, "BUSD")))
             {
                 if (java.util.Objects.equals(amount, null))
@@ -20500,7 +20500,7 @@ final Map<String, Object> finalMarket = market;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(code, "BUSD"))
             {
                 Integer msInDay = 86400000;
@@ -20606,7 +20606,7 @@ final Map<String, Object> finalMarket = market;
                 ((Map<String, Object>)request).put("endTime", now);
             }
             parameters = (Map<String, Object>) this.omit(parameters, "until");
-            Object response = null;
+            Map<String, Object> response = null;
             String responseQuery = null;
             String fromCurrencyKey = null;
             String toCurrencyKey = null;
@@ -20771,7 +20771,7 @@ final Map<String, Object> finalMarket = market;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -20786,8 +20786,8 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingIntervals", market, parameters, "linear");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetFundingInfo(parameters)).join();
@@ -20853,7 +20853,7 @@ final Map<String, Object> finalMarket = market;
             String timeframe = timeframe3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -20869,7 +20869,7 @@ final Map<String, Object> finalMarket = market;
             }};
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("startTime", since);
@@ -20881,8 +20881,8 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLongShortRatioHistory", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(subType, "linear"))
             {
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
@@ -20970,7 +20970,7 @@ final Map<String, Object> finalMarket = market;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -20982,8 +20982,8 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchADLRank", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "linear"))
             {
                 response = (this.fapiPublicGetSymbolAdlRisk(this.extend(request, parameters))).join();
@@ -21032,7 +21032,7 @@ final Map<String, Object> finalMarket = market;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -21042,12 +21042,12 @@ final Map<String, Object> finalMarket = market;
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchPositionsADLRank", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(subType, "linear"))
             {
                 if (Helpers.isTrue(isPortfolioMargin))

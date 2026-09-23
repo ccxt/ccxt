@@ -983,13 +983,13 @@ public class Btse extends BtseApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Integer maxLimit = 300;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit);
@@ -1016,7 +1016,7 @@ public class Btse extends BtseApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 if (!java.util.Objects.equals(since, null))
@@ -1182,7 +1182,7 @@ public class Btse extends BtseApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -1196,7 +1196,7 @@ public class Btse extends BtseApi
             Object period = null;
             List<Object> periodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "period");
             period = ((List<Object>) periodparametersVariable).get(0);
-            parameters = ((List<Object>) periodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) periodparametersVariable).get(1);
             if (java.util.Objects.equals(period, null))
             {
                 period = "7D";
@@ -1221,7 +1221,7 @@ public class Btse extends BtseApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             Map<String, Object> response = (this.publicGetPublicApiMarketV1RecentFundingHistory(this.extend(request, parameters))).join();
             //
             //     {
@@ -1312,12 +1312,12 @@ public class Btse extends BtseApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Object type = "spot";
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters, type);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
@@ -1346,7 +1346,7 @@ public class Btse extends BtseApi
                 Object wallet = null;
                 List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "wallet", "CROSS@");
                 wallet = ((List<Object>) walletparametersVariable).get(0);
-                parameters = ((List<Object>) walletparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
                 final Object finalWallet = wallet;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "wallet", finalWallet );
@@ -2072,7 +2072,7 @@ public class Btse extends BtseApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2086,7 +2086,7 @@ public class Btse extends BtseApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Trades(this.extend(request, parameters))).join();
             //
             //     {
@@ -2167,12 +2167,12 @@ public class Btse extends BtseApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
-                parameters = this.omit(parameters, "paginate");
+                parameters = (Map<String, Object>) this.omit(parameters, "paginate");
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
             Map<String, Object> market = null;
@@ -2192,11 +2192,11 @@ public class Btse extends BtseApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -2609,7 +2609,7 @@ public class Btse extends BtseApi
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             type = ((String)type).toUpperCase();
@@ -2623,7 +2623,7 @@ public class Btse extends BtseApi
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("clOrderId", clientOrderId);
-                parameters = this.omit(parameters, "clientOrderId");
+                parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
             }
             Boolean isMarketOrder = (java.util.Objects.equals(type, "MARKET"));
             Boolean isLimitOrder = (java.util.Objects.equals(type, "LIMIT"));
@@ -2631,7 +2631,7 @@ public class Btse extends BtseApi
             // exchange-specific postOnly is the same as the unified one
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-            parameters = ((List<Object>) postOnlyparametersVariable).get(1); // this will remove PO from params.timeInForce if present
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1); // this will remove PO from params.timeInForce if present
             if (Boolean.TRUE.equals(postOnly))
             {
                 ((Map<String, Object>)request).put("postOnly", true);
@@ -2665,9 +2665,9 @@ public class Btse extends BtseApi
                 Boolean createMarketBuyOrderRequiresPrice = true;
                 List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
-                parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 String cost = this.safeString(parameters, "cost");
-                parameters = this.omit(parameters, "cost");
+                parameters = (Map<String, Object>) this.omit(parameters, "cost");
                 if (!java.util.Objects.equals(cost, null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
@@ -2691,7 +2691,7 @@ public class Btse extends BtseApi
             {
                 ((Map<String, Object>)request).put("orderSize", this.amountToPrecision(symbol, amount));
             }
-            Object response = null;
+            List<Object> response = null;
             if (!Boolean.TRUE.equals(isAlgoOrder))
             {
                 ((Map<String, Object>)request).put("orderType", type);
@@ -2758,7 +2758,7 @@ public class Btse extends BtseApi
                     ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPriceToSend));
                     String triggerPriceType = this.safeString(parameters, "triggerPriceType", "last");
                     ((Map<String, Object>)request).put("triggerPriceType", this.encodeTriggerPriceType(triggerPriceType));
-                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType")));
+                    parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType")));
                 } else
                 {
                     ((Map<String, Object>)request).put("orderType", type);
@@ -2779,7 +2779,7 @@ public class Btse extends BtseApi
                         }
                         String triggerPriceType = this.safeString(parameters, "triggerPriceType", "last");
                         ((Map<String, Object>)request).put("stopLossTriggerPriceType", this.encodeTriggerPriceType(triggerPriceType));
-                        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "triggerPriceType")));
+                        parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "triggerPriceType")));
                     } else if (java.util.Objects.equals(type, "PEG"))
                     {
                         // the required stealth and optional deviation params pass through
@@ -2799,7 +2799,7 @@ public class Btse extends BtseApi
                         }
                         String triggerPriceType = this.safeString(parameters, "triggerPriceType", "last");
                         ((Map<String, Object>)request).put("triggerPriceType", this.encodeTriggerPriceType(triggerPriceType));
-                        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trailingAmount", "trailingPercent", "triggerPriceType")));
+                        parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trailingAmount", "trailingPercent", "triggerPriceType")));
                     }
                 }
                 response = (this.privatePostSpotApiV4TradeOrdersAlgo(this.extend(request, parameters))).join();
@@ -2885,7 +2885,7 @@ public class Btse extends BtseApi
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             type = ((String)type).toUpperCase();
@@ -2898,7 +2898,7 @@ public class Btse extends BtseApi
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("clOrderId", clientOrderId);
-                parameters = this.omit(parameters, "clientOrderId");
+                parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
             }
             // handle positionMode
             String positionMode = this.safeString(parameters, "positionMode");
@@ -2908,11 +2908,11 @@ public class Btse extends BtseApi
                 Object hedged = false;
                 List<Object> hedgedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
                 hedged = ((List<Object>) hedgedparametersVariable).get(0);
-                parameters = ((List<Object>) hedgedparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) hedgedparametersVariable).get(1);
                 Object marginMode = "cross";
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "marginMode", marginMode);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 if (java.util.Objects.equals(marginMode, "isolated"))
                 {
                     if (Boolean.TRUE.equals(hedged))
@@ -2931,7 +2931,7 @@ public class Btse extends BtseApi
             // exchange-specific postOnly is the same as the unified one
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-            parameters = ((List<Object>) postOnlyparametersVariable).get(1); // this will remove PO from params.timeInForce if present
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1); // this will remove PO from params.timeInForce if present
             if (Boolean.TRUE.equals(postOnly))
             {
                 ((Map<String, Object>)request).put("postOnly", true);
@@ -2980,9 +2980,9 @@ public class Btse extends BtseApi
                         ((Map<String, Object>)request).put("stopLossTriggerType", this.encodeTriggerPriceType(stopLossTriggerPriceType));
                     }
                 }
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfit", "stopLoss")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfit", "stopLoss")));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (!Boolean.TRUE.equals(isAlgoOrder))
             {
                 ((Map<String, Object>)request).put("orderType", type);
@@ -3038,7 +3038,7 @@ public class Btse extends BtseApi
                     {
                         ((Map<String, Object>)request).put("orderPrice", this.priceToPrecision(symbol, price));
                     }
-                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType")));
+                    parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType")));
                 } else
                 {
                     ((Map<String, Object>)request).put("orderType", type);
@@ -3059,7 +3059,7 @@ public class Btse extends BtseApi
                         }
                         String triggerPriceType = this.safeString(parameters, "triggerPriceType", "mark");
                         ((Map<String, Object>)request).put("stopLossTriggerType", this.encodeTriggerPriceType(triggerPriceType));
-                        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "triggerPriceType")));
+                        parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "triggerPriceType")));
                     } else if (java.util.Objects.equals(type, "PEG"))
                     {
                         // the required deviation and stealth params pass through, the
@@ -3083,7 +3083,7 @@ public class Btse extends BtseApi
                         }
                         String triggerPriceType = this.safeString(parameters, "triggerPriceType", "mark");
                         ((Map<String, Object>)request).put("trailTriggerPriceType", this.encodeTriggerPriceType(triggerPriceType));
-                        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trailingAmount", "trailingPercent", "triggerPriceType")));
+                        parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trailingAmount", "trailingPercent", "triggerPriceType")));
                     }
                 }
                 response = (this.privatePostFuturesApiV3TradeOrdersAlgo(this.extend(request, parameters))).join();
@@ -3175,14 +3175,14 @@ public class Btse extends BtseApi
         return BaseExchange.supplyAsync(() -> {
             String id = id3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("clOrderId", clientOrderId);
-                parameters = this.omit(parameters, "clientOrderId");
+                parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
             } else if (java.util.Objects.equals(id, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrder() requires an id argument or a clientOrderId parameter")) ;
@@ -3198,7 +3198,7 @@ public class Btse extends BtseApi
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3302,7 +3302,7 @@ public class Btse extends BtseApi
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
             }
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
@@ -3400,7 +3400,7 @@ public class Btse extends BtseApi
             {
                 ((Map<String, Object>)request).put("orderId", id);
             }
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
@@ -3465,7 +3465,7 @@ public class Btse extends BtseApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -3475,7 +3475,7 @@ public class Btse extends BtseApi
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -3530,14 +3530,14 @@ public class Btse extends BtseApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 ((Map<String, Object>)request).put("timeout", timeout);
@@ -3587,7 +3587,7 @@ public class Btse extends BtseApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -3598,8 +3598,8 @@ public class Btse extends BtseApi
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (!java.util.Objects.equals(market, null))
@@ -3825,13 +3825,13 @@ public class Btse extends BtseApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
-            Object response = null;
+            List<Object> response = null;
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.privateGetSpotApiV4TradeFees(parameters)).join();
@@ -3899,7 +3899,7 @@ public class Btse extends BtseApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             // the helper always receives a non empty history type list, the list is
             // rebuilt through safeList so the transpilers treat it as an array in
             // every runtime
@@ -3915,7 +3915,7 @@ public class Btse extends BtseApi
             // the endpoint applies a server side history type filter sent as a
             // json encoded array in the query string, verified live
             ((Map<String, Object>)request).put("historyTypes", this.json(typesList));
-            parameters = this.omit(parameters, "walletType");
+            parameters = (Map<String, Object>) this.omit(parameters, "walletType");
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -3936,7 +3936,7 @@ public class Btse extends BtseApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -4234,12 +4234,12 @@ public class Btse extends BtseApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String walletType = this.safeString(parameters, "walletType", "SPOT");
             ((Map<String, Object>)request).put("walletType", walletType);
-            parameters = this.omit(parameters, "walletType");
+            parameters = (Map<String, Object>) this.omit(parameters, "walletType");
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -4260,7 +4260,7 @@ public class Btse extends BtseApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -4428,7 +4428,7 @@ public class Btse extends BtseApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.privateGetSpotApiV4TradeFees(this.extend(request, parameters))).join();
@@ -4943,7 +4943,7 @@ public class Btse extends BtseApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String positionId = this.safeString(parameters, "positionId");
@@ -4957,7 +4957,7 @@ public class Btse extends BtseApi
             Object type = "market";
             List<Object> typeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "closePosition", "type", type);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             type = ((String)type).toUpperCase();
             ((Map<String, Object>)request).put("orderType", type);
             if (java.util.Objects.equals(type, "LIMIT"))
@@ -4968,7 +4968,7 @@ public class Btse extends BtseApi
                     throw new ArgumentsRequired((this.id + " closePosition() requires a price parameter for limit orders")) ;
                 }
                 ((Map<String, Object>)request).put("orderPrice", this.priceToPrecision(symbol, price));
-                parameters = this.omit(parameters, "price");
+                parameters = (Map<String, Object>) this.omit(parameters, "price");
             }
             Object response = (this.privateDeleteFuturesApiV3TradePositions(this.extend(request, parameters))).join();
             Object order = this.safeDict(response, 0);
@@ -5105,7 +5105,7 @@ public class Btse extends BtseApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -5122,7 +5122,7 @@ public class Btse extends BtseApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
                 ((Map<String, Object>)request).put("marginMode", ((String)marginMode).toUpperCase());

@@ -1621,7 +1621,7 @@ public class Bitmex extends BitmexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1629,7 +1629,7 @@ public class Bitmex extends BitmexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters, 100)).join();
@@ -1652,7 +1652,7 @@ public class Bitmex extends BitmexApi
             Long until = (Long) this.safeInteger2(parameters, "until", "endTime");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                 ((Map<String, Object>)request).put("endTime", this.iso8601(until));
             }
             request = this.deepExtend(request, parameters);
@@ -1787,7 +1787,7 @@ public class Bitmex extends BitmexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1795,7 +1795,7 @@ public class Bitmex extends BitmexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100)).join();
@@ -1818,7 +1818,7 @@ public class Bitmex extends BitmexApi
             Long until = (Long) this.safeInteger2(parameters, "until", "endTime");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                 ((Map<String, Object>)request).put("endTime", this.iso8601(until));
             }
             request = this.deepExtend(request, parameters);
@@ -2460,7 +2460,7 @@ public class Bitmex extends BitmexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2468,7 +2468,7 @@ public class Bitmex extends BitmexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters)).join();
@@ -2492,14 +2492,14 @@ public class Bitmex extends BitmexApi
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                 ((Map<String, Object>)request).put("endTime", this.iso8601(until));
             }
             Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Object useOpenTimestamp = null;
             List<Object> useOpenTimestampparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "useOpenTimestamp", true);
             useOpenTimestamp = ((List<Object>) useOpenTimestampparametersVariable).get(0);
-            parameters = ((List<Object>) useOpenTimestampparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) useOpenTimestampparametersVariable).get(1);
             // if since is not set, they will return candles starting from 2017-01-01
             if (!java.util.Objects.equals(since, null))
             {
@@ -2845,7 +2845,7 @@ public class Bitmex extends BitmexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2853,7 +2853,7 @@ public class Bitmex extends BitmexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
@@ -2877,7 +2877,7 @@ public class Bitmex extends BitmexApi
             Long until = (Long) this.safeInteger2(parameters, "until", "endTime");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                 ((Map<String, Object>)request).put("endTime", this.iso8601(until));
             }
             List<Object> response = (this.publicGetTrade(this.extend(request, parameters))).join();
@@ -3782,11 +3782,11 @@ public class Bitmex extends BitmexApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3797,7 +3797,7 @@ public class Bitmex extends BitmexApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             final Object finalNetworkCode = networkCode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
@@ -4202,7 +4202,7 @@ public class Bitmex extends BitmexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4210,13 +4210,13 @@ public class Bitmex extends BitmexApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            parameters = this.omit(parameters, "network");
+            parameters = (Map<String, Object>) this.omit(parameters, "network");
             Object parsedNetwork = this.networkCodeToId(networkCode, ((Map<String, Object>)currency).get("code"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
@@ -4418,7 +4418,7 @@ public class Bitmex extends BitmexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            List<Object> response = null;
             response = (this.publicGetStats(this.extend(request, parameters))).join();
             //
             //    [
@@ -4536,7 +4536,7 @@ public class Bitmex extends BitmexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4544,7 +4544,7 @@ public class Bitmex extends BitmexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLiquidations", symbol, since, limit, parameters)).join();
@@ -4563,7 +4563,7 @@ public class Bitmex extends BitmexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetLiquidation(this.extend(request, parameters))).join();
             //
             //     [

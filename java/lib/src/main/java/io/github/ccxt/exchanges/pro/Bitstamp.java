@@ -88,13 +88,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orderbook:" + symbol);
             String channel = ("diff_order_book_" + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -343,14 +343,14 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trades:" + symbol);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String channel = ("live_trades_" + ((Map<String, Object>)market).get("id"));
@@ -398,13 +398,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object channel = ("live_trades_" + ((Map<String, Object>)market).get("id"));
             String subHash = ("trades:" + symbol);
             return (this.unWatchChannel(channel, subHash, "trades", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -536,13 +536,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("fundingRate:" + symbol);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String channel = ("funding_rate_" + ((Map<String, Object>)market).get("id"));
@@ -621,7 +621,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(symbol, null))
             {
@@ -632,10 +632,10 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String channel = "private-my_orders";
             Object messageHash = ((channel + "_") + ((Map<String, Object>)market).get("id"));
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             final Object finalLimit = limit;
             final String finalChannel = channel;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -681,7 +681,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " unWatchOrders() requires a symbol argument")) ;
@@ -691,7 +691,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             (this.authenticate()).join();
             Object channel = Helpers.add((("private-my_orders_" + ((Map<String, Object>)market).get("id")) + "-"), ((Map<String, Object>)this.options).get("userId"));
             return (this.unWatchChannel(channel, channel, "orders", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -732,7 +732,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(symbol, null))
             {
@@ -743,10 +743,10 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String channel = "private-my_trades";
             Object messageHash = ((channel + "_") + ((Map<String, Object>)market).get("id"));
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             final Object finalLimit = limit;
             final String finalChannel = channel;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -793,7 +793,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " unWatchMyTrades() requires a symbol argument")) ;
@@ -803,7 +803,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             (this.authenticate()).join();
             Object channel = Helpers.add((("private-my_trades_" + ((Map<String, Object>)market).get("id")) + "-"), ((Map<String, Object>)this.options).get("userId"));
             return (this.unWatchChannel(channel, channel, "myTrades", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();

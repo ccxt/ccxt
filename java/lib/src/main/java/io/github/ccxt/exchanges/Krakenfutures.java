@@ -1171,7 +1171,7 @@ public class Krakenfutures extends KrakenfuturesApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1180,7 +1180,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 2000)).join();
@@ -1199,7 +1199,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "price_type", finalPriceType );
                 put( "interval", Krakenfutures.this.safeString(Krakenfutures.this.timeframes, timeframe, timeframe) );
             }};
-            parameters = this.omit(parameters, "price");
+            parameters = (Map<String, Object>) this.omit(parameters, "price");
             if (!java.util.Objects.equals(since, null))
             {
                 int duration = this.parseTimeframe(timeframe);
@@ -1301,7 +1301,7 @@ public class Krakenfutures extends KrakenfuturesApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1309,7 +1309,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
@@ -1321,14 +1321,14 @@ public class Krakenfutures extends KrakenfuturesApi
             Object method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
             method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             Object rawTrades = new ArrayList<Object>(Arrays.asList());
             Boolean isFullHistoryEndpoint = (java.util.Objects.equals(method, "historyGetMarketSymbolExecutions"));
             if (Boolean.TRUE.equals(isFullHistoryEndpoint))
             {
                 List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", request, parameters);
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-                parameters = ((List<Object>) requestparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 if (!java.util.Objects.equals(since, null))
                 {
                     ((Map<String, Object>)request).put("since", since);
@@ -1405,7 +1405,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("lastTime", request, parameters);
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-                parameters = ((List<Object>) requestparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 Map<String, Object> response = (this.publicGetHistory(this.extend(request, parameters))).join();
                 //
                 //    {
@@ -2472,7 +2472,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 ((Map<String, Object>)request).put("since", since);
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(isTrigger, true))
             {
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
@@ -2572,7 +2572,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 ((Map<String, Object>)request).put("from", since);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             if (java.util.Objects.equals(isTrigger, true))
             {
@@ -4805,7 +4805,7 @@ final Object finalI = i;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", amount );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(toAccount, "spot"))
             {
                 if (!java.util.Objects.equals(this.parseAccount(fromAccount), "cash"))

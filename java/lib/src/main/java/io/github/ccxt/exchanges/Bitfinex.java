@@ -2036,7 +2036,7 @@ public class Bitfinex extends BitfinexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2044,7 +2044,7 @@ public class Bitfinex extends BitfinexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters, 10000)).join();
@@ -2066,7 +2066,7 @@ public class Bitfinex extends BitfinexApi
             ((Map<String, Object>)request).put("sort", sort);
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetTradesSymbolHist(this.extend(request, parameters))).join();
             //
             //     [
@@ -2132,7 +2132,7 @@ public class Bitfinex extends BitfinexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2140,7 +2140,7 @@ public class Bitfinex extends BitfinexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 10000)).join();
@@ -2166,7 +2166,7 @@ public class Bitfinex extends BitfinexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, parameters))).join();
             //
             //     [
@@ -3024,7 +3024,7 @@ public class Bitfinex extends BitfinexApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(symbol, null))
             {
                 response = (this.privatePostAuthROrders(this.extend(request, parameters))).join();
@@ -3075,7 +3075,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> ordersList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-    final Object finalResponse = response;
+    final List<Object> finalResponse = response;
                 final Object finalI = i;
                             ((List<Object>)ordersList).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(finalResponse, finalI) );
@@ -3126,7 +3126,7 @@ public class Bitfinex extends BitfinexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             // returns the most recent closed or canceled orders up to circa two weeks ago
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3135,7 +3135,7 @@ public class Bitfinex extends BitfinexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters)).join();
@@ -3151,9 +3151,9 @@ public class Bitfinex extends BitfinexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> market = null;
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(symbol, null))
             {
                 response = (this.privatePostAuthROrdersHist(this.extend(request, parameters))).join();
@@ -3204,7 +3204,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> ordersList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-    final Object finalResponse = response;
+    final List<Object> finalResponse = response;
                 final Object finalI = i;
                             ((List<Object>)ordersList).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(finalResponse, finalI) );
@@ -3333,7 +3333,7 @@ public class Bitfinex extends BitfinexApi
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 25, max 1000
             }
-            Object response = null;
+            List<Object> response = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -3346,7 +3346,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> tradesList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-    final Object finalResponse = response;
+    final List<Object> finalResponse = response;
                 final Object finalI = i;
                             ((List<Object>)tradesList).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(finalResponse, finalI) );
@@ -4392,7 +4392,7 @@ public class Bitfinex extends BitfinexApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4400,7 +4400,7 @@ public class Bitfinex extends BitfinexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, 2500)).join();
@@ -4417,8 +4417,8 @@ public class Bitfinex extends BitfinexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = null;
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
@@ -4569,7 +4569,7 @@ public class Bitfinex extends BitfinexApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -4581,7 +4581,7 @@ public class Bitfinex extends BitfinexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 5000)).join();
@@ -4596,7 +4596,7 @@ public class Bitfinex extends BitfinexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
             //
             //   [
@@ -4953,7 +4953,7 @@ public class Bitfinex extends BitfinexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4961,7 +4961,7 @@ public class Bitfinex extends BitfinexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, "8h", parameters, 5000)).join();
@@ -4980,7 +4980,7 @@ public class Bitfinex extends BitfinexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
             //
             //     [
@@ -5133,7 +5133,7 @@ public class Bitfinex extends BitfinexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5141,7 +5141,7 @@ public class Bitfinex extends BitfinexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchLiquidations", symbol, since, limit, "8h", parameters, 500)).join();
@@ -5158,7 +5158,7 @@ public class Bitfinex extends BitfinexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetLiquidationsHist(this.extend(request, parameters))).join();
             //
             //     [
@@ -5360,7 +5360,7 @@ public class Bitfinex extends BitfinexApi
                 put( "id", new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseToNumeric(id))) );
             }};
             Map<String, Object> market = null;
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(symbol, null))
             {
                 response = (this.privatePostAuthROrders(this.extend(request, parameters))).join();

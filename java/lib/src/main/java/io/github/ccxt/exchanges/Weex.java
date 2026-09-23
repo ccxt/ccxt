@@ -940,12 +940,12 @@ public class Weex extends WeexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(type, "spot"))
             {
                 response = (this.contractGetCapiV3MarketTime(parameters)).join();
@@ -1419,7 +1419,7 @@ public class Weex extends WeexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1429,7 +1429,7 @@ public class Weex extends WeexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -1530,7 +1530,7 @@ public class Weex extends WeexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1540,7 +1540,7 @@ public class Weex extends WeexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -1701,7 +1701,7 @@ public class Weex extends WeexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1711,7 +1711,7 @@ public class Weex extends WeexApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "spot"))
             {
                 throw new NotSupported((this.id + " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")) ;
@@ -1782,7 +1782,7 @@ public class Weex extends WeexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1795,7 +1795,7 @@ public class Weex extends WeexApi
             Object priceType = null;
             List<Object> priceTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
             priceType = ((List<Object>) priceTypeparametersVariable).get(0);
-            parameters = ((List<Object>) priceTypeparametersVariable).get(1); // the endpoint defaults to INDEX
+            parameters = (Map<String, Object>) ((List<Object>) priceTypeparametersVariable).get(1); // the endpoint defaults to INDEX
             final Object finalPriceType = priceType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -1918,7 +1918,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)request).put("limit", 200); // default is 15, max is 200
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.publicGetApiV3MarketDepth(this.extend(request, parameters))).join();
@@ -2132,7 +2132,7 @@ public class Weex extends WeexApi
             }};
             String priceType = this.safeStringUpper(parameters, "price");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("historical", "until", "price")));
-            Object response = null;
+            List<Object> response = null;
             if (!java.util.Objects.equals(limit, null))
             {
                 limit = Helpers.mathMin(limit, 1000); // hardcap threshold
@@ -2253,7 +2253,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.publicGetApiV3MarketTrades(this.extend(request, parameters))).join();
@@ -2620,7 +2620,7 @@ public class Weex extends WeexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -2643,7 +2643,7 @@ public class Weex extends WeexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.contractGetCapiV3MarketFundingRate(this.extend(request, parameters))).join();
             return this.parseFundingRateHistories(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
@@ -2707,12 +2707,12 @@ public class Weex extends WeexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String requestedType = this.safeString(parameters, "type");
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             if ((java.util.Objects.equals(sandboxMode, true)) && (java.util.Objects.equals(requestedType, null)))
             {
@@ -2843,7 +2843,7 @@ public class Weex extends WeexApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2858,7 +2858,7 @@ public class Weex extends WeexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit)).join();
@@ -2873,7 +2873,7 @@ public class Weex extends WeexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.privateGetApiV3AccountTransferRecords(this.extend(request, parameters))).join();
             //
             //     [
@@ -3157,7 +3157,7 @@ public class Weex extends WeexApi
             Object request = this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             String triggerPrice = this.safeString(request, "triggerPrice");
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 if (java.util.Objects.equals(sandboxMode, true))
@@ -3455,7 +3455,7 @@ public class Weex extends WeexApi
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3468,7 +3468,7 @@ public class Weex extends WeexApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
             if ((java.util.Objects.equals(trigger, true)) && java.util.Objects.equals(id, null))
             {
@@ -3476,7 +3476,7 @@ public class Weex extends WeexApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "trigger")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "trigger")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("origClientOrderId", clientOrderId);
@@ -3487,7 +3487,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)request).put("orderId", id);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 // by orderId
@@ -3558,7 +3558,7 @@ public class Weex extends WeexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3573,10 +3573,10 @@ public class Weex extends WeexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
-            parameters = this.omit(parameters, "trigger");
-            Object response = null;
+            parameters = (Map<String, Object>) this.omit(parameters, "trigger");
+            List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (java.util.Objects.equals(symbol, null))
@@ -3637,7 +3637,7 @@ public class Weex extends WeexApi
         return BaseExchange.supplyAsync(() -> {
             Object ids = ids3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3651,10 +3651,10 @@ public class Weex extends WeexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds");
-            parameters = this.omit(parameters, "clientOrderIds");
+            parameters = (Map<String, Object>) this.omit(parameters, "clientOrderIds");
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
                 if (Boolean.TRUE.equals(isSpot))
@@ -3677,7 +3677,7 @@ public class Weex extends WeexApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires an ids argument or clientOrderIds parameter")) ;
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isSpot))
             {
                 response = (this.privateDeleteApiV3OrderBatch(this.extend(request, parameters))).join();
@@ -3732,7 +3732,7 @@ public class Weex extends WeexApi
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3745,7 +3745,7 @@ public class Weex extends WeexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if ((java.util.Objects.equals(id, null)) && !Boolean.TRUE.equals(isSpot))
@@ -3753,7 +3753,7 @@ public class Weex extends WeexApi
                 throw new ArgumentsRequired((this.id + " fetchOrder() requires an id argument for non-spot markets")) ;
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            parameters = this.omit(parameters, "clientOrderId");
+            parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("origClientOrderId", clientOrderId);
@@ -3764,7 +3764,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)request).put("orderId", id);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isSpot))
             {
                 //
@@ -3841,7 +3841,7 @@ public class Weex extends WeexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3854,12 +3854,12 @@ public class Weex extends WeexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 100;
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3874,7 +3874,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
             }
-            Object response = null;
+            List<Object> response = null;
             if (Boolean.TRUE.equals(isSpot))
             {
                 //
@@ -3910,11 +3910,11 @@ public class Weex extends WeexApi
                 }
                 List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-                parameters = ((List<Object>) requestparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
                 if (java.util.Objects.equals(trigger, true))
                 {
-                    parameters = this.omit(parameters, "trigger");
+                    parameters = (Map<String, Object>) this.omit(parameters, "trigger");
                     //
                     //     [
                     //         {
@@ -4024,7 +4024,7 @@ public class Weex extends WeexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4037,7 +4037,7 @@ public class Weex extends WeexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object orders = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -4095,7 +4095,7 @@ public class Weex extends WeexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4108,7 +4108,7 @@ public class Weex extends WeexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object orders = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -4168,7 +4168,7 @@ public class Weex extends WeexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
@@ -4186,7 +4186,7 @@ public class Weex extends WeexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters, maxLimit)).join();
@@ -4204,7 +4204,7 @@ public class Weex extends WeexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.privateGetApiV3AllOrders(this.extend(request, parameters))).join();
             //
             //     [
@@ -4273,7 +4273,7 @@ public class Weex extends WeexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4286,7 +4286,7 @@ public class Weex extends WeexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 throw new NotSupported((this.id + " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")) ;
@@ -4294,7 +4294,7 @@ public class Weex extends WeexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 1000;
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4315,9 +4315,9 @@ public class Weex extends WeexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(sandboxMode, true))
             {
                 response = (this.contractPrivateGetCapiV3SimOrderHistory(this.extend(request, parameters))).join();
@@ -4676,7 +4676,7 @@ public class Weex extends WeexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4689,7 +4689,7 @@ public class Weex extends WeexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             if (Boolean.TRUE.equals(isSpot) && (java.util.Objects.equals(symbol, null)))
             {
@@ -4698,7 +4698,7 @@ public class Weex extends WeexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 100;
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4719,8 +4719,8 @@ public class Weex extends WeexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = null;
             if (Boolean.TRUE.equals(isSpot))
             {
                 //
@@ -4817,7 +4817,7 @@ public class Weex extends WeexApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4825,7 +4825,7 @@ public class Weex extends WeexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 100;
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4834,7 +4834,7 @@ public class Weex extends WeexApi
             Object accountType = null;
             List<Object> accountTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             accountType = ((List<Object>) accountTypeparametersVariable).get(0);
-            parameters = ((List<Object>) accountTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountTypeparametersVariable).get(1);
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             accountType = this.safeString(accountsByType, accountType, accountType);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -4860,7 +4860,7 @@ public class Weex extends WeexApi
                 }
                 List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-                parameters = ((List<Object>) requestparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 Map<String, Object> contractResponse = (this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters))).join();
                 items = this.safeList(contractResponse, "items", new ArrayList<Object>(Arrays.asList()));
             } else if (java.util.Objects.equals(accountType, "funding"))
@@ -4875,7 +4875,7 @@ public class Weex extends WeexApi
                 }
                 List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-                parameters = ((List<Object>) requestparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 Map<String, Object> fundingResponse = (this.privatePostApiV3AccountFundingBills(this.extend(request, parameters))).join();
                 items = this.safeList(fundingResponse, "items", new ArrayList<Object>(Arrays.asList()));
             } else
@@ -4890,7 +4890,7 @@ public class Weex extends WeexApi
                 }
                 List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", request, parameters);
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-                parameters = ((List<Object>) requestparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 List<Object> billsResponse = (this.privatePostApiV3AccountBills(this.extend(request, parameters))).join();
                 items = this.toArray(billsResponse);
             }
@@ -5058,7 +5058,7 @@ public class Weex extends WeexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5066,7 +5066,7 @@ public class Weex extends WeexApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, parameters, 100)).join();
@@ -5094,7 +5094,7 @@ public class Weex extends WeexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
             Boolean hasSince = (request.containsKey("startTime"));
             Boolean hasUntil = (request.containsKey("endTime"));
@@ -5202,7 +5202,7 @@ public class Weex extends WeexApi
             }
             symbols = this.marketSymbols(symbols);
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(sandboxMode, true))
             {
                 response = (this.contractPrivateGetCapiV3SimPositionAllPosition(parameters)).join();
@@ -5919,7 +5919,7 @@ public class Weex extends WeexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -5935,7 +5935,7 @@ public class Weex extends WeexApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
                 ((Map<String, Object>)request).put("marginType", this.encodeMarginMode((String) (marginMode)));
@@ -6046,7 +6046,7 @@ public class Weex extends WeexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setPositionMode() requires a symbol argument")) ;
@@ -6059,7 +6059,7 @@ public class Weex extends WeexApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setPositionMode", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 throw new ArgumentsRequired((this.id + " setPositionMode() also sets marginMode, so a marginMode parameter is required")) ;

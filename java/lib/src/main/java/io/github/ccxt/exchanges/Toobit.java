@@ -1617,7 +1617,7 @@ public class Toobit extends ToobitApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1634,7 +1634,7 @@ public class Toobit extends ToobitApi
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, "until");
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 ((Map<String, Object>)request).put("endTime", until);
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1645,7 +1645,7 @@ public class Toobit extends ToobitApi
             Object endpoint = null;
             List<Object> endpointparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "price");
             endpoint = ((List<Object>) endpointparametersVariable).get(0);
-            parameters = ((List<Object>) endpointparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) endpointparametersVariable).get(1);
             if (java.util.Objects.equals(endpoint, "index"))
             {
                 response = (this.commonGetQuoteV1IndexKlines(this.extend(request, parameters))).join();
@@ -1710,7 +1710,7 @@ public class Toobit extends ToobitApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1734,8 +1734,8 @@ public class Toobit extends ToobitApi
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 response = (this.commonGetQuoteV1Ticker24hr(this.extend(request, parameters))).join();
@@ -2103,7 +2103,7 @@ public class Toobit extends ToobitApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2111,7 +2111,7 @@ public class Toobit extends ToobitApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
@@ -2190,7 +2190,7 @@ public class Toobit extends ToobitApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2199,7 +2199,7 @@ public class Toobit extends ToobitApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future"))))
             {
                 response = (this.privateGetApiV1FuturesBalance()).join();
@@ -2268,7 +2268,7 @@ public class Toobit extends ToobitApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2280,13 +2280,13 @@ public class Toobit extends ToobitApi
             {
                 var requestparametersVariable = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 request = ((List<Object>) requestparametersVariable).get(0);
-                parameters = ((List<Object>) requestparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 response = (this.privatePostApiV1SpotOrder(this.extend(request, parameters))).join();
             } else
             {
                 var requestparametersVariable = this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 request = ((List<Object>) requestparametersVariable).get(0);
-                parameters = ((List<Object>) requestparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 response = (this.privatePostApiV1FuturesOrder(this.extend(request, parameters))).join();
             }
             //
@@ -2668,7 +2668,7 @@ public class Toobit extends ToobitApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.safeString(parameters, "clientOrderId"), null))
             {
@@ -2683,7 +2683,7 @@ public class Toobit extends ToobitApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters, "none");
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "none"))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
@@ -2738,7 +2738,7 @@ public class Toobit extends ToobitApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2753,12 +2753,12 @@ public class Toobit extends ToobitApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, "none");
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "none"))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.privateDeleteApiV1SpotOpenOrders(this.extend(request, parameters))).join();
@@ -2766,7 +2766,7 @@ public class Toobit extends ToobitApi
             {
                 response = (this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, parameters))).join();
             }
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }}))));
@@ -2805,7 +2805,7 @@ public class Toobit extends ToobitApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2822,12 +2822,12 @@ public class Toobit extends ToobitApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters, "none");
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "none"))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.privateDeleteApiV1SpotCancelOrderByIds(this.extend(request, parameters))).join();
@@ -2960,7 +2960,7 @@ public class Toobit extends ToobitApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2979,7 +2979,7 @@ public class Toobit extends ToobitApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3030,7 +3030,7 @@ public class Toobit extends ToobitApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3046,7 +3046,7 @@ public class Toobit extends ToobitApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -3056,7 +3056,7 @@ public class Toobit extends ToobitApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3104,7 +3104,7 @@ public class Toobit extends ToobitApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             // returns the most recent closed or canceled orders up to circa two weeks ago
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3123,11 +3123,11 @@ public class Toobit extends ToobitApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3193,7 +3193,7 @@ public class Toobit extends ToobitApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
@@ -3216,10 +3216,10 @@ public class Toobit extends ToobitApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Object response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3357,7 +3357,7 @@ public class Toobit extends ToobitApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3375,7 +3375,7 @@ public class Toobit extends ToobitApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)request).put("limit", limit);
@@ -3383,8 +3383,8 @@ public class Toobit extends ToobitApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.privateGetApiV1AccountBalanceFlow(this.extend(request, parameters))).join();
@@ -3491,17 +3491,17 @@ public class Toobit extends ToobitApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            Object response = null;
+            Map<String, Object> response = null;
             Object marketType = null;
             Map<String, Object> market = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 throw new NotSupported((((this.id + " fetchTradingFees(): does not support ") + marketType) + " markets")) ;
@@ -3510,7 +3510,7 @@ public class Toobit extends ToobitApi
                 String symbol = null;
                 List<Object> symbolparametersVariable = (List<Object>) this.handleParamString(parameters, "symbol");
                 symbol = (String) ((List<Object>) symbolparametersVariable).get(0);
-                parameters = ((List<Object>) symbolparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) symbolparametersVariable).get(1);
                 if (java.util.Objects.equals(symbol, null))
                 {
                     throw new BadRequest((this.id + " fetchTradingFees requires a params[\"symbol\"]")) ;
@@ -3531,7 +3531,7 @@ public class Toobit extends ToobitApi
             // }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object entry = response;
+            Map<String, Object> entry = response;
             String marketId = this.safeString(entry, "symbol");
             market = (Map<String, Object>) this.safeMarket(marketId, market);
             Map<String, Object> fee = this.parseTradingFee(entry, market);
@@ -3654,7 +3654,7 @@ public class Toobit extends ToobitApi
             String code = code3;
             Object since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3672,7 +3672,7 @@ public class Toobit extends ToobitApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)request).put("limit", limit);
@@ -3896,12 +3896,12 @@ public class Toobit extends ToobitApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String tag = tag3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkAddress(address);
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
             {
                 throw new ArgumentsRequired((this.id + " withdraw() : param[\"network\"] is required")) ;

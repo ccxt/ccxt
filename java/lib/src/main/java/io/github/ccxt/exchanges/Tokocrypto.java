@@ -1060,7 +1060,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
             {
                 response = (this.publicGetOpenV1MarketDepth(this.extend(request, parameters))).join();
@@ -1350,7 +1350,7 @@ public class Tokocrypto extends TokocryptoApi
             }
             String defaultMethod = "binanceGetTrades";
             String method = this.safeString(this.options, "fetchTradesMethod", defaultMethod);
-            Object response = null;
+            List<Object> response = null;
             if ((java.util.Objects.equals(method, "binanceGetAggTrades")) && (!java.util.Objects.equals(since, null)))
             {
                 ((Map<String, Object>)request).put("startTime", since);
@@ -2187,7 +2187,7 @@ public class Tokocrypto extends TokocryptoApi
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2200,13 +2200,13 @@ public class Tokocrypto extends TokocryptoApi
             {
                 type = "LIMIT_MAKER";
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId")));
             String initialUppercaseType = ((String)type).toUpperCase();
             String uppercaseType = initialUppercaseType;
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")));
                 if (java.util.Objects.equals(uppercaseType, "MARKET"))
                 {
                     uppercaseType = "STOP_LOSS";
@@ -2286,9 +2286,9 @@ public class Tokocrypto extends TokocryptoApi
                     Boolean createMarketBuyOrderRequiresPrice = true;
                     List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
-                    parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                    parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Double cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
-                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quoteOrderQty")));
+                    parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quoteOrderQty")));
                     if (!java.util.Objects.equals(cost, null))
                     {
                         quoteAmount = cost;
@@ -3260,11 +3260,11 @@ public class Tokocrypto extends TokocryptoApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();

@@ -393,7 +393,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -401,7 +401,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean usePerpetualApi = java.util.Objects.equals(this.safeString(parameters, "settle"), "USDT");
             Object messageHash = ":balance";
             messageHash = ((Boolean.TRUE.equals(usePerpetualApi))) ? ("perpetual" + messageHash) : Helpers.add(type, messageHash);
@@ -633,13 +633,13 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
             String name = "spot_market24h";
@@ -768,14 +768,14 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
@@ -834,13 +834,13 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
@@ -897,14 +897,14 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
@@ -1066,9 +1066,9 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1079,17 +1079,17 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = Helpers.add(messageHash, ((Map<String, Object>)market).get("symbol"));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT"))
                 {
-                    parameters = this.extend(parameters);
+                    parameters = (Map<String, Object>) this.extend(parameters);
                     ((Map<String, Object>)parameters).put("settle", "USDT");
                 }
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (java.util.Objects.equals(symbol, null))
             {
                 String settle = this.safeString(parameters, "settle");
@@ -1273,9 +1273,9 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1286,17 +1286,17 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = Helpers.add(messageHash, ((Map<String, Object>)market).get("symbol"));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT"))
                 {
-                    parameters = this.extend(parameters);
+                    parameters = (Map<String, Object>) this.extend(parameters);
                     ((Map<String, Object>)parameters).put("settle", "USDT");
                 }
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean isUSDTSettled = java.util.Objects.equals(this.safeString(parameters, "settle"), "USDT");
             if (java.util.Objects.equals(symbol, null))
             {

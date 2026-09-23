@@ -1636,7 +1636,7 @@ public class Hashkey extends HashkeyApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String methodName = "fetchMyTrades";
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1651,7 +1651,7 @@ public class Hashkey extends HashkeyApi
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("startTime", since);
@@ -1663,7 +1663,7 @@ public class Hashkey extends HashkeyApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -1671,8 +1671,8 @@ public class Hashkey extends HashkeyApi
             Object accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "accountId");
             accountId = ((List<Object>) accountIdparametersVariable).get(0);
-            parameters = ((List<Object>) accountIdparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (!java.util.Objects.equals(market, null))
@@ -1879,7 +1879,7 @@ public class Hashkey extends HashkeyApi
             Object timeframe = timeframe3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String methodName = "fetchOHLCV";
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1888,7 +1888,7 @@ public class Hashkey extends HashkeyApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
@@ -1911,7 +1911,7 @@ public class Hashkey extends HashkeyApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -2214,7 +2214,7 @@ public class Hashkey extends HashkeyApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2224,7 +2224,7 @@ public class Hashkey extends HashkeyApi
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, null, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 List<Object> response = (this.privateGetApiV1FuturesBalance(parameters)).join();
@@ -2366,7 +2366,7 @@ public class Hashkey extends HashkeyApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2378,7 +2378,7 @@ public class Hashkey extends HashkeyApi
             Object networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
             {
                 networkCode = this.defaultNetworkCode(code);
@@ -2476,7 +2476,7 @@ public class Hashkey extends HashkeyApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String methodName = "fetchDeposits";
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2500,7 +2500,7 @@ public class Hashkey extends HashkeyApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -2566,7 +2566,7 @@ public class Hashkey extends HashkeyApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String methodName = "fetchWithdrawals";
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2590,7 +2590,7 @@ public class Hashkey extends HashkeyApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -2660,11 +2660,11 @@ public class Hashkey extends HashkeyApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2682,7 +2682,7 @@ public class Hashkey extends HashkeyApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 ((Map<String, Object>)request).put("chainType", this.networkCodeToId(networkCode, ((Map<String, Object>)currency).get("code")));
@@ -3056,7 +3056,7 @@ public class Hashkey extends HashkeyApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String methodName = "fetchLedger";
             if (java.util.Objects.equals(since, null))
             {
@@ -3065,7 +3065,7 @@ public class Hashkey extends HashkeyApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (java.util.Objects.equals(until, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires an until argument")) ;
@@ -3085,7 +3085,7 @@ public class Hashkey extends HashkeyApi
             Object flowType = null;
             List<Object> flowTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "flowType");
             flowType = ((List<Object>) flowTypeparametersVariable).get(0);
-            parameters = ((List<Object>) flowTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) flowTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(flowType, null))
             {
                 ((Map<String, Object>)request).put("flowType", this.encodeFlowType(flowType));
@@ -3093,7 +3093,7 @@ public class Hashkey extends HashkeyApi
             Object accountType = null;
             List<Object> accountTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "accountType");
             accountType = ((List<Object>) accountTypeparametersVariable).get(0);
-            parameters = ((List<Object>) accountTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(accountType, null))
             {
                 ((Map<String, Object>)request).put("accountType", this.encodeAccountType(accountType));
@@ -3716,7 +3716,7 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.privatePostApiV1SpotBatchOrders(this.extend(request, parameters))).join();
@@ -3775,7 +3775,7 @@ public class Hashkey extends HashkeyApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String methodName = "cancelOrder";
             this.checkTypeParam(methodName, (Map<String, Object>) (parameters));
             if (java.util.Objects.equals(this.markets, null))
@@ -3796,8 +3796,8 @@ public class Hashkey extends HashkeyApi
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.privateDeleteApiV1SpotOrder(this.extend(request, parameters))).join();
@@ -3806,7 +3806,7 @@ public class Hashkey extends HashkeyApi
                 Object isTrigger = false;
                 List<Object> isTriggerparametersVariable = (List<Object>) this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
                 isTrigger = ((List<Object>) isTriggerparametersVariable).get(0);
-                parameters = ((List<Object>) isTriggerparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) isTriggerparametersVariable).get(1);
                 if (java.util.Objects.equals(isTrigger, true))
                 {
                     ((Map<String, Object>)request).put("type", "STOP");
@@ -3933,7 +3933,7 @@ public class Hashkey extends HashkeyApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String methodName = "cancelOrders";
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3950,8 +3950,8 @@ public class Hashkey extends HashkeyApi
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.privateDeleteApiV1SpotCancelOrderByIds(request)).join();
@@ -4007,7 +4007,7 @@ public class Hashkey extends HashkeyApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String methodName = "fetchOrder";
             this.checkTypeParam(methodName, (Map<String, Object>) (parameters));
             if (java.util.Objects.equals(this.markets, null))
@@ -4018,7 +4018,7 @@ public class Hashkey extends HashkeyApi
             String clientOrderId = null;
             List<Object> clientOrderIdparametersVariable = (List<Object>) this.handleParamString(parameters, "clientOrderId");
             clientOrderId = (String) ((List<Object>) clientOrderIdparametersVariable).get(0);
-            parameters = ((List<Object>) clientOrderIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) clientOrderIdparametersVariable).get(1);
             if (java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("orderId", id);
@@ -4031,8 +4031,8 @@ public class Hashkey extends HashkeyApi
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (!java.util.Objects.equals(clientOrderId, null))
@@ -4045,7 +4045,7 @@ public class Hashkey extends HashkeyApi
                 Object isTrigger = false;
                 List<Object> isTriggerparametersVariable = (List<Object>) this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
                 isTrigger = ((List<Object>) isTriggerparametersVariable).get(0);
-                parameters = ((List<Object>) isTriggerparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) isTriggerparametersVariable).get(1);
                 if (java.util.Objects.equals(isTrigger, true))
                 {
                     ((Map<String, Object>)request).put("type", "STOP");
@@ -4189,7 +4189,7 @@ public class Hashkey extends HashkeyApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4197,14 +4197,14 @@ public class Hashkey extends HashkeyApi
             String methodName = "fetchOpenSpotOrders";
             List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "methodName", methodName);
             methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
-            parameters = ((List<Object>) methodNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodNameparametersVariable).get(1);
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            List<Object> response = null;
             Object accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "accountId");
             accountId = ((List<Object>) accountIdparametersVariable).get(0);
-            parameters = ((List<Object>) accountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             if (!java.util.Objects.equals(accountId, null))
             {
                 ((Map<String, Object>)request).put("subAccountId", accountId);
@@ -4272,11 +4272,11 @@ public class Hashkey extends HashkeyApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String methodName = "fetchOpenSwapOrders";
             List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "methodName", methodName);
             methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
-            parameters = ((List<Object>) methodNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodNameparametersVariable).get(1);
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a symbol argument for swap market orders")) ;
@@ -4288,7 +4288,7 @@ public class Hashkey extends HashkeyApi
             Object isTrigger = false;
             List<Object> isTriggerparametersVariable = (List<Object>) this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
             isTrigger = ((List<Object>) isTriggerparametersVariable).get(0);
-            parameters = ((List<Object>) isTriggerparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isTriggerparametersVariable).get(1);
             if (java.util.Objects.equals(isTrigger, true))
             {
                 ((Map<String, Object>)request).put("type", "STOP");
@@ -4300,11 +4300,11 @@ public class Hashkey extends HashkeyApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            List<Object> response = null;
             Object accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "accountId");
             accountId = ((List<Object>) accountIdparametersVariable).get(0);
-            parameters = ((List<Object>) accountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             if (!java.util.Objects.equals(accountId, null))
             {
                 ((Map<String, Object>)request).put("subAccountId", accountId);
@@ -4370,7 +4370,7 @@ public class Hashkey extends HashkeyApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String methodName = "fetchCanceledAndClosedOrders";
             this.checkTypeParam(methodName, (Map<String, Object>) (parameters));
             if (java.util.Objects.equals(this.markets, null))
@@ -4389,7 +4389,7 @@ public class Hashkey extends HashkeyApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -4397,7 +4397,7 @@ public class Hashkey extends HashkeyApi
             Object accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "accountId");
             accountId = ((List<Object>) accountIdparametersVariable).get(0);
-            parameters = ((List<Object>) accountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -4406,8 +4406,8 @@ public class Hashkey extends HashkeyApi
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (!java.util.Objects.equals(market, null))
@@ -4429,7 +4429,7 @@ public class Hashkey extends HashkeyApi
                 Object isTrigger = false;
                 List<Object> isTriggerparametersVariable = (List<Object>) this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
                 isTrigger = ((List<Object>) isTriggerparametersVariable).get(0);
-                parameters = ((List<Object>) isTriggerparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) isTriggerparametersVariable).get(1);
                 if (java.util.Objects.equals(isTrigger, true))
                 {
                     ((Map<String, Object>)request).put("type", "STOP");
@@ -5055,7 +5055,7 @@ public class Hashkey extends HashkeyApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5064,7 +5064,7 @@ public class Hashkey extends HashkeyApi
             String methodName = "fetchPosition";
             List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "methodName", methodName);
             methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
-            parameters = ((List<Object>) methodNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodNameparametersVariable).get(1);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new NotSupported((((this.id + " ") + methodName) + "() supports swap markets only")) ;
@@ -5419,7 +5419,7 @@ public class Hashkey extends HashkeyApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5432,7 +5432,7 @@ public class Hashkey extends HashkeyApi
             String side = null;
             List<Object> sideparametersVariable = (List<Object>) this.handleParamString(parameters, "side");
             side = (String) ((List<Object>) sideparametersVariable).get(0);
-            parameters = ((List<Object>) sideparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) sideparametersVariable).get(1);
             if (java.util.Objects.equals(side, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + type) + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;

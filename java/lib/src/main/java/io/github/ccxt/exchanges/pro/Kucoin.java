@@ -152,7 +152,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         final String connectId3 = connectId2;
         return BaseExchange.supplyAsync(() -> {
             String connectId = connectId3;
-            Object response = null;
+            Map<String, Object> response = null;
             try
             {
                 if (java.util.Objects.equals(connectId, "private"))
@@ -476,19 +476,19 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = parameters3;
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("ticker:" + symbol);
             Object uta = false;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
-            parameters = ((List<Object>) utaparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (Boolean.TRUE.equals(uta))
             {
                 messageHash = ("uta:" + messageHash);
@@ -505,7 +505,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "spotMethod", method);
                 method = ((List<Object>) methodparametersVariable).get(0);
-                parameters = ((List<Object>) methodparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             }
             Object topic = ((method + ":") + ((Map<String, Object>)market).get("id"));
             return (this.subscribe(url, messageHash, topic, parameters)).join();
@@ -546,20 +546,20 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = parameters3;
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object isFuturesMethod = ((Map<String, Object>)market).get("contract");
             Object uta = false;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "unWatchTicker", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
-            parameters = ((List<Object>) utaparametersVariable).get(1);
-            final Object finalSymbol = symbol;
+            parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbols", new ArrayList<Object>(Arrays.asList(finalSymbol)) );
                 put( "topic", "ticker" );
@@ -584,7 +584,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 {
                     List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "spotMethod", method);
                     method = ((List<Object>) methodparametersVariable).get(0);
-                    parameters = ((List<Object>) methodparametersVariable).get(1);
+                    parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
                 }
                 Object topic = ((method + ":") + ((Map<String, Object>)market).get("id"));
                 String messageHash = ("unsubscribe:" + subMessageHash);
@@ -635,7 +635,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -645,11 +645,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object uta = false;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
-            parameters = ((List<Object>) utaparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             Object isFuturesMethod = (!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin"));
             if ((Boolean.TRUE.equals(isFuturesMethod) || Boolean.TRUE.equals(uta)) && java.util.Objects.equals(symbols, null))
             {
@@ -664,7 +664,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "watchTickers", "method", "spotMethod", method);
                 method = ((List<Object>) methodparametersVariable).get(0);
-                parameters = ((List<Object>) methodparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             }
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
@@ -1227,21 +1227,21 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String period = this.safeString(this.timeframes, timeframe, timeframe);
             String messageHash = ((("candles:" + symbol) + ":") + timeframe);
             Object uta = false;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOHLCV", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
-            parameters = ((List<Object>) utaparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             Object ohlcv = null;
             if (Boolean.TRUE.equals(uta))
             {
@@ -1310,21 +1310,21 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = parameters3;
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object uta = false;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "unWatchOHLCV", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
-            parameters = ((List<Object>) utaparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             String period = this.safeString(this.timeframes, timeframe, timeframe);
             List<Object> symbolAndTimeframe = new ArrayList<Object>(Arrays.asList(symbol, timeframe));
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbols", new ArrayList<Object>(Arrays.asList(finalSymbol)) );
                 put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(symbolAndTimeframe)) );
@@ -1510,18 +1510,18 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object uta = false;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
-            parameters = ((List<Object>) utaparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (Boolean.TRUE.equals(uta))
             {
                 (this.loadMarkets()).join();
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 String messageHash = ("uta:trades:" + symbol);
                 Object channel = "trade";
                 Object trades = (this.subscribePublicUta(messageHash, channel, symbol, parameters)).join();
@@ -1723,7 +1723,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         final String symbol3 = symbol2;
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object parameters = parameters3;
             Object uta = false;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
@@ -1733,11 +1733,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 (this.loadMarkets()).join();
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 String subMessageHash = ("uta:trades:" + symbol);
                 String messageHash = ("unsubscribe:" + subMessageHash);
                 Object channel = "trade";
-                final Object finalSymbol = symbol;
+                final String finalSymbol = symbol;
                 Map<String, Object> subscription = new HashMap<String, Object>() {{
                     put( "messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
                     put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash)) );
@@ -1931,7 +1931,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object parameters = parameters3;
             //
             // https://docs.kucoin.com/#level-2-market-data
@@ -1946,7 +1946,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 (this.loadMarkets()).join();
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 Object depth = "increment"; // '1', '5', '50' or 'increment'
                 List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "utaDepth", depth);
                 depth = ((List<Object>) depthparametersVariable).get(0);
@@ -1956,7 +1956,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> subscription = new HashMap<String, Object>() {{}};
                 if ((java.util.Objects.equals(depth, "increment")))
                 {
-                    final Object finalSymbol = symbol;
+                    final String finalSymbol = symbol;
                     subscription = new HashMap<String, Object>() {{
                         put( "method", "handleOrderBookSubscription");
                         put( "symbols", new ArrayList<Object>(Arrays.asList(finalSymbol)) );
@@ -2105,7 +2105,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Integer symbolsLength = ((List<?>)symbols).size();
             if (java.util.Objects.equals(symbolsLength, 0))
             {
@@ -2131,7 +2131,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String optionName = ((Boolean.TRUE.equals(isFuturesMethod))) ? "contractMethod" : "spotMethod";
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
             method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             if (((String)method).indexOf("Depth") < 0)
             {
                 if ((Helpers.isEqual(limit, 5)) || (Helpers.isEqual(limit, 50)))
@@ -2669,7 +2669,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -2685,7 +2685,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = ((messageHash + ":") + symbol);
             }
             Object orders = null;
@@ -3168,7 +3168,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         final Long limit3 = limit2;
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -3180,7 +3180,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = ((messageHash + ":") + ((Map<String, Object>)market).get("symbol"));
             }
             Object marketType = null;
@@ -3450,7 +3450,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3458,7 +3458,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object uta = (this.isUTAEnabled()).join();
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
-            parameters = ((List<Object>) utaparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             String defaultType = ((Helpers.isTrue(uta))) ? "unified" : "spot";
             String type = defaultType;
             if (!Helpers.isTrue(uta))
@@ -3466,7 +3466,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 defaultType = this.safeString(this.options, "defaultType", defaultType);
                 type = this.safeString(parameters, "type", defaultType);
             }
-            parameters = this.omit(parameters, "type");
+            parameters = (Map<String, Object>) this.omit(parameters, "type");
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String uniformType = this.safeString(accountsByType, type, type);
             Object isClassicFuturesMethod = (java.util.Objects.equals(uniformType, "contract"));

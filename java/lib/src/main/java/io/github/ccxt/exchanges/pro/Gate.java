@@ -199,13 +199,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
             Object channel = (messageType + ".order_place");
             Object url = this.getUrlByMarket(market);
@@ -318,7 +318,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrdersWs() requires a symbol argument")) ;
@@ -333,9 +333,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object channel = (messageType + ".order_cancel_cp");
             List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
             channel = ((List<Object>) channelparametersVariable).get(0);
-            parameters = ((List<Object>) channelparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             Object url = this.getUrlByMarket(market);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             var type = ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
@@ -625,7 +625,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -634,7 +634,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
                     throw new NotSupported((this.id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets")) ;
@@ -693,14 +693,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String marketId = (String) ((Map<String, Object>)market).get("id");
             Object url = this.getUrlByMarket(market);
             Boolean isEuUrl = Helpers.getIndexOf(url, "gateeu") >= 0;
@@ -747,7 +747,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 String stringLimit = String.valueOf(limit);
                 ((List<Object>)payload).add(stringLimit);
             }
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             final Object finalLimit = limit;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
@@ -1117,13 +1117,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             ((Map<String, Object>)parameters).put("callerMethodName", "watchTicker");
             Tickers result = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(result, symbol);
@@ -1274,15 +1274,15 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object callerMethodName = callerMethodName3;
-            Object parameters = parameters3;
+            String callerMethodName = callerMethodName3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             List<Object> callerMethodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", callerMethodName);
-            callerMethodName = ((List<Object>) callerMethodNameparametersVariable).get(0);
-            parameters = ((List<Object>) callerMethodNameparametersVariable).get(1);
+            callerMethodName = (String) ((List<Object>) callerMethodNameparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) callerMethodNameparametersVariable).get(1);
             symbols = this.marketSymbols(symbols, null, false);
             Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
@@ -1290,7 +1290,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object channelName = null;
             List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, callerMethodName, "method");
             channelName = ((List<Object>) channelNameparametersVariable).get(0);
-            parameters = ((List<Object>) channelNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) channelNameparametersVariable).get(1);
             Object url = this.getUrlByMarket(market);
             Object channel = Helpers.add((messageType + "."), channelName);
             if (java.util.Objects.equals(callerMethodName, null))
@@ -1622,7 +1622,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1630,7 +1630,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             // todo add options support
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String marketId = (String) ((Map<String, Object>)market).get("id");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
@@ -1753,7 +1753,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1769,10 +1769,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("watchMyTrades", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object messageType = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "spot", "spot" );
                 put( "margin", "spot" );
@@ -1891,7 +1891,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1900,10 +1900,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object subType = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", null, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             Object url = this.getUrlByMarketType((String) (type), isInverse);
             Object requiresUid = (!java.util.Objects.equals(type, "spot"));
@@ -2304,7 +2304,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2315,7 +2315,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 Map<String, Object> marketResolved = (Map<String, Object>) this.market(symbol);
                 market = marketResolved;
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             Object type = null;
             Object query = null;

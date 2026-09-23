@@ -1206,7 +1206,7 @@ public class Hollaex extends HollaexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1220,7 +1220,7 @@ public class Hollaex extends HollaexApi
             Integer maxLimit = 500;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", paginate);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
@@ -1239,7 +1239,7 @@ public class Hollaex extends HollaexApi
             }
             ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(start, 1000))); // convert to seconds
             ((Map<String, Object>)request).put("to", this.parseToInt((((double) until) / ((double) 1000)))); // convert to seconds
-            parameters = this.omit(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, "until");
             List<Object> response = (this.publicGetChart(this.extend(request, parameters))).join();
             //
             //     [
@@ -2554,11 +2554,11 @@ public class Hollaex extends HollaexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String address = address3;
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2574,7 +2574,7 @@ public class Hollaex extends HollaexApi
             {
                 throw new ArgumentsRequired((this.id + " withdraw() requires a network parameter")) ;
             }
-            parameters = this.omit(parameters, "network");
+            parameters = (Map<String, Object>) this.omit(parameters, "network");
             final String finalAddress = address;
             final Object finalNetwork = network;
             Map<String, Object> request = new HashMap<String, Object>() {{

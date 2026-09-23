@@ -525,7 +525,7 @@ public class Lighter extends LighterApi
             Object privateKey = privateKey3;
             Object apiKeyIndex = apiKeyIndex3;
             Object accountIndex = accountIndex3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.initAuthObject(accountIndex, apiKeyIndex);
             Map<String, Object> cachedAuths = (Map<String, Object>) this.safeDict(Helpers.GetValue(((Map<String, Object>)this.options).get("auths"), accountIndex), apiKeyIndex);
             Object signer = this.safeValue(cachedAuths, "signer");
@@ -536,7 +536,7 @@ public class Lighter extends LighterApi
             Object libraryPath = null;
             List<Object> libraryPathparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "loadAccount", "libraryPath");
             libraryPath = ((List<Object>) libraryPathparametersVariable).get(0);
-            parameters = ((List<Object>) libraryPathparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) libraryPathparametersVariable).get(1);
             Boolean lighterPrivateKeyIsSet = (!java.util.Objects.equals(privateKey, null)) && (!java.util.Objects.equals(privateKey, ""));
             if (Boolean.TRUE.equals(lighterPrivateKeyIsSet) && (!java.util.Objects.equals(libraryPath, null)) && (!java.util.Objects.equals(apiKeyIndex, null)) && (!java.util.Objects.equals(accountIndex, null)))
             {
@@ -621,15 +621,15 @@ public class Lighter extends LighterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "loadAccount", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "loadAccount", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             if (java.util.Objects.equals(accountIndex, null))
             {
                 throw new ArgumentsRequired((this.id + " requires accountIndex or account_index")) ;
@@ -755,15 +755,15 @@ public class Lighter extends LighterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "createSubAccount", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "createSubAccount", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
@@ -963,15 +963,15 @@ public class Lighter extends LighterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "changeApiKey", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "changeApiKey", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signerNotLoad = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.options).get("auths"), strAccountIndex), strApiKeyIndex), "signer");
@@ -1234,7 +1234,7 @@ public class Lighter extends LighterApi
         return BaseExchange.supplyAsync(() -> {
             Object accountIndex = accountIndex3;
             Object apiKeyIndex = apiKeyIndex3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if ((java.util.Objects.equals(accountIndex, null)) || (java.util.Objects.equals(apiKeyIndex, null)))
             {
                 throw new ArgumentsRequired((this.id + " fetchNonce() requires accountIndex and apiKeyIndex.")) ;
@@ -1252,7 +1252,7 @@ public class Lighter extends LighterApi
             Boolean skipNonce = true;
             List<Object> skipNonceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchNonce", "skipNonce", true);
             skipNonce = Boolean.TRUE.equals(((List<Object>) skipNonceparametersVariable).get(0));
-            parameters = ((List<Object>) skipNonceparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) skipNonceparametersVariable).get(1);
             if (Boolean.TRUE.equals(skipNonce))
             {
                 return this.milliseconds();
@@ -1276,7 +1276,7 @@ public class Lighter extends LighterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1284,13 +1284,13 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, method, "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             ((Map<String, Object>)parameters).put("accountIndex", accountIndex);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object groupingType = null;
             List<Object> groupingTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "groupingType", 3);
             groupingType = ((List<Object>) groupingTypeparametersVariable).get(0);
-            parameters = ((List<Object>) groupingTypeparametersVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+            parameters = (Map<String, Object>) ((List<Object>) groupingTypeparametersVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             Object orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Integer totalOrderRequests = ((List<?>)orderRequests).size();
             Object apiKeyIndex = null;
@@ -1438,7 +1438,7 @@ public class Lighter extends LighterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1446,11 +1446,11 @@ public class Lighter extends LighterApi
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "editOrder", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "editOrder", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -1459,7 +1459,7 @@ public class Lighter extends LighterApi
             String amountScale = this.pow("10", ((Map<String, Object>)marketInfo).get("size_decimals"));
             String priceScale = this.pow("10", ((Map<String, Object>)marketInfo).get("price_decimals"));
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
             Object amountStr = null;
             Object priceStr = this.priceToPrecision(symbol, price);
             Object triggerPriceStr = "0"; // default is 0
@@ -2478,7 +2478,7 @@ public class Lighter extends LighterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2486,10 +2486,10 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "fetchBalance", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             String defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
             String type = this.safeString(parameters, "type", defaultType);
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "by", Lighter.this.safeString(finalParameters, "by", "index") );
@@ -2647,7 +2647,7 @@ public class Lighter extends LighterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2655,8 +2655,8 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "fetchPositions", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
-            final Object finalParameters = parameters;
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
+            final Map<String, Object> finalParameters = parameters;
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "by", Lighter.this.safeString(finalParameters, "by", "index") );
@@ -2837,7 +2837,7 @@ public class Lighter extends LighterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2845,8 +2845,8 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "fetchAccounts", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
-            final Object finalParameters = parameters;
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
+            final Map<String, Object> finalParameters = parameters;
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "by", Lighter.this.safeString(finalParameters, "by", "index") );
@@ -2959,7 +2959,7 @@ public class Lighter extends LighterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
@@ -2971,11 +2971,11 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "fetchOpenOrders", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "fetchOpenOrders", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -3070,7 +3070,7 @@ public class Lighter extends LighterApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchClosedOrders() requires a symbol argument")) ;
@@ -3082,11 +3082,11 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "fetchClosedOrders", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "fetchClosedOrders", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -3407,7 +3407,7 @@ public class Lighter extends LighterApi
             Object amount = amount3;
             String fromAccount = fromAccount3;
             String toAccount = toAccount3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3415,15 +3415,15 @@ public class Lighter extends LighterApi
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "transfer", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "transfer", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object toAccountIndex = null;
             List<Object> toAccountIndexparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "transfer", "toAccountIndex", "to_account_index", accountIndex);
             toAccountIndex = ((List<Object>) toAccountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) toAccountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) toAccountIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -3441,7 +3441,7 @@ public class Lighter extends LighterApi
             Object fromRouteType = (((java.util.Objects.equals(fromAccount, "perp")))) ? 0 : 1; // 0: perp, 1: spot
             Object toRouteType = (((java.util.Objects.equals(toAccount, "perp")))) ? 0 : 1;
             String memo = this.safeString(parameters, "memo", "0x000000000000000000000000000000");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("memo")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("memo")));
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalToAccountIndex = toAccountIndex;
             final Object finalAmount = amount;
@@ -3510,7 +3510,7 @@ public class Lighter extends LighterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3518,7 +3518,7 @@ public class Lighter extends LighterApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
@@ -3526,7 +3526,7 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "fetchTransfers", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account_index", finalAccountIndex );
@@ -3534,7 +3534,7 @@ public class Lighter extends LighterApi
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "fetchTransfers", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -3657,7 +3657,7 @@ public class Lighter extends LighterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3665,7 +3665,7 @@ public class Lighter extends LighterApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
@@ -3673,7 +3673,7 @@ public class Lighter extends LighterApi
             Object address = null;
             List<Object> addressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchDeposits", "address", "l1_address");
             address = ((List<Object>) addressparametersVariable).get(0);
-            parameters = ((List<Object>) addressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) addressparametersVariable).get(1);
             if (java.util.Objects.equals(address, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDeposits() requires an address parameter")) ;
@@ -3681,7 +3681,7 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "fetchDeposits", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             final Object finalAccountIndex = accountIndex;
             final Object finalAddress = address;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3691,7 +3691,7 @@ public class Lighter extends LighterApi
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "fetchDeposits", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -3767,11 +3767,11 @@ public class Lighter extends LighterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
@@ -3779,7 +3779,7 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "fetchWithdrawals", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3791,7 +3791,7 @@ public class Lighter extends LighterApi
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "fetchWithdrawals", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -3941,7 +3941,7 @@ public class Lighter extends LighterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object amount = amount3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3949,11 +3949,11 @@ public class Lighter extends LighterApi
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "withdraw", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "withdraw", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -3969,7 +3969,7 @@ public class Lighter extends LighterApi
                 throw new ExchangeError((this.id + " withdraw() only supports USDC and ETH transfers")) ;
             }
             Long routeType = this.safeInteger(parameters, "routeType", 0); // 0: perp, 1: spot
-            parameters = this.omit(parameters, "routeType");
+            parameters = (Map<String, Object>) this.omit(parameters, "routeType");
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalAmount = amount;
             final Object finalApiKeyIndex = apiKeyIndex;
@@ -4035,7 +4035,7 @@ public class Lighter extends LighterApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4043,7 +4043,7 @@ public class Lighter extends LighterApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, 50)).join();
@@ -4051,11 +4051,11 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "fetchMyTrades", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "fetchMyTrades", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -4072,7 +4072,7 @@ public class Lighter extends LighterApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchMyTrades", "until", "from");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("from", until);
@@ -4247,7 +4247,7 @@ public class Lighter extends LighterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -4255,7 +4255,7 @@ public class Lighter extends LighterApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "setLeverage", "marginMode", "margin_mode");
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires an marginMode parameter")) ;
@@ -4299,7 +4299,7 @@ public class Lighter extends LighterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String marginMode = marginMode3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(marginMode, null))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires an marginMode parameter")) ;
@@ -4307,7 +4307,7 @@ public class Lighter extends LighterApi
             Object leverage = null;
             List<Object> leverageparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "leverage");
             leverage = ((List<Object>) leverageparametersVariable).get(0);
-            parameters = ((List<Object>) leverageparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) leverageparametersVariable).get(1);
             if (java.util.Objects.equals(leverage, null))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires an leverage parameter")) ;
@@ -4341,7 +4341,7 @@ public class Lighter extends LighterApi
         return BaseExchange.supplyAsync(() -> {
             Object marginMode = marginMode3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4353,7 +4353,7 @@ public class Lighter extends LighterApi
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "modifyLeverageAndMarginMode", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " modifyLeverageAndMarginMode() requires a symbol argument")) ;
@@ -4361,7 +4361,7 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "modifyLeverageAndMarginMode", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -4402,7 +4402,7 @@ public class Lighter extends LighterApi
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4414,14 +4414,14 @@ public class Lighter extends LighterApi
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, method, "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "client_order_index", "clientOrderId");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_index", "clientOrderId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_index", "clientOrderId")));
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -4505,7 +4505,7 @@ public class Lighter extends LighterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4513,11 +4513,11 @@ public class Lighter extends LighterApi
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, method, "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -4597,7 +4597,7 @@ public class Lighter extends LighterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4609,11 +4609,11 @@ public class Lighter extends LighterApi
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "cancelAllOrdersAfter", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -4739,7 +4739,7 @@ public class Lighter extends LighterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4747,7 +4747,7 @@ public class Lighter extends LighterApi
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "setMargin", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
             Long direction = this.safeInteger(parameters, "direction"); // 1 increase margin 0 decrease margin
             if (java.util.Objects.equals(direction, null))
             {
@@ -4764,7 +4764,7 @@ public class Lighter extends LighterApi
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "setMargin", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();

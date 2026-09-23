@@ -93,13 +93,13 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("ticker:" + symbol);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             this.setBrokerHeaders();
@@ -176,7 +176,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -184,7 +184,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String priceType = this.safeString(parameters, "price");
             parameters = (Map<String, Object>) this.omit(parameters, "price");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);

@@ -3546,7 +3546,7 @@ final Object finalClobTokenId = clobTokenId;
         return BaseExchange.supplyAsync(() -> {
             String outcome = outcome3;
             (this.loadApiCredentials()).join();
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
@@ -3565,7 +3565,7 @@ final Object finalClobTokenId = clobTokenId;
             for (var i = 0; i < ((List<?>)canceled).size(); i++)
             {
     final Object finalI = i;
-                final Object finalResponse = response;
+                final Map<String, Object> finalResponse = response;
                             ((List<Object>)orders).add(this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "id", Polymarket.this.safeString(canceled, finalI) );
                     put( "status", "canceled" );
@@ -3669,7 +3669,7 @@ final Object finalClobTokenId = clobTokenId;
                     // search results may omit the nested markets, fall back to the detail endpoint
                     String eventId = this.safeString(rawEvent, "id");
                     String rawEventSlug = this.safeString(rawEvent, "slug");
-                    Object detailedEvent = null;
+                    Map<String, Object> detailedEvent = null;
                     if (!java.util.Objects.equals(eventId, null))
                     {
                         final String finalEventId = eventId;
@@ -3760,7 +3760,7 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = null;
+            Map<String, Object> response = null;
             if (((String)id).indexOf("-") >= 0)
             {
                 response = (this.gammaPublicGetEventsSlugSlug(this.extend(new HashMap<String, Object>() {{

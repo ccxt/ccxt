@@ -715,7 +715,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -723,7 +723,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Boolean verbose = false;
             List<Object> verboseparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "verbose", false);
             verbose = Boolean.TRUE.equals(((List<Object>) verboseparametersVariable).get(0));
-            parameters = ((List<Object>) verboseparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) verboseparametersVariable).get(1);
             Object name = "open_orders";
             String messageHash = "orders";
             if (Boolean.TRUE.equals(verbose))
@@ -840,7 +840,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -850,7 +850,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object account = null;
             List<Object> accountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "account");
             account = ((List<Object>) accountparametersVariable).get(0);
-            parameters = ((List<Object>) accountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountparametersVariable).get(1);
             if (!java.util.Objects.equals(account, null))
             {
                 if (!java.util.Objects.equals(account, "futures") && !java.util.Objects.equals(account, "flex_futures"))

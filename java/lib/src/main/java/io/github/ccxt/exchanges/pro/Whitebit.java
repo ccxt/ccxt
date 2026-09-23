@@ -102,14 +102,14 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Long interval = this.safeInteger(timeframes, timeframe);
             String marketId = (String) ((Map<String, Object>)market).get("id");
@@ -344,13 +344,13 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object method = "market_subscribe";
             String messageHash = ("ticker:" + symbol);
             // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
@@ -495,14 +495,14 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("trades" + ":") + symbol);
             Object method = "trades_subscribe";
             // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
@@ -594,7 +594,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(symbol, null))
             {
@@ -606,7 +606,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             (this.authenticate()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("myTrades:" + symbol);
             Object method = "deals_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, (String) (symbol), true, parameters)).join();
@@ -768,7 +768,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(symbol, null))
             {
@@ -780,7 +780,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             (this.authenticate()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orders:" + symbol);
             Object method = "ordersPending_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, (String) (symbol), false, parameters)).join();
@@ -1001,7 +1001,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1009,7 +1009,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String messageHash = "wallet:";
             Object method = null;
             if (java.util.Objects.equals(type, "spot"))
@@ -1028,10 +1028,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Object awaitBalanceSnapshot = null;
             List<Object> fetchBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
             fetchBalanceSnapshot = ((List<Object>) fetchBalanceSnapshotparametersVariable).get(0);
-            parameters = ((List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
             List<Object> awaitBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", true);
             awaitBalanceSnapshot = ((List<Object>) awaitBalanceSnapshotparametersVariable).get(0);
-            parameters = ((List<Object>) awaitBalanceSnapshotparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) awaitBalanceSnapshotparametersVariable).get(1);
             if (Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();

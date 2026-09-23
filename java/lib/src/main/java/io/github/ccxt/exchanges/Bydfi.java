@@ -1117,7 +1117,7 @@ public class Bydfi extends BydfiApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1126,7 +1126,7 @@ public class Bydfi extends BydfiApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit);
@@ -1142,7 +1142,7 @@ public class Bydfi extends BydfiApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             Long now = this.milliseconds();
             Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Object timeDelta = Helpers.multiply(duration, numberOfCandles);
@@ -1503,7 +1503,7 @@ public class Bydfi extends BydfiApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -1527,7 +1527,7 @@ public class Bydfi extends BydfiApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -1624,7 +1624,7 @@ public class Bydfi extends BydfiApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1634,7 +1634,7 @@ public class Bydfi extends BydfiApi
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
             orderRequest = this.extend(orderRequest, new HashMap<String, Object>() {{
                 put( "wallet", finalWallet );
@@ -1864,7 +1864,7 @@ public class Bydfi extends BydfiApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1890,7 +1890,7 @@ public class Bydfi extends BydfiApi
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "wallet", finalWallet );
@@ -1937,7 +1937,7 @@ public class Bydfi extends BydfiApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1946,7 +1946,7 @@ public class Bydfi extends BydfiApi
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             ((Map<String, Object>)request).put("wallet", wallet);
             Map<String, Object> response = (this.privatePostV1FapiTradeEditOrder(request)).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -1989,7 +1989,7 @@ public class Bydfi extends BydfiApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2015,7 +2015,7 @@ public class Bydfi extends BydfiApi
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "wallet", finalWallet );
@@ -2090,7 +2090,7 @@ public class Bydfi extends BydfiApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
@@ -2103,7 +2103,7 @@ public class Bydfi extends BydfiApi
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2182,7 +2182,7 @@ public class Bydfi extends BydfiApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
@@ -2195,17 +2195,17 @@ public class Bydfi extends BydfiApi
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "wallet", finalWallet );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             Object trigger = false;
             List<Object> triggerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "trigger", trigger);
             trigger = ((List<Object>) triggerparametersVariable).get(0);
-            parameters = ((List<Object>) triggerparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) triggerparametersVariable).get(1);
             if (!Boolean.TRUE.equals(trigger))
             {
                 //
@@ -2291,7 +2291,7 @@ public class Bydfi extends BydfiApi
         return BaseExchange.supplyAsync(() -> {
             String id = id3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrder() requires a symbol argument")) ;
@@ -2315,13 +2315,13 @@ public class Bydfi extends BydfiApi
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrder", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             ((Map<String, Object>)request).put("wallet", wallet);
-            Object response = null;
+            Map<String, Object> response = null;
             Object trigger = false;
             List<Object> triggerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrder", "trigger", trigger);
             trigger = ((List<Object>) triggerparametersVariable).get(0);
-            parameters = ((List<Object>) triggerparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) triggerparametersVariable).get(1);
             if (!Boolean.TRUE.equals(trigger))
             {
                 response = (this.privateGetV1FapiTradeOpenOrder(this.extend(request, parameters))).join();
@@ -2712,7 +2712,7 @@ public class Bydfi extends BydfiApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -2725,7 +2725,7 @@ public class Bydfi extends BydfiApi
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setLeverage", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2770,7 +2770,7 @@ public class Bydfi extends BydfiApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchLeverage() requires a symbol argument")) ;
@@ -2783,7 +2783,7 @@ public class Bydfi extends BydfiApi
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLeverage", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2853,7 +2853,7 @@ public class Bydfi extends BydfiApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2861,7 +2861,7 @@ public class Bydfi extends BydfiApi
             Object contractType = "FUTURE";
             List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
             contractType = ((List<Object>) contractTypeparametersVariable).get(0);
-            parameters = ((List<Object>) contractTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
@@ -2925,7 +2925,7 @@ public class Bydfi extends BydfiApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2934,7 +2934,7 @@ public class Bydfi extends BydfiApi
             Object contractType = "FUTURE";
             List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
             contractType = ((List<Object>) contractTypeparametersVariable).get(0);
-            parameters = ((List<Object>) contractTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
@@ -3278,7 +3278,7 @@ public class Bydfi extends BydfiApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3287,11 +3287,11 @@ public class Bydfi extends BydfiApi
             Object contractType = "FUTURE";
             List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
             contractType = ((List<Object>) contractTypeparametersVariable).get(0);
-            parameters = ((List<Object>) contractTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarginMode", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             final Object finalContractType = contractType;
             final Object finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3367,7 +3367,7 @@ public class Bydfi extends BydfiApi
         return BaseExchange.supplyAsync(() -> {
             String marginMode = marginMode3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol argument")) ;
@@ -3385,11 +3385,11 @@ public class Bydfi extends BydfiApi
             Object contractType = "FUTURE";
             List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "contractType", contractType);
             contractType = ((List<Object>) contractTypeparametersVariable).get(0);
-            parameters = ((List<Object>) contractTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             final Object finalContractType = contractType;
             final String finalMarginMode = marginMode;
             final Object finalWallet = wallet;
@@ -3439,7 +3439,7 @@ public class Bydfi extends BydfiApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (!java.util.Objects.equals(symbol, null))
             {
                 throw new NotSupported((this.id + " setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency")) ;
@@ -3452,15 +3452,15 @@ public class Bydfi extends BydfiApi
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setPositionMode", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             Object contractType = "FUTURE";
             List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setPositionMode", "contractType", contractType);
             contractType = ((List<Object>) contractTypeparametersVariable).get(0);
-            parameters = ((List<Object>) contractTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
             Object settleCoin = "USDT";
             List<Object> settleCoinparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setPositionMode", "settleCoin", settleCoin);
             settleCoin = ((List<Object>) settleCoinparametersVariable).get(0);
-            parameters = ((List<Object>) settleCoinparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) settleCoinparametersVariable).get(1);
             final Object finalContractType = contractType;
             final Object finalWallet = wallet;
             final Object finalSettleCoin = settleCoin;
@@ -3517,7 +3517,7 @@ public class Bydfi extends BydfiApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3525,17 +3525,17 @@ public class Bydfi extends BydfiApi
             Object wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionMode", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             Object contractType = "FUTURE";
             List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionMode", "contractType", contractType);
             contractType = ((List<Object>) contractTypeparametersVariable).get(0);
-            parameters = ((List<Object>) contractTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
             Object settleCoin = "USDT";
             if (java.util.Objects.equals(symbol, null))
             {
                 List<Object> settleCoinparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionMode", "settleCoin", settleCoin);
                 settleCoin = ((List<Object>) settleCoinparametersVariable).get(0);
-                parameters = ((List<Object>) settleCoinparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) settleCoinparametersVariable).get(1);
             } else
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -3609,7 +3609,7 @@ public class Bydfi extends BydfiApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3617,13 +3617,13 @@ public class Bydfi extends BydfiApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object wallet = null;
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "wallet");
             wallet = ((List<Object>) walletparametersVariable).get(0);
-            parameters = ((List<Object>) walletparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(wallet, null))
             {
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
@@ -4101,7 +4101,7 @@ public class Bydfi extends BydfiApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "deposit"))
             {
                 //

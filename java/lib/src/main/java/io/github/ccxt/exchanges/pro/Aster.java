@@ -235,7 +235,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -251,8 +251,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             String methodName = null;
             List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTickers");
             methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
-            parameters = ((List<Object>) methodNameparametersVariable).get(1);
-            parameters = this.omit(parameters, "callerMethodName");
+            parameters = (Map<String, Object>) ((List<Object>) methodNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -475,7 +475,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -491,8 +491,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             String methodName = null;
             List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
             methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
-            parameters = ((List<Object>) methodNameparametersVariable).get(1);
-            parameters = this.omit(parameters, "callerMethodName");
+            parameters = (Map<String, Object>) ((List<Object>) methodNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -1002,7 +1002,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1014,8 +1014,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             String methodName = null;
             List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
             methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
-            parameters = ((List<Object>) methodNameparametersVariable).get(1);
-            parameters = this.omit(parameters, "callerMethodName");
+            parameters = (Map<String, Object>) ((List<Object>) methodNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -1443,7 +1443,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1455,8 +1455,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             String methodName = null;
             List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
-            parameters = ((List<Object>) methodNameparametersVariable).get(1);
-            parameters = this.omit(parameters, "callerMethodName");
+            parameters = (Map<String, Object>) ((List<Object>) methodNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -1730,7 +1730,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1739,8 +1739,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             String methodName = null;
             List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOHLCVForSymbols");
             methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
-            parameters = ((List<Object>) methodNameparametersVariable).get(1);
-            parameters = this.omit(parameters, "callerMethodName");
+            parameters = (Map<String, Object>) ((List<Object>) methodNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -2099,7 +2099,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2107,7 +2107,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type, parameters)).join();
             Object url = this.getPrivateUrl(type);
             Client client = this.client(url);
@@ -2546,9 +2546,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2557,13 +2557,13 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             String messageHash = "orders";
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type, parameters)).join();
             if (!java.util.Objects.equals(market, null))
             {
@@ -2618,9 +2618,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2629,13 +2629,13 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             String messageHash = "myTrades";
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type, parameters)).join();
             if (!java.util.Objects.equals(market, null))
             {

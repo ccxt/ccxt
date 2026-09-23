@@ -1006,9 +1006,9 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
@@ -1018,14 +1018,14 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
                 productId = this.parseToInt(((Map<String, Object>)market).get("id"));
             }
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             final Long finalProductId = productId;
             Map<String, Object> stream = new HashMap<String, Object>() {{
@@ -1075,7 +1075,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final String symbol3 = symbol2;
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
@@ -1086,7 +1086,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
                 productId = this.parseToInt(((Map<String, Object>)market).get("id"));
             }
@@ -1143,9 +1143,9 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
@@ -1155,14 +1155,14 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
                 productId = this.parseToInt(((Map<String, Object>)market).get("id"));
             }
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             final Long finalProductId = productId;
             Map<String, Object> stream = new HashMap<String, Object>() {{
@@ -1212,7 +1212,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final String symbol3 = symbol2;
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
@@ -1223,7 +1223,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
                 productId = this.parseToInt(((Map<String, Object>)market).get("id"));
             }
@@ -1280,7 +1280,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
@@ -1300,7 +1300,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             final Long finalProductId = productId;
             Map<String, Object> stream = new HashMap<String, Object>() {{
@@ -1916,7 +1916,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkRequiredCredentials();
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "subscriptions");
             Client client = this.client(url);
@@ -1934,11 +1934,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object recvWindow = null;
             List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "authenticate", "recvWindow", 5000);
             recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
-            parameters = ((List<Object>) recvWindowparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "authenticate", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object id = this.requestId();
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Object expiration = this.sum(this.milliseconds(), recvWindow);

@@ -200,7 +200,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -221,19 +221,19 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object bookSubscriptionType2 = null;
             List<Object> bookSubscriptionTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
             bookSubscriptionType = ((List<Object>) bookSubscriptionTypeparametersVariable).get(0);
-            parameters = ((List<Object>) bookSubscriptionTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) bookSubscriptionTypeparametersVariable).get(1);
             List<Object> bookSubscriptionType2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
             bookSubscriptionType2 = ((List<Object>) bookSubscriptionType2parametersVariable).get(0);
-            parameters = ((List<Object>) bookSubscriptionType2parametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) bookSubscriptionType2parametersVariable).get(1);
             Helpers.addElementToObject(Helpers.GetValue(parameters, "params"), "bookSubscriptionType", bookSubscriptionType2);
             Object bookUpdateFrequency = null;
             Object bookUpdateFrequency2 = null;
             List<Object> bookUpdateFrequencyparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "bookUpdateFrequency");
             bookUpdateFrequency = ((List<Object>) bookUpdateFrequencyparametersVariable).get(0);
-            parameters = ((List<Object>) bookUpdateFrequencyparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) bookUpdateFrequencyparametersVariable).get(1);
             List<Object> bookUpdateFrequency2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
             bookUpdateFrequency2 = ((List<Object>) bookUpdateFrequency2parametersVariable).get(0);
-            parameters = ((List<Object>) bookUpdateFrequency2parametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) bookUpdateFrequency2parametersVariable).get(1);
             if (!java.util.Objects.equals(bookUpdateFrequency2, null))
             {
                 Helpers.addElementToObject(Helpers.GetValue(parameters, "params"), "bookSubscriptionType", bookUpdateFrequency2);
@@ -287,7 +287,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -306,19 +306,19 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object bookSubscriptionType2 = null;
             List<Object> bookSubscriptionTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
             bookSubscriptionType = ((List<Object>) bookSubscriptionTypeparametersVariable).get(0);
-            parameters = ((List<Object>) bookSubscriptionTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) bookSubscriptionTypeparametersVariable).get(1);
             List<Object> bookSubscriptionType2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
             bookSubscriptionType2 = ((List<Object>) bookSubscriptionType2parametersVariable).get(0);
-            parameters = ((List<Object>) bookSubscriptionType2parametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) bookSubscriptionType2parametersVariable).get(1);
             Helpers.addElementToObject(Helpers.GetValue(parameters, "params"), "bookSubscriptionType", bookSubscriptionType2);
             Object bookUpdateFrequency = null;
             Object bookUpdateFrequency2 = null;
             List<Object> bookUpdateFrequencyparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "bookUpdateFrequency");
             bookUpdateFrequency = ((List<Object>) bookUpdateFrequencyparametersVariable).get(0);
-            parameters = ((List<Object>) bookUpdateFrequencyparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) bookUpdateFrequencyparametersVariable).get(1);
             List<Object> bookUpdateFrequency2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
             bookUpdateFrequency2 = ((List<Object>) bookUpdateFrequency2parametersVariable).get(0);
-            parameters = ((List<Object>) bookUpdateFrequency2parametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) bookUpdateFrequency2parametersVariable).get(1);
             if (!java.util.Objects.equals(bookUpdateFrequency2, null))
             {
                 Helpers.addElementToObject(Helpers.GetValue(parameters, "params"), "bookSubscriptionType", bookUpdateFrequency2);
@@ -720,7 +720,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -730,7 +730,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             Object messageHash = "user.trade";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (((messageHash + ".") + ((Map<String, Object>)market).get("id"))) : messageHash;
@@ -1164,14 +1164,14 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String messageHash = (((("candlestick" + ".") + interval) + ".") + ((Map<String, Object>)market).get("id"));
             Object ohlcv = (this.watchPublic(messageHash, parameters)).join();
@@ -1214,13 +1214,13 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String subMessageHash = (((("candlestick" + ".") + interval) + ".") + ((Map<String, Object>)market).get("id"));
             String messageHash = ((("unsubscribe:ohlcv:" + ((Map<String, Object>)market).get("symbol")) + ":") + timeframe);
@@ -1305,7 +1305,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1315,7 +1315,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             Object messageHash = "user.order";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (((messageHash + ".") + ((Map<String, Object>)market).get("id"))) : messageHash;

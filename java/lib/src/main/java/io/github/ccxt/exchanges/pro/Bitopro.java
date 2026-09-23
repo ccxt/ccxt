@@ -94,7 +94,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Long limit = limit3;
             if (!java.util.Objects.equals(limit, null))
             {
@@ -108,7 +108,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("ORDER_BOOK" + ":") + symbol);
             Object endPart = null;
             if (java.util.Objects.equals(limit, null))
@@ -193,14 +193,14 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("TRADE" + ":") + symbol);
             Object trades = (this.watchPublic("trades", messageHash, (String) (((Map<String, Object>)market).get("id")))).join();
             if (this.newUpdates)
@@ -473,13 +473,13 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("TICKER" + ":") + symbol);
             return (this.watchPublic("tickers", messageHash, (String) (((Map<String, Object>)market).get("id")))).join();
         }).thenApply(Ticker::new);

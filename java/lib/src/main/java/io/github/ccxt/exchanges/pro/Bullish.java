@@ -276,13 +276,13 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), "/trading-api/v1/market-data/tick/"), ((Map<String, Object>)market).get("id"));
             String messageHash = ("ticker::" + symbol);
             return (this.watch(url, messageHash, parameters, messageHash, null)).join();  // no need to send a subscribe message, the server sends a ticker update on connect

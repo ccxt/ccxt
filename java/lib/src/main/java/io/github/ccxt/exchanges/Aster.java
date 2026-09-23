@@ -1534,12 +1534,12 @@ public class Aster extends AsterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.fapiPublicGetV3Time(parameters)).join();
@@ -1624,7 +1624,7 @@ public class Aster extends AsterApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1641,13 +1641,13 @@ public class Aster extends AsterApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             ((Map<String, Object>)request).put("interval", this.safeString(this.timeframes, timeframe, timeframe));
             String price = this.safeString(parameters, "price");
             Boolean isMark = (java.util.Objects.equals(price, "mark"));
             Boolean isIndex = (java.util.Objects.equals(price, "index"));
-            parameters = this.omit(parameters, "price");
-            Object response = null;
+            parameters = (Map<String, Object>) this.omit(parameters, "price");
+            List<Object> response = null;
             if (Boolean.TRUE.equals(isMark))
             {
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
@@ -1834,7 +1834,7 @@ public class Aster extends AsterApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
-            Object response = null;
+            List<Object> response = null;
             Boolean sinceDefined = !java.util.Objects.equals(since, null);
             Boolean untilDefined = (((Map<?, ?>)parameters).containsKey("until"));
             if (Boolean.TRUE.equals(sinceDefined))
@@ -1911,7 +1911,7 @@ public class Aster extends AsterApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -1923,7 +1923,7 @@ public class Aster extends AsterApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("startTime", since);
@@ -1934,8 +1934,8 @@ public class Aster extends AsterApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.fapiPrivateGetV3UserTrades(this.extend(request, parameters))).join();
@@ -2012,7 +2012,7 @@ public class Aster extends AsterApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)request).put("limit", this.findNearestCeiling(new ArrayList<Object>(Arrays.asList(5, 10, 20, 50, 100, 500, 1000)), limit));
@@ -2256,7 +2256,7 @@ public class Aster extends AsterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2266,7 +2266,7 @@ public class Aster extends AsterApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -2341,7 +2341,7 @@ public class Aster extends AsterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2351,8 +2351,8 @@ public class Aster extends AsterApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.fapiPublicGetV3TickerPrice(parameters)).join();
@@ -2449,7 +2449,7 @@ public class Aster extends AsterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2459,8 +2459,8 @@ public class Aster extends AsterApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.fapiPublicGetV3TickerBookTicker(parameters)).join();
@@ -2753,7 +2753,7 @@ public class Aster extends AsterApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2775,7 +2775,7 @@ public class Aster extends AsterApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.fapiPublicGetV3FundingRate(this.extend(request, parameters))).join();
             //
             //     [
@@ -2845,13 +2845,13 @@ public class Aster extends AsterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            Map<String, Object> response = null;
             Object data = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -3087,7 +3087,7 @@ public class Aster extends AsterApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivateGetV3CommissionRate(this.extend(request, parameters))).join();
@@ -3284,7 +3284,7 @@ public class Aster extends AsterApi
             {
                 ((Map<String, Object>)request).put("orderId", id);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivateGetV3Order(this.extend(request, parameters))).join();
@@ -3378,7 +3378,7 @@ public class Aster extends AsterApi
             {
                 ((Map<String, Object>)request).put("orderId", id);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.sapiPrivateGetV3OpenOrder(this.extend(request, parameters))).join();
@@ -3458,7 +3458,7 @@ public class Aster extends AsterApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
@@ -3478,8 +3478,8 @@ public class Aster extends AsterApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivateGetV3AllOrders(this.extend(request, parameters))).join();
@@ -3559,7 +3559,7 @@ public class Aster extends AsterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -3582,12 +3582,12 @@ public class Aster extends AsterApi
             }
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(marketType, subType)))
             {
                 response = (this.fapiPrivateGetV3OpenOrders(this.extend(request, parameters))).join();
@@ -3679,7 +3679,7 @@ public class Aster extends AsterApi
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivatePostV3Order(request)).join();
@@ -4150,7 +4150,7 @@ public class Aster extends AsterApi
                 ((Map<String, Object>)request).put("orderId", id);
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivateDeleteV3Order(this.extend(request, parameters))).join();
@@ -4215,7 +4215,7 @@ public class Aster extends AsterApi
             {
                 ((Map<String, Object>)request).put("orderIdList", ids);
             }
-            Object response = null;
+            List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivateDeleteV3BatchOrders(this.extend(request, parameters))).join();
@@ -4801,7 +4801,7 @@ public class Aster extends AsterApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4814,7 +4814,7 @@ public class Aster extends AsterApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("startTime", since);
@@ -5288,11 +5288,11 @@ public class Aster extends AsterApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object defaultMethod = null;
             List<Object> defaultMethodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method");
             defaultMethod = ((List<Object>) defaultMethodparametersVariable).get(0);
-            parameters = ((List<Object>) defaultMethodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) defaultMethodparametersVariable).get(1);
             if (java.util.Objects.equals(defaultMethod, null))
             {
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchPositions");
@@ -5602,7 +5602,7 @@ public class Aster extends AsterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (!java.util.Objects.equals(symbols, null))
             {
                 if (!(symbols instanceof List))
@@ -5616,7 +5616,7 @@ public class Aster extends AsterApi
             Object filterClosed = null;
             List<Object> filterClosedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
             filterClosed = ((List<Object>) filterClosedparametersVariable).get(0);
-            parameters = ((List<Object>) filterClosedparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) filterClosedparametersVariable).get(1);
             Object result = this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -5781,11 +5781,11 @@ public class Aster extends AsterApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
@@ -5816,7 +5816,7 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " withdraw require fee parameter")) ;
             }
             ((Map<String, Object>)request).put("fee", fee);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "fee")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "fee")));
             ((Map<String, Object>)request).put("amount", this.currencyToPrecision((String) (code), amount, network));
             ((Map<String, Object>)request).put("userSignature", this.signWithdrawPayload(request, network));
             Map<String, Object> response = (this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, parameters))).join();

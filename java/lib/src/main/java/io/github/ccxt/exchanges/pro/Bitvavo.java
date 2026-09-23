@@ -611,14 +611,14 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String name = "candles";
             String marketId = (String) ((Map<String, Object>)market).get("id");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -932,13 +932,13 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String name = "book";
             String messageHash = ((name + "@") + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -950,7 +950,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         put( "markets", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
     }})) );
             }};
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHash", messageHash );
                 put( "name", finalName );
@@ -1440,7 +1440,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(symbol, null))
             {
@@ -1452,7 +1452,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String marketId = (String) ((Map<String, Object>)market).get("id");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String name = "account";
@@ -1503,7 +1503,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(symbol, null))
             {
@@ -1515,7 +1515,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String marketId = (String) ((Map<String, Object>)market).get("id");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String name = "account";
@@ -1722,7 +1722,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1732,7 +1732,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object operatorId = null;
             List<Object> operatorIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "operatorId");
             operatorId = ((List<Object>) operatorIdparametersVariable).get(0);
-            parameters = ((List<Object>) operatorIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) operatorIdparametersVariable).get(1);
             if (!java.util.Objects.equals(operatorId, null))
             {
                 ((Map<String, Object>)request).put("operatorId", this.parseToInt(operatorId));
@@ -2046,11 +2046,11 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {

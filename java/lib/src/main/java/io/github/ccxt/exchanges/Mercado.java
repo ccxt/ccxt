@@ -671,7 +671,7 @@ public class Mercado extends MercadoApi
                 ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
             }
             Long to = this.safeInteger(parameters, "to");
-            Object response = null;
+            List<Object> response = null;
             if ((!java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(to, null)))
             {
                 response = (this.publicGetCoinTradesFromTo(this.extend(request, parameters))).join();
@@ -790,7 +790,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin_pair", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "limit"))
             {
                 ((Map<String, Object>)request).put("limit_price", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), price));
@@ -822,7 +822,7 @@ public class Mercado extends MercadoApi
                 }
             }
             // TODO: replace this with a call to parseOrder for unification
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "id", String.valueOf(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)finalResponse).get("response_data"), "order"), "order_id")) );
@@ -1075,11 +1075,11 @@ public class Mercado extends MercadoApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {

@@ -1274,7 +1274,7 @@ public class Backpack extends BackpackApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1288,7 +1288,7 @@ public class Backpack extends BackpackApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", this.parseToInt(Helpers.divide(until, 1000))); // convert milliseconds to seconds
@@ -1312,7 +1312,7 @@ public class Backpack extends BackpackApi
             if (!java.util.Objects.equals(price, null))
             {
                 ((Map<String, Object>)request).put("priceType", this.capitalize(price));
-                parameters = this.omit(parameters, "price");
+                parameters = (Map<String, Object>) this.omit(parameters, "price");
             }
             List<Object> response = (this.publicGetApiV1Klines(this.extend(request, parameters))).join();
             List<Object> ohlcvs = this.toArray(response);
@@ -1636,7 +1636,7 @@ public class Backpack extends BackpackApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
-            Object response = null;
+            List<Object> response = null;
             Long offset = this.safeInteger(parameters, "offset");
             if (!java.util.Objects.equals(offset, null))
             {
@@ -2010,7 +2010,7 @@ public class Backpack extends BackpackApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2032,7 +2032,7 @@ public class Backpack extends BackpackApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -2081,7 +2081,7 @@ public class Backpack extends BackpackApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2103,7 +2103,7 @@ public class Backpack extends BackpackApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("to", until);
@@ -2349,7 +2349,7 @@ public class Backpack extends BackpackApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2357,7 +2357,7 @@ public class Backpack extends BackpackApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;

@@ -1441,7 +1441,7 @@ public class Grvt extends GrvtApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1456,7 +1456,7 @@ public class Grvt extends GrvtApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
@@ -1625,7 +1625,7 @@ public class Grvt extends GrvtApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Integer maxLimit = 1000;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1634,7 +1634,7 @@ public class Grvt extends GrvtApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
@@ -1657,7 +1657,7 @@ public class Grvt extends GrvtApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
@@ -1752,7 +1752,7 @@ public class Grvt extends GrvtApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -1764,7 +1764,7 @@ public class Grvt extends GrvtApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
@@ -1779,7 +1779,7 @@ public class Grvt extends GrvtApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
@@ -2005,7 +2005,7 @@ public class Grvt extends GrvtApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Object request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -2020,7 +2020,7 @@ public class Grvt extends GrvtApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
@@ -2095,7 +2095,7 @@ public class Grvt extends GrvtApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Object request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -2113,7 +2113,7 @@ public class Grvt extends GrvtApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
@@ -2371,7 +2371,7 @@ public class Grvt extends GrvtApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTransfers() requires a code argument")) ;
@@ -2383,7 +2383,7 @@ public class Grvt extends GrvtApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, parameters, maxLimit)).join();
@@ -2394,7 +2394,7 @@ public class Grvt extends GrvtApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
@@ -2501,7 +2501,7 @@ public class Grvt extends GrvtApi
         return BaseExchange.supplyAsync(() -> {
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
@@ -2510,11 +2510,11 @@ public class Grvt extends GrvtApi
                 Object tradingAccountId = null;
                 List<Object> tradingAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "transfer", "tradingAccountId");
                 tradingAccountId = ((List<Object>) tradingAccountIdparametersVariable).get(0);
-                parameters = ((List<Object>) tradingAccountIdparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) tradingAccountIdparametersVariable).get(1);
                 Object fundingAccountId = null;
                 List<Object> fundingAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "transfer", "fundingAccountId");
                 fundingAccountId = ((List<Object>) fundingAccountIdparametersVariable).get(0);
-                parameters = ((List<Object>) fundingAccountIdparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) fundingAccountIdparametersVariable).get(1);
                 if (java.util.Objects.equals(tradingAccountId, null) || java.util.Objects.equals(fundingAccountId, null))
                 {
                     throw new ArgumentsRequired((this.id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")) ;
@@ -2522,7 +2522,7 @@ public class Grvt extends GrvtApi
                 fromAccount = (((java.util.Objects.equals(fromAccount, "trading")))) ? tradingAccountId : fundingAccountId;
                 toAccount = (((java.util.Objects.equals(toAccount, "trading")))) ? tradingAccountId : fundingAccountId;
             }
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             final Object finalFromAccount = fromAccount;
             final Object finalToAccount = toAccount;
             Object request = new HashMap<String, Object>() {{
@@ -2537,7 +2537,7 @@ public class Grvt extends GrvtApi
                 put( "transfer_metadata", null );
             }};
             request = this.createSignedRequest(request, "EIP712_TRANSFER_TYPE", currency);
-            Object response = null;
+            Map<String, Object> response = null;
             try
             {
                 response = (this.privateTradingPostFullV1Transfer(this.extend(request, parameters))).join();
@@ -2804,7 +2804,7 @@ public class Grvt extends GrvtApi
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> orderLeg = new HashMap<String, Object>() {{
@@ -2833,7 +2833,7 @@ public class Grvt extends GrvtApi
             {
                 clientOrderId = Helpers.add((String.valueOf(this.nonce()) + "000"), String.valueOf(this.requestId()));
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
             String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
             Boolean isReduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
@@ -2879,7 +2879,7 @@ public class Grvt extends GrvtApi
                     timeInForce = "IMMEDIATE_OR_CANCEL";
                 }
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly", "timeInForce")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly", "timeInForce")));
             // Trigger & SL & TP
             String triggerPrice = null;
             Object stopLossPrice = null;
@@ -2888,7 +2888,7 @@ public class Grvt extends GrvtApi
             triggerPrice = (String) ((List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(0);
             stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(1);
             takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(2);
-            parameters = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(3);
+            parameters = (Map<String, Object>) ((List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(3);
             if (!java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLossPrice, null) || !java.util.Objects.equals(takeProfitPrice, null))
             {
                 // trigger price
@@ -2934,7 +2934,7 @@ public class Grvt extends GrvtApi
                 String triggerPriceType = this.safeStringUpper(parameters, "triggerPriceType", "LAST");
                 final String finalSelectedType = selectedType;
                 final Object finalSelectedPrice = selectedPrice;
-                final Object finalParameters = parameters;
+                final Map<String, Object> finalParameters = parameters;
                 Helpers.addElementToObject(orderRequest.get("metadata"), "trigger", new HashMap<String, Object>() {{
         put( "trigger_type", finalSelectedType );
         put( "tpsl", new HashMap<String, Object>() {{
@@ -2943,7 +2943,7 @@ public class Grvt extends GrvtApi
             put( "close_position", Grvt.this.safeBool(finalParameters, "closePosition", false) );
         }} );
     }});
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerDirection", "triggerPriceType", "closePosition")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerDirection", "triggerPriceType", "closePosition")));
             }
             String eipType = "EIP712_ORDER_TYPE";
             Object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true));
@@ -2953,7 +2953,7 @@ public class Grvt extends GrvtApi
                 ((Map<String, Object>)orderRequest).put("builder", this.safeString(this.options, "builder"));
                 ((Map<String, Object>)orderRequest).put("builder_fee", this.safeString(this.options, "builderRate"));
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("builderFee")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("builderFee")));
             Object signedOrderRequest = this.createSignedRequest(orderRequest, eipType);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order", signedOrderRequest );
@@ -3136,12 +3136,12 @@ public class Grvt extends GrvtApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
@@ -3165,7 +3165,7 @@ public class Grvt extends GrvtApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
@@ -3600,12 +3600,12 @@ public class Grvt extends GrvtApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, parameters, 1000)).join();
@@ -3629,7 +3629,7 @@ public class Grvt extends GrvtApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
@@ -3726,7 +3726,7 @@ public class Grvt extends GrvtApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
             Object request = new HashMap<String, Object>() {{
@@ -3747,7 +3747,7 @@ public class Grvt extends GrvtApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));

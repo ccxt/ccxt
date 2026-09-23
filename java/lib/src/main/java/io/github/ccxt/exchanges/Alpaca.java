@@ -1102,7 +1102,7 @@ public class Alpaca extends AlpacaApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1114,16 +1114,16 @@ public class Alpaca extends AlpacaApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object paginationCalls = 10;
             List<Object> paginationCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
             paginationCalls = ((List<Object>) paginationCallsparametersVariable).get(0);
-            parameters = ((List<Object>) paginationCallsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginationCallsparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbols", marketId );
                 put( "loc", loc );
             }};
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
             Object ohlcvs = null;
             if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocBars"))
             {
@@ -1138,7 +1138,7 @@ public class Alpaca extends AlpacaApi
                 Long until = this.safeInteger(parameters, "until");
                 if (!java.util.Objects.equals(until, null))
                 {
-                    parameters = this.omit(parameters, "until");
+                    parameters = (Map<String, Object>) this.omit(parameters, "until");
                     ((Map<String, Object>)request).put("end", this.iso8601(until));
                 }
                 ((Map<String, Object>)request).put("timeframe", this.safeString(this.timeframes, timeframe, timeframe));
@@ -1616,7 +1616,7 @@ public class Alpaca extends AlpacaApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1649,7 +1649,7 @@ public class Alpaca extends AlpacaApi
             String cost = this.safeString(parameters, "cost");
             if (!java.util.Objects.equals(cost, null))
             {
-                parameters = this.omit(parameters, "cost");
+                parameters = (Map<String, Object>) this.omit(parameters, "cost");
                 ((Map<String, Object>)request).put("notional", this.costToPrecision(symbol, cost));
             } else
             {
@@ -1658,16 +1658,16 @@ public class Alpaca extends AlpacaApi
             Object defaultTIF = null;
             List<Object> defaultTIFparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
             defaultTIF = ((List<Object>) defaultTIFparametersVariable).get(0);
-            parameters = ((List<Object>) defaultTIFparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) defaultTIFparametersVariable).get(1);
             if (!java.util.Objects.equals(defaultTIF, null))
             {
                 // the venue only accepts lowercase values, normalize the unified uppercase spellings
                 defaultTIF = ((String)defaultTIF).toLowerCase();
             }
             ((Map<String, Object>)request).put("time_in_force", defaultTIF);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
             ((Map<String, Object>)request).put("client_order_id", this.generateClientOrderId((Map<String, Object>) (parameters)));
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Map<String, Object> order = (this.traderPrivatePostV2Orders(this.extend(request, parameters))).join();
             //
             //   {
@@ -2096,7 +2096,7 @@ public class Alpaca extends AlpacaApi
             String symbol = symbol3;
             Object amount = amount3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2117,7 +2117,7 @@ public class Alpaca extends AlpacaApi
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 ((Map<String, Object>)request).put("stop_price", this.priceToPrecision(symbol, triggerPrice));
-                parameters = this.omit(parameters, "triggerPrice");
+                parameters = (Map<String, Object>) this.omit(parameters, "triggerPrice");
             }
             if (!java.util.Objects.equals(price, null))
             {
@@ -2126,14 +2126,14 @@ public class Alpaca extends AlpacaApi
             Object timeInForce = null;
             List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "timeInForce", "gtc");
             timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
-            parameters = ((List<Object>) timeInForceparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             if (!java.util.Objects.equals(timeInForce, null))
             {
                 // the venue only accepts lowercase values, normalize the unified uppercase spellings
                 ((Map<String, Object>)request).put("time_in_force", ((String)timeInForce).toLowerCase());
             }
             ((Map<String, Object>)request).put("client_order_id", this.generateClientOrderId((Map<String, Object>) (parameters)));
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters))).join();
             return this.parseOrder(response, market);
         }).thenApply(Order::new);
@@ -2317,7 +2317,7 @@ public class Alpaca extends AlpacaApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2333,7 +2333,7 @@ public class Alpaca extends AlpacaApi
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, "until");
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 ((Map<String, Object>)request).put("until", this.iso8601(until));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2346,7 +2346,7 @@ public class Alpaca extends AlpacaApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, parameters))).join();
             //
             //     [
@@ -2553,11 +2553,11 @@ public class Alpaca extends AlpacaApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String address = address3;
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {

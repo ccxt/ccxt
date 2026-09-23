@@ -286,7 +286,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -294,11 +294,11 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object callerMethodName = null;
             List<Object> callerMethodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             callerMethodName = ((List<Object>) callerMethodNameparametersVariable).get(0);
-            parameters = ((List<Object>) callerMethodNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) callerMethodNameparametersVariable).get(1);
             Object channelName = null;
             List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, callerMethodName, "channel", "books");
             channelName = ((List<Object>) channelNameparametersVariable).get(0);
-            parameters = ((List<Object>) channelNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) channelNameparametersVariable).get(1);
             // due to some problem, temporarily disable other channels
             if (!java.util.Objects.equals(channelName, "books"))
             {
@@ -388,10 +388,10 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             ((Map<String, Object>)parameters).put("callerMethodName", "watchTicker");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Tickers result = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(result, symbol);
         }).thenApply(Ticker::new);
@@ -507,7 +507,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -519,7 +519,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(((Map<String, Object>)this.urls).get("api"))).get("ws"), marketType), "public");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
@@ -739,7 +739,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -748,7 +748,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 throw new NotSupported((this.id + " watchBalance() is not supported for spot markets yet")) ;
@@ -1110,7 +1110,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         return BaseExchange.supplyAsync(() -> {
             Object channelName = channelName3;
             Object callerMethodName = callerMethodName3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             // underlier method for all watch-multiple symbols
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1118,7 +1118,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             List<Object> callerMethodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", callerMethodName);
             callerMethodName = ((List<Object>) callerMethodNameparametersVariable).get(0);
-            parameters = ((List<Object>) callerMethodNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) callerMethodNameparametersVariable).get(1);
             // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
             Boolean isOHLCV = (java.util.Objects.equals(channelName, "candle"));
             Object symbols = ((Boolean.TRUE.equals(isOHLCV))) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
@@ -1132,7 +1132,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, firstMarket, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(marketType, "swap"))
             {
                 throw new NotSupported((((((this.id + " ") + callerMethodName) + "() does not support ") + marketType) + " markets yet")) ;

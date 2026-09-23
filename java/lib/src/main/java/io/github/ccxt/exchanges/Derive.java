@@ -1913,7 +1913,7 @@ public class Derive extends DeriveApi
             }
             ((Map<String, Object>)request).put("signature", signature);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(test, true))
             {
                 response = (this.privatePostOrderDebug(this.extend(request, parameters))).join();
@@ -2240,7 +2240,7 @@ public class Derive extends DeriveApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
@@ -2254,8 +2254,8 @@ public class Derive extends DeriveApi
             Object subaccountId = null;
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("cancelOrder", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             final Object finalSubaccountId = subaccountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
@@ -2264,11 +2264,11 @@ public class Derive extends DeriveApi
             String clientOrderIdUnified = this.safeString(parameters, "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(parameters, "label", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isByClientOrder))
             {
                 ((Map<String, Object>)request).put("label", clientOrderIdExchangeSpecific);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "label")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "label")));
                 response = (this.privatePostCancelByLabel(this.extend(request, parameters))).join();
             } else
             {
@@ -2371,7 +2371,7 @@ public class Derive extends DeriveApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2384,12 +2384,12 @@ public class Derive extends DeriveApi
             Object subaccountId = null;
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("cancelAllOrders", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(market, null))
             {
                 ((Map<String, Object>)request).put("instrument_name", ((Map<String, Object>)market).get("id"));
@@ -2411,7 +2411,7 @@ public class Derive extends DeriveApi
             //     "result": "ok"
             // }
             //
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }}))));
@@ -2456,7 +2456,7 @@ public class Derive extends DeriveApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2464,17 +2464,17 @@ public class Derive extends DeriveApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", 500)).join();
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             Object subaccountId = null;
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrders", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
@@ -2905,7 +2905,7 @@ public class Derive extends DeriveApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2913,7 +2913,7 @@ public class Derive extends DeriveApi
             Object subaccountId = null;
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrderTrades", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -3017,7 +3017,7 @@ public class Derive extends DeriveApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3025,7 +3025,7 @@ public class Derive extends DeriveApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500)).join();
@@ -3033,7 +3033,7 @@ public class Derive extends DeriveApi
             Object subaccountId = null;
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
@@ -3137,7 +3137,7 @@ public class Derive extends DeriveApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3145,12 +3145,12 @@ public class Derive extends DeriveApi
             Object subaccountId = null;
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchPositions", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("subaccount_id")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("subaccount_id")));
             Map<String, Object> response = (this.privatePostGetPositions(this.extend(request, parameters))).join();
             //
             // {
@@ -3320,7 +3320,7 @@ public class Derive extends DeriveApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3328,7 +3328,7 @@ public class Derive extends DeriveApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500)).join();
@@ -3336,7 +3336,7 @@ public class Derive extends DeriveApi
             Object subaccountId = null;
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
@@ -3597,7 +3597,7 @@ public class Derive extends DeriveApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3605,7 +3605,7 @@ public class Derive extends DeriveApi
             Object subaccountId = null;
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchDeposits", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
@@ -3675,7 +3675,7 @@ public class Derive extends DeriveApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3683,7 +3683,7 @@ public class Derive extends DeriveApi
             Object subaccountId = null;
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchWithdrawals", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );

@@ -872,7 +872,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
             if (java.util.Objects.equals(this.markets, null))
@@ -886,7 +886,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             String messageHash = "orders";
             Object orders = (this.watch(url, messageHash, null, messageHash, null)).join();

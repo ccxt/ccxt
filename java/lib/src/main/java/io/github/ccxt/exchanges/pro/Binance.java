@@ -771,7 +771,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -792,7 +792,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             var typesubTypeparametersVariable = this.resolveAuthType("watchMyLiquidationsForSymbols", market, parameters);
             type = ((List<Object>) typesubTypeparametersVariable).get(0);
             subType = ((List<Object>) typesubTypeparametersVariable).get(1);
-            parameters = ((List<Object>) typesubTypeparametersVariable).get(2);
+            parameters = (Map<String, Object>) ((List<Object>) typesubTypeparametersVariable).get(2);
             // hand the resolved type forward: the helper already omitted type and
             // subType from params, so a bare authenticate would re-derive from
             // options.defaultType and seed a different bucket than the listenKey
@@ -973,7 +973,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1002,11 +1002,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object watchOrderBookRate = null;
             List<Object> watchOrderBookRateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "watchOrderBookRate", "100");
             watchOrderBookRate = ((List<Object>) watchOrderBookRateparametersVariable).get(0);
-            parameters = ((List<Object>) watchOrderBookRateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) watchOrderBookRateparametersVariable).get(1);
             Object rpi = null;
             List<Object> rpiparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "rpi", false);
             rpi = ((List<Object>) rpiparametersVariable).get(0);
-            parameters = ((List<Object>) rpiparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) rpiparametersVariable).get(1);
             if (Helpers.isTrue(rpi) && java.util.Objects.equals(type, "future"))
             {
                 name = "rpiDepth";
@@ -1038,7 +1038,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             final String finalName = name;
             final Object finalSymbols = symbols;
             final String finalType = type;
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", String.valueOf(requestId) );
                 put( "name", finalName );
@@ -1236,7 +1236,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1260,10 +1260,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
-            parameters = this.omit(parameters, "test");
-            final Object finalParameters = parameters;
+            parameters = (Map<String, Object>) this.omit(parameters, "test");
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "depth" );
@@ -1655,7 +1655,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1674,8 +1674,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object name = null;
             List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
             name = ((List<Object>) nameparametersVariable).get(0);
-            parameters = ((List<Object>) nameparametersVariable).get(1);
-            parameters = this.omit(parameters, "callerMethodName");
+            parameters = (Map<String, Object>) ((List<Object>) nameparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, "callerMethodName");
             Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             String type = (String) ((Map<String, Object>)firstMarket).get("type");
             Boolean isOption = (Boolean) ((Map<String, Object>)firstMarket).get("option");
@@ -2209,19 +2209,19 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Object timeframe3 = timeframe2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object timeframe = timeframe3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object stock = this.safeBool(market, "stock", false);
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOHLCV", "stock");
             stock = ((List<Object>) stockparametersVariable).get(0);
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (java.util.Objects.equals(stock, true))
             {
                 if ((!java.util.Objects.equals(timeframe, "5m")) && (!java.util.Objects.equals(timeframe, "1h")) && (!java.util.Objects.equals(timeframe, "1d")) && (!java.util.Objects.equals(timeframe, "1w")) && (!java.util.Objects.equals(timeframe, "1M")))
@@ -2280,7 +2280,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2288,7 +2288,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean stock = false;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
             stock = Boolean.TRUE.equals(((List<Object>) stockparametersVariable).get(0));
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (Boolean.TRUE.equals(stock))
             {
                 List<Object> stockStreams = new ArrayList<Object>(Arrays.asList());
@@ -2324,7 +2324,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String klineType = null;
             List<Object> klineTypeparametersVariable = (List<Object>) this.handleParamString2(parameters, "channel", "name", "kline");
             klineType = (String) ((List<Object>) klineTypeparametersVariable).get(0);
-            parameters = ((List<Object>) klineTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) klineTypeparametersVariable).get(1);
             Object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
             Object marketSymbols = this.marketSymbols(symbols, null, false, false, true);
             Map<String, Object> firstMarket = (Map<String, Object>) this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
@@ -2343,7 +2343,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String timezone = null;
             List<Object> timezoneparametersVariable = (List<Object>) this.handleParamString(parameters, "timezone");
             timezone = (String) ((List<Object>) timezoneparametersVariable).get(0);
-            parameters = ((List<Object>) timezoneparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) timezoneparametersVariable).get(1);
             Boolean isUtc8 = (!java.util.Objects.equals(timezone, null)) && ((java.util.Objects.equals(timezone, "+08:00")) || Precise.stringEq(timezone, "8"));
             List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -2380,7 +2380,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            parameters = this.omit(parameters, "callerMethodName");
+            parameters = (Map<String, Object>) this.omit(parameters, "callerMethodName");
             Object res = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, subscribe)).join();
             var symboltimeframecandlesVariable = res;
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
@@ -2547,13 +2547,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             ((Map<String, Object>)parameters).put("callerMethodName", "watchOHLCV");
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
         });
@@ -2658,7 +2658,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2681,15 +2681,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickerWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
-            parameters = this.omit(parameters, "test");
+            parameters = (Map<String, Object>) this.omit(parameters, "test");
             Object method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickerWs", "method", "ticker.book");
             method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             final Object finalMethod = method;
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", finalMethod );
@@ -2739,7 +2739,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2756,7 +2756,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (symbol)) );
@@ -2764,7 +2764,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "interval", Helpers.GetValue(Binance.this.timeframes, timeframe) );
             }};
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, "until");
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)payload).put("startTime", since);
@@ -2777,7 +2777,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 ((Map<String, Object>)payload).put("endTime", until);
             }
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "klines" );
@@ -2965,14 +2965,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object channelName = null;
             // for now watchmarkPrice uses the same messageHash as watchTicker
             // so it's impossible to watch both at the same time
             // refactor this to use different messageHashes
             List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchMarkPrices", "name", "markPrice");
             channelName = ((List<Object>) channelNameparametersVariable).get(0);
-            parameters = ((List<Object>) channelNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) channelNameparametersVariable).get(1);
             Object newTickers = (this.watchMultiTickerHelper("watchMarkPrices", (String) (channelName), symbols, parameters)).join();
             if (this.newUpdates)
             {
@@ -3019,11 +3019,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Boolean stock = false;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "stock", false);
             stock = Boolean.TRUE.equals(((List<Object>) stockparametersVariable).get(0));
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (Boolean.TRUE.equals(stock))
             {
                 if (java.util.Objects.equals(symbols, null))
@@ -3041,7 +3041,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object channelName = null;
             List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "name", "miniTicker");
             channelName = ((List<Object>) channelNameparametersVariable).get(0);
-            parameters = ((List<Object>) channelNameparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) channelNameparametersVariable).get(1);
             if (java.util.Objects.equals(channelName, "bookTicker"))
             {
                 throw new BadRequest((this.id + " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
@@ -3313,7 +3313,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3321,7 +3321,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean stock = false;
             List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "stock", false);
             stock = Boolean.TRUE.equals(((List<Object>) stockparametersVariable).get(0));
-            parameters = ((List<Object>) stockparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (Boolean.TRUE.equals(stock))
             {
                 if (java.util.Objects.equals(symbols, null))
@@ -3380,7 +3380,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> {
             String channelName = channelName3;
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3400,11 +3400,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String defaultMarket = (((Boolean.TRUE.equals(isMarkPrice) && !java.util.Objects.equals(userDefaultType, "option")))) ? "swap" : null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams(methodName, firstMarket, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             // use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
             Boolean isOptionMarkPrice = (Boolean.TRUE.equals(isMarkPrice) && java.util.Objects.equals(marketType, "option"));
             Object rawMarketType = null;
@@ -4301,7 +4301,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
                 try
                 {
-                    Object response = null;
+                    Map<String, Object> response = null;
                     if (Boolean.TRUE.equals(isStock))
                     {
                         Object requestParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
@@ -4597,7 +4597,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4613,7 +4613,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "returnRateLimits", finalReturnRateLimits );
@@ -4621,9 +4621,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalanceWs", "method", "account.status");
             method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             final Object finalMethod = method;
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", finalMethod );
@@ -4779,7 +4779,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4813,14 +4813,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
             Object method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsWs", "method", "account.position");
             method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             final Object finalMethod = method;
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", finalMethod );
@@ -4910,7 +4910,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4924,7 +4924,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             var typesubTypeparametersVariable = this.resolveAuthType("watchBalance", null, parameters);
             type = ((List<Object>) typesubTypeparametersVariable).get(0);
             subType = ((List<Object>) typesubTypeparametersVariable).get(1);
-            parameters = ((List<Object>) typesubTypeparametersVariable).get(2);
+            parameters = (Map<String, Object>) ((List<Object>) typesubTypeparametersVariable).get(2);
             final Object finalType = type;
             final Object finalSubType = subType;
             (this.authenticate(this.extend(new HashMap<String, Object>() {{
@@ -4934,7 +4934,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "watchBalance", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object url = "";
             Object urlType = type;
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
@@ -5214,7 +5214,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5229,7 +5229,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Boolean sor = (Boolean) this.safeBool2(parameters, "sor", "SOR", false);
-            parameters = this.omit(parameters, "sor", "SOR");
+            parameters = (Map<String, Object>) this.omit(parameters, "sor", "SOR");
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
             String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -5244,15 +5244,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrderWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
-            parameters = this.omit(parameters, "test");
+            parameters = (Map<String, Object>) this.omit(parameters, "test");
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && Boolean.TRUE.equals(isConditional))
             {
                 ((Map<String, Object>)payload).put("algoType", "CONDITIONAL");
             }
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "order.place" );
@@ -5422,7 +5422,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5448,10 +5448,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrderWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
             final Object finalPayload = payload;
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", ((Boolean.TRUE.equals(isSwap))) ? "order.modify" : "order.cancelReplace" );
@@ -5620,7 +5620,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5637,7 +5637,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
             final Object finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -5666,8 +5666,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     ((Map<String, Object>)payload).put("orderId", this.numberToString(id));
                 }
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId", "stop", "trigger", "conditional")));
-            final Object finalParameters = parameters;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId", "stop", "trigger", "conditional")));
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "order.cancel" );
@@ -5719,7 +5719,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrdersWs() requires a symbol argument")) ;
@@ -5740,14 +5740,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
             final Object finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (finalSymbol)) );
                 put( "returnRateLimits", finalReturnRateLimits );
             }};
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "openOrders.cancelAll" );
@@ -5792,7 +5792,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5813,7 +5813,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
             final Object finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -5828,7 +5828,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 ((Map<String, Object>)payload).put("orderId", this.numberToString(id));
             }
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "order.status" );
@@ -5879,7 +5879,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5900,14 +5900,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
             final Object finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (finalSymbol)) );
                 put( "returnRateLimits", finalReturnRateLimits );
             }};
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "allOrders" );
@@ -6004,7 +6004,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6021,7 +6021,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "returnRateLimits", finalReturnRateLimits );
@@ -6030,7 +6030,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 ((Map<String, Object>)payload).put("symbol", this.marketId((String) (symbol)));
             }
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "openOrders.status" );
@@ -6828,7 +6828,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6850,7 +6850,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             var typesubTypeparametersVariable = this.resolveAuthType("watchPositions", market, parameters);
             type = ((List<Object>) typesubTypeparametersVariable).get(0);
             subType = ((List<Object>) typesubTypeparametersVariable).get(1);
-            parameters = ((List<Object>) typesubTypeparametersVariable).get(2);
+            parameters = (Map<String, Object>) ((List<Object>) typesubTypeparametersVariable).get(2);
             // spot and margin have no positions - whatever still RESOLVES to spot
             // or margin after the helper falls through to the derivatives stream
             // matching the subType. requests a defaultSubType already rewrote
@@ -6870,7 +6870,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object isPortfolioMargin = null;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "watchPositions", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
-            parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object urlType = type;
             if (Helpers.isTrue(isPortfolioMargin))
             {
@@ -7213,7 +7213,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7234,7 +7234,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
             final Object finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -7254,7 +7254,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time")) ;
             }
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "myTrades" );
@@ -7306,7 +7306,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7323,7 +7323,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object returnRateLimits = false;
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
-            parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (symbol)) );
@@ -7333,7 +7333,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 ((Map<String, Object>)payload).put("limit", limit);
             }
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "trades.historical" );
@@ -7436,7 +7436,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -7449,7 +7449,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 Map<String, Object> marketResolved = (Map<String, Object>) this.market(symbol);
                 market = marketResolved;
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             Object subType = null;
             var typesubTypeparametersVariable = this.resolveAuthType("watchMyTrades", market, parameters);
@@ -7462,7 +7462,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 symbol = this.symbol(symbol);
                 messageHash = (messageHash + (":" + symbol));
                 final Map<String, Object> finalMarket = market;
-                final Object finalSymbol = symbol;
+                final String finalSymbol = symbol;
                 parameters = this.extend(parameters, new HashMap<String, Object>() {{
                     put( "type", ((Map<String, Object>)finalMarket).get("type") );
                     put( "symbol", finalSymbol );

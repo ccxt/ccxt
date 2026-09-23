@@ -1988,9 +1988,9 @@ public class Woo extends WooApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only")));
             String orderType = ((String)type).toUpperCase();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2006,7 +2006,7 @@ public class Woo extends WooApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
                 ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode((String) (marginMode)));
@@ -2054,7 +2054,7 @@ public class Woo extends WooApi
             {
                 // for market buy it requires the amount of quote currency to spend
                 String cost = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("cost", "order_amount", "orderAmount")));
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "order_amount", "orderAmount")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "order_amount", "orderAmount")));
                 Boolean isPriceProvided = !java.util.Objects.equals(price, null);
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (Boolean.TRUE.equals(isPriceProvided) || (!java.util.Objects.equals(cost, null))))
                 {
@@ -2143,8 +2143,8 @@ public class Woo extends WooApi
                 }
                 ((Map<String, Object>)request).put("childOrders", new ArrayList<Object>(Arrays.asList(outterOrder)));
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice")));
-            Object response = null;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice")));
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isConditional))
             {
                 response = (this.v3PrivatePostTradeAlgoOrder(this.extend(request, parameters))).join();
@@ -2277,7 +2277,7 @@ public class Woo extends WooApi
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop")));
             Boolean isConditional = (java.util.Objects.equals(isTrigger, true)) || Boolean.TRUE.equals(isTrailing) || (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isConditional))
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
@@ -2388,7 +2388,7 @@ public class Woo extends WooApi
             String clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(isTrigger, true))
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
@@ -2480,7 +2480,7 @@ public class Woo extends WooApi
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
                 response = (this.v3PrivateDeleteTradeAlgoOrders(parameters)).join();
@@ -2602,7 +2602,7 @@ public class Woo extends WooApi
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
                 if (!java.util.Objects.equals(clientOrderId, null))
@@ -2672,7 +2672,7 @@ public class Woo extends WooApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2680,7 +2680,7 @@ public class Woo extends WooApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", 500)).join();
@@ -2688,7 +2688,7 @@ public class Woo extends WooApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -2699,7 +2699,7 @@ public class Woo extends WooApi
                 ((Map<String, Object>)request).put("startTime", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -2708,7 +2708,7 @@ public class Woo extends WooApi
             {
                 ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 500));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
                 response = (this.v3PrivateGetTradeAlgoOrders(this.extend(request, parameters))).join();
@@ -3276,7 +3276,7 @@ public class Woo extends WooApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3303,7 +3303,7 @@ public class Woo extends WooApi
                 Object marketType = null;
                 List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters, "swap");
                 marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-                parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
                 if (!java.util.Objects.equals(marketType, "swap"))
                 {
                     throw new NotSupported((this.id + " fetchTickers() supports swap markets only")) ;
@@ -3546,7 +3546,7 @@ public class Woo extends WooApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3554,7 +3554,7 @@ public class Woo extends WooApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500)).join();
@@ -3571,7 +3571,7 @@ public class Woo extends WooApi
                 ((Map<String, Object>)request).put("startTime", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -3854,7 +3854,7 @@ public class Woo extends WooApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             // this method is TODO because of networks unification
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3864,7 +3864,7 @@ public class Woo extends WooApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             final Object finalNetworkCode = networkCode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token", ((Map<String, Object>)currency).get("id") );
@@ -4602,11 +4602,11 @@ public class Woo extends WooApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4626,7 +4626,7 @@ public class Woo extends WooApi
             {
                 throw new ArgumentsRequired(((this.id + " withdraw() requires a network parameter for ") + code)) ;
             }
-            parameters = this.omit(parameters, "network");
+            parameters = (Map<String, Object>) this.omit(parameters, "network");
             ((Map<String, Object>)request).put("token", ((Map<String, Object>)currency).get("id"));
             ((Map<String, Object>)request).put("network", this.networkCodeToId(network, ((Map<String, Object>)currency).get("code")));
             Map<String, Object> response = (this.v3PrivatePostAssetWalletWithdraw(this.extend(request, parameters))).join();
@@ -4637,7 +4637,7 @@ public class Woo extends WooApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            final Object finalTag = tag;
+            final String finalTag = tag;
             final String finalNetwork = network;
             Map<String, Object> transactionData = this.extend(data, new HashMap<String, Object>() {{
                 put( "id", Woo.this.safeString(data, "withdrawId") );
@@ -4686,7 +4686,7 @@ public class Woo extends WooApi
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4695,7 +4695,7 @@ public class Woo extends WooApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4709,7 +4709,7 @@ public class Woo extends WooApi
             //     }
             //
             Map<String, Object> transaction = this.parseMarginLoan(response, currency);
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", finalSymbol );
@@ -4948,7 +4948,7 @@ public class Woo extends WooApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4956,7 +4956,7 @@ public class Woo extends WooApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500)).join();
@@ -4973,7 +4973,7 @@ public class Woo extends WooApi
                 ((Map<String, Object>)request).put("startTime", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -5273,9 +5273,9 @@ public class Woo extends WooApi
         final Long since3 = since2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5283,7 +5283,7 @@ public class Woo extends WooApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, "page", 25)).join();
@@ -5293,7 +5293,7 @@ public class Woo extends WooApi
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -5303,7 +5303,7 @@ public class Woo extends WooApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v3PublicGetFundingRateHistory(this.extend(request, parameters))).join();
             //
             //     {
@@ -5435,13 +5435,13 @@ public class Woo extends WooApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.v3PrivateGetAccountInfo(parameters)).join();
@@ -5453,7 +5453,7 @@ public class Woo extends WooApi
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode((String) (marginMode)));
                 response = (this.v3PrivateGetFuturesLeverage(this.extend(request, parameters))).join();
             } else
@@ -5547,7 +5547,7 @@ public class Woo extends WooApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5569,7 +5569,7 @@ public class Woo extends WooApi
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode((String) (marginMode)));
                 return (this.v3PrivatePutFuturesLeverage(this.extend(request, parameters))).join();
             } else
@@ -6184,7 +6184,7 @@ public class Woo extends WooApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6192,7 +6192,7 @@ public class Woo extends WooApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("startTime", since);

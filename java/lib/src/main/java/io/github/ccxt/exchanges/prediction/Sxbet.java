@@ -966,7 +966,7 @@ final Object finalOi = oi;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkRequiredCredentials();
             Double amount = this.safeNumber(parameters, "amount");
             if (java.util.Objects.equals(amount, null))
@@ -1003,7 +1003,7 @@ final Object finalOi = oi;
             Object spender = null;
             List<Object> spenderparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
             spender = ((List<Object>) spenderparametersVariable).get(0);
-            parameters = ((List<Object>) spenderparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) spenderparametersVariable).get(1);
             if (java.util.Objects.equals(spender, null))
             {
                 throw new BadRequest((this.id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender")) ;
@@ -1130,7 +1130,7 @@ final Object finalOi = oi;
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadOutcome((String) (outcome))).join();
             Object outcomeObj = this.outcome((String) (outcome));
@@ -1185,7 +1185,7 @@ final Object finalOi = oi;
             Object timeInForce = null;
             List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce", defaultTif);
             timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
-            parameters = ((List<Object>) timeInForceparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
             // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
             // contradicting the immediate-fill semantics the type promises

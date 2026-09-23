@@ -779,7 +779,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -788,11 +788,11 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object depth = "100";
             List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
             depth = ((List<Object>) depthparametersVariable).get(0);
-            parameters = ((List<Object>) depthparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) depthparametersVariable).get(1);
             Object frequency = "100ms";
             List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
             frequency = ((List<Object>) frequencyparametersVariable).get(0);
-            parameters = ((List<Object>) frequencyparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) frequencyparametersVariable).get(1);
             String channelSuffix = "";
             if (java.util.Objects.equals(frequency, "100ms"))
             {

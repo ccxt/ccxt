@@ -213,7 +213,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "crypto");
             (this.authenticate(url)).join();
@@ -222,7 +222,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "bars", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
@@ -299,7 +299,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "crypto");
             (this.authenticate(url)).join();
             if (java.util.Objects.equals(this.markets, null))
@@ -307,7 +307,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("orderbook" + ":") + symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
@@ -414,7 +414,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "crypto");
             (this.authenticate(url)).join();
@@ -423,7 +423,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trade:" + symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
@@ -560,7 +560,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "trading");
             (this.authenticate(url)).join();
@@ -572,7 +572,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = ("orders:" + symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{

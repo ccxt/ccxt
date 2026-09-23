@@ -901,12 +901,12 @@ public class Poloniex extends PoloniexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 500)).join();
@@ -929,7 +929,7 @@ public class Poloniex extends PoloniexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption(keyEnd, request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 Map<String, Object> responseRaw = (this.swapPublicGetV3MarketCandles(this.extend(request, parameters))).join();
@@ -1477,7 +1477,7 @@ public class Poloniex extends PoloniexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1497,7 +1497,7 @@ public class Poloniex extends PoloniexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 Map<String, Object> responseRaw = (this.swapPublicGetV3MarketTickers(this.extend(request, parameters))).join();
@@ -2004,12 +2004,12 @@ public class Poloniex extends PoloniexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
@@ -2022,7 +2022,7 @@ public class Poloniex extends PoloniexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             boolean isContract = this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String startKey = ((isContract)) ? "sTime" : "startTime";
@@ -2041,7 +2041,7 @@ public class Poloniex extends PoloniexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption(endKey, request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (isContract)
             {
                 Map<String, Object> raw = (this.swapPrivateGetV3TradeOrderTrades(this.extend(request, parameters))).join();
@@ -2380,7 +2380,7 @@ public class Poloniex extends PoloniexApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2392,14 +2392,14 @@ public class Poloniex extends PoloniexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
                 Object max = (((java.util.Objects.equals(marketType, "spot")))) ? 2000 : 100;
                 ((Map<String, Object>)request).put("limit", Helpers.mathMax(limit, max));
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             Object response = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(marketType, "spot"))
             {
@@ -2522,7 +2522,7 @@ public class Poloniex extends PoloniexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2534,7 +2534,7 @@ public class Poloniex extends PoloniexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters, "swap");
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 throw new NotSupported((this.id + " fetchClosedOrders() is not supported for spot markets yet")) ;
@@ -2549,7 +2549,7 @@ public class Poloniex extends PoloniexApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("eTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.swapPrivateGetV3TradeOrderHistory(this.extend(request, parameters))).join();
             //
             //    {
@@ -2634,7 +2634,7 @@ public class Poloniex extends PoloniexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{
@@ -2644,7 +2644,7 @@ public class Poloniex extends PoloniexApi
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
             var requestparametersVariable = this.orderRequest(symbol, type, side, amount, (Map<String, Object>) (request), price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Object response = new HashMap<String, Object>() {{}};
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)))
             {
@@ -2821,7 +2821,7 @@ public class Poloniex extends PoloniexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -2834,7 +2834,7 @@ public class Poloniex extends PoloniexApi
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
             var requestparametersVariable = this.orderRequest(symbol, type, side, amount, (Map<String, Object>) (request), price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Object response = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(triggerPrice, null))
             {
@@ -2976,7 +2976,7 @@ public class Poloniex extends PoloniexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbols", new ArrayList<Object>(Arrays.asList()) );
@@ -2991,7 +2991,7 @@ public class Poloniex extends PoloniexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap") || java.util.Objects.equals(marketType, "future"))
             {
                 Map<String, Object> raw = (this.swapPrivateDeleteV3TradeAllOrders(this.extend(request, parameters))).join();
@@ -3013,7 +3013,7 @@ public class Poloniex extends PoloniexApi
                 return this.parseOrders(response, market);
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 response = (this.privateDeleteSmartorders(this.extend(request, parameters))).join();
@@ -3079,7 +3079,7 @@ public class Poloniex extends PoloniexApi
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             id = String.valueOf(id);
             final Object finalId = id;
@@ -3095,13 +3095,13 @@ public class Poloniex extends PoloniexApi
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(marketType, "spot"))
             {
                 throw new NotSupported((((this.id + " fetchOrder() is not supported for ") + marketType) + " markets yet")) ;
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             Object response = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(isTrigger, true))
             {
@@ -3300,12 +3300,12 @@ public class Poloniex extends PoloniexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(marketType, "spot"))
             {
                 Map<String, Object> responseRaw = (this.swapPrivateGetV3AccountBalance(parameters)).join();
@@ -3807,11 +3807,11 @@ public class Poloniex extends PoloniexApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3822,7 +3822,7 @@ public class Poloniex extends PoloniexApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
             {
                 throw new ArgumentsRequired((((this.id + " withdraw requires a network parameter for ") + code) + ".")) ;
@@ -4396,7 +4396,7 @@ public class Poloniex extends PoloniexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -4406,7 +4406,7 @@ public class Poloniex extends PoloniexApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
@@ -4414,7 +4414,7 @@ public class Poloniex extends PoloniexApi
             Boolean hedged = null;
             List<Object> hedgedparametersVariable = (List<Object>) this.handleParamBool(parameters, "hedged", false);
             hedged = (Boolean) ((List<Object>) hedgedparametersVariable).get(0);
-            parameters = ((List<Object>) hedgedparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) hedgedparametersVariable).get(1);
             if (java.util.Objects.equals(hedged, true))
             {
                 if (!(((Map<?, ?>)parameters).containsKey("posSide")))
@@ -4462,7 +4462,7 @@ public class Poloniex extends PoloniexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4471,7 +4471,7 @@ public class Poloniex extends PoloniexApi
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;

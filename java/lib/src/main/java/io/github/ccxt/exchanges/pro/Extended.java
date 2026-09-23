@@ -85,13 +85,13 @@ public class Extended extends io.github.ccxt.exchanges.Extended
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orderbook:" + symbol);
             String query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/orderbooks/"), ((Map<String, Object>)market).get("id"));
@@ -99,7 +99,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 url = (url + ("?" + query));
             }
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Object orderbook = (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "limit", limit );
@@ -252,7 +252,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -262,10 +262,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             final Object finalLimit = limit;
             Object orders = (this.watchPrivate(messageHash, new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
@@ -417,7 +417,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -427,10 +427,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             final Object finalLimit = limit;
             Object trades = (this.watchPrivate(messageHash, new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
@@ -732,13 +732,13 @@ public class Extended extends io.github.ccxt.exchanges.Extended
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("fundingRate:" + symbol);
             String query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/funding/"), ((Map<String, Object>)market).get("id"));
@@ -746,7 +746,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 url = (url + ("?" + query));
             }
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             return (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "messageHash", messageHash );
@@ -835,13 +835,13 @@ public class Extended extends io.github.ccxt.exchanges.Extended
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("markPrice:" + symbol);
             String query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/prices/mark/"), ((Map<String, Object>)market).get("id"));
@@ -849,7 +849,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 url = (url + ("?" + query));
             }
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             return (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "name", "markPrice" );
                 put( "symbol", finalSymbol );
@@ -924,14 +924,14 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trades:" + symbol);
             String query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/publicTrades/"), ((Map<String, Object>)market).get("id"));
@@ -939,7 +939,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 url = (url + ("?" + query));
             }
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             final Object finalLimit = limit;
             Object trades = (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
@@ -1042,7 +1042,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -1050,7 +1050,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String price = this.safeString(parameters, "price");
             String candleType = this.safeString(parameters, "candleType");
             if (java.util.Objects.equals(candleType, null))
@@ -1073,7 +1073,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 put( "interval", interval );
             }}, parameters));
             String url = ((((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/candles/"), ((Map<String, Object>)market).get("id")) + "/") + candleType) + "?") + query);
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             final String finalCandleType = candleType;
             final Object finalLimit = limit;
             Object ohlcv = (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{

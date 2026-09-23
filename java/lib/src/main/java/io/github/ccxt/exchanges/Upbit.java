@@ -1630,7 +1630,7 @@ public class Upbit extends UpbitApi
                 put( "timeframe", finalTimeframeValue );
                 put( "count", finalLimit );
             }};
-            Object response = null;
+            List<Object> response = null;
             if (!java.util.Objects.equals(since, null))
             {
                 // convert `since` to `to` value
@@ -1869,7 +1869,7 @@ public class Upbit extends UpbitApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a timeInForce parameter for best type orders")) ;
             }
-            Object response = null;
+            Map<String, Object> response = null;
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test")));
             if (java.util.Objects.equals(test, true))
             {
@@ -2851,7 +2851,7 @@ public class Upbit extends UpbitApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2875,7 +2875,7 @@ public class Upbit extends UpbitApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.privateGetOrdersClosed(this.extend(request, parameters))).join();
             //
             //     [
@@ -2945,7 +2945,7 @@ public class Upbit extends UpbitApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2969,7 +2969,7 @@ public class Upbit extends UpbitApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.privateGetOrdersClosed(this.extend(request, parameters))).join();
             //
             //     [
@@ -3205,7 +3205,7 @@ public class Upbit extends UpbitApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3214,7 +3214,7 @@ public class Upbit extends UpbitApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
@@ -3336,11 +3336,11 @@ public class Upbit extends UpbitApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3349,7 +3349,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", amount );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(code, "KRW"))
             {
                 this.checkAddress(address);
@@ -3359,7 +3359,7 @@ public class Upbit extends UpbitApi
                 {
                     throw new ArgumentsRequired((this.id + " withdraw() requires a network argument")) ;
                 }
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
                 ((Map<String, Object>)request).put("net_type", network);
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
                 ((Map<String, Object>)request).put("address", address);
@@ -3367,7 +3367,7 @@ public class Upbit extends UpbitApi
                 {
                     ((Map<String, Object>)request).put("secondary_address", tag);
                 }
-                parameters = this.omit(parameters, "network");
+                parameters = (Map<String, Object>) this.omit(parameters, "network");
                 response = (this.privatePostWithdrawsCoin(this.extend(request, parameters))).join();
             } else
             {

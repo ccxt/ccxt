@@ -348,7 +348,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -368,7 +368,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }};
             var requestparametersVariable = this.orderRequestWs("createOrderWs", symbol, type, (Map<String, Object>) (request), amount, price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
         }).thenApply(Order::new);
 
@@ -443,7 +443,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
@@ -460,7 +460,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }};
             var requestparametersVariable = this.orderRequestWs("editOrderWs", symbol, type, (Map<String, Object>) (request), amount, price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
         }).thenApply(Order::new);
 
@@ -1137,16 +1137,16 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             (this.loadMarkets()).join();
             String name = "ohlc";
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
             Object requestId = this.requestId();
             Object messageHash = this.getMessageHash("ohlcv", null, symbol);
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{

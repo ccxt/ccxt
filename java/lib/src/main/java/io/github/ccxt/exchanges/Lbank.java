@@ -515,12 +515,12 @@ public class Lbank extends LbankApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "swap"))
             {
                 response = (this.contractPublicGetCfdOpenApiV1PubGetTime(parameters)).join();
@@ -1091,7 +1091,7 @@ public class Lbank extends LbankApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1110,8 +1110,8 @@ public class Lbank extends LbankApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "swap"))
             {
                 ((Map<String, Object>)request).put("productGroup", "SwapU");
@@ -1203,7 +1203,7 @@ public class Lbank extends LbankApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1219,8 +1219,8 @@ public class Lbank extends LbankApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "swap"))
             {
                 ((Map<String, Object>)request).put("depth", limit);
@@ -1477,7 +1477,7 @@ public class Lbank extends LbankApi
             String defaultMethod = this.safeString(options, "method", "spotPublicGetTrades");
             String method = this.safeString(parameters, "method", defaultMethod);
             parameters = (Map<String, Object>) this.omit(parameters, "method");
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "spotPublicGetSupplementTrades"))
             {
                 response = (this.spotPublicGetSupplementTrades(this.extend(request, parameters))).join();
@@ -2200,7 +2200,7 @@ public class Lbank extends LbankApi
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2209,7 +2209,7 @@ public class Lbank extends LbankApi
             String clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("custom_id", "clientOrderId", "timeInForce", "postOnly")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("custom_id", "clientOrderId", "timeInForce", "postOnly")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2248,9 +2248,9 @@ public class Lbank extends LbankApi
                     Boolean createMarketBuyOrderRequiresPrice = true;
                     List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
-                    parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                    parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Double cost = this.safeNumber(parameters, "cost");
-                    parameters = this.omit(parameters, "cost");
+                    parameters = (Map<String, Object>) this.omit(parameters, "cost");
                     if (!java.util.Objects.equals(cost, null))
                     {
                         quoteAmount = this.costToPrecision(symbol, cost);
@@ -2281,8 +2281,8 @@ public class Lbank extends LbankApi
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "spotPrivatePostSupplementCreateOrder");
             String method = this.safeString(parameters, "method", defaultMethod);
-            parameters = this.omit(parameters, "method");
-            Object response = null;
+            parameters = (Map<String, Object>) this.omit(parameters, "method");
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "spotPrivatePostCreateOrder"))
             {
                 response = (this.spotPrivatePostCreateOrder(this.extend(request, parameters))).join();
@@ -3236,18 +3236,18 @@ public class Lbank extends LbankApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             String fee = this.safeString(parameters, "fee");
-            parameters = this.omit(parameters, "fee");
+            parameters = (Map<String, Object>) this.omit(parameters, "fee");
             // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
             this.checkRequiredArgument("withdraw", fee, "fee");
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
@@ -3262,7 +3262,7 @@ public class Lbank extends LbankApi
                 ((Map<String, Object>)request).put("memo", tag);
             }
             String network = this.safeStringUpper2(parameters, "network", "networkName");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network", "networkName")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("network", "networkName")));
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks");
             String networkId = this.safeString(networks, network, network);
             if (!java.util.Objects.equals(networkId, null))

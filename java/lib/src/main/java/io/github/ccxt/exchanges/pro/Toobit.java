@@ -789,7 +789,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -798,7 +798,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Object channel = null;
             List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
             channel = ((List<Object>) channelparametersVariable).get(0);
-            parameters = ((List<Object>) channelparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -967,7 +967,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -976,7 +976,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
             String spotSubHash = "spot:balance";

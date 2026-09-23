@@ -420,7 +420,7 @@ public class Nado extends NadoApi
             Object request = (this.createOrderRequest(symbol, type, side, amount, price, parameters)).join();
             Map<String, Object> placeOrder = (Map<String, Object>) this.safeDict(request, "place_order", new HashMap<String, Object>() {{}});
             Boolean isTriggerOrder = (placeOrder.containsKey("trigger"));
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isTriggerOrder))
             {
                 response = (this.triggerPrivatePostExecute(request)).join();
@@ -499,7 +499,7 @@ public class Nado extends NadoApi
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(type, "limit"))
             {
@@ -521,15 +521,15 @@ public class Nado extends NadoApi
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object expiration = null;
             List<Object> expirationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "expiration", "4294967295");
             expiration = ((List<Object>) expirationparametersVariable).get(0);
-            parameters = ((List<Object>) expirationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) expirationparametersVariable).get(1);
             Object recvWindow = null;
             List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "recvWindow", 5000);
             recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
-            parameters = ((List<Object>) recvWindowparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
             Long requestId = this.safeInteger(parameters, "id");
             Boolean spotLeverage = (Boolean) this.safeBool2(parameters, "spotLeverage", "spot_leverage");
@@ -567,7 +567,7 @@ public class Nado extends NadoApi
                 String triggerDirection = null;
                 List<Object> triggerDirectionparametersVariable = (List<Object>) this.handleTriggerDirectionAndParams(parameters);
                 triggerDirection = (String) ((List<Object>) triggerDirectionparametersVariable).get(0);
-                parameters = ((List<Object>) triggerDirectionparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) triggerDirectionparametersVariable).get(1);
                 String directionSuffix = (((java.util.Objects.equals(triggerDirection, "ascending")))) ? "above" : "below";
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
@@ -610,7 +610,7 @@ public class Nado extends NadoApi
             Object signature = this.signOrder((Map<String, Object>) (order), productId, chainId);
             ((Map<String, Object>)placeOrder).put("order", order);
             ((Map<String, Object>)placeOrder).put("signature", signature);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
             }};
@@ -743,7 +743,7 @@ public class Nado extends NadoApi
             Object side = side3;
             Object amount = amount3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(type, "limit"))
             {
@@ -775,15 +775,15 @@ public class Nado extends NadoApi
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object expiration = null;
             List<Object> expirationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "expiration", "4294967295");
             expiration = ((List<Object>) expirationparametersVariable).get(0);
-            parameters = ((List<Object>) expirationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) expirationparametersVariable).get(1);
             Object recvWindow = null;
             List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "recvWindow", 5000);
             recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
-            parameters = ((List<Object>) recvWindowparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
             String cancelNonce = this.createOrderNonce(recvWindow);
             String orderNonce = Precise.stringAdd(cancelNonce, "1");
             String appendix = this.safeString(parameters, "appendix");
@@ -794,7 +794,7 @@ public class Nado extends NadoApi
             Long requestId = this.safeInteger(parameters, "id");
             Boolean spotLeverage = (Boolean) this.safeBool2(parameters, "spotLeverage", "spot_leverage");
             Object placeRequiresUnfilled = this.safeBool2(parameters, "placeRequiresUnfilled", "place_requires_unfilled", this.safeBool(editOrderOptions, "placeRequiresUnfilled", true));
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled")));
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Map<String, Object> cancelTx = new HashMap<String, Object>() {{
                 put( "sender", sender );
@@ -937,7 +937,7 @@ public class Nado extends NadoApi
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Object request = (this.cancelAllOrdersRequest(symbol, parameters)).join();
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
                 response = (this.triggerPrivatePostExecute(request)).join();
@@ -990,7 +990,7 @@ public class Nado extends NadoApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1000,12 +1000,12 @@ public class Nado extends NadoApi
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Object recvWindow = null;
             List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "recvWindow", 5000);
             recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
-            parameters = ((List<Object>) recvWindowparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
             Map<String, Object> tx = new HashMap<String, Object>() {{
                 put( "sender", sender );
@@ -1021,7 +1021,7 @@ public class Nado extends NadoApi
             }
             Object signature = this.signCancellationProducts((Map<String, Object>) (tx), chainId, endpointAddress);
             Long requestId = this.safeInteger(parameters, "id");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("id")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("id")));
             Map<String, Object> cancelProductOrders = new HashMap<String, Object>() {{
                 put( "tx", tx );
                 put( "signature", signature );
@@ -1082,7 +1082,7 @@ public class Nado extends NadoApi
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Object request = (this.cancelOrdersRequest(ids, symbol, parameters)).join();
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
                 response = (this.triggerPrivatePostExecute(request)).join();
@@ -1136,13 +1136,13 @@ public class Nado extends NadoApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long productId = this.parseToInt(((Map<String, Object>)market).get("id"));
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
@@ -1152,7 +1152,7 @@ public class Nado extends NadoApi
             Object recvWindow = null;
             List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "recvWindow", 5000);
             recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
-            parameters = ((List<Object>) recvWindowparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
             Map<String, Object> tx = new HashMap<String, Object>() {{
                 put( "sender", sender );
@@ -1171,7 +1171,7 @@ public class Nado extends NadoApi
             Long requestId = this.safeInteger(parameters, "id");
             String requiredUnfilledAmountRaw = this.safeString(parameters, "required_unfilled_amount");
             String requiredUnfilledAmount = this.safeString(parameters, "requiredUnfilledAmount");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("id", "requiredUnfilledAmount", "required_unfilled_amount")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("id", "requiredUnfilledAmount", "required_unfilled_amount")));
             Map<String, Object> cancelOrders = new HashMap<String, Object>() {{
                 put( "tx", tx );
                 put( "signature", signature );
@@ -1296,7 +1296,7 @@ public class Nado extends NadoApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> market = null;
@@ -1308,10 +1308,10 @@ public class Nado extends NadoApi
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (!java.util.Objects.equals(trigger, true))
             {
                 throw new NotSupported((this.id + " fetchOrders only support trigger")) ;
@@ -1319,7 +1319,7 @@ public class Nado extends NadoApi
             Object recvWindow = null;
             List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "recvWindow", 5000);
             recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
-            parameters = ((List<Object>) recvWindowparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
             final Object finalRecvWindow = recvWindow;
             Map<String, Object> tx = new HashMap<String, Object>() {{
                 put( "sender", sender );
@@ -1413,7 +1413,7 @@ public class Nado extends NadoApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires walletAddress")) ;
@@ -1422,7 +1422,7 @@ public class Nado extends NadoApi
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             if (java.util.Objects.equals(trigger, true))
@@ -1519,7 +1519,7 @@ public class Nado extends NadoApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchClosedOrders() requires walletAddress")) ;
@@ -1533,7 +1533,7 @@ public class Nado extends NadoApi
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             if (java.util.Objects.equals(trigger, true))
@@ -1551,7 +1551,7 @@ public class Nado extends NadoApi
             }
             List<Object> ordersRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", ordersRequest, parameters, 0.001);
             ordersRequest = (Map<String, Object>) ((List<Object>) ordersRequestparametersVariable).get(0);
-            parameters = ((List<Object>) ordersRequestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) ordersRequestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)ordersRequest).put("limit", Helpers.mathMin(limit, 500));
@@ -1715,7 +1715,7 @@ public class Nado extends NadoApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires walletAddress")) ;
@@ -1729,7 +1729,7 @@ public class Nado extends NadoApi
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
             Map<String, Object> matchesRequest = new HashMap<String, Object>() {{
                 put( "subaccounts", new ArrayList<Object>(Arrays.asList(Nado.this.createSubaccount((String) (Nado.this.walletAddress), finalSubaccount))) );
@@ -1740,7 +1740,7 @@ public class Nado extends NadoApi
             }
             List<Object> matchesRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", matchesRequest, parameters, 0.001);
             matchesRequest = (Map<String, Object>) ((List<Object>) matchesRequestparametersVariable).get(0);
-            parameters = ((List<Object>) matchesRequestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) matchesRequestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)matchesRequest).put("limit", Helpers.mathMin(limit, 500));
@@ -1824,7 +1824,7 @@ public class Nado extends NadoApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchBalance() requires walletAddress")) ;
@@ -1833,7 +1833,7 @@ public class Nado extends NadoApi
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subaccount_info" );
@@ -1964,7 +1964,7 @@ public class Nado extends NadoApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires walletAddress")) ;
@@ -1978,7 +1978,7 @@ public class Nado extends NadoApi
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
             final Object finalLimit = limit;
             Map<String, Object> eventsRequest = new HashMap<String, Object>() {{
@@ -1994,7 +1994,7 @@ public class Nado extends NadoApi
             }
             List<Object> eventsRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", eventsRequest, parameters, 0.001);
             eventsRequest = (Map<String, Object>) ((List<Object>) eventsRequestparametersVariable).get(0);
-            parameters = ((List<Object>) eventsRequestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) eventsRequestparametersVariable).get(1);
             final Map<String, Object> finalEventsRequest = eventsRequest;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "events", finalEventsRequest );
@@ -2080,7 +2080,7 @@ public class Nado extends NadoApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchPositions() requires walletAddress")) ;
@@ -2090,7 +2090,7 @@ public class Nado extends NadoApi
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subaccount_info" );
@@ -2571,10 +2571,10 @@ public class Nado extends NadoApi
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Tickers tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol);
             if (java.util.Objects.equals(ticker, null))
@@ -2687,7 +2687,7 @@ public class Nado extends NadoApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingHistory() requires a symbol argument")) ;
@@ -2705,7 +2705,7 @@ public class Nado extends NadoApi
             Object subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "subaccount", "default");
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
             final Object finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{

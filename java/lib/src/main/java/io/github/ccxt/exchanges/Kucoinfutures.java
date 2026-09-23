@@ -117,7 +117,7 @@ public class Kucoinfutures extends KucoinfuturesApi
                 put( "amount", amountToPrecision );
             }};
             String toAccountString = this.parseTransferType((String) (toAccount));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(toAccountString, "TRADE") || java.util.Objects.equals(toAccountString, "MAIN"))
             {
                 ((Map<String, Object>)request).put("recAccountType", toAccountString);

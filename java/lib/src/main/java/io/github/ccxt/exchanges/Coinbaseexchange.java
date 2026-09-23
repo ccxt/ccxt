@@ -1345,7 +1345,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }};
             // publicGetProductsIdTicker or publicGetProductsIdStats
             String method = this.safeString(this.options, "fetchTickerMethod", "publicGetProductsIdTicker");
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "publicGetProductsIdStats"))
             {
                 response = (this.publicGetProductsIdStats(this.extend(request, parameters))).join();
@@ -1504,7 +1504,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
@@ -1512,7 +1512,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100)).join();
@@ -1536,7 +1536,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Object until = this.safeValue2(parameters, "until", "end_date");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                 ((Map<String, Object>)request).put("end_date", this.iso8601(until));
             }
             List<Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
@@ -1720,7 +1720,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         return BaseExchange.supplyAsync(() -> {
             Object since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1728,7 +1728,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 300)).join();
@@ -1746,7 +1746,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 ((Map<String, Object>)request).put("granularity", timeframe);
             }
             Object until = this.safeValue2(parameters, "until", "end");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start", this.iso8601(since));
@@ -1960,7 +1960,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("id", id);
@@ -2103,7 +2103,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2111,7 +2111,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters, 100)).join();
@@ -2134,7 +2134,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Object until = this.safeValue2(parameters, "until", "end_date");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                 ((Map<String, Object>)request).put("end_date", this.iso8601(until));
             }
             List<Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
@@ -2469,11 +2469,11 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2484,7 +2484,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (((Map<?, ?>)parameters).containsKey("payment_method_id"))
             {
                 response = (this.privatePostWithdrawalsPaymentMethod(this.extend(request, parameters))).join();

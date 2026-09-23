@@ -548,11 +548,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object interval = null;
             List<Object> intervalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
             interval = ((List<Object>) intervalparametersVariable).get(0);
-            parameters = ((List<Object>) intervalparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) intervalparametersVariable).get(1);
             if (java.util.Objects.equals(interval, "raw"))
             {
                 (this.authenticate()).join();
@@ -798,11 +798,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object interval = null;
             List<Object> intervalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
             interval = ((List<Object>) intervalparametersVariable).get(0);
-            parameters = ((List<Object>) intervalparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) intervalparametersVariable).get(1);
             if (java.util.Objects.equals(interval, "raw"))
             {
                 (this.authenticate()).join();
@@ -811,17 +811,17 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Object useDepthEndpoint = null; // for more info, see comment in .options
             List<Object> useDepthEndpointparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "useDepthEndpoint", false);
             useDepthEndpoint = ((List<Object>) useDepthEndpointparametersVariable).get(0);
-            parameters = ((List<Object>) useDepthEndpointparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) useDepthEndpointparametersVariable).get(1);
             if (Helpers.isTrue(useDepthEndpoint))
             {
                 Object depth = null;
                 List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", "20");
                 depth = ((List<Object>) depthparametersVariable).get(0);
-                parameters = ((List<Object>) depthparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) depthparametersVariable).get(1);
                 Object group = null;
                 List<Object> groupparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "group", "none");
                 group = ((List<Object>) groupparametersVariable).get(0);
-                parameters = ((List<Object>) groupparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) groupparametersVariable).get(1);
                 descriptor = ((((group + ".") + depth) + ".") + interval);
             } else
             {

@@ -250,12 +250,12 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object name = name3;
             Object access = access3;
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Boolean privateAccess = java.util.Objects.equals(access, "private");
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(type, "spot"));
             String id = (this.numberToString(this.milliseconds()) + name); // call back ID
             Map<String, Object> subscribe = new HashMap<String, Object>() {{

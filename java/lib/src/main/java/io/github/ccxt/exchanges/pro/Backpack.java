@@ -254,13 +254,13 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String topic = (("ticker" + ".") + ((Map<String, Object>)market).get("id"));
             String messageHash = (("ticker" + ":") + symbol);
             return (this.watchPublic(new ArrayList<Object>(Arrays.asList(topic)), new ArrayList<Object>(Arrays.asList(messageHash)), parameters)).join();
@@ -1527,7 +1527,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1537,7 +1537,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             String topic = "account.orderUpdate";
             String messageHash = "orders";
@@ -1584,7 +1584,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1593,7 +1593,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             String topic = "account.orderUpdate";
             String messageHash = "unsubscribe:orders";

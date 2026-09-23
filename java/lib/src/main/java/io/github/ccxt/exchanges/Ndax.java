@@ -3521,11 +3521,11 @@ public class Ndax extends NdaxApi
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             // this method required login, password and twofa key
             String sessionToken = this.safeString(this.options, "sessionToken");
             if (java.util.Objects.equals(sessionToken, null))
@@ -3545,7 +3545,7 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> withdrawTemplateTypesRequest = new HashMap<String, Object>() {{
                 put( "omsId", omsId );

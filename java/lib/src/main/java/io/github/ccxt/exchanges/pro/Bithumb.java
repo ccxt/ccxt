@@ -111,7 +111,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -119,13 +119,13 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
             String tickTypes = this.safeString(parameters, "tickTypes", "24H");
-            parameters = this.omit(parameters, "tickTypes");
+            parameters = (Map<String, Object>) this.omit(parameters, "tickTypes");
             Object request = new HashMap<String, Object>() {{
                 put( "type", "ticker" );
                 put( "symbols", new ArrayList<Object>(Arrays.asList(((((Map<String, Object>)market).get("base") + "_") + ((Map<String, Object>)market).get("quote")))) );
@@ -181,7 +181,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -189,7 +189,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object symbolsLength = (((java.util.Objects.equals(symbols, null)))) ? 0 : ((List<?>)symbols).size();
@@ -221,7 +221,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 ((List<Object>)messageHashes).add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
             }
             String tickTypes = this.safeString(parameters, "tickTypes", "24H");
-            parameters = this.omit(parameters, "tickTypes");
+            parameters = (Map<String, Object>) this.omit(parameters, "tickTypes");
             Object message = new HashMap<String, Object>() {{
                 put( "type", "ticker" );
                 put( "symbols", streamMarketIds );
@@ -487,8 +487,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = parameters3;
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -496,11 +496,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("orderbook" + ":") + symbol);
             Object request = new HashMap<String, Object>() {{
                 put( "type", "orderbookdepth" );
@@ -715,9 +715,9 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -725,11 +725,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTrades", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trade:" + symbol);
             Object request = new HashMap<String, Object>() {{
                 put( "type", "transaction" );
@@ -988,7 +988,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -996,7 +996,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " watchBalance() is only supported for the generation 2 API")) ;
@@ -1154,9 +1154,9 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1164,7 +1164,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Object generation = null;
             List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "generation", 2);
             generation = ((List<Object>) generationparametersVariable).get(0);
-            parameters = ((List<Object>) generationparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " watchOrders() is only supported for the generation 2 API")) ;
@@ -1181,7 +1181,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = ((messageHash + ":") + symbol);
             }
             Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();

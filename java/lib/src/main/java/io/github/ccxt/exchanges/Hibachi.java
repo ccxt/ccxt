@@ -2105,7 +2105,7 @@ public class Hibachi extends HibachiApi
             Object status = status3;
             String symbol = symbol3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2129,7 +2129,7 @@ public class Hibachi extends HibachiApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", until);
@@ -2292,7 +2292,7 @@ public class Hibachi extends HibachiApi
         return BaseExchange.supplyAsync(() -> {
             Object timeframe = timeframe3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2311,7 +2311,7 @@ public class Hibachi extends HibachiApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("toMs", until);
@@ -3084,10 +3084,10 @@ public class Hibachi extends HibachiApi
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3097,7 +3097,7 @@ public class Hibachi extends HibachiApi
             {
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("contractId", ((Map<String, Object>)market).get("numericId"));
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3110,7 +3110,7 @@ public class Hibachi extends HibachiApi
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMySettlementHistory", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endTime", this.parseToInt(Helpers.divide(until, 1000)));

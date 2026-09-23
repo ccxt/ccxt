@@ -637,14 +637,14 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             String name = "level2";
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             final String finalName = name;
@@ -654,7 +654,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 put( "channels", new ArrayList<Object>(Arrays.asList(finalName)) );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHash", messageHash );
                 put( "symbol", finalSymbol );

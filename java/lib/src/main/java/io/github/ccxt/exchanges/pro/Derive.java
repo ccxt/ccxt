@@ -712,9 +712,9 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -722,13 +722,13 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Object subaccountId = null;
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("watchOrders", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
             String topic = (this.numberToString(subaccountId) + ".orders");
             String messageHash = topic;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -737,7 +737,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     put( "channels", new ArrayList<Object>(Arrays.asList(topic)) );
                 }} );
             }};
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "name", topic );
                 put( "params", finalParameters );
@@ -873,9 +873,9 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -883,13 +883,13 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Object subaccountId = null;
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("watchMyTrades", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
             String topic = (this.numberToString(subaccountId) + ".trades");
             String messageHash = topic;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -898,7 +898,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     put( "channels", new ArrayList<Object>(Arrays.asList(topic)) );
                 }} );
             }};
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "name", topic );
                 put( "params", finalParameters );

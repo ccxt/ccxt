@@ -1267,11 +1267,11 @@ final Object finalMarketSymbol = marketSymbol;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "type", "SPOT");
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object response = (this.sapiPrivateGetBalancePaymentOptions(parameters)).join();
             //
             // {
@@ -1458,15 +1458,15 @@ final Object finalMarketSymbol = marketSymbol;
         return BaseExchange.supplyAsync(() -> {
             Object outcome = outcome3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = null;
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", 100);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
-            parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1579,15 +1579,15 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcome = outcome3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = null;
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "maxEntriesPerRequest", 100);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
-            parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1615,7 +1615,7 @@ final Object finalMarketSymbol = marketSymbol;
                 ((Map<String, Object>)request).put("startDate", this.yyyymmdd(since));
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endDate", this.yyyymmdd(until));
@@ -1948,15 +1948,15 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcome = outcome3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = null;
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", 100);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
-            parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1986,7 +1986,7 @@ final Object finalMarketSymbol = marketSymbol;
                 ((Map<String, Object>)request).put("startDate", this.yyyymmdd(since));
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("endDate", this.yyyymmdd(until));
@@ -2177,7 +2177,7 @@ final Object finalMarketSymbol = marketSymbol;
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object cachedWallet = this.safeDict(this.options, "wallet");
             if (!java.util.Objects.equals(cachedWallet, null))
             {
@@ -2186,7 +2186,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object walletAddress = null;
             List<Object> walletAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "walletAddress", this.walletAddress);
             walletAddress = ((List<Object>) walletAddressparametersVariable).get(0);
-            parameters = ((List<Object>) walletAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) walletAddressparametersVariable).get(1);
             Object response = (this.sapiPrivateGetWalletList()).join();
             //
             // {

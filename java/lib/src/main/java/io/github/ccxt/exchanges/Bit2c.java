@@ -800,7 +800,7 @@ public class Bit2c extends Bit2cApi
                 put( "Amount", amount );
                 put( "Pair", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "market"))
             {
                 if (java.util.Objects.equals(side, "buy"))

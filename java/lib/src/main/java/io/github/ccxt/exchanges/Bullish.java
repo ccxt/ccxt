@@ -1350,7 +1350,7 @@ public class Bullish extends BullishApi
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            Object response = null;
+            List<Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 response = (this.privateGetV1TradesClientOrderIdClientOrderId(this.extend(request, parameters))).join();
@@ -1728,17 +1728,17 @@ public class Bullish extends BullishApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object method = method3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object maxRetries = null;
             List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", 3);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
-            parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) maxRetriesparametersVariable).get(1);
             if ((!java.util.Objects.equals(method, "fetchOHLCV")) && (!java.util.Objects.equals(method, "fetchFundingRateHistory")) && (!java.util.Objects.equals(method, "fetchTrades")))
             {
                 throw new NotSupported((((this.id + " safeDeterministicCall() does not support the ") + method) + " method")) ;
             }
             Object errors = 0;
-            parameters = this.omit(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, "until");
             // the exchange returns the most recent data, so we do not need to pass until into paginated calls
             // the correct util value will be calculated inside of the method
             while (Helpers.isLessThanOrEqual(errors, maxRetries))
@@ -1795,7 +1795,7 @@ public class Bullish extends BullishApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1805,7 +1805,7 @@ public class Bullish extends BullishApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
@@ -1817,7 +1817,7 @@ public class Bullish extends BullishApi
             }};
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Object until = this.safeInteger(request, "createdAtDatetime[lte]");
             int duration = this.parseTimeframe(timeframe);
             Long maxDelta = ((1000L * ((long) duration)) * ((long) maxLimit));
@@ -2445,7 +2445,7 @@ public class Bullish extends BullishApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -2460,7 +2460,7 @@ public class Bullish extends BullishApi
             Boolean postOnly = false;
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "POST_ONLY"), parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-            parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
             if (Boolean.TRUE.equals(postOnly))
             {
                 type = "POST_ONLY";
@@ -2468,7 +2468,7 @@ public class Bullish extends BullishApi
             Object timeInForce = "GTC"; // is mandatory
             List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce", timeInForce);
             timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
-            parameters = ((List<Object>) timeInForceparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             ((Map<String, Object>)parameters).put("timeInForce", ((String)timeInForce).toUpperCase());
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
@@ -2483,7 +2483,7 @@ public class Bullish extends BullishApi
                 }
                 ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 type = "STOP_LIMIT";
-                parameters = this.omit(parameters, "triggerPrice");
+                parameters = (Map<String, Object>) this.omit(parameters, "triggerPrice");
             }
             ((Map<String, Object>)request).put("type", ((String)type).toUpperCase());
             Map<String, Object> response = (this.privatePostV2Orders(this.extend(request, parameters))).join();
@@ -2882,12 +2882,12 @@ public class Bullish extends BullishApi
         return BaseExchange.supplyAsync(() -> {
             String code = code3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Long until = this.safeInteger(request, "createdAtDatetime[lte]");
             if (!java.util.Objects.equals(until, null))
             {
@@ -2977,7 +2977,7 @@ public class Bullish extends BullishApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             // todo check this method properly
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
@@ -2992,7 +2992,7 @@ public class Bullish extends BullishApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 ((Map<String, Object>)request).put("network", this.networkCodeToId(networkCode, code));
@@ -3140,11 +3140,11 @@ public class Bullish extends BullishApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object tradingAccountId = null;
             List<Object> tradingAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "loadAccount", "tradingAccountId");
             tradingAccountId = ((List<Object>) tradingAccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) tradingAccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) tradingAccountIdparametersVariable).get(1);
             if (java.util.Objects.equals(tradingAccountId, null))
             {
                 List<Object> response = (this.privateGetV1AccountsTradingAccounts(parameters)).join();
@@ -3309,7 +3309,7 @@ public class Bullish extends BullishApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3331,7 +3331,7 @@ public class Bullish extends BullishApi
             Object network = null;
             List<Object> networkparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             network = ((List<Object>) networkparametersVariable).get(0);
-            parameters = ((List<Object>) networkparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkparametersVariable).get(1);
             Boolean networkDefinedByUser = !java.util.Objects.equals(network, null);
             if ((Helpers.isGreaterThan(length, 1)) || Boolean.TRUE.equals(networkDefinedByUser))
             {
@@ -3871,7 +3871,7 @@ public class Bullish extends BullishApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
@@ -3883,7 +3883,7 @@ public class Bullish extends BullishApi
             Object startTimestamp = since;
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Long until = this.safeInteger(request, "createdAtDatetime[lte]");
             // current endpoint requires both since and until parameters
             if (java.util.Objects.equals(startTimestamp, null))

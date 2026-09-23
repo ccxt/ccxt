@@ -354,7 +354,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -362,7 +362,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Object channel = null;
             List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "channel", "LEVEL1");
             channel = ((List<Object>) channelparametersVariable).get(0);
-            parameters = ((List<Object>) channelparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             return (this.subscribe(((String)channel), new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         }).thenApply(Ticker::new);
 
@@ -412,7 +412,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -420,7 +420,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Object channel = null;
             List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "channel", "LEVEL1");
             channel = ((List<Object>) channelparametersVariable).get(0);
-            parameters = ((List<Object>) channelparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             Object ticker = (this.subscribe(channel, symbols, parameters)).join();
             if (this.newUpdates)
             {
@@ -659,14 +659,14 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Object interval = this.safeString(options, timeframe, timeframe);
             Object ohlcv = (this.subscribe(interval, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();

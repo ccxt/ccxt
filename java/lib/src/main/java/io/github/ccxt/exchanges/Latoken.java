@@ -1661,7 +1661,7 @@ public class Latoken extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = null;
+            List<Object> response = null;
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             parameters = (Map<String, Object>) this.omit(parameters, "stop");
             // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1757,7 +1757,7 @@ public class Latoken extends LatokenApi
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100
             }
-            Object response = null;
+            List<Object> response = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -1852,7 +1852,7 @@ public class Latoken extends LatokenApi
             }};
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(isTrigger, true))
             {
                 response = (this.privateGetAuthStopOrderGetOrderId(this.extend(request, parameters))).join();
@@ -1955,7 +1955,7 @@ public class Latoken extends LatokenApi
             }
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -2030,7 +2030,7 @@ public class Latoken extends LatokenApi
             }};
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(isTrigger, true))
             {
                 response = (this.privatePostAuthStopOrderCancel(this.extend(request, parameters))).join();
@@ -2094,7 +2094,7 @@ public class Latoken extends LatokenApi
             Map<String, Object> market = null;
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -2123,7 +2123,7 @@ public class Latoken extends LatokenApi
             //         "status":"SUCCESS"
             //     }
             //
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }}))));
@@ -2419,7 +2419,7 @@ public class Latoken extends LatokenApi
                 put( "recipient", toAccount );
                 put( "value", Latoken.this.currencyToPrecision((String) (code), amount) );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (((String)toAccount).indexOf("@") >= 0)
             {
                 response = (this.privatePostAuthTransferEmail(this.extend(request, parameters))).join();

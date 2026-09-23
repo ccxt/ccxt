@@ -707,7 +707,7 @@ public class Cryptomus extends CryptomusApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -719,7 +719,7 @@ public class Cryptomus extends CryptomusApi
             Object level = 0;
             List<Object> levelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "level", level);
             level = ((List<Object>) levelparametersVariable).get(0);
-            parameters = ((List<Object>) levelparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) levelparametersVariable).get(1);
             ((Map<String, Object>)request).put("level", level);
             Map<String, Object> response = (this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, parameters))).join();
             //
@@ -967,7 +967,7 @@ public class Cryptomus extends CryptomusApi
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -982,7 +982,7 @@ public class Cryptomus extends CryptomusApi
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                parameters = this.omit(parameters, "clientOrderId");
+                parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
                 ((Map<String, Object>)request).put("client_order_id", clientOrderId);
             }
             Boolean sideBuy = java.util.Objects.equals(side, "buy");
@@ -991,8 +991,8 @@ public class Cryptomus extends CryptomusApi
             Object cost = null;
             List<Object> costparametersVariable = (List<Object>) this.handleParamString(parameters, "cost");
             cost = ((List<Object>) costparametersVariable).get(0);
-            parameters = ((List<Object>) costparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) costparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "market"))
             {
                 if (Boolean.TRUE.equals(sideBuy))
@@ -1000,7 +1000,7 @@ public class Cryptomus extends CryptomusApi
                     Boolean createMarketBuyOrderRequiresPrice = true;
                     List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
-                    parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                    parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))

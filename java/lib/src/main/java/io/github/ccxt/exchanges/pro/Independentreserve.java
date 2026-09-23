@@ -72,13 +72,13 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String url = ((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "?subscribe=ticker-"), ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
             String messageHash = ("trades:" + symbol);
             Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
@@ -189,14 +189,14 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             if (java.util.Objects.equals(limit, null))
             {
                 limit = 100L;

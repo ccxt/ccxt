@@ -1596,7 +1596,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             Boolean isStableSettled = (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT")) || (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC"));
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && Boolean.TRUE.equals(isStableSettled))
             {
@@ -1828,7 +1828,7 @@ public class Phemex extends PhemexApi
                 limit = maxLimit;
             }
             ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, maxLimit));
-            Object response = null;
+            Map<String, Object> response = null;
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) || Boolean.TRUE.equals(isStableSettled))
             {
                 if ((!java.util.Objects.equals(until, null)) || (!java.util.Objects.equals(since, null)))
@@ -2033,7 +2033,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)) || java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USD"))
@@ -2127,7 +2127,7 @@ public class Phemex extends PhemexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2141,13 +2141,13 @@ public class Phemex extends PhemexApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object query = this.omit(parameters, "type");
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 response = (this.v1GetMdSpotTicker24hrAll(query)).join();
@@ -2203,7 +2203,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             Boolean isStableSettled = (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT")) || (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC"));
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && Boolean.TRUE.equals(isStableSettled))
             {
@@ -2712,7 +2712,7 @@ public class Phemex extends PhemexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2720,10 +2720,10 @@ public class Phemex extends PhemexApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String code = this.safeString(parameters, "code");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("code")));
-            Object response = null;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("code")));
+            Map<String, Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if ((!java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(type, "swap")))
             {
@@ -2734,7 +2734,7 @@ public class Phemex extends PhemexApi
                 Object settle = null;
                 List<Object> settleparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "settle", "USDT");
                 settle = ((List<Object>) settleparametersVariable).get(0);
-                parameters = ((List<Object>) settleparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) settleparametersVariable).get(1);
                 if (!java.util.Objects.equals(code, null) || !java.util.Objects.equals(settle, null))
                 {
                     Object coin = null;
@@ -3344,7 +3344,7 @@ public class Phemex extends PhemexApi
             Object type = type3;
             Object side = side3;
             Object price = price3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3374,7 +3374,7 @@ public class Phemex extends PhemexApi
             } else
             {
                 ((Map<String, Object>)request).put("clOrdID", clientOrderId);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId")));
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId")));
             }
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("stopPx", "stopPrice", "triggerPrice")));
             if (!java.util.Objects.equals(triggerPrice, null))
@@ -3387,7 +3387,7 @@ public class Phemex extends PhemexApi
                     ((Map<String, Object>)request).put("stopPxEp", this.toEp(triggerPrice, market));
                 }
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice")));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 String qtyType = this.safeString(parameters, "qtyType", "ByBase");
@@ -3413,7 +3413,7 @@ public class Phemex extends PhemexApi
                 if (java.util.Objects.equals(qtyType, "ByQuote"))
                 {
                     Object cost = this.safeNumber(parameters, "cost");
-                    parameters = this.omit(parameters, "cost");
+                    parameters = (Map<String, Object>) this.omit(parameters, "cost");
                     if (java.util.Objects.equals(((Map<String, Object>)this.options).get("createOrderByQuoteRequiresPrice"), true))
                     {
                         if (!java.util.Objects.equals(price, null))
@@ -3438,7 +3438,7 @@ public class Phemex extends PhemexApi
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
-                parameters = this.omit(parameters, "hedged");
+                parameters = (Map<String, Object>) this.omit(parameters, "hedged");
                 String posSide = this.safeStringLower(parameters, "posSide");
                 if (java.util.Objects.equals(posSide, null))
                 {
@@ -3448,7 +3448,7 @@ public class Phemex extends PhemexApi
                         if (java.util.Objects.equals(reduceOnly, true))
                         {
                             side = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
-                            parameters = this.omit(parameters, "reduceOnly");
+                            parameters = (Map<String, Object>) this.omit(parameters, "reduceOnly");
                         }
                         posSide = (((java.util.Objects.equals(side, "buy")))) ? "Long" : "Short";
                     } else
@@ -3473,7 +3473,7 @@ public class Phemex extends PhemexApi
                     String triggerDirection = null;
                     List<Object> triggerDirectionparametersVariable = (List<Object>) this.handleParamString(parameters, "triggerDirection");
                     triggerDirection = (String) ((List<Object>) triggerDirectionparametersVariable).get(0);
-                    parameters = ((List<Object>) triggerDirectionparametersVariable).get(1);
+                    parameters = (Map<String, Object>) ((List<Object>) triggerDirectionparametersVariable).get(1);
                     if (java.util.Objects.equals(triggerDirection, null))
                     {
                         throw new ArgumentsRequired((this.id + " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")) ;
@@ -3574,7 +3574,7 @@ public class Phemex extends PhemexApi
                 {
                     ((Map<String, Object>)request).put("takeProfitEp", this.toEp(takeProfitPrice, market));
                 }
-                parameters = this.omit(parameters, "takeProfitPrice");
+                parameters = (Map<String, Object>) this.omit(parameters, "takeProfitPrice");
             }
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             if (!java.util.Objects.equals(stopLossPrice, null))
@@ -3586,9 +3586,9 @@ public class Phemex extends PhemexApi
                 {
                     ((Map<String, Object>)request).put("stopLossEp", this.toEp(stopLossPrice, market));
                 }
-                parameters = this.omit(parameters, "stopLossPrice");
+                parameters = (Map<String, Object>) this.omit(parameters, "stopLossPrice");
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isStableSettled))
             {
                 response = (this.privatePostGOrders(this.extend(request, parameters))).join();
@@ -3786,7 +3786,7 @@ public class Phemex extends PhemexApi
                 }
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isStableSettled))
             {
                 String posSide = this.safeString(parameters, "posSide");
@@ -3866,7 +3866,7 @@ public class Phemex extends PhemexApi
             {
                 ((Map<String, Object>)request).put("orderID", id);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT") || java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC"))
             {
                 String posSide = this.safeString(parameters, "posSide");
@@ -3937,7 +3937,7 @@ public class Phemex extends PhemexApi
             {
                 ((Map<String, Object>)request).put("untriggerred", trigger);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT") || java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC"))
             {
                 response = (this.privateDeleteGOrdersAll(this.extend(request, parameters))).join();
@@ -3948,7 +3948,7 @@ public class Phemex extends PhemexApi
             {
                 response = (this.privateDeleteSpotOrdersAll(this.extend(request, parameters))).join();
             }
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }}))));
@@ -4007,7 +4007,7 @@ public class Phemex extends PhemexApi
             {
                 ((Map<String, Object>)request).put("orderID", id);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT") || java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC"))
             {
                 response = (this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, parameters))).join();
@@ -4109,7 +4109,7 @@ public class Phemex extends PhemexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT") || java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC"))
             {
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)market).get("settle"));
@@ -4177,7 +4177,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             try
             {
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT") || java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC"))
@@ -4274,7 +4274,7 @@ public class Phemex extends PhemexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if ((java.util.Objects.equals(symbol, null)) || (java.util.Objects.equals(this.safeString(market, "settle"), "USDT")))
             {
                 ((Map<String, Object>)request).put("currency", this.safeString(parameters, "settle", "USDT"));
@@ -4377,7 +4377,7 @@ public class Phemex extends PhemexApi
             String symbol = symbol3;
             Long since = since3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4390,7 +4390,7 @@ public class Phemex extends PhemexApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -4414,7 +4414,7 @@ public class Phemex extends PhemexApi
             {
                 ((Map<String, Object>)request).put("start", since);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
                 response = (this.privateGetExchangeOrderV2TradingList(this.extend(request, parameters))).join();
@@ -4942,7 +4942,7 @@ public class Phemex extends PhemexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4950,7 +4950,7 @@ public class Phemex extends PhemexApi
             symbols = this.marketSymbols(symbols);
             Object subType = null;
             Object code = this.safeString2(parameters, "currency", "code", "USDT");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
             Object settle = null;
             Map<String, Object> market = null;
             String firstSymbol = this.safeString(symbols, 0);
@@ -4963,11 +4963,11 @@ public class Phemex extends PhemexApi
             {
                 List<Object> settleparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "settle", code);
                 settle = ((List<Object>) settleparametersVariable).get(0);
-                parameters = ((List<Object>) settleparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) settleparametersVariable).get(1);
             }
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositions", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isUSDTSettled = java.util.Objects.equals(settle, "USDT");
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
@@ -4983,13 +4983,13 @@ public class Phemex extends PhemexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
                 Object method = null;
                 List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
                 method = ((List<Object>) methodparametersVariable).get(0);
-                parameters = ((List<Object>) methodparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
                 if (java.util.Objects.equals(method, "privateGetGAccountsAccountPositions"))
                 {
                     response = (this.privateGetGAccountsAccountPositions(this.extend(request, parameters))).join();
@@ -5124,14 +5124,14 @@ public class Phemex extends PhemexApi
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -5418,7 +5418,7 @@ public class Phemex extends PhemexApi
                 }
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             Boolean isStableSettled = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT") || java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC");
             if (Boolean.TRUE.equals(isStableSettled))
             {
@@ -6508,7 +6508,7 @@ final Object finalI = i;
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -6526,7 +6526,7 @@ final Object finalI = i;
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100)).join();
@@ -6553,8 +6553,8 @@ final Object finalI = i;
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isUsdtSettled))
             {
                 response = (this.v2GetApiDataPublicDataFundingRateHistory(this.extend(request, parameters))).join();
@@ -6635,11 +6635,11 @@ final Object finalI = i;
         final String tag3 = tag2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
-            Object parameters = parameters3;
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6649,7 +6649,7 @@ final Object finalI = i;
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             Object networkId = null;
             if (!java.util.Objects.equals(networkCode, null))
             {
@@ -6999,7 +6999,7 @@ final Object finalI = i;
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7019,7 +7019,7 @@ final Object finalI = i;
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetsConvert(this.extend(request, parameters))).join();
             //
             //     {
@@ -7171,7 +7171,7 @@ final Object finalI = i;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7179,7 +7179,7 @@ final Object finalI = i;
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object subType = null;
             Object code = this.safeString2(parameters, "currency", "code", "USDT");
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
             Object settle = null;
             Map<String, Object> market = null;
             String firstSymbol = this.safeString(symbols, 0);
@@ -7192,11 +7192,11 @@ final Object finalI = i;
             {
                 List<Object> settleparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "settle", code);
                 settle = ((List<Object>) settleparametersVariable).get(0);
-                parameters = ((List<Object>) settleparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) settleparametersVariable).get(1);
             }
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
             subType = ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((List<Object>) subTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isUSDTSettled = java.util.Objects.equals(settle, "USDT");
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
@@ -7212,13 +7212,13 @@ final Object finalI = i;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
                 Object method = null;
                 List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
                 method = ((List<Object>) methodparametersVariable).get(0);
-                parameters = ((List<Object>) methodparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
                 if (java.util.Objects.equals(method, "privateGetGAccountsAccountPositions"))
                 {
                     response = (this.privateGetGAccountsAccountPositions(this.extend(request, parameters))).join();

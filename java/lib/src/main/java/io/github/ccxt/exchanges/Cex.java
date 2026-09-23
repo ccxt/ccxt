@@ -841,7 +841,7 @@ public class Cex extends CexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -857,7 +857,7 @@ public class Cex extends CexApi
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("toDateISO", this.iso8601(until));
@@ -1027,11 +1027,11 @@ public class Cex extends CexApi
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object dataType = null;
             List<Object> dataTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "dataType");
             dataType = ((List<Object>) dataTypeparametersVariable).get(0);
-            parameters = ((List<Object>) dataTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) dataTypeparametersVariable).get(1);
             if (java.util.Objects.equals(dataType, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
@@ -1054,7 +1054,7 @@ public class Cex extends CexApi
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("toISO", this.iso8601(until));
@@ -1288,15 +1288,15 @@ public class Cex extends CexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             String accountName = null;
             List<Object> accountNameparametersVariable = (List<Object>) this.handleParamString(parameters, "account", "");
             accountName = (String) ((List<Object>) accountNameparametersVariable).get(0);
-            parameters = ((List<Object>) accountNameparametersVariable).get(1); // default is empty string
+            parameters = (Map<String, Object>) ((List<Object>) accountNameparametersVariable).get(1); // default is empty string
             String method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleParamString(parameters, "method", "privatePostGetMyWalletBalance");
             method = (String) ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             Object accountBalance = null;
             if (java.util.Objects.equals(method, "privatePostGetMyAccountStatusV3"))
             {
@@ -1401,7 +1401,7 @@ public class Cex extends CexApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1433,7 +1433,7 @@ public class Cex extends CexApi
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("serverCreateTimestampTo", until);
@@ -1784,11 +1784,11 @@ public class Cex extends CexApi
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "accountId");
             accountId = ((List<Object>) accountIdparametersVariable).get(0);
-            parameters = ((List<Object>) accountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             if (java.util.Objects.equals(accountId, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
@@ -1818,7 +1818,7 @@ public class Cex extends CexApi
             Object timeInForce = null;
             List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce", "GTC");
             timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
-            parameters = ((List<Object>) timeInForceparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             if (java.util.Objects.equals(type, "limit"))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
@@ -1827,7 +1827,7 @@ public class Cex extends CexApi
             String triggerPrice = null;
             List<Object> triggerPriceparametersVariable = (List<Object>) this.handleParamString(parameters, "triggerPrice");
             triggerPrice = (String) ((List<Object>) triggerPriceparametersVariable).get(0);
-            parameters = ((List<Object>) triggerPriceparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) triggerPriceparametersVariable).get(1);
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 ((Map<String, Object>)request).put("type", "Stop Limit");
@@ -2034,7 +2034,7 @@ public class Cex extends CexApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2057,7 +2057,7 @@ public class Cex extends CexApi
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("dateTo", until);
@@ -2174,7 +2174,7 @@ public class Cex extends CexApi
             String code = code3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2196,7 +2196,7 @@ public class Cex extends CexApi
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("dateTo", until);
@@ -2363,7 +2363,7 @@ public class Cex extends CexApi
                 put( "accountId", targetAccount );
                 put( "clientTxId", guid );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(fromMain))
             {
                 response = (this.privatePostDoDepositFundsFromWallet(this.extend(request, parameters))).join();
@@ -2486,11 +2486,11 @@ public class Cex extends CexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "accountId");
             accountId = ((List<Object>) accountIdparametersVariable).get(0);
-            parameters = ((List<Object>) accountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             if (java.util.Objects.equals(accountId, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
@@ -2502,7 +2502,7 @@ public class Cex extends CexApi
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             final Object finalAccountId = accountId;
             final Object finalNetworkCode = networkCode;

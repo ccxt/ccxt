@@ -282,13 +282,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", ("order_book/" + ((Map<String, Object>)market).get("id")) );
             }};
@@ -452,13 +452,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new NotSupported((this.id + " watchTicker() is only supported for swap markets")) ;
@@ -498,13 +498,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new NotSupported((this.id + " unWatchTicker() is only supported for swap markets")) ;
@@ -1203,9 +1203,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1213,12 +1213,12 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchMyTrades", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = this.getMessageHash("myTrades");
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = this.getMessageHash("myTrades", symbol);
             }
             final Object finalAccountIndex = accountIndex;
@@ -1485,7 +1485,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1494,11 +1494,11 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleParamString(parameters, "type", defaultType);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchBalance", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = this.getMessageHash("balances", null, type);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(type, "spot"))
@@ -1644,7 +1644,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1652,7 +1652,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))

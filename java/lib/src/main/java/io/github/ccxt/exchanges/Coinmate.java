@@ -1067,10 +1067,10 @@ public class Coinmate extends CoinmateApi
         final String tag3 = tag2;
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object tag = tag3;
+            String tag = tag3;
             Object parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
@@ -1095,7 +1095,7 @@ public class Coinmate extends CoinmateApi
                 ((Map<String, Object>)request).put("destinationTag", tag);
             }
             Map<String, Object> requestParams = this.extend(request, parameters);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privatePostBitcoinWithdrawal"))
             {
                 response = (this.privatePostBitcoinWithdrawal(requestParams)).join();
@@ -1698,7 +1698,7 @@ public class Coinmate extends CoinmateApi
                 method = (method + this.capitalize(type));
             }
             Map<String, Object> requestParams = this.extend(request, parameters);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privatePostBuyInstant"))
             {
                 response = (this.privatePostBuyInstant(requestParams)).join();
@@ -1716,7 +1716,7 @@ public class Coinmate extends CoinmateApi
                 throw new InvalidOrder(((this.id + " createOrder() does not support order type ") + type)) ;
             }
             String id = this.safeString(response, "data");
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "id", id );

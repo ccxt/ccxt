@@ -260,7 +260,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 Object listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);
                 Boolean expired = Helpers.isGreaterThan((Helpers.subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
                 listenKey = this.safeString(this.options, "listenKey");
-                Object response = null;
+                Map<String, Object> response = null;
                 if (java.util.Objects.equals(listenKey, null))
                 {
                     response = (this.privateGetDeepcoinListenkeyAcquire(parameters)).join();
@@ -746,14 +746,14 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         final String symbol3 = symbol2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(timeframes, timeframe, timeframe);
             String messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
@@ -798,18 +798,18 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(timeframes, timeframe, timeframe);
             String messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
             String suffix = ("_" + interval);
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "ohlcv" );
                 put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(finalSymbol, timeframe)))) );
@@ -926,7 +926,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -936,7 +936,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Object suffix = null;
             var suffixparametersVariable = this.orderBookSuffix((Map<String, Object>) (market), "watchOrderBook", parameters);
             suffix = ((List<Object>) suffixparametersVariable).get(0);
-            parameters = ((List<Object>) suffixparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) suffixparametersVariable).get(1);
             Object orderbook = (this.watchPublic(market, messageHash, "25", parameters, suffix)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);

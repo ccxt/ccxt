@@ -453,7 +453,7 @@ public class Mudrex extends MudrexApi
             }
             ((Map<String, Object>)request).put("start_time", startTime);
             ((Map<String, Object>)request).put("end_time", endTime);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(priceType, "mark"))
             {
                 response = (this.marketGetPriceMarkKline(this.extend(request, parameters))).join();
@@ -841,7 +841,7 @@ public class Mudrex extends MudrexApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -849,11 +849,11 @@ public class Mudrex extends MudrexApi
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters, "swap");
             type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String requested = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("trade_currency", "tradeCurrency", "currency")));
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trade_currency", "tradeCurrency", "currency")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trade_currency", "tradeCurrency", "currency")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 if (!java.util.Objects.equals(requested, null))
@@ -1466,7 +1466,7 @@ public class Mudrex extends MudrexApi
                 ((Map<String, Object>)q).put("limit", limit);
             }
             Map<String, Object> request = this.extend(q, parameters);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(state, "closed"))
             {
                 response = (this.privateGetFuturesOrdersHistory(request)).join();
@@ -2018,7 +2018,7 @@ public class Mudrex extends MudrexApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2031,7 +2031,7 @@ public class Mudrex extends MudrexApi
             Object maxCalls = null;
             List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
-            parameters = ((List<Object>) maxCallsparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) maxCallsparametersVariable).get(1);
             Object pageSize = 0;
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2266,7 +2266,7 @@ public class Mudrex extends MudrexApi
                     useInr = true;
                 }
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(useInr))
             {
                 response = (this.privatePostFuturesTransfersInr(this.extend(body, parameters))).join();
@@ -2275,7 +2275,7 @@ public class Mudrex extends MudrexApi
                 response = (this.privatePostWalletFuturesTransfer(this.extend(body, parameters))).join();
             }
             Object data = this.safeDict(response, "data", response);
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             final String finalCode = code;
             return new HashMap<String, Object>() {{
                 put( "info", finalResponse );

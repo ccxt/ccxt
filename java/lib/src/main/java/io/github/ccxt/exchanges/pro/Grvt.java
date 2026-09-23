@@ -226,7 +226,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbols, null))
             {
                 throw new ArgumentsRequired((this.id + " watchTickers requires a symbols argument")) ;
@@ -234,11 +234,11 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Object channel = null;
             List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
             channel = ((List<Object>) channelparametersVariable).get(0);
-            parameters = ((List<Object>) channelparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             Object interval = 500;
             List<Object> intervalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
             interval = ((List<Object>) intervalparametersVariable).get(0);
-            parameters = ((List<Object>) intervalparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) intervalparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -763,7 +763,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -771,7 +771,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Object channel = null;
             List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
             channel = ((List<Object>) channelparametersVariable).get(0);
-            parameters = ((List<Object>) channelparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             Boolean isSnapshot = java.util.Objects.equals(channel, "v1.book.s");
             Integer symbolsLength = ((List<?>)symbols).size();
             if (java.util.Objects.equals(symbolsLength, 0))
@@ -782,12 +782,12 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             {
                 List<Object> limitparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "limit", 100);
                 limit = ((List<Object>) limitparametersVariable).get(0);
-                parameters = ((List<Object>) limitparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) limitparametersVariable).get(1);
             }
             Object interval = 500;
             List<Object> intervalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
             interval = ((List<Object>) intervalparametersVariable).get(0);
-            parameters = ((List<Object>) intervalparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) intervalparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
             Object extraPart = ((Boolean.TRUE.equals(isSnapshot))) ? (((String.valueOf(interval) + "-") + String.valueOf(limit))) : String.valueOf(interval);
             List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());

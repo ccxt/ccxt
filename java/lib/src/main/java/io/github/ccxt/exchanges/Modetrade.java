@@ -1535,9 +1535,9 @@ public class Modetrade extends ModetradeApi
         final Long since3 = since2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Long since = since3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1545,7 +1545,7 @@ public class Modetrade extends ModetradeApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, "page", 25)).join();
@@ -1554,7 +1554,7 @@ public class Modetrade extends ModetradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1563,7 +1563,7 @@ public class Modetrade extends ModetradeApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters, 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
             //
             // {
@@ -1684,7 +1684,7 @@ public class Modetrade extends ModetradeApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1692,7 +1692,7 @@ public class Modetrade extends ModetradeApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500)).join();
@@ -1709,7 +1709,7 @@ public class Modetrade extends ModetradeApi
                 ((Map<String, Object>)request).put("start_t", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 ((Map<String, Object>)request).put("end_t", until);
@@ -2348,7 +2348,7 @@ public class Modetrade extends ModetradeApi
             Object stopLoss = this.safeValue(parameters, "stopLoss");
             Object takeProfit = this.safeValue(parameters, "takeProfit");
             Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isConditional))
             {
                 response = (this.v1PrivatePostAlgoOrder(request)).join();
@@ -2532,7 +2532,7 @@ public class Modetrade extends ModetradeApi
                 ((Map<String, Object>)request).put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isConditional))
             {
                 response = (this.v1PrivatePutAlgoOrder(this.extend(request, parameters))).join();
@@ -2652,7 +2652,7 @@ public class Modetrade extends ModetradeApi
             String clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
@@ -2757,7 +2757,7 @@ public class Modetrade extends ModetradeApi
             Object clientOrderIds = this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
                 ((Map<String, Object>)request).put("client_order_ids", String.join(",", (List<String>)clientOrderIds));
@@ -2776,7 +2776,7 @@ public class Modetrade extends ModetradeApi
             //     }
             // }
             //
-            final Object finalResponse = response;
+            final Map<String, Object> finalResponse = response;
             return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }}))));
@@ -2911,7 +2911,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
                 if (!java.util.Objects.equals(clientOrderId, null) && !java.util.Objects.equals(clientOrderId, ""))
@@ -3014,7 +3014,7 @@ public class Modetrade extends ModetradeApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3024,14 +3024,14 @@ public class Modetrade extends ModetradeApi
             Object maxLimit = (((java.util.Objects.equals(isTrigger, true)))) ? 100 : 500;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", maxLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -3054,8 +3054,8 @@ public class Modetrade extends ModetradeApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(isTrigger, true))
             {
                 response = (this.v1PrivateGetAlgoOrders(this.extend(request, parameters))).join();
@@ -3332,7 +3332,7 @@ public class Modetrade extends ModetradeApi
             String symbol = symbol3;
             Long since = since3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3340,7 +3340,7 @@ public class Modetrade extends ModetradeApi
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500)).join();
@@ -3365,7 +3365,7 @@ public class Modetrade extends ModetradeApi
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(request, parameters))).join();
             //
             // {

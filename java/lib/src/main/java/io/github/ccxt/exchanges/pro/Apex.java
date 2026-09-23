@@ -528,13 +528,13 @@ public class Apex extends io.github.ccxt.exchanges.Apex
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object url = this.getWsPublicUrl();
             String messageHash = ("ticker:" + symbol);
             String topic = Helpers.add(("instrumentInfo" + ".H."), ((Map<String, Object>)market).get("id2"));

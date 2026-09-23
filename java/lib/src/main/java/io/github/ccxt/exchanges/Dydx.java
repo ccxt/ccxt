@@ -1296,15 +1296,15 @@ public class Dydx extends DydxApi
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long limit = limit3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             Object subAccountNumber = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchOrders", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             List<Object> subAccountNumberparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
             subAccountNumber = ((List<Object>) subAccountNumberparametersVariable).get(0);
-            parameters = ((List<Object>) subAccountNumberparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subAccountNumberparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1578,15 +1578,15 @@ public class Dydx extends DydxApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             Object subAccountNumber = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchPositions", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             List<Object> subAccountNumberparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
             subAccountNumber = ((List<Object>) subAccountNumberparametersVariable).get(0);
-            parameters = ((List<Object>) subAccountNumberparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subAccountNumberparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2127,9 +2127,9 @@ public class Dydx extends DydxApi
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             String symbol = symbol3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if ((!java.util.Objects.equals(isTrigger, true)) && (java.util.Objects.equals(symbol, null)))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
@@ -2153,15 +2153,15 @@ public class Dydx extends DydxApi
             Object goodTillBlockTimeInSeconds = 2592000;
             List<Object> goodTillBlockTimeInSecondsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
             goodTillBlockTimeInSeconds = ((List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(0);
-            parameters = ((List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(1); // default is 30 days
+            parameters = (Map<String, Object>) ((List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(1); // default is 30 days
             Object goodTillBlockTime = null;
             Object defaultOrderFlags = (((java.util.Objects.equals(isTrigger, true)))) ? 32 : 64;
             Long orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
             Object subAccountId = 0;
             List<Object> subAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);
             subAccountId = ((List<Object>) subAccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subAccountIdparametersVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId")));
+            parameters = (Map<String, Object>) ((List<Object>) subAccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId")));
             if ((orderFlags == null || orderFlags != 0) && (orderFlags == null || orderFlags != 64) && (orderFlags == null || orderFlags != 32))
             {
                 throw new InvalidOrder((this.id + " invalid orderFlags, allowed values are (0, 64, 32).")) ;
@@ -2272,7 +2272,7 @@ public class Dydx extends DydxApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2286,14 +2286,14 @@ public class Dydx extends DydxApi
             Object subAccountId = 0;
             List<Object> subAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
             subAccountId = ((List<Object>) subAccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subAccountIdparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subAccountIdparametersVariable).get(1);
             Object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
             if (java.util.Objects.equals(goodTillBlock, null))
             {
                 Object latestBlockHeight = (this.fetchLatestBlockHeight()).join();
                 goodTillBlock = Helpers.add(latestBlockHeight, 20);
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "goodTillBlock", "subaccountId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "goodTillBlock", "subaccountId")));
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
             final List<Object> finalClientOrderIds = clientOrderIds;
@@ -3231,11 +3231,11 @@ public class Dydx extends DydxApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchAccounts", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", finalUserAddress );
@@ -3329,7 +3329,7 @@ public class Dydx extends DydxApi
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3337,11 +3337,11 @@ public class Dydx extends DydxApi
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchBalance", (Map<String, Object>) (parameters));
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((List<Object>) userAddressparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Object subaccountNumber = null;
             List<Object> subaccountNumberparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "subaccountNumber", 0);
             subaccountNumber = ((List<Object>) subaccountNumberparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountNumberparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) subaccountNumberparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
             final Object finalSubaccountNumber = subaccountNumber;
             Map<String, Object> request = new HashMap<String, Object>() {{
