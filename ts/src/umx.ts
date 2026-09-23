@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Currency, Dict, Endpoint, FundingRate, FundingRates, Int, List, Market, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Currencies, Currency, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ export default class umx extends Exchange {
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': false,
@@ -1223,6 +1223,83 @@ export default class umx extends Exchange {
             'previousFundingDatetime': undefined,
             'interval': interval,
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name umx#fetchFundingRateHistory
+     * @description fetches the history of funding rates paid on a perpetual market
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for, the venue only funds perpetual markets
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch, the venue only accepts a bound inside the latest three months and reaches no further back than that, omit it to walk back over the whole history instead
+     * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 1000 and publishes no upper bound
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch, the venue answers an empty list when it predates the three month bound
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['swap'] !== true) {
+            throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap markets only');
+        }
+        let request: Dict = {
+            'symbol': market['id'],
+        };
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            // without a lower bound the venue walks backwards from endTime over the whole history,
+            // so limit is the number of entries of that walk and can be forwarded as it is
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // beginTime on its own is answered with error 10002, it only works paired with endTime
+            const until = this.safeInteger (request, 'endTime');
+            if (until === undefined) {
+                request['endTime'] = this.milliseconds ();
+            }
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead. the
+            // venue default of 1000 entries covers the widest range it serves even on the four
+            // hour funding interval, which is 552 entries over three months
+        }
+        const response = await this.publicGetV1MarketFundingRateHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "symbol": "ETH-USDT-PERP",
+        //                 "fundingRate": "0.000025812524441762",
+        //                 "fundingTime": "1790179200000",
+        //                 "markPrice": "2654.45"
+        //             }
+        //         ],
+        //         "ts": "1790181415054"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseFundingRateHistories (data, market, since, limit) as FundingRateHistory[];
+    }
+
+    override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
+        const marketId = this.safeString (info, 'symbol');
+        // fundingTime is the moment the funding fee was charged, the entries carry no other time
+        const timestamp = this.safeInteger (info, 'fundingTime');
+        // the funding rate structure has no home for markPrice, it stays on info
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'fundingRate': this.safeNumber (info, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        } as FundingRateHistory;
     }
 
     /**

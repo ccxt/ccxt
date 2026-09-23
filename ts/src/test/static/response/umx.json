@@ -8,6 +8,240 @@
     ],
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "funding rate history",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000025812524441762",
+                            "fundingTime": "1790179200000",
+                            "markPrice": "2654.45"
+                        },
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000050730692116437",
+                            "fundingTime": "1790150400000",
+                            "markPrice": "2742.84"
+                        }
+                    ],
+                    "ts": "1790182604279"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000050730692116437",
+                            "fundingTime": "1790150400000",
+                            "markPrice": "2742.84"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": 5.0730692116437e-05,
+                        "timestamp": 1790150400000,
+                        "datetime": "2026-09-23T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000025812524441762",
+                            "fundingTime": "1790179200000",
+                            "markPrice": "2654.45"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": 2.5812524441762e-05,
+                        "timestamp": 1790179200000,
+                        "datetime": "2026-09-23T16:00:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "funding rate history since, until and limit",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1788220800000,
+                    2,
+                    {
+                        "until": 1788307200000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000012812411066422",
+                            "fundingTime": "1788307200000",
+                            "markPrice": "2417.73"
+                        },
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000030738121733626",
+                            "fundingTime": "1788278400000",
+                            "markPrice": "2448.63"
+                        },
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000083920525883979",
+                            "fundingTime": "1788249600000",
+                            "markPrice": "2471.67"
+                        },
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000057958689735993",
+                            "fundingTime": "1788220800000",
+                            "markPrice": "2466.06"
+                        }
+                    ],
+                    "ts": "1790182595736"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000057958689735993",
+                            "fundingTime": "1788220800000",
+                            "markPrice": "2466.06"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": 5.7958689735993e-05,
+                        "timestamp": 1788220800000,
+                        "datetime": "2026-09-01T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000083920525883979",
+                            "fundingTime": "1788249600000",
+                            "markPrice": "2471.67"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": 8.3920525883979e-05,
+                        "timestamp": 1788249600000,
+                        "datetime": "2026-09-01T08:00:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "funding rate history since and until",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1788220800000,
+                    null,
+                    {
+                        "until": 1788249600000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000083920525883979",
+                            "fundingTime": "1788249600000",
+                            "markPrice": "2471.67"
+                        },
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000057958689735993",
+                            "fundingTime": "1788220800000",
+                            "markPrice": "2466.06"
+                        }
+                    ],
+                    "ts": "1790182586862"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000057958689735993",
+                            "fundingTime": "1788220800000",
+                            "markPrice": "2466.06"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": 5.7958689735993e-05,
+                        "timestamp": 1788220800000,
+                        "datetime": "2026-09-01T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000083920525883979",
+                            "fundingTime": "1788249600000",
+                            "markPrice": "2471.67"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": 8.3920525883979e-05,
+                        "timestamp": 1788249600000,
+                        "datetime": "2026-09-01T08:00:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "funding rate history with limit",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000025812524441762",
+                            "fundingTime": "1790179200000",
+                            "markPrice": "2654.45"
+                        },
+                        {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000050730692116437",
+                            "fundingTime": "1790150400000",
+                            "markPrice": "2742.84"
+                        }
+                    ],
+                    "ts": "1790182579395"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000050730692116437",
+                            "fundingTime": "1790150400000",
+                            "markPrice": "2742.84"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": 5.0730692116437e-05,
+                        "timestamp": 1790150400000,
+                        "datetime": "2026-09-23T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-PERP",
+                            "fundingRate": "0.000025812524441762",
+                            "fundingTime": "1790179200000",
+                            "markPrice": "2654.45"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": 2.5812524441762e-05,
+                        "timestamp": 1790179200000,
+                        "datetime": "2026-09-23T16:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchIndexOHLCV": [
             {
                 "description": "index price ohlcv for a spot market",

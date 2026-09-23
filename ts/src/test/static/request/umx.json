@@ -8,6 +8,56 @@
     ],
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.umx.com/api/v1/market/fundingRate/history?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "funding rate history since, until and limit",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.umx.com/api/v1/market/fundingRate/history?symbol=ETH-USDT-PERP&endTime=1788307200000&beginTime=1788220800000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1788220800000,
+                    2,
+                    {
+                        "until": 1788307200000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "funding rate history since and until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.umx.com/api/v1/market/fundingRate/history?symbol=ETH-USDT-PERP&endTime=1788249600000&beginTime=1788220800000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1788220800000,
+                    null,
+                    {
+                        "until": 1788249600000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "funding rate history with limit",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.umx.com/api/v1/market/fundingRate/history?symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
         "fetchIndexOHLCV": [
             {
                 "description": "index price ohlcv for a spot market",
