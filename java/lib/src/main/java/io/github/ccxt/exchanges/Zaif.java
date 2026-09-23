@@ -370,7 +370,7 @@ public class Zaif extends ZaifApi
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
         String symbol = ((base + "/") + quote);
-        final Object finalBase = base;
+        final String finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
@@ -617,7 +617,7 @@ public class Zaif extends ZaifApi
         String amountString = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "currency_pair");
         String symbol = this.safeSymbol(marketId, market, "_");
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
@@ -810,7 +810,7 @@ public class Zaif extends ZaifApi
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "amount");
         String id = this.safeString2(order, "id", "order_id");
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -926,7 +926,7 @@ public class Zaif extends ZaifApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -997,7 +997,7 @@ public class Zaif extends ZaifApi
         Double feeCost = this.safeNumber(transaction, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             final Object finalCurrency = currency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );

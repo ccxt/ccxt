@@ -502,7 +502,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1211,7 +1211,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object trade = this.parseWsOrderTrade((Map<String, Object>) (order));
             ((List<Object>)trades).add(trade);
         }
-        final Object finalTrades = trades;
+        final List<Object> finalTrades = trades;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", Poloniex.this.safeSymbol(marketId, market) );

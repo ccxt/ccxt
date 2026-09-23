@@ -419,8 +419,8 @@ public class Bitbns extends BitbnsApi
                 // INR markets don't need a _INR prefix
                 String uppercaseId = ((Boolean.TRUE.equals(usdt))) ? (((baseId + "_") + quoteId)) : baseId;
     final Object finalBase = base;
-                final Object finalBaseId = baseId;
-                final Object finalQuoteId = quoteId;
+                final String finalBaseId = baseId;
+                final String finalQuoteId = quoteId;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "uppercaseId", uppercaseId );
@@ -790,8 +790,8 @@ public class Bitbns extends BitbnsApi
         {
             status = this.parseStatus(status);
         }
-        final Object finalSide = side;
-        final Object finalStatus = status;
+        final String finalSide = side;
+        final String finalStatus = status;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -1158,16 +1158,16 @@ public class Bitbns extends BitbnsApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             Object feeCurrencyCode = ((Map<String, Object>)market).get("quote");
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
             }};
         }
         final Object finalTimestamp = timestamp;
-        final Object finalSide = side;
-        final Object finalAmountString = amountString;
-        final Object finalCostString = costString;
+        final String finalSide = side;
+        final String finalAmountString = amountString;
+        final String finalCostString = costString;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1282,7 +1282,7 @@ public class Bitbns extends BitbnsApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1488,14 +1488,14 @@ public class Bitbns extends BitbnsApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
             }};
         }
-        final Object finalType = type;
-        final Object finalStatus = status;
+        final String finalType = type;
+        final String finalStatus = status;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -1624,7 +1624,7 @@ public class Bitbns extends BitbnsApi
             ((Map<String, Object>)headers).put("X-BITBNS-SIGNATURE", signature);
             ((Map<String, Object>)headers).put("Content-Type", "application/x-www-form-urlencoded");
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody_2 = body;
         final Object finalHeaders = headers;

@@ -496,7 +496,7 @@ public class Coinone extends CoinoneApi
         Boolean isWithdrawEnabled = java.util.Objects.equals(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
         Boolean isDepositEnabled = java.util.Objects.equals(this.safeString(rawCurrency, "deposit_status", ""), "normal");
         String type = (((!java.util.Objects.equals(code, "KRW")))) ? "crypto" : "fiat";
-        final Object finalCode = code;
+        final String finalCode = code;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", finalCode );
@@ -996,8 +996,8 @@ public class Coinone extends CoinoneApi
             String feeRateString = this.safeString(trade, "feeRate");
             feeRateString = Precise.stringAbs(feeRateString);
             Object feeCurrencyCode = (((java.util.Objects.equals(side, "sell")))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
-            final Object finalFeeCostString = feeCostString;
-            final Object finalFeeRateString = feeRateString;
+            final String finalFeeCostString = feeCostString;
+            final String finalFeeRateString = feeRateString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
@@ -1005,7 +1005,7 @@ public class Coinone extends CoinoneApi
             }};
         }
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Coinone.this.safeString(trade, "id") );
@@ -1119,7 +1119,7 @@ public class Coinone extends CoinoneApi
             // the v1 order/limit_buy and order/limit_sell endpoints were retired by
             // the exchange and return 404, the v2.1 order endpoint replaces them,
             // see https://github.com/ccxt/ccxt/issues/23174
-            final Object finalOrderType = orderType;
+            final String finalOrderType = orderType;
             final Object finalPrice = price;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "quote_currency", ((Map<String, Object>)market).get("quoteId") );
@@ -1313,7 +1313,7 @@ public class Coinone extends CoinoneApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCurrencyCode = (((java.util.Objects.equals(side, "sell")))) ? quote : base;
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "rate", Coinone.this.safeString2(order, "feeRate", "fee_rate") );
@@ -1321,11 +1321,11 @@ public class Coinone extends CoinoneApi
             }};
         }
         final Object finalTimestamp = timestamp;
-        final Object finalSymbol = symbol;
-        final Object finalSide = side;
-        final Object finalAmountString = amountString;
-        final Object finalRemainingString = remainingString;
-        final Object finalStatus = status;
+        final String finalSymbol = symbol;
+        final String finalSide = side;
+        final String finalAmountString = amountString;
+        final String finalRemainingString = remainingString;
+        final String finalStatus = status;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -1499,9 +1499,9 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            final Object finalPrice = price;
-            final Object finalQty = qty;
-            final Object finalIsAsk = isAsk;
+            final Double finalPrice = price;
+            final Double finalQty = qty;
+            final Long finalIsAsk = isAsk;
             final Object finalSymbol = symbol;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -1575,7 +1575,7 @@ public class Coinone extends CoinoneApi
                 if (java.util.Objects.equals(depositAddress, null))
                 {
                     final Object finalValue = value;
-                    final Object finalCode = code;
+                    final String finalCode = code;
                     depositAddress = new HashMap<String, Object>() {{
                         put( "info", finalValue );
                         put( "currency", finalCode );

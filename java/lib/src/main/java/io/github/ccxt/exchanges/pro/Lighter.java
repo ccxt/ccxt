@@ -266,7 +266,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -408,7 +408,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -442,7 +442,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Object> unWatchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -903,9 +903,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "rate", feeRate );
             }};
         }
-        final Object finalOrder = order;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalOrder = order;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );

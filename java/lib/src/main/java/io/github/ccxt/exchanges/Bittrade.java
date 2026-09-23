@@ -986,10 +986,10 @@ public class Bittrade extends BittradeApi
         String close = this.safeString(ticker, "close");
         String baseVolume = this.safeString(ticker, "amount");
         String quoteVolume = this.safeString(ticker, "vol");
-        final Object finalBid = bid;
-        final Object finalBidVolume = bidVolume;
-        final Object finalAsk = ask;
-        final Object finalAskVolume = askVolume;
+        final String finalBid = bid;
+        final String finalBidVolume = bidVolume;
+        final String finalAsk = ask;
+        final String finalAskVolume = askVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1235,8 +1235,8 @@ public class Bittrade extends BittradeApi
         }
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCost = feeCost;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", finalFeeCurrency );
@@ -1244,8 +1244,8 @@ public class Bittrade extends BittradeApi
         }
         String tradeId = this.safeString2(trade, "trade-id", "tradeId");
         String id = this.safeString(trade, "id", tradeId);
-        final Object finalType = type;
-        final Object finalSide = side;
+        final String finalType = type;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1583,8 +1583,8 @@ public class Bittrade extends BittradeApi
         Boolean active = (java.util.Objects.equals(visible, true)) && (java.util.Objects.equals(depositEnabled, true)) && (java.util.Objects.equals(withdrawEnabled, true)) && (java.util.Objects.equals(state, "online")) && (!java.util.Objects.equals(countryDisabled, true));
         String name = this.safeString(currency, "display-name");
         Double precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
-        final Object finalDepositEnabled = depositEnabled;
-        final Object finalWithdrawEnabled = withdrawEnabled;
+        final Boolean finalDepositEnabled = depositEnabled;
+        final Boolean finalWithdrawEnabled = withdrawEnabled;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
@@ -2012,7 +2012,7 @@ public class Bittrade extends BittradeApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             Object feeCurrency = (((java.util.Objects.equals(side, "sell")))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrency );
@@ -2021,7 +2021,7 @@ public class Bittrade extends BittradeApi
         final Object finalMarket = market;
         final Object finalType = type;
         final Object finalSide = side;
-        final Object finalStatus = status;
+        final String finalStatus = status;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -2602,7 +2602,7 @@ public class Bittrade extends BittradeApi
         {
             feeCost = Precise.stringAbs(feeCost);
         }
-        final Object finalType = type;
+        final String finalType = type;
         final Object finalFeeCost = feeCost;
         return new HashMap<String, Object>() {{
             put( "info", transaction );

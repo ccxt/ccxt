@@ -148,7 +148,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             String auth = (((timestamp + this.apiKey) + "CBINTLMD") + this.password);
             String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalName = name;
-            final Object finalTimestamp = timestamp;
+            final String finalTimestamp = timestamp;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "channels", new ArrayList<Object>(Arrays.asList(finalName)) );
@@ -216,7 +216,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             String timestamp = this.numberToString(this.seconds());
             String auth = ((Helpers.add(timestamp, this.apiKey) + "CBINTLMD") + this.password);
             String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
-            final Object finalTimestamp = timestamp;
+            final String finalTimestamp = timestamp;
             final Object finalName = name;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
@@ -574,7 +574,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";

@@ -467,12 +467,12 @@ public class Bitflyer extends BitflyerApi
                     }
                 }
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalSettle = settle;
+                final String finalBase = base;
+                final String finalSettle = settle;
                 final Object finalBaseId = baseId;
                 final Object finalQuoteId = quoteId;
-                final Object finalType = type;
-                final Object finalSwap = swap;
+                final String finalType = type;
+                final Boolean finalSwap = swap;
                 final Object finalTaker = taker;
                 final Object finalMaker = maker;
                 final Object finalExpiry = expiry;
@@ -744,7 +744,7 @@ public class Bitflyer extends BitflyerApi
         market = this.safeMarket(null, market);
         final Object finalMarket = market;
         final Object finalOrder = order;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
@@ -966,7 +966,7 @@ public class Bitflyer extends BitflyerApi
         Double feeCost = this.safeNumber(order, "total_commission");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", null );
@@ -1254,7 +1254,7 @@ public class Bitflyer extends BitflyerApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1476,8 +1476,8 @@ public class Bitflyer extends BitflyerApi
             type = "deposit";
             status = this.parseDepositStatus(rawStatus);
         }
-        final Object finalType = type;
-        final Object finalStatus = status;
+        final String finalType = type;
+        final String finalStatus = status;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );

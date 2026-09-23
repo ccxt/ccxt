@@ -62,7 +62,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
     public CompletableFuture<Object> watchPublicMultiple(Object symbols2, String channel2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        final Object channel3 = channel2;
+        final String channel3 = channel2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object channel = channel3;
@@ -475,7 +475,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
 
     public CompletableFuture<Object> watchPrivate(String symbol2, Object channel2, Object messageHash2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         final Object channel3 = channel2;
         final Object messageHash3 = messageHash2;
         return BaseExchange.supplyAsync(() -> {
@@ -673,14 +673,14 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         if (!java.util.Objects.equals(feeCost, null))
         {
             final Object finalMarket = market;
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
                 put( "cost", finalFeeCost );
             }};
         }
         final Object finalMarket_2 = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -728,14 +728,14 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         if (!java.util.Objects.equals(feeCost, null))
         {
             final Object finalMarket = market;
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
                 put( "cost", finalFeeCost );
             }};
         }
         final Object finalMarket_2 = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Upbit.this.safeString(trade, "trade_uuid") );

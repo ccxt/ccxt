@@ -409,7 +409,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Coinone.this.safeString(trade, "id") );
             put( "info", trade );

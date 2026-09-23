@@ -554,7 +554,7 @@ public class Deepcoin extends DeepcoinApi
         String type = this.safeString(parameters, "type");
         if ((java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(instType, null)))
         {
-            final Object finalInstType = instType;
+            final String finalInstType = instType;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "type", finalInstType );
             }});
@@ -727,13 +727,13 @@ public class Deepcoin extends DeepcoinApi
         String state = this.safeString(market, "state");
         Boolean isMargin = Boolean.TRUE.equals(spot) && (Precise.stringGt(maxLeverage, "1"));
         Object isInverse = ((Boolean.TRUE.equals(swap))) ? (!java.util.Objects.equals(isLinear, true)) : null;
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalQuoteId = quoteId;
-        final Object finalSettleId = settleId;
-        final Object finalType = type;
-        final Object finalSpot = spot;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalQuoteId = quoteId;
+        final String finalSettleId = settleId;
+        final String finalType = type;
+        final Boolean finalSpot = spot;
         final Object finalState = state;
         final Object finalIsLinear = isLinear;
         final Object finalMaxLeverage = maxLeverage;
@@ -1190,7 +1190,7 @@ public class Deepcoin extends DeepcoinApi
         {
             String feeCurrencyId = this.safeString(trade, "feeCcy");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrencyCode );
@@ -2891,7 +2891,7 @@ public class Deepcoin extends DeepcoinApi
             merged = ((List<Object>) mergedparametersVariable).get(0);
             parameters = ((List<Object>) mergedparametersVariable).get(1);
             Object isMergedMode = ((Boolean.TRUE.equals(merged))) ? 1 : 0;
-            final Object finalEncodedMarginMode = encodedMarginMode;
+            final Integer finalEncodedMarginMode = encodedMarginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "InstrumentID", ((Map<String, Object>)market).get("id") );
                 put( "ProductGroup", productGroup );
@@ -2924,7 +2924,7 @@ public class Deepcoin extends DeepcoinApi
      */
     public CompletableFuture<Order> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3134,7 +3134,7 @@ public class Deepcoin extends DeepcoinApi
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
         final Object finalOrderType = orderType;
-        final Object finalAverage = average;
+        final String finalAverage = average;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Deepcoin.this.safeString(order, "ordId") );
@@ -3474,7 +3474,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 throw new BadRequest((this.id + " fetchFundingRates() subType parameter must be either linear or inverse")) ;
             }
-            final Object finalInstType = instType;
+            final String finalInstType = instType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
             }};
@@ -3890,7 +3890,7 @@ public class Deepcoin extends DeepcoinApi
             Long timestamp = this.milliseconds();
             String dateTime = this.iso8601(timestamp);
             Object payload = Helpers.add(((dateTime + method) + "/"), requestPath);
-            final Object finalDateTime = dateTime;
+            final String finalDateTime = dateTime;
             headers = new HashMap<String, Object>() {{
                 put( "DC-ACCESS-KEY", Deepcoin.this.apiKey );
                 put( "DC-ACCESS-TIMESTAMP", finalDateTime );

@@ -299,8 +299,8 @@ public class Mudrex extends MudrexApi
                 }
                 if ((java.util.Objects.equals(methodUpper, "DELETE")) && this.isEmpty(query))
                 {
-                    final Object finalUrl = url;
-                    final Object finalMethodUpper = methodUpper;
+                    final String finalUrl = url;
+                    final String finalMethodUpper = methodUpper;
                     final Object finalRequestHeaders = requestHeaders;
                     return new HashMap<String, Object>() {{
                         put( "url", finalUrl );
@@ -310,8 +310,8 @@ public class Mudrex extends MudrexApi
                     }};
                 }
                 String bodyStr = this.json(query);
-                final Object finalUrl_2 = url;
-                final Object finalMethodUpper_2 = methodUpper;
+                final String finalUrl_2 = url;
+                final String finalMethodUpper_2 = methodUpper;
                 final Object finalRequestHeaders_2 = requestHeaders;
                 return new HashMap<String, Object>() {{
                     put( "url", finalUrl_2 );
@@ -325,8 +325,8 @@ public class Mudrex extends MudrexApi
         {
             url = (url + ("?" + this.urlencode(query)));
         }
-        final Object finalUrl_3 = url;
-        final Object finalMethodUpper_3 = methodUpper;
+        final String finalUrl_3 = url;
+        final String finalMethodUpper_3 = methodUpper;
         final Object finalRequestHeaders_3 = requestHeaders;
         return new HashMap<String, Object>() {{
             put( "url", finalUrl_3 );
@@ -707,8 +707,8 @@ public class Mudrex extends MudrexApi
         }
         String priceStep = this.safeString(asset, "price_step", "0.01");
         String qtyStep = this.safeString(asset, "quantity_step", "0.001");
-        final Object finalMs = ms;
-        final Object finalSymbol = symbol;
+        final String finalMs = ms;
+        final String finalSymbol = symbol;
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalMs );
@@ -967,7 +967,7 @@ public class Mudrex extends MudrexApi
                     throw new ArgumentsRequired((this.id + " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
                 }
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "positionId", "position_id")));
-                final Object finalPositionId = positionId;
+                final String finalPositionId = positionId;
                 Map<String, Object> riskRequest = new HashMap<String, Object>() {{
                     put( "position_id", finalPositionId );
                 }};
@@ -1048,7 +1048,7 @@ public class Mudrex extends MudrexApi
      */
     public CompletableFuture<Order> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1145,12 +1145,12 @@ public class Mudrex extends MudrexApi
         Long ts = this.parse8601(this.safeString(order, "created_at"));
         String status = this.parseOrderStatus(this.safeStringLower(order, "status"));
         Object sym = ((Map<String, Object>)market).get("symbol");
-        final Object finalTyp = typ;
-        final Object finalSide = side;
-        final Object finalOrderPrice = orderPrice;
-        final Object finalTriggerPrice = triggerPrice;
-        final Object finalStopLossPrice = stopLossPrice;
-        final Object finalTakeProfitPrice = takeProfitPrice;
+        final String finalTyp = typ;
+        final String finalSide = side;
+        final String finalOrderPrice = orderPrice;
+        final String finalTriggerPrice = triggerPrice;
+        final String finalStopLossPrice = stopLossPrice;
+        final String finalTakeProfitPrice = takeProfitPrice;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", oid );
@@ -1518,7 +1518,7 @@ public class Mudrex extends MudrexApi
         }
         String initialMargin = this.safeString(position, "initial_margin");
         final Object finalTs = ts;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalMarket = market;
         final Object finalNotional = notional;
         return new HashMap<String, Object>() {{
@@ -1597,7 +1597,7 @@ public class Mudrex extends MudrexApi
             {
                 throw new OrderNotFound((this.id + " closePosition() could not resolve position_id")) ;
             }
-            final Object finalPositionId = positionId;
+            final String finalPositionId = positionId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "position_id", finalPositionId );
             }};
@@ -1661,7 +1661,7 @@ public class Mudrex extends MudrexApi
             {
                 throw new OrderNotFound((this.id + " addMargin() could not resolve position_id")) ;
             }
-            final Object finalPositionId = positionId;
+            final String finalPositionId = positionId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "position_id", finalPositionId );
                 put( "margin", Mudrex.this.costToPrecision(symbol, amount) );
@@ -1873,14 +1873,14 @@ public class Mudrex extends MudrexApi
         }
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", Mudrex.this.safeString(trade, "trade_currency") );
             }};
         }
-        final Object finalTradeSide = tradeSide;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTradeSide = tradeSide;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1913,7 +1913,7 @@ public class Mudrex extends MudrexApi
      */
     public CompletableFuture<TransferEntry> transfer(String code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

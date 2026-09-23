@@ -1421,15 +1421,15 @@ public class Aster extends AsterApi
             pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
         }
         Object amountPrecision = (((!java.util.Objects.equals(filterLotSize, null)))) ? this.safeNumber(filterLotSize, "stepSize") : this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalSettleId = settleId;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalSettleId = settleId;
         final Object finalSpot = spot;
         final Object finalSwap = swap;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
-        final Object finalContractSize = contractSize;
+        final Double finalContractSize = contractSize;
         final Object finalPricePrecision = pricePrecision;
         final Object finalFilterLotSize = filterLotSize;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -1710,8 +1710,8 @@ public class Aster extends AsterApi
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
         }
         final Object finalMarket = market;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
@@ -2356,7 +2356,7 @@ public class Aster extends AsterApi
         {
             intervalString = (interval + "h");
         }
-        final Object finalIntervalString = intervalString;
+        final String finalIntervalString = intervalString;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", Aster.this.safeSymbol(marketId, market, null, "contract") );
@@ -2390,7 +2390,7 @@ public class Aster extends AsterApi
      */
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -3912,8 +3912,8 @@ public class Aster extends AsterApi
         {
             shortLeverage = leverageValue;
         }
-        final Object finalLongLeverage = longLeverage;
-        final Object finalShortLeverage = shortLeverage;
+        final Long finalLongLeverage = longLeverage;
+        final Long finalShortLeverage = shortLeverage;
         return new HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", Aster.this.safeSymbol(marketId, market) );
@@ -4297,7 +4297,7 @@ public class Aster extends AsterApi
         currency = this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(item, "time");
         String type = this.safeString(item, "incomeType");
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalAmount = amount;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -4564,8 +4564,8 @@ public class Aster extends AsterApi
         final Object finalInitialMarginString = initialMarginString;
         final Object finalInitialMarginPercentageString = initialMarginPercentageString;
         final Object finalMarginRatio = marginRatio;
-        final Object finalMarginMode = marginMode;
-        final Object finalSide = side;
+        final String finalMarginMode = marginMode;
+        final String finalSide = side;
         final Object finalPercentage = percentage;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
@@ -4919,12 +4919,12 @@ public class Aster extends AsterApi
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
         final Object finalTimestamp = timestamp;
         final Object finalInitialMarginPercentageString = initialMarginPercentageString;
-        final Object finalEntryPrice = entryPrice;
+        final Double finalEntryPrice = entryPrice;
         final Object finalLeverageString = leverageString;
         final Object finalMarginRatio = marginRatio;
         final Object finalLiquidationPrice = liquidationPrice;
-        final Object finalMarginMode = marginMode;
-        final Object finalSide = side;
+        final String finalMarginMode = marginMode;
+        final String finalSide = side;
         final Object finalPercentage = percentage;
         return new HashMap<String, Object>() {{
             put( "info", position );
@@ -5363,7 +5363,7 @@ public class Aster extends AsterApi
             // Build v3 params: original endpoint params + nonce (microseconds) + user + signer
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             final Object finalWalletAddress = walletAddress;
-            final Object finalSignerAddress = signerAddress;
+            final String finalSignerAddress = signerAddress;
             Object finalParams = this.extend(new HashMap<String, Object>() {{
                 put( "nonce", String.valueOf(nonce) );
                 put( "user", finalWalletAddress );
@@ -5402,7 +5402,7 @@ public class Aster extends AsterApi
             } else
             {
                 paramString = this.encodeValuesWithJson((Map<String, Object>) (finalParams));
-                final Object finalParamString = paramString;
+                final String finalParamString = paramString;
                 paramsToEncode = new HashMap<String, Object>() {{
                     put( "msg", finalParamString );
                 }};

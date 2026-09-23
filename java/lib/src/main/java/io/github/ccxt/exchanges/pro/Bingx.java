@@ -125,7 +125,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     public CompletableFuture<Object> unWatch(Object messageHash, Object subMessageHash, Object subscribeHash, Object dataType, Object topic, Map<String, Object> market2, Object methodName, Object... optionalArgs)
     {
-        final Object market3 = market2;
+        final Map<String, Object> market3 = market2;
         return BaseExchange.supplyAsync(() -> {
             Object market = market3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -454,7 +454,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1633,9 +1633,9 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
         String marginMode = this.safeString(position, "mt");
         Double collateral = (((java.util.Objects.equals(marginMode, "isolated")))) ? this.safeNumber(position, "iw") : null;
-        final Object finalMarginMode = marginMode;
-        final Object finalPositionSide = positionSide;
-        final Object finalHedged = hedged;
+        final String finalMarginMode = marginMode;
+        final String finalPositionSide = positionSide;
+        final Boolean finalHedged = hedged;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );

@@ -1238,8 +1238,8 @@ public class Toobit extends ToobitApi
         {
             symbol = (symbol + (":" + settle));
         }
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
         final Object finalInverse = inverse;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
@@ -1486,7 +1486,7 @@ public class Toobit extends ToobitApi
         Object fee = null;
         if (!java.util.Objects.equals(feeAmount, null))
         {
-            final Object finalFeeAmount = feeAmount;
+            final String finalFeeAmount = feeAmount;
             fee = new HashMap<String, Object>() {{
                 put( "currency", Toobit.this.safeCurrencyCode(feeCurrencyId) );
                 put( "cost", finalFeeAmount );
@@ -1500,8 +1500,8 @@ public class Toobit extends ToobitApi
         }
         market = this.safeMarket(null, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1682,7 +1682,7 @@ public class Toobit extends ToobitApi
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(((Map<String, Object>)market).get("contractSize")));
         }
         final Object finalMarket = market;
-        final Object finalBaseVolume = baseVolume;
+        final String finalBaseVolume = baseVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", timestamp );
@@ -2374,7 +2374,7 @@ public class Toobit extends ToobitApi
         }
         final Object finalMarket = market;
         final Object finalRawType = rawType;
-        final Object finalRawSideLower = rawSideLower;
+        final String finalRawSideLower = rawSideLower;
         final Object finalTriggerPrice = triggerPrice;
         final Object finalReduceOnly = reduceOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -3073,7 +3073,7 @@ public class Toobit extends ToobitApi
         {
             direction = "out";
         }
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalCurrency = currency;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -3232,8 +3232,8 @@ public class Toobit extends ToobitApi
 
     public CompletableFuture<Object> fetchDepositsOrWithdrawalsHelper(String type2, String code2, Object since2, Object limit2, Object... optionalArgs)
     {
-        final Object type3 = type2;
-        final Object code3 = code2;
+        final String type3 = type2;
+        final String code3 = code2;
         final Object since3 = since2;
         final Object limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {

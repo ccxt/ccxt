@@ -91,7 +91,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -167,7 +167,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";

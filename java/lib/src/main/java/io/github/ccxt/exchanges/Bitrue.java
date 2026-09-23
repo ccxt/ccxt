@@ -1138,18 +1138,18 @@ public class Bitrue extends BitrueApi
             minCost = this.safeNumber(market, "minOrderMoney");
         }
         Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalBaseId = baseId;
-        final Object finalQuoteId = quoteId;
-        final Object finalSettleId = settleId;
-        final Object finalType = type;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalBaseId = baseId;
+        final String finalQuoteId = quoteId;
+        final String finalSettleId = settleId;
+        final String finalType = type;
         final Object finalStatus = status;
         final Object finalIsLinear = isLinear;
         final Object finalIsInverse = isInverse;
-        final Object finalMaxQuantity = maxQuantity;
-        final Object finalMinCost = minCost;
+        final Double finalMaxQuantity = maxQuantity;
+        final Double finalMinCost = minCost;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "lowercaseId", lowercaseId );
@@ -1471,7 +1471,7 @@ public class Bitrue extends BitrueApi
         {
             percentage = this.safeString(ticker, "priceChangePercent");
         }
-        final Object finalPercentage = percentage;
+        final String finalPercentage = percentage;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -2008,8 +2008,8 @@ public class Bitrue extends BitrueApi
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -2204,10 +2204,10 @@ public class Bitrue extends BitrueApi
         }
         Double triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "stopPrice")));
         final Object finalTimestamp = timestamp;
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
-        final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalStatus = status;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
+        final String finalType = type;
+        final String finalTimeInForce = timeInForce;
+        final String finalStatus = status;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -2305,7 +2305,7 @@ public class Bitrue extends BitrueApi
             Object data = new HashMap<String, Object>() {{}};
             String uppercaseType = ((String)type).toUpperCase();
             final Object finalSide = side;
-            final Object finalUppercaseType = uppercaseType;
+            final String finalUppercaseType = uppercaseType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", ((String)((String)finalSide)).toUpperCase() );
                 put( "type", finalUppercaseType );
@@ -3260,17 +3260,17 @@ public class Bitrue extends BitrueApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
             }};
         }
         final Object finalNetwork = network;
-        final Object finalAddressTo = addressTo;
-        final Object finalAddressFrom = addressFrom;
-        final Object finalTagTo = tagTo;
-        final Object finalTagFrom = tagFrom;
+        final String finalAddressTo = addressTo;
+        final String finalAddressFrom = addressFrom;
+        final String finalTagTo = tagTo;
+        final String finalTagFrom = tagFrom;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3474,8 +3474,8 @@ public class Bitrue extends BitrueApi
             toAccount = this.safeString(accountSplit, 1);
         }
         Long timestamp = this.safeInteger(transfer, "ctime");
-        final Object finalFromAccount = fromAccount;
-        final Object finalToAccount = toAccount;
+        final String finalFromAccount = fromAccount;
+        final String finalToAccount = toAccount;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
@@ -3805,7 +3805,7 @@ public class Bitrue extends BitrueApi
                         signMessage = (signMessage + ("?" + this.urlencode(parameters)));
                     }
                     String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
-                    final Object finalTimestamp = timestamp;
+                    final String finalTimestamp = timestamp;
                     headers = new HashMap<String, Object>() {{
                         put( "X-CH-APIKEY", Bitrue.this.apiKey );
                         put( "X-CH-SIGN", signature );
@@ -3820,7 +3820,7 @@ public class Bitrue extends BitrueApi
                     body = this.json(query);
                     signMessage = Helpers.add(signMessage, body);
                     String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
-                    final Object finalTimestamp_2 = timestamp;
+                    final String finalTimestamp_2 = timestamp;
                     headers = new HashMap<String, Object>() {{
                         put( "Content-Type", "application/json" );
                         put( "X-CH-APIKEY", Bitrue.this.apiKey );

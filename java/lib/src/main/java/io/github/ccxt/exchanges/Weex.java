@@ -1287,9 +1287,9 @@ public class Weex extends WeexApi
             throw new ExchangeError((this.id + " method() missing id")) ;
         }
         final Object finalId = id;
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
         final Object finalIsSpot = isSpot;
         final Object finalActive = active;
         final Object finalIsLinear = isLinear;
@@ -1579,7 +1579,7 @@ public class Weex extends WeexApi
         Long timestamp = (Long) this.safeInteger2(ticker, "closeTime", "time");
         String percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         final Object finalMarket = market;
-        final Object finalMarkPrice = markPrice;
+        final String finalMarkPrice = markPrice;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", timestamp );
@@ -2183,7 +2183,7 @@ public class Weex extends WeexApi
                     feeCurrency = ((Map<String, Object>)market).get("quote");
                 }
             }
-            final Object finalCommission = commission;
+            final String finalCommission = commission;
             final Object finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalCommission );
@@ -2200,8 +2200,8 @@ public class Weex extends WeexApi
             takerOrMaker = "taker";
         }
         final Object finalMarket = market;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -4398,7 +4398,7 @@ public class Weex extends WeexApi
                 rawType = "transfer";
             }
         }
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalRawType = rawType;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -4750,7 +4750,7 @@ public class Weex extends WeexApi
         String size = this.safeString(position, "size");
         String entryPrice = Precise.stringDiv(notional, size);
         final Object finalMarket = market;
-        final Object finalMarginMode = marginMode;
+        final String finalMarginMode = marginMode;
         final Object finalHedged = hedged;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -5122,9 +5122,9 @@ public class Weex extends WeexApi
             longLeverage = crossLeverage;
             shortLeverage = crossLeverage;
         }
-        final Object finalMarginMode = marginMode;
-        final Object finalLongLeverage = longLeverage;
-        final Object finalShortLeverage = shortLeverage;
+        final String finalMarginMode = marginMode;
+        final Double finalLongLeverage = longLeverage;
+        final Double finalShortLeverage = shortLeverage;
         return new HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", Weex.this.safeSymbol(marketId, market, null, "swap") );
@@ -5299,7 +5299,7 @@ public class Weex extends WeexApi
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("positionId", "id")));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalIsolatedPositionId = isolatedPositionId;
+            final String finalIsolatedPositionId = isolatedPositionId;
             final Object finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "isolatedPositionId", finalIsolatedPositionId );
@@ -5473,7 +5473,7 @@ public class Weex extends WeexApi
                 payload = Helpers.add(payload, body);
             }
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
-            final Object finalTimestamp = timestamp;
+            final String finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{
                 put( "ACCESS-KEY", Weex.this.apiKey );
                 put( "ACCESS-SIGN", signature );

@@ -443,7 +443,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -946,7 +946,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1097,13 +1097,13 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Double feeCost = this.safeNumber(trade, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", Woo.this.safeCurrencyCode(Woo.this.safeString(trade, "feeCurrency")) );
             }};
         }
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Woo.this.safeString(trade, "tradeId") );
@@ -1405,8 +1405,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Object trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
         String triggerPrice = this.safeString(order, "triggerPrice");
-        final Object finalPrice = price;
-        final Object finalAvgPrice = avgPrice;
+        final Double finalPrice = price;
+        final Double finalAvgPrice = avgPrice;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
@@ -1844,7 +1844,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
      */
     public CompletableFuture<FundingRate> watchFundingRate(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

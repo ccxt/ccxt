@@ -1103,13 +1103,13 @@ public class Delta extends DeltaApi
                 }
                 String state = this.safeString(market, "state");
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalSettle = settle;
-                final Object finalType = type;
-                final Object finalSwap = swap;
-                final Object finalFuture = future;
+                final String finalBase = base;
+                final String finalSettle = settle;
+                final String finalType = type;
+                final Boolean finalSwap = swap;
+                final Boolean finalFuture = future;
                 final Object finalState = state;
-                final Object finalOptionType = optionType;
+                final String finalOptionType = optionType;
                 final Object finalAmountPrecision = amountPrecision;
                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -1783,15 +1783,15 @@ public class Delta extends DeltaApi
             Map<String, Object> settlingAsset = (Map<String, Object>) this.safeDict(product, "settling_asset", new HashMap<String, Object>() {{}});
             String feeCurrencyId = this.safeString(settlingAsset, "symbol");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
             }};
         }
         final Object finalTimestamp = timestamp;
-        final Object finalType = type;
-        final Object finalSide = side;
+        final String finalType = type;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -2144,7 +2144,7 @@ public class Delta extends DeltaApi
         }
         final Object finalSizeString = sizeString;
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -2285,15 +2285,15 @@ public class Delta extends DeltaApi
                 String feeCurrencyId = this.safeString(settlingAsset, "symbol");
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             }
-            final Object finalFeeCostString = feeCostString;
-            final Object finalFeeCurrencyCode = feeCurrencyCode;
+            final String finalFeeCostString = feeCostString;
+            final String finalFeeCurrencyCode = feeCurrencyCode;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", finalFeeCurrencyCode );
             }};
         }
         final Object finalTimestamp = timestamp;
-        final Object finalType = type;
+        final String finalType = type;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -2964,7 +2964,7 @@ public class Delta extends DeltaApi
         String after = this.safeString(item, "balance");
         String before = Precise.stringMax("0", Precise.stringSub(after, amount));
         String status = "ok";
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalType = type;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -4042,7 +4042,7 @@ public class Delta extends DeltaApi
      */
     public CompletableFuture<MarginMode> fetchMarginMode(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

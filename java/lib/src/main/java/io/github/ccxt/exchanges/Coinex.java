@@ -1294,7 +1294,7 @@ public class Coinex extends CoinexApi
             {
                 continue;
             }
-            final Object finalNetworkId = networkId;
+            final String finalNetworkId = networkId;
             final Object finalNetworkCode = networkCode;
             Map<String, Object> network = new HashMap<String, Object>() {{
                 put( "id", finalNetworkId );
@@ -1965,7 +1965,7 @@ public class Coinex extends CoinexApi
         {
             String feeCurrencyId = this.safeString(trade, "fee_ccy");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
@@ -2753,10 +2753,10 @@ public class Coinex extends CoinexApi
         {
             clientOrderId = null;
         }
-        final Object finalClientOrderId = clientOrderId;
-        final Object finalUpdatedTimestamp = updatedTimestamp;
+        final String finalClientOrderId = clientOrderId;
+        final Long finalUpdatedTimestamp = updatedTimestamp;
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalFeeCurrency = feeCurrency;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Coinex.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("position_id", "order_id", "stop_id"))) );
@@ -3282,7 +3282,7 @@ public class Coinex extends CoinexApi
      */
     public CompletableFuture<Order> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3404,7 +3404,7 @@ public class Coinex extends CoinexApi
                 {
                     market_type = "MARGIN";
                 }
-                final Object finalMarket_type = market_type;
+                final String finalMarket_type = market_type;
                 Map<String, Object> orderRequest = new HashMap<String, Object>() {{
                     put( "order_id", Coinex.this.parseToNumeric(id) );
                     put( "market", ((Map<String, Object>)market).get("id") );
@@ -4365,7 +4365,7 @@ public class Coinex extends CoinexApi
                 throw new BadRequest(((((this.id + " setMarginMode() leverage should be between 1 and ") + String.valueOf(maxLeverage)) + " for ") + symbol)) ;
             }
             final Object finalMarginMode = marginMode;
-            final Object finalLeverage = leverage;
+            final Long finalLeverage = leverage;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "market_type", "FUTURES" );
@@ -4522,7 +4522,7 @@ final Object finalI = i;
 
     public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String addOrReduce2, Object... optionalArgs)
     {
-        final Object addOrReduce3 = addOrReduce2;
+        final String addOrReduce3 = addOrReduce2;
         return BaseExchange.supplyAsync(() -> {
             Object addOrReduce = addOrReduce3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -5272,11 +5272,11 @@ final Object finalI = i;
             put( "cost", Coinex.this.parseNumber(finalFeeCost) );
             put( "currency", Coinex.this.safeCurrencyCode(feeCurrencyId) );
         }};
-        final Object finalTxid = txid;
-        final Object finalTag = tag;
-        final Object finalType = type;
-        final Object finalAmount = amount;
-        final Object finalRemark = remark;
+        final String finalTxid = txid;
+        final String finalTag = tag;
+        final String finalType = type;
+        final Double finalAmount = amount;
+        final String finalRemark = remark;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Coinex.this.safeString2(transaction, "withdraw_id", "deposit_id") );
@@ -5656,8 +5656,8 @@ final Object finalI = i;
             quoteRate = rate;
         }
         final Object finalMarket = market;
-        final Object finalBaseRate = baseRate;
-        final Object finalQuoteRate = quoteRate;
+        final Double finalBaseRate = baseRate;
+        final Double finalQuoteRate = quoteRate;
         return new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "base", ((Map<String, Object>)finalMarket).get("base") );
@@ -6503,7 +6503,7 @@ final Object finalI = i;
         if (java.util.Objects.equals(requestUrl, "perpetualPrivate"))
         {
             this.checkRequiredCredentials();
-            final Object finalNonce = nonce;
+            final String finalNonce = nonce;
             query = this.extend(new HashMap<String, Object>() {{
                 put( "access_id", Coinex.this.apiKey );
                 put( "timestamp", finalNonce );
@@ -6534,7 +6534,7 @@ final Object finalI = i;
             if (java.util.Objects.equals(version, "v1"))
             {
                 this.checkRequiredCredentials();
-                final Object finalNonce_2 = nonce;
+                final String finalNonce_2 = nonce;
                 query = this.extend(new HashMap<String, Object>() {{
                     put( "access_id", Coinex.this.apiKey );
                     put( "tonce", finalNonce_2 );
@@ -6569,7 +6569,7 @@ final Object finalI = i;
                 }
                 preparedString = (preparedString + (nonce + this.secret));
                 Object signature = this.hash(this.encode(preparedString), sha256());
-                final Object finalNonce_3 = nonce;
+                final String finalNonce_3 = nonce;
                 headers = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
                     put( "Accept", "application/json" );
@@ -6586,7 +6586,7 @@ final Object finalI = i;
                 }
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
@@ -6656,7 +6656,7 @@ final Object finalI = i;
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory() requires a positionId parameter")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalPositionId = positionId;
+            final Long finalPositionId = positionId;
             Object request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "market_type", "FUTURES" );

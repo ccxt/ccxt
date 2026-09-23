@@ -318,7 +318,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 messageHash = (messageHash + ":swap");
             }
-            final Object finalCurrencies = currencies;
+            final List<Object> finalCurrencies = currencies;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "balance.subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -711,7 +711,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }};
         }
         final Object finalMarket = market;
-        final Object finalFee = fee;
+        final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Coinex.this.safeString(trade, "deal_id") );
             put( "info", trade );
@@ -1164,8 +1164,8 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 method = "order.subscribe";
             }
-            final Object finalMethod = method;
-            final Object finalMarketList = marketList;
+            final String finalMethod = method;
+            final List<Object> finalMarketList = marketList;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "method", finalMethod );
                 put( "params", new HashMap<String, Object>() {{

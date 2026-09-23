@@ -170,7 +170,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -326,7 +326,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -778,9 +778,9 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             symbol = Helpers.add((quote + "/"), base);
             amount = Precise.stringDiv(amount, price); // due to rounding errors amount in not exact to trade
         }
-        final Object finalSymbol = symbol;
-        final Object finalSide = side;
-        final Object finalAmount = amount;
+        final String finalSymbol = symbol;
+        final String finalSide = side;
+        final String finalAmount = amount;
         Map<String, Object> parsedTrade = new HashMap<String, Object>() {{
             put( "id", Cex.this.safeString(trade, "id") );
             put( "order", Cex.this.safeString(trade, "order") );
@@ -799,8 +799,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         String fee = this.safeString(trade, "fee_amount");
         if (!java.util.Objects.equals(fee, null))
         {
-            final Object finalFee = fee;
-            final Object finalQuote = quote;
+            final String finalFee = fee;
+            final String finalQuote = quote;
             ((Map<String, Object>)parsedTrade).put("fee", new HashMap<String, Object>() {{
     put( "cost", finalFee );
     put( "currency", finalQuote );
@@ -922,7 +922,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Double fee = this.safeNumber(data, "fee");
         if (!java.util.Objects.equals(fee, null))
         {
-            final Object finalFee = fee;
+            final Double finalFee = fee;
             Helpers.addElementToObject(order, "fee", new HashMap<String, Object>() {{
     put( "cost", finalFee );
     put( "currency", quote );
@@ -1029,10 +1029,10 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             status = "closed";
         }
         final Object finalTimestamp = timestamp;
-        final Object finalStatus = status;
-        final Object finalSymbol = symbol;
-        final Object finalRemaining = remaining;
-        final Object finalQuote = quote;
+        final String finalStatus = status;
+        final String finalSymbol = symbol;
+        final String finalRemaining = remaining;
+        final String finalQuote = quote;
         Map<String, Object> parsedOrder = new HashMap<String, Object>() {{
             put( "id", Cex.this.safeString2(order, "id", "order") );
             put( "clientOrderId", null );
@@ -1140,7 +1140,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1290,7 +1290,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -1865,7 +1865,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 String nonce = String.valueOf(this.seconds());
                 String auth = (nonce + this.apiKey);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                final Object finalNonce = nonce;
+                final String finalNonce = nonce;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "e", "auth" );
                     put( "auth", new HashMap<String, Object>() {{

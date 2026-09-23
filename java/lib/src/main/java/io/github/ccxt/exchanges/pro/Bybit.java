@@ -459,7 +459,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1541,7 +1541,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String price = this.safeString(trade, "p");
         String amount = this.safeString2(trade, "q", "v");
         String orderId = this.safeString(trade, "o");
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -2096,7 +2096,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
      */
     public CompletableFuture<List<Liquidation>> watchLiquidations(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;

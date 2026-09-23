@@ -938,7 +938,7 @@ public class Luno extends LunoApi
         Object fee = null;
         if (!java.util.Objects.equals(quoteFee, null))
         {
-            final Object finalQuoteFee = quoteFee;
+            final Double finalQuoteFee = quoteFee;
             final Object finalMarket = market;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalQuoteFee );
@@ -946,7 +946,7 @@ public class Luno extends LunoApi
             }};
         } else if (!java.util.Objects.equals(baseFee, null))
         {
-            final Object finalBaseFee = baseFee;
+            final Double finalBaseFee = baseFee;
             final Object finalMarket_2 = market;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalBaseFee );
@@ -954,9 +954,9 @@ public class Luno extends LunoApi
             }};
         }
         String id = this.safeString(order, "order_id");
-        final Object finalStatus = status;
+        final String finalStatus = status;
         final Object finalMarket_3 = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -1015,7 +1015,7 @@ public class Luno extends LunoApi
 
     public CompletableFuture<Object> fetchOrdersByState(String state2, Object... optionalArgs)
     {
-        final Object state3 = state2;
+        final String state3 = state2;
         return BaseExchange.supplyAsync(() -> {
             Object state = state3;
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1319,11 +1319,11 @@ public class Luno extends LunoApi
             }
         }
         Long timestamp = this.safeInteger(trade, "timestamp");
-        final Object finalOrderId = orderId;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalFeeCost = feeCost;
-        final Object finalFeeCurrency = feeCurrency;
+        final String finalOrderId = orderId;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalFeeCost = feeCost;
+        final String finalFeeCurrency = feeCurrency;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
@@ -1826,8 +1826,8 @@ public class Luno extends LunoApi
         {
             referenceId = this.safeString(words, 4);
         }
-        final Object finalType = type;
-        final Object finalReferenceId = referenceId;
+        final String finalType = type;
+        final String finalReferenceId = referenceId;
         return new HashMap<String, Object>() {{
             put( "type", finalType );
             put( "referenceId", finalReferenceId );
@@ -1876,10 +1876,10 @@ public class Luno extends LunoApi
         {
             direction = "out";
         }
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalAmount = amount;
         final Object finalBefore = before;
-        final Object finalStatus = status;
+        final String finalStatus = status;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", entry );
             put( "id", id );
@@ -2098,7 +2098,7 @@ public class Luno extends LunoApi
                 put( "Authorization", ("Basic " + auth) );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{
             put( "url", finalUrl );

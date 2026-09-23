@@ -2189,7 +2189,7 @@ public class Zebpay extends ZebpayApi
                 String status = this.safeString(market, "status");
                 String symbol = ((base + "/") + quote);
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
+                final String finalBase = base;
                 final Object finalStatus = status;
                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", id );

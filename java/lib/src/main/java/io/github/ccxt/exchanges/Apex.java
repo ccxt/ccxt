@@ -797,7 +797,7 @@ public class Apex extends ApexApi
         Object expiry = 0;
         Double takerFee = this.parseNumber("0.0002");
         Double makerFee = this.parseNumber("0.0005");
-        final Object finalBaseId = baseId;
+        final String finalBaseId = baseId;
         final Object finalExpiry = expiry;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
@@ -1694,9 +1694,9 @@ public class Apex extends ApexApi
                 ((Map<String, Object>)orderToSign).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             Object signature = (this.getZKContractSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
-            final Object finalOrderType = orderType;
+            final String finalOrderType = orderType;
             final Object finalTimeNow = timeNow;
-            final Object finalTimeInForce = timeInForce;
+            final String finalTimeInForce = timeInForce;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "side", orderSide );
@@ -1839,7 +1839,7 @@ public class Apex extends ApexApi
                 }});
             } else
             {
-                final Object finalTimestampSeconds = timestampSeconds;
+                final Long finalTimestampSeconds = timestampSeconds;
                 Map<String, Object> orderToSign = new HashMap<String, Object>() {{
                     put( "zkAccountId", zkAccountId );
                     put( "receiverAddress", receiverAddress );
@@ -2465,7 +2465,7 @@ public class Apex extends ApexApi
             ((Map<String, Object>)headers).put("APEX-TIMESTAMP", timestamp);
             ((Map<String, Object>)headers).put("APEX-PASSPHRASE", this.password);
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalSignBody = signBody;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{

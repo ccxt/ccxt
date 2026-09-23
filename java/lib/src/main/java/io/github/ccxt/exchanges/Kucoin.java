@@ -2524,12 +2524,12 @@ public class Kucoin extends KucoinApi
                     limitPriceMax = this.parseNumber(Precise.stringDiv(quoteMaxSizeString, baseMinSizeString));
                 }
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalType = type;
+                final String finalBase = base;
+                final String finalType = type;
                 final Object finalStatus = status;
                 final Object finalInverse = inverse;
-                final Object finalLimitAmountMin = limitAmountMin;
-                final Object finalLimitAmountMax = limitAmountMax;
+                final Double finalLimitAmountMin = limitAmountMin;
+                final Double finalLimitAmountMax = limitAmountMax;
                 final Object finalLimitPriceMax = limitPriceMax;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -2729,17 +2729,17 @@ public class Kucoin extends KucoinApi
                     spot = true;
                 }
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalQuote = quote;
-                final Object finalSettle = settle;
-                final Object finalType = type;
-                final Object finalSpot = spot;
-                final Object finalSwap = swap;
-                final Object finalFuture = future;
+                final String finalBase = base;
+                final String finalQuote = quote;
+                final String finalSettle = settle;
+                final String finalType = type;
+                final Boolean finalSpot = spot;
+                final Boolean finalSwap = swap;
+                final Boolean finalFuture = future;
                 final Object finalActive = active;
-                final Object finalContract = contract;
-                final Object finalLinear = linear;
-                final Object finalInverse = inverse;
+                final Boolean finalContract = contract;
+                final Boolean finalLinear = linear;
+                final Boolean finalInverse = inverse;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", finalSymbol );
@@ -3409,8 +3409,8 @@ public class Kucoin extends KucoinApi
         String baseVolume = this.safeString2(ticker, "vol", "baseVolume");
         String quoteVolume = this.safeString2(ticker, "volValue", "quoteVolume");
         Long timestamp = this.safeIntegerN(ticker, new ArrayList<Object>(Arrays.asList("time", "datetime", "timePoint")));
-        final Object finalLast = last;
-        final Object finalPercentage = percentage;
+        final String finalLast = last;
+        final String finalPercentage = percentage;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -3546,9 +3546,9 @@ public class Kucoin extends KucoinApi
         }
         // Otherwise safeTicker derives percentage from last and change, since priceChgPct can be inconsistent.
         final Object finalMarket = market;
-        final Object finalLast = last;
-        final Object finalChange = change;
-        final Object finalPercentage = percentage;
+        final String finalLast = last;
+        final String finalChange = change;
+        final String finalPercentage = percentage;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", timestamp );
@@ -4503,7 +4503,7 @@ public class Kucoin extends KucoinApi
         }
         String chainId = this.safeString(depositAddress, "chainId");
         final Object finalCode = code;
-        final Object finalAddress = address;
+        final String finalAddress = address;
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", finalCode );
@@ -6206,7 +6206,7 @@ public class Kucoin extends KucoinApi
                 String orderId = this.safeString(data, "orderId");
                 List<Object> orderIds = (List<Object>) this.safeList(data, "cancelledOrderIds", new ArrayList<Object>(Arrays.asList()));
                 orderId = this.safeString(orderIds, 0, orderId);
-                final Object finalOrderId = orderId;
+                final String finalOrderId = orderId;
                 return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "info", data );
                     put( "id", finalOrderId );
@@ -6856,7 +6856,7 @@ public class Kucoin extends KucoinApi
      */
     public CompletableFuture<Object> fetchContractOrdersByStatus(String status2, Object... optionalArgs)
     {
-        final Object status3 = status2;
+        final String status3 = status2;
         return BaseExchange.supplyAsync(() -> {
             Object status = status3;
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -7440,7 +7440,7 @@ public class Kucoin extends KucoinApi
      */
     public CompletableFuture<Object> fetchContractOrder(String id2, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -7531,7 +7531,7 @@ public class Kucoin extends KucoinApi
      */
     public CompletableFuture<Object> fetchUtaOrder(String id2, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -7782,7 +7782,7 @@ public class Kucoin extends KucoinApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", feeCurrency );
                 put( "cost", finalFeeCost );
@@ -7795,7 +7795,7 @@ public class Kucoin extends KucoinApi
         Long lastUpdateTimestamp = this.safeInteger(order, "updatedAt");
         final Object finalFee = fee;
         final Object finalStatus = status;
-        final Object finalAverage = average;
+        final String finalAverage = average;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
@@ -7985,7 +7985,7 @@ public class Kucoin extends KucoinApi
         {
             status = "rejected";
         }
-        final Object finalStatus = status;
+        final String finalStatus = status;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Kucoin.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("id", "orderId", "newOrderId", "cancelledOrderId"))) );
@@ -8090,7 +8090,7 @@ public class Kucoin extends KucoinApi
             put( "currency", Kucoin.this.safeCurrencyCode(Kucoin.this.safeString(order, "feeCurrency")) );
             put( "cost", Kucoin.this.safeString(order, "fee") );
         }};
-        final Object finalAmount = amount;
+        final String finalAmount = amount;
         final Object finalCost = cost;
         final Object finalFilled = filled;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -8902,7 +8902,7 @@ public class Kucoin extends KucoinApi
             {
                 feeCurrency = (((java.util.Objects.equals(side, "sell")))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
             }
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             final Object finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -8918,8 +8918,8 @@ public class Kucoin extends KucoinApi
         String costString = this.safeString2(trade, "funds", "dealValue");
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
-        final Object finalType = type;
-        final Object finalSide = side;
+        final String finalType = type;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -9047,7 +9047,7 @@ public class Kucoin extends KucoinApi
             {
                 feeCurrency = (((java.util.Objects.equals(side, "sell")))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
             }
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             final Object finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -9069,9 +9069,9 @@ public class Kucoin extends KucoinApi
         }
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalCostString = costString;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalCostString = costString;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -9444,10 +9444,10 @@ public class Kucoin extends KucoinApi
         String tag = this.safeString(transaction, "memo");
         String chainId = this.safeString(transaction, "chain");
         final Object finalTimestamp = timestamp;
-        final Object finalAddress = address;
+        final String finalAddress = address;
         final Object finalAmount = amount;
-        final Object finalTxid = txid;
-        final Object finalType = type;
+        final String finalTxid = txid;
+        final String finalType = type;
         final Object finalFee = fee;
         final Object finalUpdated = updated;
         return new HashMap<String, Object>() {{
@@ -10898,16 +10898,16 @@ public class Kucoin extends KucoinApi
         {
             feeCurrency = code;
             final Object finalFeeCost = feeCost;
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", Kucoin.this.parseNumber(finalFeeCost) );
                 put( "currency", finalFeeCurrency );
             }};
         }
         String status = this.safeString(item, "status");
-        final Object finalAccount = account;
-        final Object finalReferenceId = referenceId;
-        final Object finalTimestamp = timestamp;
+        final String finalAccount = account;
+        final String finalReferenceId = referenceId;
+        final Long finalTimestamp = timestamp;
         final Object finalFee = fee;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -11409,9 +11409,9 @@ public class Kucoin extends KucoinApi
             currencyId = this.safeString(info, "currency");
         }
         final Object finalCurrencyId = currencyId;
-        final Object finalInterest = interest;
-        final Object finalAmountBorrowed = amountBorrowed;
-        final Object finalMarginMode = marginMode;
+        final Double finalInterest = interest;
+        final Double finalAmountBorrowed = amountBorrowed;
+        final String finalMarginMode = marginMode;
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", symbol );
@@ -13085,10 +13085,10 @@ public class Kucoin extends KucoinApi
         }
         final Object finalMarket = market;
         final Object finalTimestamp = timestamp;
-        final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
+        final Long finalLastUpdateTimestamp = lastUpdateTimestamp;
         final Object finalSize = size;
-        final Object finalMarginMode = marginMode;
-        final Object finalSide = side;
+        final String finalMarginMode = marginMode;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Kucoin.this.safeStringN(position, new ArrayList<Object>(Arrays.asList("id", "positionId", "closeId"))) );
@@ -13504,7 +13504,7 @@ public class Kucoin extends KucoinApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marginType = this.safeString(marginMode, "marginMode");
         marginType = (((java.util.Objects.equals(marginType, "ISOLATED")))) ? "isolated" : "cross";
-        final Object finalMarginType = marginType;
+        final String finalMarginType = marginType;
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", Kucoin.this.safeString(market, "symbol") );
@@ -13661,7 +13661,7 @@ public class Kucoin extends KucoinApi
             {
                 clientOrderId = this.numberToString(this.nonce());
             }
-            final Object finalClientOrderId = clientOrderId;
+            final String finalClientOrderId = clientOrderId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "closeOrder", true );
@@ -14017,7 +14017,7 @@ final Object finalMarket = market;
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
-            final Object finalInterval = interval;
+            final String finalInterval = interval;
             Object request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "interval", finalInterval );
@@ -14138,7 +14138,7 @@ final Object finalMarket = market;
         {
             this.checkRequiredCredentials();
             String timestamp = String.valueOf(this.nonce());
-            final Object finalTimestamp = timestamp;
+            final String finalTimestamp = timestamp;
             headers = this.extend(new HashMap<String, Object>() {{
                 put( "KC-API-KEY-VERSION", "2" );
                 put( "KC-API-KEY", Kucoin.this.apiKey );

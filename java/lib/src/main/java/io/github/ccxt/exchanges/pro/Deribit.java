@@ -984,7 +984,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -1107,7 +1107,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     public CompletableFuture<Object> watchMultipleWrapper(Object channelName2, String channelDescriptor2, Object... optionalArgs)
     {
         final Object channelName3 = channelName2;
-        final Object channelDescriptor3 = channelDescriptor2;
+        final String channelDescriptor3 = channelDescriptor2;
         return BaseExchange.supplyAsync(() -> {
             Object channelName = channelName3;
             Object channelDescriptor = channelDescriptor3;

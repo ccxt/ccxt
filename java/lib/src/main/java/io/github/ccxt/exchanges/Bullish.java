@@ -1048,19 +1048,19 @@ public class Bullish extends BullishApi
                 }
             }
         }
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalType = type;
-        final Object finalSpot = spot;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalType = type;
+        final Boolean finalSpot = spot;
         final Object finalMargin = margin;
-        final Object finalSwap = swap;
-        final Object finalFuture = future;
-        final Object finalOption = option;
-        final Object finalContract = contract;
+        final Boolean finalSwap = swap;
+        final Boolean finalFuture = future;
+        final Boolean finalOption = option;
+        final Boolean finalContract = contract;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
-        final Object finalContractSize = contractSize;
+        final Double finalContractSize = contractSize;
         final Object finalExpiryDatetime = expiryDatetime;
         final Object finalStrike = strike;
         final Object finalOptionType = optionType;
@@ -1437,7 +1437,7 @@ public class Bullish extends BullishApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
@@ -1452,7 +1452,7 @@ public class Bullish extends BullishApi
             takerOrMaker = "maker";
         }
         String orderId = this.safeString(trade, "orderId");
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1953,7 +1953,7 @@ public class Bullish extends BullishApi
         Long until = this.safeInteger(parameters, "until");
         if (java.util.Objects.equals(until, null))
         {
-            final Object finalNow = now;
+            final Long finalNow = now;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "until", finalNow );
             }});
@@ -2507,7 +2507,7 @@ public class Bullish extends BullishApi
             ((Map<String, Object>)fee).put("currency", ((Map<String, Object>)market).get("quote"));
         }
         String average = this.safeString(order, "averageFillPrice");
-        final Object finalStatus = status;
+        final String finalStatus = status;
         final Object finalType = type;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -3649,7 +3649,7 @@ public class Bullish extends BullishApi
             {
                 Object payload = Helpers.add((((timestamp + nonce) + method) + "/trading-api/"), path);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
-                final Object finalTimestamp = timestamp;
+                final String finalTimestamp = timestamp;
                 headers = new HashMap<String, Object>() {{
                     put( "BX-TIMESTAMP", finalTimestamp );
                     put( "BX-NONCE", nonce );
@@ -3661,7 +3661,7 @@ public class Bullish extends BullishApi
                 Object payload = Helpers.add(Helpers.add((((timestamp + nonce) + method) + "/trading-api/"), path), body);
                 Object digest = this.hash(this.encode(payload), sha256(), "hex");
                 String signature = (String) this.hmac(this.encode(digest), this.encode(this.secret), sha256(), "hex");
-                final Object finalTimestamp_2 = timestamp;
+                final String finalTimestamp_2 = timestamp;
                 headers = new HashMap<String, Object>() {{
                     put( "BX-TIMESTAMP", finalTimestamp_2 );
                     put( "BX-NONCE", nonce );

@@ -783,7 +783,7 @@ public class Ndax extends NdaxApi
             // such currency is just a blanket entry
             type = "other";
         }
-        final Object finalType = type;
+        final String finalType = type;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", Ndax.this.safeString(rawCurrency, "ProductFullName") );
@@ -1493,7 +1493,7 @@ public class Ndax extends NdaxApi
             {
                 String feeCurrencyId = this.safeString(trade, "FeeProductId");
                 String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-                final Object finalFeeCostString = feeCostString;
+                final String finalFeeCostString = feeCostString;
                 fee = new HashMap<String, Object>() {{
                     put( "cost", finalFeeCostString );
                     put( "currency", feeCurrencyCode );
@@ -1501,16 +1501,16 @@ public class Ndax extends NdaxApi
             }
         }
         String symbol = this.safeSymbol(marketId, market);
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalTimestamp = timestamp;
-        final Object finalOrderId = orderId;
+        final String finalOrderId = orderId;
         final Object finalType = type;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalPriceString = priceString;
-        final Object finalAmountString = amountString;
-        final Object finalCostString = costString;
-        final Object finalFee = fee;
+        final String finalPriceString = priceString;
+        final String finalAmountString = amountString;
+        final String finalCostString = costString;
+        final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalId );
@@ -1671,7 +1671,7 @@ public class Ndax extends NdaxApi
                 accountId = this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id"));
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            final Object finalAccountId = accountId;
+            final Long finalAccountId = accountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", finalAccountId );
@@ -1777,7 +1777,7 @@ public class Ndax extends NdaxApi
             before = Precise.stringMax("0", Precise.stringSub(after, amount));
         }
         Long timestamp = this.safeInteger(item, "TimeStamp");
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalCurrency = currency;
         final Object finalAmount = amount;
         final Object finalBefore = before;
@@ -2337,7 +2337,7 @@ public class Ndax extends NdaxApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "ClOrderId")));
             Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
-            final Object finalClientOrderId = clientOrderId;
+            final Long finalClientOrderId = clientOrderId;
             return this.extend(order, new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "clientOrderId", finalClientOrderId );
@@ -3119,17 +3119,17 @@ public class Ndax extends NdaxApi
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
             }};
         }
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalTemplateForm = templateForm;
         final Object finalType = type;
-        final Object finalUpdated = updated;
-        final Object finalFee = fee;
+        final Long finalUpdated = updated;
+        final Map<String, Object> finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", finalId );
@@ -3298,7 +3298,7 @@ public class Ndax extends NdaxApi
                 String pending2faToken = this.safeString(this.options, "pending2faToken");
                 if (!java.util.Objects.equals(pending2faToken, null))
                 {
-                    final Object finalPending2faToken = pending2faToken;
+                    final String finalPending2faToken = pending2faToken;
                     headers = new HashMap<String, Object>() {{
                         put( "Pending2FaToken", finalPending2faToken );
                     }};
@@ -3318,7 +3318,7 @@ public class Ndax extends NdaxApi
                 String nonce = String.valueOf(this.nonce());
                 String auth = ((nonce + this.uid) + this.apiKey);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                final Object finalNonce = nonce;
+                final String finalNonce = nonce;
                 headers = new HashMap<String, Object>() {{
                     put( "Nonce", finalNonce );
                     put( "APIKey", Ndax.this.apiKey );
@@ -3327,7 +3327,7 @@ public class Ndax extends NdaxApi
                 }};
             } else
             {
-                final Object finalSessionToken = sessionToken;
+                final String finalSessionToken = sessionToken;
                 headers = new HashMap<String, Object>() {{
                     put( "APToken", finalSessionToken );
                 }};

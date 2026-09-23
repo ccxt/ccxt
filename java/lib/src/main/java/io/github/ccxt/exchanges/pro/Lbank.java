@@ -620,8 +620,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             side = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalSide = side;
+        final Long finalTimestamp = timestamp;
+        final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "timestamp", finalTimestamp );
             put( "datetime", datetime );
@@ -795,9 +795,9 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             cost = orderAmount;
         }
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalCost = cost;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalCost = cost;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Lbank.this.safeString(orderUpdate, "uuid") );

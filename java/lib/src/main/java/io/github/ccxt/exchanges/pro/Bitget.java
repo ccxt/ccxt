@@ -167,7 +167,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -609,7 +609,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -2412,14 +2412,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             cost = this.safeString2(order, "fillNotionalUsd", "cumExecValue");
         }
         remaining = Precise.stringSub(totalAmount, totalFilled);
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalPrice = price;
-        final Object finalTriggerPrice = triggerPrice;
+        final String finalType = type;
+        final String finalSide = side;
+        final Double finalPrice = price;
+        final Double finalTriggerPrice = triggerPrice;
         final Object finalTotalAmount = totalAmount;
         final Object finalCost = cost;
-        final Object finalFilledAmount = filledAmount;
-        final Object finalRemaining = remaining;
+        final String finalFilledAmount = filledAmount;
+        final String finalRemaining = remaining;
         final Object finalFeeObject = feeObject;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -3040,7 +3040,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 String auth = ((timestamp + "GET") + "/user/verify");
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 String operation = "login";
-                final Object finalTimestamp = timestamp;
+                final String finalTimestamp = timestamp;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "op", operation );
                     put( "args", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{

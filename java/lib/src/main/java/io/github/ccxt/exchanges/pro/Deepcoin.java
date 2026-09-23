@@ -148,7 +148,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         {
             action = "0"; // unsubscribe
         }
-        final Object finalAction = action;
+        final String finalAction = action;
         final Object finalMarketId = marketId;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "sendTopicAction", new HashMap<String, Object>() {{
@@ -266,7 +266,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                         response = (this.privateGetDeepcoinListenkeyAcquire(parameters)).join();
                     } else
                     {
-                        final Object finalListenKey = listenKey;
+                        final String finalListenKey = listenKey;
                         Map<String, Object> request = new HashMap<String, Object>() {{
                             put( "listenkey", finalListenKey );
                         }};
@@ -618,7 +618,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String feeCost = this.safeString(trade, "F");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", Deepcoin.this.safeCurrencyCode(Deepcoin.this.safeString(trade, "f")) );
@@ -674,7 +674,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -713,7 +713,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";

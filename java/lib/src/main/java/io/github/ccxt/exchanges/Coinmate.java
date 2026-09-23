@@ -1151,7 +1151,7 @@ public class Coinmate extends CoinmateApi
         String feeCostString = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             final Object finalMarket = market;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -1161,7 +1161,7 @@ public class Coinmate extends CoinmateApi
         String takerOrMaker = this.safeString(trade, "feeType");
         takerOrMaker = (((java.util.Objects.equals(takerOrMaker, "MAKER")))) ? "maker" : "taker";
         final Object finalMarket_2 = market;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -1640,7 +1640,7 @@ public class Coinmate extends CoinmateApi
             String nonce = String.valueOf(this.nonce());
             String auth = ((nonce + this.uid) + this.apiKey);
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-            final Object finalNonce = nonce;
+            final String finalNonce = nonce;
             body = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "clientId", Coinmate.this.uid );
                 put( "nonce", finalNonce );

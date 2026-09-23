@@ -602,7 +602,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -708,7 +708,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -759,7 +759,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -806,7 +806,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -1572,9 +1572,9 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         String stopPrice = this.safeString(order, "stopPx");
         Boolean postOnly = (java.util.Objects.equals(timeInForce, "PO"));
-        final Object finalClientOrderId = clientOrderId;
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
-        final Object finalTimeInForce = timeInForce;
+        final String finalClientOrderId = clientOrderId;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
+        final String finalTimeInForce = timeInForce;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -1774,7 +1774,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     public CompletableFuture<Object> subscribePrivate(String type2, Object messageHash, Object... optionalArgs)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1796,7 +1796,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 channel = "aop_p.subscribe";
             }
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Object request = new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "method", finalChannel );

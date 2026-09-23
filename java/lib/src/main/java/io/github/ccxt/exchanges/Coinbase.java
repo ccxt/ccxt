@@ -1524,8 +1524,8 @@ public class Coinbase extends CoinbaseApi
         String addressTo = this.safeString(toObject, "address");
         String networkId = this.safeString(network, "network_name");
         String code = this.safeCurrencyCode(currencyId, currency);
-        final Object finalType = type;
-        final Object finalStatus = status;
+        final String finalType = type;
+        final String finalStatus = status;
         final Object finalFeeObject = feeObject;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -1678,10 +1678,10 @@ public class Coinbase extends CoinbaseApi
         final Object finalSymbol = symbol;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalPriceString = priceString;
-        final Object finalAmountString = amountString;
-        final Object finalCost = cost;
-        final Object finalFeeCost = feeCost;
+        final String finalPriceString = priceString;
+        final String finalAmountString = amountString;
+        final String finalCost = cost;
+        final Double finalFeeCost = feeCost;
         final Object finalFeeCurrencyId = feeCurrencyId;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -2245,9 +2245,9 @@ public class Coinbase extends CoinbaseApi
         Double makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
         Object taker = (((!java.util.Objects.equals(takerFeeRate, null) && !java.util.Objects.equals(takerFeeRate, null) && (takerFeeRate == null || takerFeeRate != 0)))) ? takerFeeRate : this.parseNumber("0.06");
         Object maker = (((!java.util.Objects.equals(makerFeeRate, null) && !java.util.Objects.equals(makerFeeRate, null) && (makerFeeRate == null || makerFeeRate != 0)))) ? makerFeeRate : this.parseNumber("0.04");
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalType = type;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalType = type;
         final Object finalTradingDisabled = tradingDisabled;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
@@ -2343,7 +2343,7 @@ public class Coinbase extends CoinbaseApi
                 List<Object> fiatData = (List<Object>) this.safeList(fiatResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 List<Object> cryptoData = (List<Object>) this.safeList(cryptoResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> exchangeRates = (this.v2PublicGetExchangeRates(parameters)).join();
-                final Object finalNow = now;
+                final Long finalNow = now;
                 Helpers.addElementToObject(this.options, "fetchCurrencies", this.extend(options, new HashMap<String, Object>() {{
         put( "currencies", Coinbase.this.arrayConcat(fiatData, cryptoData) );
         put( "exchangeRates", exchangeRates );
@@ -2471,7 +2471,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     if (!java.util.Objects.equals(code, null))
                     {
-                        final Object finalCode = code;
+                        final String finalCode = code;
                         ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", new HashMap<String, Object>() {{}} );
         put( "id", currencyId );
@@ -2887,10 +2887,10 @@ public class Coinbase extends CoinbaseApi
         Double last = this.safeNumber(ticker, "price");
         String datetime = this.safeString(ticker, "time");
         final Object finalMarket = market;
-        final Object finalBid = bid;
-        final Object finalAsk = ask;
-        final Object finalBidVolume = bidVolume;
-        final Object finalAskVolume = askVolume;
+        final Double finalBid = bid;
+        final Double finalAsk = ask;
+        final Double finalBidVolume = bidVolume;
+        final Double finalAskVolume = askVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", Coinbase.this.parse8601(datetime) );
@@ -3497,7 +3497,7 @@ public class Coinbase extends CoinbaseApi
                 accountId = Helpers.GetValue(parts, 3);
             }
         }
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalAccountId = accountId;
         final Object finalAmount = amount;
         final Object finalFee = fee;
@@ -3553,7 +3553,7 @@ public class Coinbase extends CoinbaseApi
         {
             throw new ArgumentsRequired((this.id + " prepareAccountRequest() method requires an account_id (or accountId) parameter")) ;
         }
-        final Object finalAccountId = accountId;
+        final String finalAccountId = accountId;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "account_id", finalAccountId );
         }};
@@ -3714,8 +3714,8 @@ public class Coinbase extends CoinbaseApi
                         }
                         final Object finalPrice = price;
                         final Object finalTriggerPrice = triggerPrice;
-                        final Object finalStopDirection = stopDirection;
-                        final Object finalEndTime = endTime;
+                        final String finalStopDirection = stopDirection;
+                        final String finalEndTime = endTime;
                         ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
         put( "stop_limit_stop_limit_gtd", new HashMap<String, Object>() {{
             put( "base_size", Coinbase.this.amountToPrecision(symbol, amount) );
@@ -3729,7 +3729,7 @@ public class Coinbase extends CoinbaseApi
                     {
                         final Object finalPrice_2 = price;
                         final Object finalTriggerPrice_2 = triggerPrice;
-                        final Object finalStopDirection_2 = stopDirection;
+                        final String finalStopDirection_2 = stopDirection;
                         ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
         put( "stop_limit_stop_limit_gtc", new HashMap<String, Object>() {{
             put( "base_size", Coinbase.this.amountToPrecision(symbol, amount) );
@@ -3759,7 +3759,7 @@ public class Coinbase extends CoinbaseApi
                     }
                     final Object finalPrice_3 = price;
                     final Object finalTpslPrice = tpslPrice;
-                    final Object finalStopDirection_3 = stopDirection;
+                    final String finalStopDirection_3 = stopDirection;
                     ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
         put( "stop_limit_stop_limit_gtc", new HashMap<String, Object>() {{
             put( "base_size", Coinbase.this.amountToPrecision(symbol, amount) );
@@ -3777,7 +3777,7 @@ public class Coinbase extends CoinbaseApi
                             throw new ExchangeError((this.id + " createOrder() requires an end_time parameter for a GTD order")) ;
                         }
                         final Object finalPrice_4 = price;
-                        final Object finalEndTime_2 = endTime;
+                        final String finalEndTime_2 = endTime;
                         ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
         put( "limit_limit_gtd", new HashMap<String, Object>() {{
             put( "base_size", Coinbase.this.amountToPrecision(symbol, amount) );
@@ -3850,7 +3850,7 @@ public class Coinbase extends CoinbaseApi
                     {
                         total = this.costToPrecision(symbol, amount);
                     }
-                    final Object finalTotal = total;
+                    final String finalTotal = total;
                     ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
         put( "market_market_ioc", new HashMap<String, Object>() {{
             put( "quote_size", finalTotal );
@@ -4062,11 +4062,11 @@ public class Coinbase extends CoinbaseApi
         {
             currencyFee = ((Map<String, Object>)market).get("quote");
         }
-        final Object finalSymbol = symbol;
+        final String finalSymbol = symbol;
         final Object finalPostOnly = postOnly;
-        final Object finalPrice = price;
-        final Object finalTriggerPrice = triggerPrice;
-        final Object finalAmount = amount;
+        final String finalPrice = price;
+        final String finalTriggerPrice = triggerPrice;
+        final String finalAmount = amount;
         final Object finalCurrencyFee = currencyFee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -5104,7 +5104,7 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -5390,7 +5390,7 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<Object> deposit(String code2, Object amount, String id, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -5768,7 +5768,7 @@ public class Coinbase extends CoinbaseApi
             }
             parameters = this.omit(parameters, "toCode");
             final Object finalCode = code;
-            final Object finalToCode = toCode;
+            final String finalToCode = toCode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "trade_id", id );
                 put( "from_account", finalCode );
@@ -6002,7 +6002,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchPosition() requires a \"product_id\" in params")) ;
                 }
-                final Object finalProductId = productId;
+                final String finalProductId = productId;
                 Map<String, Object> futureRequest = new HashMap<String, Object>() {{
                     put( "product_id", finalProductId );
                 }};
@@ -6139,7 +6139,7 @@ public class Coinbase extends CoinbaseApi
         Map<String, Object> vwapObject = (Map<String, Object>) this.safeDict(position, "vwap", new HashMap<String, Object>() {{}});
         Map<String, Object> summaryObject = (Map<String, Object>) this.safeDict(position, "portfolio_summary", new HashMap<String, Object>() {{}});
         final Object finalMarket = market;
-        final Object finalMarginMode = marginMode;
+        final String finalMarginMode = marginMode;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Coinbase.this.safeString(position, "product_id") );
@@ -6299,7 +6299,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> averageEntryPriceDict = (Map<String, Object>) this.safeDict(position, "average_entry_price", new HashMap<String, Object>() {{}});
             String averageEntryPriceStr = this.safeString(averageEntryPriceDict, "value", "0");
             final Object finalHoldAmount = holdAmount;
-            final Object finalTotalBalanceFiat = totalBalanceFiat;
+            final Double finalTotalBalanceFiat = totalBalanceFiat;
             Map<String, Object> positionData = new HashMap<String, Object>() {{
                 put( "currency", currencyCode );
                 put( "available_balance", availableBalance );
@@ -6490,7 +6490,7 @@ public class Coinbase extends CoinbaseApi
                     String timestampString = String.valueOf(timestamp);
                     String auth = (((timestampString + method) + savedPath) + payload);
                     String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                    final Object finalTimestampString = timestampString;
+                    final String finalTimestampString = timestampString;
                     headers = new HashMap<String, Object>() {{
                         put( "CB-ACCESS-KEY", Coinbase.this.apiKey );
                         put( "CB-ACCESS-SIGN", signature );
@@ -6501,7 +6501,7 @@ public class Coinbase extends CoinbaseApi
             }
             if (!java.util.Objects.equals(authorizationString, null))
             {
-                final Object finalAuthorizationString = authorizationString;
+                final String finalAuthorizationString = authorizationString;
                 headers = new HashMap<String, Object>() {{
                     put( "Authorization", finalAuthorizationString );
                     put( "Content-Type", "application/json" );

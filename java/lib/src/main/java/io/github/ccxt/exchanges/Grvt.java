@@ -1038,8 +1038,8 @@ public class Grvt extends GrvtApi
         Boolean isSwap = (java.util.Objects.equals(type, "swap"));
         Boolean isFuture = (java.util.Objects.equals(type, "future"));
         Boolean isContract = Boolean.TRUE.equals(isSwap) || Boolean.TRUE.equals(isFuture);
-        final Object finalBase = base;
-        final Object finalType = type;
+        final String finalBase = base;
+        final String finalType = type;
         final Object finalIsSwap = isSwap;
         return new HashMap<String, Object>() {{
             put( "id", marketId );
@@ -1494,8 +1494,8 @@ public class Grvt extends GrvtApi
             }};
         }
         final Object finalMarket_2 = market;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -2137,11 +2137,11 @@ public class Grvt extends GrvtApi
             }
         }
         Object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
-        final Object finalTxId = txId;
+        final String finalTxId = txId;
         final Object finalDirection = direction;
         final Object finalNetworkCode = networkCode;
-        final Object finalAddressFrom = addressFrom;
-        final Object finalAddressTo = addressTo;
+        final String finalAddressFrom = addressFrom;
+        final String finalAddressTo = addressTo;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", null );
@@ -2595,7 +2595,7 @@ public class Grvt extends GrvtApi
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
             String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
             Boolean isReduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
-            final Object finalClientOrderId = clientOrderId;
+            final String finalClientOrderId = clientOrderId;
             Map<String, Object> orderRequest = new HashMap<String, Object>() {{
                 put( "sub_account_id", subAccountId );
                 put( "time_in_force", null );
@@ -2690,7 +2690,7 @@ public class Grvt extends GrvtApi
                 }
                 // trigger by
                 String triggerPriceType = this.safeStringUpper(parameters, "triggerPriceType", "LAST");
-                final Object finalSelectedType = selectedType;
+                final String finalSelectedType = selectedType;
                 final Object finalSelectedPrice = selectedPrice;
                 final Object finalParameters = parameters;
                 Helpers.addElementToObject(orderRequest.get("metadata"), "trigger", new HashMap<String, Object>() {{
@@ -3756,12 +3756,12 @@ public class Grvt extends GrvtApi
         Object legsLength = ((List<?>)legs).size();
         final Object finalLegsLength = legsLength;
         final Object finalMarket = market;
-        final Object finalIsPostOnly = isPostOnly;
-        final Object finalSide = side;
-        final Object finalPrice = price;
-        final Object finalAvgPrice = avgPrice;
-        final Object finalSize = size;
-        final Object finalFilled = filled;
+        final Boolean finalIsPostOnly = isPostOnly;
+        final String finalSide = side;
+        final String finalPrice = price;
+        final String finalAvgPrice = avgPrice;
+        final String finalSize = size;
+        final String finalFilled = filled;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "isMultiLeg", (Helpers.isGreaterThan(finalLegsLength, 1)) );
             put( "id", Grvt.this.safeString(order, "order_id") );

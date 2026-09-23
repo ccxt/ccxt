@@ -177,7 +177,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -194,7 +194,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String channel = "candles";
             String key = ((("trade:" + interval) + ":") + ((Map<String, Object>)market).get("id"));
             String messageHash = ((((channel + ":") + interval) + ":") + ((Map<String, Object>)market).get("id"));
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "channel", finalChannel );
@@ -223,7 +223,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -673,7 +673,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             String currencyId = this.safeString(trade, 10);
             String code = this.safeCurrencyCode((String) (currencyId));
-            final Object finalFeeValue = feeValue;
+            final String finalFeeValue = feeValue;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeValue );
                 put( "currency", code );
@@ -685,10 +685,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             takerOrMaker = ((((maker != null && maker == -1)))) ? "taker" : "maker";
         }
-        final Object finalType = type;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalSide = side;
-        final Object finalAmount = amount;
+        final String finalType = type;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final Double finalAmount = amount;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1483,9 +1483,9 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Long timestamp = (Long) this.safeInteger2(order, 5, 4);
         String average = this.safeString(order, 17);
         Object stopPrice = this.omitZero(this.safeString(order, 18));
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalAmount = amount;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalAmount = amount;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );

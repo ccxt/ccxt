@@ -307,7 +307,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -434,7 +434,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -473,7 +473,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      */
     public CompletableFuture<Object> unWatchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -627,7 +627,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 messageHash = (messageHash + (":" + symbol));
             }
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            final Object finalUserAddress = userAddress;
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
@@ -682,7 +682,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             parameters = this.safeDict(userAddressResult, 1, parameters);
             String messageHash = "unsubscribe:myTrades";
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            final Object finalUserAddress = userAddress;
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
@@ -860,7 +860,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -903,7 +903,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      */
     public CompletableFuture<Object> unWatchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1025,7 +1025,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             side = (((java.util.Objects.equals(side, "A")))) ? "sell" : "buy";
         }
         String fee = this.safeString(trade, "fee");
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1060,7 +1060,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -1106,7 +1106,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -1229,7 +1229,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String topic = (((java.util.Objects.equals(isSpot, true)))) ? "spotState" : "clearinghouseState";
             String messageHash = (topic + "::balance");
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            final Object finalTopic = topic;
+            final String finalTopic = topic;
             final Object finalUserAddress = userAddress;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "type", finalTopic );
@@ -1507,8 +1507,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 messageHash = (messageHash + ("::" + String.join(",", (List<String>)symbols)));
             }
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            final Object finalTopic = topic;
-            final Object finalUserAddress = userAddress;
+            final String finalTopic = topic;
+            final String finalUserAddress = userAddress;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "type", finalTopic );
                 put( "user", finalUserAddress );
@@ -1615,7 +1615,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object userAddressResult = this.handlePublicAddress("unWatchPositions", (Map<String, Object>) (parameters));
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
-            final Object finalUserAddress = userAddress;
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
@@ -1667,7 +1667,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 messageHash = ((messageHash + ":") + symbol);
             }
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            final Object finalUserAddress = userAddress;
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
@@ -1728,7 +1728,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object userAddressResult = this.handlePublicAddress("unWatchOrders", (Map<String, Object>) (parameters));
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
-            final Object finalUserAddress = userAddress;
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{

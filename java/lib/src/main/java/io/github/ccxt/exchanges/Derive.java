@@ -1075,20 +1075,20 @@ public class Derive extends DeriveApi
         }
         Object contractSize = ((Boolean.TRUE.equals(spot))) ? null : 1;
         Boolean isContract = (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(option));
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalSettleId = settleId;
-        final Object finalMarketType = marketType;
-        final Object finalSpot = spot;
-        final Object finalMargin = margin;
-        final Object finalSwap = swap;
-        final Object finalOption = option;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalSettleId = settleId;
+        final String finalMarketType = marketType;
+        final Boolean finalSpot = spot;
+        final Boolean finalMargin = margin;
+        final Boolean finalSwap = swap;
+        final Boolean finalOption = option;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
         final Object finalExpiry = expiry;
-        final Object finalStrike = strike;
-        final Object finalOptionType = optionType;
+        final Long finalStrike = strike;
+        final String finalOptionType = optionType;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", finalSymbol );
@@ -1335,7 +1335,7 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1746,7 +1746,7 @@ public class Derive extends DeriveApi
             deriveWalletAddress = ((List<Object>) deriveWalletAddressparametersVariable).get(0);
             parameters = ((List<Object>) deriveWalletAddressparametersVariable).get(1);
             Object signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
-            final Object finalOrderSide = orderSide;
+            final String finalOrderSide = orderSide;
             final Object finalSubaccountId = subaccountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
@@ -1940,7 +1940,7 @@ public class Derive extends DeriveApi
             deriveWalletAddress = ((List<Object>) deriveWalletAddressparametersVariable).get(0);
             parameters = ((List<Object>) deriveWalletAddressparametersVariable).get(1);
             Object signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
-            final Object finalOrderSide = orderSide;
+            final String finalOrderSide = orderSide;
             final Object finalSubaccountId = subaccountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
@@ -2596,10 +2596,10 @@ public class Derive extends DeriveApi
         String status = this.safeString(order, "order_status");
         String timeInForce = this.safeString(order, "time_in_force");
         final Object finalOrder = order;
-        final Object finalSide = side;
-        final Object finalTriggerPrice = triggerPrice;
-        final Object finalTakeProfitPrice = takeProfitPrice;
-        final Object finalStopLossPrice = stopLossPrice;
+        final String finalSide = side;
+        final String finalTriggerPrice = triggerPrice;
+        final String finalTakeProfitPrice = takeProfitPrice;
+        final String finalStopLossPrice = stopLossPrice;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", Derive.this.safeString(finalOrder, "label") );
@@ -2963,7 +2963,7 @@ public class Derive extends DeriveApi
         String notional = Precise.stringMul(size, markPrice);
         final Object finalMarket = market;
         final Object finalSize = size;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -3389,7 +3389,7 @@ public class Derive extends DeriveApi
         {
             txId = null;
         }
-        final Object finalTxId = txId;
+        final String finalTxId = txId;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", null );

@@ -979,11 +979,11 @@ public class Bit2c extends Bit2cApi
             amount = this.safeString(orderUnified, "initialAmount");
             remaining = this.safeString(orderUnified, "amount");
         }
-        final Object finalStatus = status;
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalAmount = amount;
-        final Object finalRemaining = remaining;
+        final String finalStatus = status;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalAmount = amount;
+        final String finalRemaining = remaining;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -1179,7 +1179,7 @@ public class Bit2c extends Bit2cApi
             String feeCost = this.safeString(trade, "feeAmount");
             if (!java.util.Objects.equals(feeCost, null))
             {
-                final Object finalFeeCost = feeCost;
+                final String finalFeeCost = feeCost;
                 fee = new HashMap<String, Object>() {{
                     put( "cost", finalFeeCost );
                     put( "currency", "NIS" );
@@ -1204,14 +1204,14 @@ public class Bit2c extends Bit2cApi
             }
         }
         market = this.safeMarket(null, market);
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
         final Object finalOrderId = orderId;
         final Object finalSide = side;
-        final Object finalMakerOrTaker = makerOrTaker;
+        final String finalMakerOrTaker = makerOrTaker;
         final Object finalPrice = price;
-        final Object finalAmount = amount;
+        final String finalAmount = amount;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );

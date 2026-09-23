@@ -239,7 +239,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -536,7 +536,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         {
             side = "short";
         }
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -1060,11 +1060,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     Object currentOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                     if (Helpers.isEqual(Helpers.GetValue(currentOrder, "id"), ((Map<String, Object>)message).get("order_id")))
                     {
-                        final Object finalReason = reason;
+                        final String finalReason = reason;
                         Map<String, Object> info = this.extend(this.safeDict(currentOrder, "info", new HashMap<String, Object>() {{}}), new HashMap<String, Object>() {{
                             put( "reason", finalReason );
                         }});
-                        final Object finalStatus = status;
+                        final String finalStatus = status;
                         Helpers.addElementToObject(orders, i, this.extend(currentOrder, new HashMap<String, Object>() {{
     put( "status", finalStatus );
     put( "info", info );
@@ -1221,7 +1221,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Long direction = this.safeInteger(unparsedOrder, "direction");
         final Object finalUnparsedOrder = unparsedOrder;
         final Object finalDirection = direction;
-        final Object finalStatus = status;
+        final String finalStatus = status;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", Krakenfutures.this.safeSymbol(marketId, market) );

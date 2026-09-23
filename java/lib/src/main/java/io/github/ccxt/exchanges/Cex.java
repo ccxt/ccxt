@@ -566,7 +566,7 @@ public class Cex extends CexApi
         String quote = this.safeCurrencyCode(quoteId);
         String id = ((base + "-") + quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         String symbol = ((base + "/") + quote);
-        final Object finalBase = base;
+        final String finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
@@ -1845,7 +1845,7 @@ public class Cex extends CexApi
         String timestampString = this.safeString(item, "timestamp");
         Long timestamp = this.parse8601(timestampString);
         String type = this.safeString(item, "type");
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalAmount = amount;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );

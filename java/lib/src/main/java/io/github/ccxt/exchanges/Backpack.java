@@ -949,10 +949,10 @@ public class Backpack extends BackpackApi
             contractSize = 1;
         }
         String orderBookState = this.safeString(market, "orderBookState");
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalSettleId = settleId;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalSettleId = settleId;
         final Object finalType = type;
         final Object finalOrderBookState = orderBookState;
         final Object finalLinear = linear;
@@ -1113,7 +1113,7 @@ public class Backpack extends BackpackApi
             percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         }
         String change = this.safeString(ticker, "priceChange");
-        final Object finalPercentage = percentage;
+        final String finalPercentage = percentage;
         Object parsedTicker = this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -1647,7 +1647,7 @@ public class Backpack extends BackpackApi
         String feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
         if (!java.util.Objects.equals(feeAmount, null))
         {
-            final Object finalFeeAmount = feeAmount;
+            final String finalFeeAmount = feeAmount;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeAmount );
                 put( "currency", feeSymbol );
@@ -1656,8 +1656,8 @@ public class Backpack extends BackpackApi
         }
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -2040,7 +2040,7 @@ public class Backpack extends BackpackApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", code );
@@ -2796,8 +2796,8 @@ public class Backpack extends BackpackApi
         String unrealizedPnl = this.safeString(position, "pnlUnrealized");
         String realizedPnl = this.safeString(position, "pnlRealized");
         String liquidationPrice = this.safeString(position, "estLiquidationPrice");
-        final Object finalHedged = hedged;
-        final Object finalSide = side;
+        final Boolean finalHedged = hedged;
+        final String finalSide = side;
         final Object finalNetCost = netCost;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );

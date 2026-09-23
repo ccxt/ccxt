@@ -1009,9 +1009,9 @@ public class Phemex extends PhemexApi
         Boolean isLinear = !Boolean.TRUE.equals(inverse);
         final Object finalBase = base;
         final Object finalSettle = settle;
-        final Object finalSettleId = settleId;
+        final String finalSettleId = settleId;
         final Object finalStatus = status;
-        final Object finalInverse = inverse;
+        final Boolean finalInverse = inverse;
         final Object finalContractSize = contractSize;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
@@ -2438,19 +2438,19 @@ public class Phemex extends PhemexApi
             }
             final Object finalFeeCostString = feeCostString;
             final Object finalFeeRateString = feeRateString;
-            final Object finalFeeCurrencyCode = feeCurrencyCode;
+            final String finalFeeCurrencyCode = feeCurrencyCode;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "rate", finalFeeRateString );
                 put( "currency", finalFeeCurrencyCode );
             }};
         }
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalTimestamp = timestamp;
-        final Object finalOrderId = orderId;
-        final Object finalType = type;
+        final String finalOrderId = orderId;
+        final String finalType = type;
         final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalPriceString = priceString;
         final Object finalAmountString = amountString;
         final Object finalCostString = costString;
@@ -2924,8 +2924,8 @@ public class Phemex extends PhemexApi
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         Double triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"), market)));
         Boolean postOnly = (java.util.Objects.equals(timeInForce, "PO"));
-        final Object finalClientOrderId = clientOrderId;
-        final Object finalTimeInForce = timeInForce;
+        final String finalClientOrderId = clientOrderId;
+        final String finalTimeInForce = timeInForce;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -3126,10 +3126,10 @@ public class Phemex extends PhemexApi
                 put( "currency", "PT" );
             }};
         }
-        final Object finalClientOrderId = clientOrderId;
+        final String finalClientOrderId = clientOrderId;
         final Object finalTimestamp = timestamp;
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
-        final Object finalTimeInForce = timeInForce;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
+        final String finalTimeInForce = timeInForce;
         final Object finalReduceOnly = reduceOnly;
         final Object finalPrice = price;
         final Object finalFee = fee;
@@ -4566,7 +4566,7 @@ public class Phemex extends PhemexApi
         {
             amount = this.safeNumber(transaction, "amountRv");
         }
-        final Object finalType = type;
+        final String finalType = type;
         final Object finalAmount = amount;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
@@ -4774,7 +4774,7 @@ public class Phemex extends PhemexApi
      */
     public CompletableFuture<List<Position>> fetchPositionHistory(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -4981,7 +4981,7 @@ public class Phemex extends PhemexApi
         Long timestamp = this.safeInteger(position, "openedTimeNs");
         Long lastUpdateTimestamp = this.safeInteger(position, "updatedTimeNs", this.safeIntegerProduct(position, "transactTimeNs", 0.000001));
         final Object finalIsCross = isCross;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Phemex.this.safeString(position, "execSeq") );
@@ -5795,8 +5795,8 @@ final Object finalI = i;
                 transfer = this.parseTransfer(data, currency);
             } else
             {
-                final Object finalFromId = fromId;
-                final Object finalToId = toId;
+                final String finalFromId = fromId;
+                final String finalToId = toId;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "fromUserId", finalFromId );
                     put( "toUserId", finalToId );
@@ -5955,8 +5955,8 @@ final Object finalI = i;
             toId = "swap";
         }
         Long timestamp = this.safeInteger(transfer, "createTime");
-        final Object finalFromId = fromId;
-        final Object finalToId = toId;
+        final String finalFromId = fromId;
+        final String finalToId = toId;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", id );
@@ -6033,7 +6033,7 @@ final Object finalI = i;
             {
                 customSymbol = (("." + ((Map<String, Object>)market).get("baseId")) + "FR8H");
             }
-            final Object finalCustomSymbol = customSymbol;
+            final String finalCustomSymbol = customSymbol;
             Object request = new HashMap<String, Object>() {{
                 put( "symbol", finalCustomSymbol );
             }};

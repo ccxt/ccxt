@@ -1632,8 +1632,8 @@ public class Lighter extends LighterApi
                 Object pricePrecision = (((java.util.Objects.equals(priceDecimals, null)))) ? null : this.parseNumber(this.parsePrecision(priceDecimals));
                 Double quoteMultiplier = this.safeNumber(market, "quote_multiplier");
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalSettle = settle;
+                final String finalBase = base;
+                final String finalSettle = settle;
                 final Object finalBaseId = baseId;
                 final Object finalType = type;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -1749,9 +1749,9 @@ public class Lighter extends LighterApi
             depositMin = this.safeNumber(rawCurrency, "min_transfer_amount");
             withdrawMin = this.safeNumber(rawCurrency, "min_withdrawal_amount");
         }
-        final Object finalCode = code;
-        final Object finalDepositMin = depositMin;
-        final Object finalWithdrawMin = withdrawMin;
+        final String finalCode = code;
+        final Double finalDepositMin = depositMin;
+        final Double finalWithdrawMin = withdrawMin;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", finalCode );
@@ -1958,7 +1958,7 @@ public class Lighter extends LighterApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -2550,7 +2550,7 @@ public class Lighter extends LighterApi
         }
         final Object finalMarket = market;
         final Object finalMarginMode = marginMode;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalLeverage = leverage;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
@@ -2980,9 +2980,9 @@ public class Lighter extends LighterApi
         final Object finalType = type;
         final Object finalTif = tif;
         final Object finalReduceOnly = reduceOnly;
-        final Object finalSide = side;
-        final Object finalStopLossPrice = stopLossPrice;
-        final Object finalTakeProfitPrice = takeProfitPrice;
+        final String finalSide = side;
+        final Double finalStopLossPrice = stopLossPrice;
+        final Double finalTakeProfitPrice = takeProfitPrice;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Lighter.this.safeString(order, "order_id") );
@@ -3523,7 +3523,7 @@ public class Lighter extends LighterApi
         }
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String status = this.safeString(transaction, "status");
-        final Object finalType = type;
+        final String finalType = type;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Lighter.this.safeString(transaction, "id") );
@@ -3808,9 +3808,9 @@ public class Lighter extends LighterApi
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         }
         final Object finalMarket = market;
-        final Object finalOrderId = orderId;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalOrderId = orderId;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Lighter.this.safeString(trade, "trade_id") );
@@ -4228,7 +4228,7 @@ public class Lighter extends LighterApi
      */
     public CompletableFuture<MarginModification> setMargin(String symbol2, Object amount, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -4262,7 +4262,7 @@ public class Lighter extends LighterApi
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
-            final Object finalDirection = direction;
+            final Long finalDirection = direction;
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> signRaw = new HashMap<String, Object>() {{

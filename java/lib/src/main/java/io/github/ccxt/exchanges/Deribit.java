@@ -875,7 +875,7 @@ public class Deribit extends DeribitApi
         String id = ((((((base + "-") + this.convertExpireDateToMarketIdDate((String) (expiry))) + "-") + strike) + "-") + optionType);
         String symbolExpired = ((((((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType);
         final Object finalBase = base;
-        final Object finalQuote = quote;
+        final String finalQuote = quote;
         final Object finalSettle = settle;
         final Object finalOptionType = optionType;
         return new HashMap<String, Object>() {{
@@ -1399,15 +1399,15 @@ public class Deribit extends DeribitApi
                     Double minTradeAmount = this.safeNumber(market, "min_trade_amount");
                     Double tickSize = this.safeNumber(market, "tick_size");
     final Object finalSymbol = symbol;
-                    final Object finalBase = base;
-                    final Object finalQuote = quote;
-                    final Object finalSettle = settle;
-                    final Object finalType = type;
-                    final Object finalOption = option;
+                    final String finalBase = base;
+                    final String finalQuote = quote;
+                    final String finalSettle = settle;
+                    final String finalType = type;
+                    final Boolean finalOption = option;
                     final Object finalLinear = linear;
                     final Object finalInverse = inverse;
-                    final Object finalStrike = strike;
-                    final Object finalOptionType = optionType;
+                    final Double finalStrike = strike;
+                    final String finalOptionType = optionType;
                                     ((List<Object>)result).add(new HashMap<String, Object>() {{
                         put( "id", id );
                         put( "symbol", finalSymbol );
@@ -2104,14 +2104,14 @@ public class Deribit extends DeribitApi
         {
             String feeCurrencyId = this.safeString(trade, "fee_currency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
             }};
         }
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalCost = cost;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalCost = cost;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -2532,7 +2532,7 @@ public class Deribit extends DeribitApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             feeCostString = Precise.stringAbs(feeCostString);
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             final Object finalMarket = market;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -2545,12 +2545,12 @@ public class Deribit extends DeribitApi
         List<Object> trades = (List<Object>) this.safeList(order, "trades");
         String timeInForce = this.parseTimeInForce(this.safeString(order, "time_in_force"));
         Boolean postOnly = (Boolean) this.safeBool(order, "post_only");
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
         final Object finalMarket_2 = market;
-        final Object finalPriceString = priceString;
-        final Object finalCost = cost;
-        final Object finalAverageString = averageString;
-        final Object finalFilledString = filledString;
+        final String finalPriceString = priceString;
+        final String finalCost = cost;
+        final String finalAverageString = averageString;
+        final String finalFilledString = filledString;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -3427,13 +3427,13 @@ public class Deribit extends DeribitApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             type = "withdrawal";
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", code );
             }};
         }
-        final Object finalType = type;
+        final String finalType = type;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3498,7 +3498,7 @@ public class Deribit extends DeribitApi
         String notionalStringAbs = Precise.stringAbs(notionalString);
         String maintenanceMarginString = this.safeString(position, "maintenance_margin");
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -4874,8 +4874,8 @@ public class Deribit extends DeribitApi
             openInterestValue = openInterest;
         }
         final Object finalMarket = market;
-        final Object finalOpenInterestAmount = openInterestAmount;
-        final Object finalOpenInterestValue = openInterestValue;
+        final Double finalOpenInterestAmount = openInterestAmount;
+        final Double finalOpenInterestValue = openInterestValue;
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Deribit.this.safeSymbol(marketId, finalMarket) );
             put( "openInterestAmount", finalOpenInterestAmount );

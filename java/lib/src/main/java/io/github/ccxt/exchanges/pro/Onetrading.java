@@ -177,7 +177,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -385,7 +385,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1103,7 +1103,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 status = "canceled";
             }
             final Object finalSymbol = symbol;
-            final Object finalStatus = status;
+            final String finalStatus = status;
             Map<String, Object> orderObject = new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "symbol", finalSymbol );
@@ -1189,7 +1189,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -1260,7 +1260,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                     ((List<Object>)properties).add(property);
                 }
             }
-            final Object finalType = type;
+            final String finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", finalType );
                 put( "channels", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{

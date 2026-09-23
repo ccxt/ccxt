@@ -1256,10 +1256,10 @@ public class Bitstamp extends BitstampApi
                 Boolean isSpot = (java.util.Objects.equals(type, "spot"));
                 String settle = (((!java.util.Objects.equals(settleId, null) && !java.util.Objects.equals(settleId, "")))) ? this.safeCurrencyCode((String) (settleId)) : null;
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
+                final String finalBase = base;
                 final Object finalSettleId = settleId;
-                final Object finalType = type;
-                final Object finalSubType = subType;
+                final String finalType = type;
+                final String finalSubType = subType;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", Bitstamp.this.safeString(market, "market_symbol") );
                     put( "symbol", finalSymbol );
@@ -1325,7 +1325,7 @@ public class Bitstamp extends BitstampApi
             currencyType = "fiat";
         }
         Double tickSize = this.parseNumber(this.parsePrecision(this.numberToString(precision)));
-        final Object finalCurrencyType = currencyType;
+        final String finalCurrencyType = currencyType;
         return new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
@@ -1391,7 +1391,7 @@ public class Bitstamp extends BitstampApi
                 //            "market_type": "SPOT"
                 //        },
                 //
-                final Object finalNow = now;
+                final Long finalNow = now;
                 Helpers.addElementToObject(this.options, "fetchMarkets", this.extend(options, new HashMap<String, Object>() {{
         put( "response", response );
         put( "timestamp", finalNow );
@@ -1878,18 +1878,18 @@ public class Bitstamp extends BitstampApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrency );
             }};
         }
         final Object finalTimestamp = timestamp;
-        final Object finalSymbol = symbol;
-        final Object finalSide = side;
-        final Object finalPriceString = priceString;
-        final Object finalAmountString = amountString;
-        final Object finalCostString = costString;
+        final String finalSymbol = symbol;
+        final String finalSide = side;
+        final String finalPriceString = priceString;
+        final String finalAmountString = amountString;
+        final String finalCostString = costString;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -3092,20 +3092,20 @@ public class Bitstamp extends BitstampApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             final Object finalFeeCurrency = feeCurrency;
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", finalFeeCurrency );
                 put( "cost", finalFeeCost );
                 put( "rate", null );
             }};
         }
-        final Object finalType = type;
-        final Object finalCode = code;
+        final String finalType = type;
+        final String finalCode = code;
         final Object finalAmount = amount;
-        final Object finalStatus = status;
-        final Object finalAddress = address;
+        final String finalStatus = status;
+        final String finalAddress = address;
         final Object finalTag = tag;
-        final Object finalFee = fee;
+        final Map<String, Object> finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Bitstamp.this.safeString(transaction, "id") );
@@ -3227,7 +3227,7 @@ public class Bitstamp extends BitstampApi
         String amount = this.safeString(order, "amount");
         List<Object> transactions = (List<Object>) this.safeList(order, "transactions", new ArrayList<Object>(Arrays.asList()));
         String price = this.safeString(order, "price");
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -3314,7 +3314,7 @@ public class Bitstamp extends BitstampApi
                 market = this.getMarketFromTrade((Map<String, Object>) (item));
             }
             Object direction = (((java.util.Objects.equals(((Map<String, Object>)parsedTrade).get("side"), "buy")))) ? "in" : "out";
-            final Object finalType = type;
+            final String finalType = type;
             final Object finalMarket = market;
             return this.safeLedgerEntry(new HashMap<String, Object>() {{
                 put( "info", item );
@@ -3349,7 +3349,7 @@ public class Bitstamp extends BitstampApi
                 direction = ((Precise.stringGt(amount, "0"))) ? "in" : "out";
             }
             final Object finalDirection = direction;
-            final Object finalType_2 = type;
+            final String finalType_2 = type;
             return this.safeLedgerEntry(new HashMap<String, Object>() {{
                 put( "info", item );
                 put( "id", ((Map<String, Object>)parsedTransaction).get("id") );
@@ -3605,7 +3605,7 @@ public class Bitstamp extends BitstampApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             // For fiat withdrawals please provide all required additional parameters in the 'params'

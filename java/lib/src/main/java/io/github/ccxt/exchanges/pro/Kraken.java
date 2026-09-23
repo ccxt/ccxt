@@ -639,9 +639,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             quoteVolume = Precise.stringMul(baseVolume, vwap);
         }
         String last = this.safeString(ticker, "last");
-        final Object finalVwap = vwap;
-        final Object finalBaseVolume = baseVolume;
-        final Object finalQuoteVolume = quoteVolume;
+        final String finalVwap = vwap;
+        final String finalBaseVolume = baseVolume;
+        final String finalQuoteVolume = quoteVolume;
         Object result = this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -784,7 +784,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -985,7 +985,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";

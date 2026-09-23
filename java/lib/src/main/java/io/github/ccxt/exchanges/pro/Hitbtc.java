@@ -1233,8 +1233,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             parsedStatus = this.parseOrderStatus((String) (rawStatus));
         }
         final Object finalMarket = market;
-        final Object finalParsedStatus = parsedStatus;
-        final Object finalTrades = trades;
+        final String finalParsedStatus = parsedStatus;
+        final List<Object> finalTrades = trades;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Hitbtc.this.safeString(order, "id") );

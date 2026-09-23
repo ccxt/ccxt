@@ -91,7 +91,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -176,7 +176,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -377,7 +377,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         String feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
         if (!java.util.Objects.equals(feeAmount, null))
         {
-            final Object finalFeeAmount = feeAmount;
+            final String finalFeeAmount = feeAmount;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeAmount );
                 put( "currency", feeSymbol );
@@ -396,8 +396,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 takerOrMaker = "taker";
             }
         }
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -427,7 +427,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

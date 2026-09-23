@@ -541,8 +541,8 @@ public class Bitopro extends BitoproApi
                 put( "max", null );
             }} );
         }};
-        final Object finalId = id;
-        final Object finalBase = base;
+        final String finalId = id;
+        final String finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "uppercaseId", uppercaseId );
@@ -823,7 +823,7 @@ public class Bitopro extends BitoproApi
         String feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
         if (!java.util.Objects.equals(feeAmount, null))
         {
-            final Object finalFeeAmount = feeAmount;
+            final String finalFeeAmount = feeAmount;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeAmount );
                 put( "currency", feeSymbol );
@@ -842,11 +842,11 @@ public class Bitopro extends BitoproApi
                 takerOrMaker = "maker";
             }
         }
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalTimestamp = timestamp;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalSide = side;
-        final Object finalAmount = amount;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalAmount = amount;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
@@ -1298,9 +1298,9 @@ public class Bitopro extends BitoproApi
                 put( "cost", feeAmount );
             }};
         }
-        final Object finalTimeInForce = timeInForce;
+        final String finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );

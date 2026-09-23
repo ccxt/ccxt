@@ -992,10 +992,10 @@ public class Indodax extends IndodaxApi
         String id = this.safeString(order, "order_id");
         final Object finalSymbol = symbol;
         final Object finalSide = side;
-        final Object finalCost = cost;
-        final Object finalAmount = amount;
-        final Object finalFilled = filled;
-        final Object finalRemaining = remaining;
+        final String finalCost = cost;
+        final String finalAmount = amount;
+        final String finalFilled = filled;
+        final String finalRemaining = remaining;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -1644,7 +1644,7 @@ public class Indodax extends IndodaxApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", Indodax.this.safeCurrencyCode((String) (null), currency) );
                 put( "cost", finalFeeCost );
@@ -1792,8 +1792,8 @@ public class Indodax extends IndodaxApi
                     Object finalNetwork = network; // java req
                     if (!java.util.Objects.equals(code, null))
                     {
-                        final Object finalCode = code;
-                        final Object finalAddress = address;
+                        final String finalCode = code;
+                        final String finalAddress = address;
                         ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", new HashMap<String, Object>() {{}} );
         put( "currency", finalCode );

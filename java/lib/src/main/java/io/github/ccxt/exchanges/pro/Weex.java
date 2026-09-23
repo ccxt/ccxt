@@ -130,7 +130,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 method = "UNSUBSCRIBE";
             }
-            final Object finalMethod = method;
+            final String finalMethod = method;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", finalMethod );
@@ -164,7 +164,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 method = "UNSUBSCRIBE";
             }
             Object id = this.requestId();
-            final Object finalMethod = method;
+            final String finalMethod = method;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", finalMethod );
@@ -232,7 +232,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -356,7 +356,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 ((List<Object>)unSubHashes).add(unSubMessageHash);
             }
             final Object finalSymbols = symbols;
-            final Object finalTopic = topic;
+            final String finalTopic = topic;
             Object subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "symbols", finalSymbols );
@@ -681,8 +681,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
             takerOrMaker = "taker"; // a public trade is reported from the aggressor's side, same as parseTrade
         }
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Weex.this.safeString(trade, "t") );
@@ -1570,14 +1570,14 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                     feeCurrency = ((Map<String, Object>)marketResolved).get("quote");
                 }
             }
-            final Object finalCommission = commission;
+            final String finalCommission = commission;
             final Object finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalCommission );
                 put( "currency", finalFeeCurrency );
             }};
         }
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1890,7 +1890,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                     feeCurrency = ((Map<String, Object>)marketResolved).get("quote");
                 }
             }
-            final Object finalCommission = commission;
+            final String finalCommission = commission;
             final Object finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalCommission );
@@ -1910,7 +1910,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             stopLossPrice = triggerPrice;
         }
         final Object finalRawType = rawType;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalFee = fee;
         final Object finalStopLossPrice = stopLossPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;

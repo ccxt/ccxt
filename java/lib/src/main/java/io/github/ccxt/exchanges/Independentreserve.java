@@ -798,11 +798,11 @@ public class Independentreserve extends IndependentreserveApi
             feeCost = Precise.stringMul(feeRate, filled);
         }
         final Object finalSymbol = symbol;
-        final Object finalOrderType = orderType;
-        final Object finalSide = side;
-        final Object finalFilled = filled;
-        final Object finalFeeRate = feeRate;
-        final Object finalFeeCost = feeCost;
+        final String finalOrderType = orderType;
+        final String finalSide = side;
+        final String finalFilled = filled;
+        final String finalFeeRate = feeRate;
+        final String finalFeeCost = feeCost;
         final Object finalBase = base;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -1055,7 +1055,7 @@ public class Independentreserve extends IndependentreserveApi
                 side = "sell";
             }
         }
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
@@ -1200,7 +1200,7 @@ public class Independentreserve extends IndependentreserveApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String orderType = this.capitalize(type);
             orderType = Helpers.add(orderType, (((java.util.Objects.equals(side, "sell")))) ? "Offer" : "Bid");
-            final Object finalOrderType = orderType;
+            final String finalOrderType = orderType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "primaryCurrencyCode", ((Map<String, Object>)market).get("baseId") );
                 put( "secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId") );

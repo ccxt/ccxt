@@ -861,13 +861,13 @@ public class Whitebit extends WhitebitApi
         String makerFeeRate = this.safeString(market, "makerFee");
         String maker = Precise.stringDiv(makerFeeRate, "100");
         Boolean isSpot = !Boolean.TRUE.equals(swap);
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalQuoteId = quoteId;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalQuoteId = quoteId;
         final Object finalSettleId = settleId;
-        final Object finalType = type;
-        final Object finalContract = contract;
+        final String finalType = type;
+        final Boolean finalContract = contract;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -2371,13 +2371,13 @@ public class Whitebit extends WhitebitApi
         String feeCost = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", Whitebit.this.safeCurrencyCode(Whitebit.this.safeString(trade, "feeAsset")) );
             }};
         }
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -3392,13 +3392,13 @@ public class Whitebit extends WhitebitApi
         {
             timeInForce = "PO";
         }
-        final Object finalClientOrderId = clientOrderId;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalPostOnly = postOnly;
-        final Object finalSide = side;
-        final Object finalOrderType = orderType;
-        final Object finalAmount = amount;
-        final Object finalRemaining = remaining;
+        final String finalClientOrderId = clientOrderId;
+        final String finalTimeInForce = timeInForce;
+        final Boolean finalPostOnly = postOnly;
+        final String finalSide = side;
+        final String finalOrderType = orderType;
+        final String finalAmount = amount;
+        final String finalRemaining = remaining;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -4396,7 +4396,7 @@ public class Whitebit extends WhitebitApi
      */
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

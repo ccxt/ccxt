@@ -125,7 +125,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -236,7 +236,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -305,7 +305,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -391,7 +391,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -737,7 +737,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         }
         final Object finalMarket = market;
         final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString2(trade, "v", "T") );
             put( "timestamp", timestamp );
@@ -1077,7 +1077,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     public CompletableFuture<Object> keepAliveListenKey(String listenKey2, Object... optionalArgs)
     {
-        final Object listenKey3 = listenKey2;
+        final String listenKey3 = listenKey2;
         return BaseExchange.supplyAsync(() -> {
             Object listenKey = listenKey3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

@@ -379,7 +379,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -410,7 +410,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             }
             final Object finalCbId = cbId;
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new HashMap<String, Object>() {{
@@ -564,7 +564,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -698,7 +698,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -824,7 +824,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

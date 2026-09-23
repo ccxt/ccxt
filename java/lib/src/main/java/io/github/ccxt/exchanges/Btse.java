@@ -879,9 +879,9 @@ public class Btse extends BtseApi
         {
             fees = this.safeDict(this.fees, "spot", new HashMap<String, Object>() {{}});
         }
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalType = type;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalType = type;
         final Object finalIsSwap = isSwap;
         final Object finalFees = fees;
         final Object finalContractSize = contractSize;
@@ -1601,7 +1601,7 @@ public class Btse extends BtseApi
         }
         Object timestamp = this.safeTimestamp(ticker, "closeTime");
         final Object finalMarket = market;
-        final Object finalBaseVolume = baseVolume;
+        final String finalBaseVolume = baseVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Btse.this.safeSymbol(marketId, finalMarket) );
             put( "timestamp", timestamp );
@@ -1835,7 +1835,7 @@ public class Btse extends BtseApi
             interval = (String.valueOf(hours) + "h");
         }
         final Object finalMarket = market;
-        final Object finalInterval = interval;
+        final String finalInterval = interval;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -2093,7 +2093,7 @@ public class Btse extends BtseApi
      */
     public CompletableFuture<List<Trade>> fetchOrderTrades(String id2, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -2116,7 +2116,7 @@ public class Btse extends BtseApi
                 }
             } else
             {
-                final Object finalClientOrderId = clientOrderId;
+                final String finalClientOrderId = clientOrderId;
                 parameters = this.extend(parameters, new HashMap<String, Object>() {{
                     put( "clOrderID", finalClientOrderId );
                 }});
@@ -2206,7 +2206,7 @@ public class Btse extends BtseApi
         Double feeCost = this.safeNumber(trade, "feeAmount");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", Btse.this.safeCurrencyCode(Btse.this.safeString(trade, "feeCurrency")) );
@@ -2324,7 +2324,7 @@ public class Btse extends BtseApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             type = ((String)type).toUpperCase();
             String upperSide = ((String)((String)side)).toUpperCase();
-            final Object finalUpperSide = upperSide;
+            final String finalUpperSide = upperSide;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "orderSide", finalUpperSide );
@@ -2806,7 +2806,7 @@ public class Btse extends BtseApi
      */
     public CompletableFuture<Object> fetchOpenOrder(String id2, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -2876,7 +2876,7 @@ public class Btse extends BtseApi
      */
     public CompletableFuture<Order> editOrder(String id2, String symbol, Object type, Object side, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3251,9 +3251,9 @@ public class Btse extends BtseApi
             status = "closed";
         }
         String rawTimeInForce = this.safeString2(order, "time_in_force", "timeInForce");
-        final Object finalStatus = status;
+        final String finalStatus = status;
         final Object finalMarket = market;
-        final Object finalOrderType = orderType;
+        final String finalOrderType = orderType;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Btse.this.safeString2(order, "orderID", "orderId") );
@@ -3419,7 +3419,7 @@ public class Btse extends BtseApi
             }}, "types", new ArrayList<Object>(Arrays.asList()));
             (this.loadMarkets()).join();
             String walletType = this.safeString(parameters, "walletType", "SPOT");
-            final Object finalWalletType = walletType;
+            final String finalWalletType = walletType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "walletType", finalWalletType );
             }};
@@ -4201,7 +4201,7 @@ public class Btse extends BtseApi
             marginModeValue = "isolated";
         }
         final Object finalMarket = market;
-        final Object finalMarginModeValue = marginModeValue;
+        final String finalMarginModeValue = marginModeValue;
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -4263,7 +4263,7 @@ public class Btse extends BtseApi
                 positionMode = "ISOLATED";
             }
             parameters = this.omit(parameters, "hedged");
-            final Object finalPositionMode = positionMode;
+            final String finalPositionMode = positionMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Btse.this.futuresRequestId(market) );
                 put( "positionMode", finalPositionMode );

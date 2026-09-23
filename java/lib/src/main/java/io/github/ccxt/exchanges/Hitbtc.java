@@ -962,17 +962,17 @@ public class Hitbtc extends HitbtcApi
                 Double lot = this.parseNumber(lotString);
                 Double step = this.parseNumber(stepString);
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalQuote = quote;
-                final Object finalSettle = settle;
-                final Object finalSettleId = settleId;
-                final Object finalType = type;
-                final Object finalSpot = spot;
-                final Object finalContract = contract;
+                final String finalBase = base;
+                final String finalQuote = quote;
+                final String finalSettle = settle;
+                final String finalSettleId = settleId;
+                final String finalType = type;
+                final Boolean finalSpot = spot;
+                final Boolean finalContract = contract;
                 final Object finalLinear = linear;
                 final Object finalInverse = inverse;
                 final Object finalContractSize = contractSize;
-                final Object finalExpiry = expiry;
+                final Long finalExpiry = expiry;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", finalSymbol );
@@ -1160,7 +1160,7 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<DepositAddress> createDepositAddress(String code2, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1210,7 +1210,7 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code2, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1485,7 +1485,7 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1684,7 +1684,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             String feeCurrency = this.safeString(info, "fee_currency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrency);
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
@@ -1698,7 +1698,7 @@ public class Hitbtc extends HitbtcApi
         String amountString = this.safeString2(trade, "quantity", "qty");
         String side = this.safeString(trade, "side");
         String id = this.safeString(trade, "id");
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1719,7 +1719,7 @@ public class Hitbtc extends HitbtcApi
 
     public CompletableFuture<Object> fetchTransactionsHelper(String types, String code2, Object since2, Object limit2, Map<String, Object> parameters)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         final Object since3 = since2;
         final Object limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
@@ -2872,7 +2872,7 @@ public class Hitbtc extends HitbtcApi
 
     public CompletableFuture<Order> editOrder(String id, String symbol2, Object type2, Object side, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         final Object type3 = type2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
@@ -3185,7 +3185,7 @@ public class Hitbtc extends HitbtcApi
         Object postOnly = this.safeValue(order, "post_only");
         String timeInForce = this.safeString(order, "time_in_force");
         Object rawTrades = this.safeValue(order, "trades");
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -3310,7 +3310,7 @@ public class Hitbtc extends HitbtcApi
             {
                 throw new BadRequest((this.id + " transfer() fromAccount and toAccount arguments cannot be the same account")) ;
             }
-            final Object finalFromId = fromId;
+            final String finalFromId = fromId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", requestAmount );
@@ -3353,7 +3353,7 @@ public class Hitbtc extends HitbtcApi
 
     public CompletableFuture<Object> convertCurrencyNetwork(String code2, Object amount, Object fromNetwork2, Object toNetwork2, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         final Object fromNetwork3 = fromNetwork2;
         final Object toNetwork3 = toNetwork2;
         return BaseExchange.supplyAsync(() -> {
@@ -3414,7 +3414,7 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3881,10 +3881,10 @@ public class Hitbtc extends HitbtcApi
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        final Object finalLiquidationPrice = liquidationPrice;
-        final Object finalEntryPrice = entryPrice;
-        final Object finalContracts = contracts;
-        final Object finalCollateral = collateral;
+        final Double finalLiquidationPrice = liquidationPrice;
+        final Double finalEntryPrice = entryPrice;
+        final Double finalContracts = contracts;
+        final Double finalCollateral = collateral;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );

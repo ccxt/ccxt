@@ -504,7 +504,7 @@ public class Nado extends NadoApi
             Long requestId = this.safeInteger(parameters, "id");
             Object spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            final Object finalAmountX18 = amountX18;
+            final String finalAmountX18 = amountX18;
             final Object finalExpiration = expiration;
             Map<String, Object> order = new HashMap<String, Object>() {{
                 put( "sender", sender );
@@ -727,9 +727,9 @@ public class Nado extends NadoApi
                 put( "digests", new ArrayList<Object>(Arrays.asList(id)) );
                 put( "nonce", cancelNonce );
             }};
-            final Object finalAmountX18 = amountX18;
+            final String finalAmountX18 = amountX18;
             final Object finalExpiration = expiration;
-            final Object finalAppendix = appendix;
+            final String finalAppendix = appendix;
             Map<String, Object> order = new HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "priceX18", priceX18 );
@@ -2025,9 +2025,9 @@ public class Nado extends NadoApi
                 Object amountIncrement = this.parseX18(this.safeString(market, "size_increment"));
                 Object minCost = this.parseX18(this.safeString(market, "min_size"));
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
+                final String finalBase = base;
                 final Object finalType = type;
-                final Object finalTickerId = tickerId;
+                final String finalTickerId = tickerId;
                             ((List<Object>)markets).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "lowercaseId", null );
@@ -2188,7 +2188,7 @@ public class Nado extends NadoApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -2794,9 +2794,9 @@ public class Nado extends NadoApi
             }
         }
         final Object finalMarket_2 = market;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalPrice = price;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalPrice = price;
         final Object finalParsedAmount = parsedAmount;
         final Object finalParsedCost = parsedCost;
         final Object finalFee = fee;
@@ -3167,7 +3167,7 @@ public class Nado extends NadoApi
             }
         }
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalContracts = contracts;
         final Object finalEntryPrice = entryPrice;
         final Object finalMarkPrice = markPrice;
@@ -3403,21 +3403,21 @@ public class Nado extends NadoApi
             }
             price = this.parseX18(this.safeString(rawOrder, "priceX18"));
         }
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalTimestamp = timestamp;
         final Object finalLastTradeTimestamp = lastTradeTimestamp;
         final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
         final Object finalMarket_2 = market;
-        final Object finalTimeInForce = timeInForce;
+        final String finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalCost = cost;
-        final Object finalAverage = average;
+        final String finalAverage = average;
         final Object finalFilled = filled;
         final Object finalRemaining = remaining;
-        final Object finalStatus = status;
+        final String finalStatus = status;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );

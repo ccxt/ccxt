@@ -834,7 +834,7 @@ public class Kraken extends KrakenApi
                 Boolean isActive = java.util.Objects.equals(status, "online");
                 Object symbol = ((Helpers.isTrue((!Boolean.TRUE.equals(isSynthetic))))) ? (((base + "/") + quote)) : id;
     final Object finalBase = base;
-                final Object finalSpot = spot;
+                final Boolean finalSpot = spot;
                 final Object finalLeverageBuyLength = leverageBuyLength;
                 final Object finalTaker = taker;
                 final Object finalMaker = maker;
@@ -1060,8 +1060,8 @@ public class Kraken extends KrakenApi
         }
         Boolean isFiat = ((String)code).indexOf(".HOLD") >= 0;
         rawCurrency = this.omit(rawCurrency, "_coin_id");
-        final Object finalId = id;
-        final Object finalCode = code;
+        final String finalId = id;
+        final String finalCode = code;
         final Object finalRawCurrency = rawCurrency;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
@@ -1537,7 +1537,7 @@ public class Kraken extends KrakenApi
             direction = "in";
         }
         Long timestamp = this.safeIntegerProduct(item, "time", 1000);
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalAmount = amount;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -1838,15 +1838,15 @@ public class Kraken extends KrakenApi
             timestamp = this.parse8601(datetime);
         }
         final Object finalId = id;
-        final Object finalOrderId = orderId;
+        final String finalOrderId = orderId;
         final Object finalTimestamp = timestamp;
-        final Object finalDatetime = datetime;
+        final String finalDatetime = datetime;
         final Object finalSymbol = symbol;
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalPrice = price;
-        final Object finalAmount = amount;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalPrice = price;
+        final String finalAmount = amount;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
@@ -2247,7 +2247,7 @@ public class Kraken extends KrakenApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String symbol = ((base + "/") + quote);
-        final Object finalBase = base;
+        final String finalBase = base;
         market = new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "base", finalBase );
@@ -2555,18 +2555,18 @@ final Object finalId = id;
         {
             isPostOnly = null;
         }
-        final Object finalId_2 = id;
+        final String finalId_2 = id;
         final Object finalOrder = order;
         final Object finalSymbol_2 = symbol;
-        final Object finalTypeParsed = typeParsed;
-        final Object finalIsPostOnly = isPostOnly;
-        final Object finalSide = side;
+        final String finalTypeParsed = typeParsed;
+        final Boolean finalIsPostOnly = isPostOnly;
+        final String finalSide = side;
         final Object finalPrice = price;
-        final Object finalTriggerPrice = triggerPrice;
-        final Object finalTakeProfitPrice = takeProfitPrice;
-        final Object finalStopLossPrice = stopLossPrice;
-        final Object finalCost = cost;
-        final Object finalAmount = amount;
+        final String finalTriggerPrice = triggerPrice;
+        final String finalTakeProfitPrice = takeProfitPrice;
+        final String finalStopLossPrice = stopLossPrice;
+        final String finalCost = cost;
+        final String finalAmount = amount;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId_2 );
@@ -3665,8 +3665,8 @@ final Object finalId = id;
                 feeCost = 0;
             }
         }
-        final Object finalStatus = status;
-        final Object finalType = type;
+        final String finalStatus = status;
+        final String finalType = type;
         final Object finalFeeCost = feeCost;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -4014,7 +4014,7 @@ final Object finalId = id;
      */
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code2, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -4063,7 +4063,7 @@ final Object finalId = id;
                     depositMethod = this.safeString(firstDepositMethod, "method");
                 }
             }
-            final Object finalDepositMethod = depositMethod;
+            final String finalDepositMethod = depositMethod;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "method", finalDepositMethod );
@@ -4348,7 +4348,7 @@ final Object finalId = id;
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String fromAccountParsed = this.parseAccountType(fromAccount);
             String toAccountParsed = this.parseAccountType(toAccount);
-            final Object finalFromAccountParsed = fromAccountParsed;
+            final String finalFromAccountParsed = fromAccountParsed;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", Kraken.this.currencyToPrecision((String) (code), amount) );
                 put( "from", finalFromAccountParsed );
@@ -4437,14 +4437,14 @@ final Object finalId = id;
             String nonce = String.valueOf(this.nonce());
             if (Boolean.TRUE.equals(isCancelOrderBatch) || Boolean.TRUE.equals(isTriggerPercent) || Boolean.TRUE.equals(isBatchOrder))
             {
-                final Object finalNonce = nonce;
+                final String finalNonce = nonce;
                 body = this.json(this.extend(new HashMap<String, Object>() {{
                     put( "nonce", finalNonce );
                 }}, parameters));
             } else
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-                final Object finalNonce_2 = nonce;
+                final String finalNonce_2 = nonce;
                 body = this.urlencodeNested(this.extend(new HashMap<String, Object>() {{
                     put( "nonce", finalNonce_2 );
                 }}, parameters));

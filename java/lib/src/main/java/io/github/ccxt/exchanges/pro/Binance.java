@@ -936,7 +936,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "params", subParams );
                 put( "id", requestId );
             }};
-            final Object finalName = name;
+            final String finalName = name;
             final Object finalSymbols = symbols;
             final Object finalType = type;
             final Object finalParameters = parameters;
@@ -1874,18 +1874,18 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             String feeCurrencyId = this.safeString(trade, "N");
             String feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId));
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrencyCode );
             }};
         }
         String type = this.safeStringLower(trade, "o");
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalSide = side;
-        final Object finalPrice = price;
-        final Object finalAmount = amount;
-        final Object finalCost = cost;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalPrice = price;
+        final String finalAmount = amount;
+        final String finalCost = cost;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1947,7 +1947,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -2228,7 +2228,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -2505,7 +2505,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -2535,7 +2535,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      */
     public CompletableFuture<Ticker> watchMarkPrice(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -2839,7 +2839,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public CompletableFuture<Object> watchMultiTickerHelper(Object methodName, String channelName2, Object... optionalArgs)
     {
-        final Object channelName3 = channelName2;
+        final String channelName3 = channelName2;
         return BaseExchange.supplyAsync(() -> {
             Object channelName = channelName3;
             Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3186,8 +3186,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
         }
         final Object finalTimestamp = timestamp;
-        final Object finalBaseVolume = baseVolume;
-        final Object finalQuoteVolume = quoteVolume;
+        final String finalBaseVolume = baseVolume;
+        final String finalQuoteVolume = quoteVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
@@ -3577,7 +3577,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     // Step 2: Subscribe to user data stream via WebSocket API
                     Object requestId = this.requestId(url);
                     String requestHash = String.valueOf(requestId);
-                    final Object finalListenToken = listenToken;
+                    final String finalListenToken = listenToken;
                     Map<String, Object> message = new HashMap<String, Object>() {{
                         put( "id", requestHash );
                         put( "method", "userDataStream.subscribe.listenToken" );
@@ -3591,11 +3591,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         put( "subscription", marketType );
                     }};
                     (this.watch(url, requestHash, message, requestHash, subscription)).join();
-                    final Object finalExpirationTime = expirationTime;
-                    final Object finalTime = time;
-                    final Object finalSymbol = symbol;
-                    final Object finalIsIsolated = isIsolated;
-                    final Object finalValidity = validity;
+                    final Long finalExpirationTime = expirationTime;
+                    final Long finalTime = time;
+                    final String finalSymbol = symbol;
+                    final Boolean finalIsIsolated = isIsolated;
+                    final Long finalValidity = validity;
                     Helpers.addElementToObject(this.options, marketType, this.extend(options, new HashMap<String, Object>() {{
         put( "listenToken", finalListenToken );
         put( "expirationTime", finalExpirationTime );
@@ -3762,8 +3762,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     {
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
-                    final Object finalListenKey = listenKey;
-                    final Object finalTime = time;
+                    final String finalListenKey = listenKey;
+                    final Long finalTime = time;
                     Helpers.addElementToObject(this.options, type, this.extend(options, new HashMap<String, Object>() {{
         put( "listenKey", finalListenKey );
         put( "lastAuthenticatedTime", finalTime );
@@ -3910,7 +3910,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     }}));
                 return null;
             }
-            final Object finalListenKey = listenKey;
+            final String finalListenKey = listenKey;
             Helpers.addElementToObject(this.options, type, this.extend(options, new HashMap<String, Object>() {{
         put( "listenKey", finalListenKey );
         put( "lastAuthenticatedTime", time );
@@ -5607,9 +5607,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long stockTimestamp = this.safeInteger(order, "T");
             Long stockLastUpdateTimestamp = this.safeInteger(order, "U", stockTimestamp);
-            final Object finalStockAmount = stockAmount;
-            final Object finalStockFilled = stockFilled;
-            final Object finalStockRemaining = stockRemaining;
+            final String finalStockAmount = stockAmount;
+            final String finalStockFilled = stockFilled;
+            final String finalStockRemaining = stockRemaining;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "symbol", stockSymbol );
@@ -5660,7 +5660,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             String feeCurrencyId = this.safeString(order, "N");
             String feeCurrency = this.safeCurrencyCode((String) (feeCurrencyId));
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrency );
@@ -5680,10 +5680,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
-        final Object finalClientOrderId = clientOrderId;
+        final String finalClientOrderId = clientOrderId;
         final Object finalTimestamp = timestamp;
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
-        final Object finalTimeInForce = timeInForce;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
+        final String finalTimeInForce = timeInForce;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -5978,8 +5978,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 executionType = "TRADE";
             }
             // normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
-            final Object finalSide = side;
-            final Object finalExecutionType = executionType;
+            final String finalSide = side;
+            final String finalExecutionType = executionType;
             Map<String, Object> normalizedOrder = new HashMap<String, Object>() {{
                 put( "s", Binance.this.safeString(order, "s") );
                 put( "i", Binance.this.safeString(order, "oid") );
@@ -6296,8 +6296,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
             }
         }
-        final Object finalPositionSide = positionSide;
-        final Object finalHedged = hedged;
+        final String finalPositionSide = positionSide;
+        final Boolean finalHedged = hedged;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -6351,7 +6351,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 side = "long";
             }
         }
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );

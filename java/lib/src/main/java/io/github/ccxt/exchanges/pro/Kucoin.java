@@ -451,7 +451,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -504,7 +504,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<Object> unWatchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1123,7 +1123,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -1188,7 +1188,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -1370,7 +1370,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1533,7 +1533,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<Object> unWatchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1672,7 +1672,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             String feeCurrencyId = this.safeString(trade, "fC");
             String feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId));
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrencyCode );
@@ -1717,7 +1717,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             //
@@ -2544,7 +2544,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
         final Object finalMarket = market;
         final Object finalTimestamp = timestamp;
-        final Object finalStatus = status;
+        final String finalStatus = status;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -3052,8 +3052,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Object feeCurrency = ((Map<String, Object>)market).get("quote");
         String feeRate = this.safeString(trade, "feeRate");
         String feeCost = this.safeString(trade, "fee");
-        final Object finalPrice = price;
-        final Object finalAmount = amount;
+        final String finalPrice = price;
+        final String finalAmount = amount;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -3134,7 +3134,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String messageHash = (uniformType + ":balance");
             if (Helpers.isTrue(uta))
             {
-                final Object finalUniformType = uniformType;
+                final String finalUniformType = uniformType;
                 Map<String, Object> extendedParams = new HashMap<String, Object>() {{
                     put( "accountType", finalUniformType );
                 }};
@@ -3825,7 +3825,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<FundingRate> watchFundingRate(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -3852,7 +3852,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<Object> unWatchFundingRate(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -3956,7 +3956,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<Ticker> watchMarkPrice(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -3983,7 +3983,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<Object> unWatchMarkPrice(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

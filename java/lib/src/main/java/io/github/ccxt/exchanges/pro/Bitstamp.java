@@ -86,7 +86,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -299,7 +299,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -342,7 +342,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      */
     public CompletableFuture<Object> unWatchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -461,7 +461,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      */
     public CompletableFuture<FundingRate> watchFundingRate(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -550,7 +550,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Object messageHash = ((channel + "_") + ((Map<String, Object>)market).get("id"));
             final Object finalSymbol = symbol;
             final Object finalLimit = limit;
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Object subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "limit", finalLimit );
@@ -634,7 +634,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Object messageHash = ((channel + "_") + ((Map<String, Object>)market).get("id"));
             final Object finalSymbol = symbol;
             final Object finalLimit = limit;
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Object subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "limit", finalLimit );
@@ -753,7 +753,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             final Object finalMarket = market;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -906,11 +906,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Object timestamp = this.safeTimestamp(order, "datetime");
         market = this.safeMarket(null, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        final Object finalOrderType = orderType;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalAmount = amount;
-        final Object finalRemaining = remaining;
-        final Object finalStatus = status;
+        final String finalOrderType = orderType;
+        final String finalTimeInForce = timeInForce;
+        final String finalAmount = amount;
+        final String finalRemaining = remaining;
+        final String finalStatus = status;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );

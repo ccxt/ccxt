@@ -442,7 +442,7 @@ public class Coincheck extends CoincheckApi
                     status = "maintenance";
                 }
             }
-            final Object finalStatus = status;
+            final String finalStatus = status;
             final Object finalUpdated = updated;
             return new HashMap<String, Object>() {{
                 put( "status", finalStatus );
@@ -658,7 +658,7 @@ public class Coincheck extends CoincheckApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -761,11 +761,11 @@ public class Coincheck extends CoincheckApi
             amountString = this.safeString(trade, "amount");
             side = this.safeString(trade, "order_type");
         }
-        final Object finalSide = side;
-        final Object finalOrderId = orderId;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalAmountString = amountString;
-        final Object finalCostString = costString;
+        final String finalSide = side;
+        final String finalOrderId = orderId;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalAmountString = amountString;
+        final String finalCostString = costString;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -1234,7 +1234,7 @@ public class Coincheck extends CoincheckApi
         Double feeCost = this.safeNumber(transaction, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", code );
@@ -1305,7 +1305,7 @@ public class Coincheck extends CoincheckApi
                 }
             }
             String auth = ((nonce + url) + queryString);
-            final Object finalNonce = nonce;
+            final String finalNonce = nonce;
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "ACCESS-KEY", Coincheck.this.apiKey );

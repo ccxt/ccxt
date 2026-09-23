@@ -575,7 +575,7 @@ public class Bitbank extends BitbankApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             final Object finalMarket = market;
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
                 put( "cost", finalFeeCostString );

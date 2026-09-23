@@ -197,7 +197,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
      */
     public CompletableFuture<Order> createOrderWs(String symbol2, Object type, Object side, Object amount, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -547,7 +547,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -933,7 +933,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1330,7 +1330,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -2830,7 +2830,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     public CompletableFuture<Object> authenticate(String url, String messageType2)
     {
-        final Object messageType3 = messageType2;
+        final String messageType3 = messageType2;
         return BaseExchange.supplyAsync(() -> {
             Object messageType = messageType3;
             Object channel = (messageType + ".login");
@@ -2856,7 +2856,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     public CompletableFuture<Object> requestPrivate(String url, Map<String, Object> reqParams, String channel2, Object... optionalArgs)
     {
-        final Object channel3 = channel2;
+        final String channel3 = channel2;
         return BaseExchange.supplyAsync(() -> {
             Object channel = channel3;
             Object requestId = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;

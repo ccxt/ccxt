@@ -179,7 +179,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -311,7 +311,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -433,7 +433,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -553,7 +553,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -761,7 +761,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object url = this.getUrlByMarketType(((Map<String, Object>)market).get("type"), ((Map<String, Object>)market).get("linear"), false, true);
             Object requestId = this.requestId();
-            final Object finalMessageHash = messageHash;
+            final String finalMessageHash = messageHash;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "req", finalMessageHash );
                 put( "id", requestId );
@@ -1484,8 +1484,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Object tradesLength = ((List<?>)rawTrades).size();
             if (Helpers.isGreaterThan(tradesLength, 0))
             {
-                final Object finalMessageHash = messageHash;
-                final Object finalMarketId = marketId;
+                final String finalMessageHash = messageHash;
+                final String finalMarketId = marketId;
                 Map<String, Object> tradesObject = new HashMap<String, Object>() {{
                     put( "trades", rawTrades );
                     put( "ch", finalMessageHash );
@@ -1704,7 +1704,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString2(order, "fee_asset", "fee_currency");
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", Htx.this.safeCurrencyCode((String) (feeCurrencyId)) );
@@ -1736,7 +1736,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         String cost = this.safeString2(order, "orderValue", "trade_turnover");
         final Object finalType = type;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -1812,8 +1812,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             takerOrMaker = (((java.util.Objects.equals(aggressor, true)))) ? "taker" : "maker";
         }
-        final Object finalType = type;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalType = type;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -2203,7 +2203,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             final Object finalType = type;
             final Object finalSubType = subType;
-            final Object finalMarginMode = marginMode;
+            final String finalMarginMode = marginMode;
             Object subscriptionParams = new HashMap<String, Object>() {{
                 put( "type", finalType );
                 put( "subType", finalSubType );
@@ -3236,13 +3236,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String feeCurrency = this.safeCurrencyCode(this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("feeCurrency", "fee_currency", "fee_asset"))));
         if (!java.util.Objects.equals(feeCurrency, null))
         {
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", Htx.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("transactFee", "fee", "trade_fee"))) );
                 put( "currency", finalFeeCurrency );
             }};
         }
-        final Object finalType = type;
+        final String finalType = type;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -3340,7 +3340,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public CompletableFuture<Object> unsubscribePublic(Map<String, Object> market2, Object subMessageHash, Object topic2, Object... optionalArgs)
     {
-        final Object market3 = market2;
+        final Map<String, Object> market3 = market2;
         final Object topic3 = topic2;
         return BaseExchange.supplyAsync(() -> {
             Object market = market3;
@@ -3381,8 +3381,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public CompletableFuture<Object> subscribePrivate(String channel, String messageHash, String type2, String subtype2, Object... optionalArgs)
     {
-        final Object type3 = type2;
-        final Object subtype3 = subtype2;
+        final String type3 = type2;
+        final String subtype3 = subtype2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object subtype = subtype3;

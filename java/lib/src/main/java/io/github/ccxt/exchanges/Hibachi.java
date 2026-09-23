@@ -375,7 +375,7 @@ public class Hibachi extends HibachiApi
         String settle = this.safeCurrencyCode(settleId);
         String symbol = ((((base + "/") + quote) + ":") + settle);
         Long created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
-        final Object finalBase = base;
+        final String finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "numericId", numericId );
@@ -502,7 +502,7 @@ public class Hibachi extends HibachiApi
         String code = this.safeCurrencyCode("USDT");
         if (!java.util.Objects.equals(code, null))
         {
-            final Object finalCode = code;
+            final String finalCode = code;
             ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
     put( "id", "USDT" );
     put( "name", "USDT" );
@@ -683,10 +683,10 @@ public class Hibachi extends HibachiApi
                 orderId = this.safeString(trade, "askOrderId");
             }
         }
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalSide = side;
-        final Object finalOrderId = orderId;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalOrderId = orderId;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalOrderType = orderType;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -883,12 +883,12 @@ public class Hibachi extends HibachiApi
         Long lastUpdateTimestamp = this.safeInteger(order, "closedAt");
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalSide = side;
-        final Object finalFilled = filled;
-        final Object finalRemainingString = remainingString;
-        final Object finalReduceOnly = reduceOnly;
-        final Object finalPostOnly = postOnly;
+        final String finalTimeInForce = timeInForce;
+        final String finalSide = side;
+        final String finalFilled = filled;
+        final String finalRemainingString = remainingString;
+        final Boolean finalReduceOnly = reduceOnly;
+        final Boolean finalPostOnly = postOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Hibachi.this.safeString(order, "orderId") );
@@ -1094,7 +1094,7 @@ public class Hibachi extends HibachiApi
         }
         Object message = this.orderMessage((Map<String, Object>) (market), nonce, feeRate, (String) (type), (String) (side), amount, price);
         Object signature = this.signMessage(message, this.privateKey);
-        final Object finalSideInternal = sideInternal;
+        final String finalSideInternal = sideInternal;
         final Object finalType = type;
         final Object finalPriceInternal = priceInternal;
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2326,14 +2326,14 @@ public class Hibachi extends HibachiApi
             }
             referenceId = this.safeString(item, "transactionHash");
         }
-        final Object finalReferenceAccount = referenceAccount;
-        final Object finalReferenceId = referenceId;
-        final Object finalStatus = status;
+        final String finalReferenceAccount = referenceAccount;
+        final String finalReferenceId = referenceId;
+        final String finalStatus = status;
         final Object finalAmount = amount;
         final Object finalFee = fee;
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalTimestamp = timestamp;
-        final Object finalType = type;
+        final String finalType = type;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "id", Hibachi.this.safeString(item, "id") );
             put( "currency", Hibachi.this.currency("USDT") );
@@ -2517,7 +2517,7 @@ public class Hibachi extends HibachiApi
         {
             transactionType = this.parseTransactionType(transactionType);
         }
-        final Object finalTransactionType = transactionType;
+        final String finalTransactionType = transactionType;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Hibachi.this.safeString(transaction, "id") );

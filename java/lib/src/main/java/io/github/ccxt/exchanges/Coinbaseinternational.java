@@ -1242,7 +1242,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      */
     public CompletableFuture<MarginModification> setMargin(String symbol2, Object amount, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1449,7 +1449,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             quantity = Precise.stringMul("-1", quantity);
         }
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalQuantity = quantity;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
@@ -1848,9 +1848,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
         }
         final Object finalMarketId = marketId;
-        final Object finalSymbol = symbol;
-        final Object finalBaseId = baseId;
-        final Object finalSettleId = settleId;
+        final String finalSymbol = symbol;
+        final String finalBaseId = baseId;
+        final String finalSettleId = settleId;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalMarketId );
             put( "lowercaseId", ((String)finalMarketId).toLowerCase() );
@@ -2380,7 +2380,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
             }};
@@ -3011,7 +3011,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             String auth = (((nonce + method) + savedPath) + payload);
             String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
-            final Object finalNonce = nonce;
+            final String finalNonce = nonce;
             headers = new HashMap<String, Object>() {{
                 put( "CB-ACCESS-TIMESTAMP", finalNonce );
                 put( "CB-ACCESS-SIGN", signature );

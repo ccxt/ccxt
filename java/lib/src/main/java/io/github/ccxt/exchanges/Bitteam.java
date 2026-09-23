@@ -555,7 +555,7 @@ public class Bitteam extends BitteamApi
             minCost = this.safeNumber(settings, "limit_usd");
         }
         final Object finalBase = base;
-        final Object finalMinCost = minCost;
+        final Double finalMinCost = minCost;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "numericId", numericId );
@@ -2018,10 +2018,10 @@ public class Bitteam extends BitteamApi
         String close = this.safeString2(ticker, "lastPrice", "last_price");
         String changePcnt = this.safeString2(ticker, "change24", "price_change_percent_24h");
         final Object finalMarket = market;
-        final Object finalBestBidPrice = bestBidPrice;
-        final Object finalBestBidVolume = bestBidVolume;
-        final Object finalBestAskPrice = bestAskPrice;
-        final Object finalBestAskVolume = bestAskVolume;
+        final String finalBestBidPrice = bestBidPrice;
+        final String finalBestBidVolume = bestBidVolume;
+        final String finalBestAskPrice = bestAskPrice;
+        final String finalBestAskVolume = bestAskVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", null );
@@ -2372,9 +2372,9 @@ public class Bitteam extends BitteamApi
             put( "cost", feeCost );
         }};
         Long intTs = this.parseToInt(timestamp);
-        final Object finalOrder = order;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalOrder = order;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "order", finalOrder );

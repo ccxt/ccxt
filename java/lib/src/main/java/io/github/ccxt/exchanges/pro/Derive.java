@@ -82,7 +82,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     public CompletableFuture<Object> watchPublic(Object messageHash, Map<String, Object> message, Map<String, Object> subscription2)
     {
-        final Object subscription3 = subscription2;
+        final Map<String, Object> subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
             Object subscription = subscription3;
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -406,7 +406,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     public CompletableFuture<Object> unWatchPublic(Object messageHash, Map<String, Object> message, Map<String, Object> subscription2)
     {
-        final Object subscription3 = subscription2;
+        final Map<String, Object> subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
             Object subscription = subscription3;
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -606,7 +606,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     public CompletableFuture<Object> watchPrivate(Object messageHash, Map<String, Object> message, Map<String, Object> subscription2)
     {
-        final Object subscription3 = subscription2;
+        final Map<String, Object> subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
             Object subscription = subscription3;
             (this.authenticate()).join();

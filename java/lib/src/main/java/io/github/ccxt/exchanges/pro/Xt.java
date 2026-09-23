@@ -966,7 +966,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         String marketId = this.safeString(data, "s");
         if (!java.util.Objects.equals(marketId, null))
         {
-            final Object finalMarketId = marketId;
+            final String finalMarketId = marketId;
             Map<String, Object> raw = new HashMap<String, Object>() {{
                 put( "symbol", finalMarketId );
                 put( "fundingRate", Xt.this.safeString(data, "r") );

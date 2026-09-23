@@ -99,7 +99,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -314,7 +314,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -441,7 +441,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -623,7 +623,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         {
             String feeCurrencyId = this.safeString(trade, 10);
             Object feeCurrencyCode = (((!java.util.Objects.equals(feeCurrencyId, null)))) ? this.safeCurrencyCode((String) (feeCurrencyId)) : ((Map<String, Object>)market).get("quote");
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrencyCode );
@@ -648,8 +648,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             takerOrMaker = "taker";
         }
         final Object finalMarket = market;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -835,10 +835,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 unifiedStatus = "canceled";
             }
         }
-        final Object finalType = type;
-        final Object finalAmount = amount;
-        final Object finalRemaining = remaining;
-        final Object finalUnifiedStatus = unifiedStatus;
+        final String finalType = type;
+        final String finalAmount = amount;
+        final String finalRemaining = remaining;
+        final String finalUnifiedStatus = unifiedStatus;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -1122,7 +1122,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     marketIds = new ArrayList<Object>(Arrays.asList(marketIds));
                 }
                 final Object finalMethod = method;
-                final Object finalMarketIds = marketIds;
+                final List<Object> finalMarketIds = marketIds;
                 request = new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "method", finalMethod );

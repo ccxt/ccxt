@@ -531,7 +531,7 @@ public class Upbit extends UpbitApi
             }
             String currencyId = this.safeString(currencyInfo, "code");
             String code = this.safeCurrencyCode(currencyId);
-            final Object finalActive = active;
+            final Boolean finalActive = active;
             final Object finalMaxWithdrawLimit = maxWithdrawLimit;
             return new HashMap<String, Object>() {{
                 put( "info", response );
@@ -725,7 +725,7 @@ public class Upbit extends UpbitApi
         var baseId = ((List<Object>) quoteIdbaseIdVariable).get(1);
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalId );
@@ -1230,7 +1230,7 @@ public class Upbit extends UpbitApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             final Object finalMarket = market;
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
                 put( "cost", finalFeeCost );
@@ -1238,7 +1238,7 @@ public class Upbit extends UpbitApi
         }
         final Object finalTimestamp = timestamp;
         final Object finalMarket_2 = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -1489,7 +1489,7 @@ public class Upbit extends UpbitApi
             {
                 limit = 200;
             }
-            final Object finalTimeframeValue = timeframeValue;
+            final String finalTimeframeValue = timeframeValue;
             final Object finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -1640,7 +1640,7 @@ public class Upbit extends UpbitApi
             {
                 throw new InvalidOrder((this.id + " createOrder() supports only buy or sell in the side argument.")) ;
             }
-            final Object finalOrderSide = orderSide;
+            final String finalOrderSide = orderSide;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "side", finalOrderSide );
@@ -1821,7 +1821,7 @@ public class Upbit extends UpbitApi
      */
     public CompletableFuture<Order> editOrder(String id2, String symbol, Object type2, Object side2, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         final Object type3 = type2;
         final Object side3 = side2;
         return BaseExchange.supplyAsync(() -> {
@@ -2245,7 +2245,7 @@ public class Upbit extends UpbitApi
         }
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        final Object finalType = type;
+        final String finalType = type;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Upbit.this.safeString(transaction, "uuid") );
@@ -2390,7 +2390,7 @@ public class Upbit extends UpbitApi
         String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         List<Object> trades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
-        final Object finalType = type;
+        final String finalType = type;
         trades = this.parseTrades(trades, market, null, null, new HashMap<String, Object>() {{
             put( "order", id );
             put( "type", finalType );
@@ -2426,7 +2426,7 @@ public class Upbit extends UpbitApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             final Object finalMarket = market;
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
                 put( "cost", finalFeeCost );
@@ -2434,12 +2434,12 @@ public class Upbit extends UpbitApi
         }
         final Object finalLastTradeTimestamp = lastTradeTimestamp;
         final Object finalMarket_2 = market;
-        final Object finalSide = side;
-        final Object finalPrice = price;
+        final String finalSide = side;
+        final String finalPrice = price;
         final Object finalCost = cost;
         final Object finalAverage = average;
         final Object finalFee = fee;
-        final Object finalTrades = trades;
+        final List<Object> finalTrades = trades;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -2940,7 +2940,7 @@ public class Upbit extends UpbitApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3052,7 +3052,7 @@ public class Upbit extends UpbitApi
             Object token = jwt(request, this.encode(this.secret), sha256());
             ((Map<String, Object>)headers).put("Authorization", ("Bearer " + token));
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

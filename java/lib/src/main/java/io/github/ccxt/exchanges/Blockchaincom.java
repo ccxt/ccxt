@@ -700,7 +700,7 @@ public class Blockchaincom extends BlockchaincomApi
         String datetime = this.iso8601(timestamp);
         String filled = this.safeString(order, "cumQty");
         String remaining = this.safeString(order, "leavesQty");
-        final Object finalType = type;
+        final String finalType = type;
         Object result = this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", exchangeOrderId );
             put( "clientOrderId", clientOrderId );
@@ -1061,7 +1061,7 @@ public class Blockchaincom extends BlockchaincomApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             Object feeCurrency = ((Map<String, Object>)market).get("quote");
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrency );
@@ -1160,8 +1160,8 @@ public class Blockchaincom extends BlockchaincomApi
                 tag = this.safeString(addressParts, 0);
                 address = this.safeString(addressParts, 1);
             }
-            final Object finalAddress = address;
-            final Object finalTag = tag;
+            final String finalAddress = address;
+            final String finalTag = tag;
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", ((Map<String, Object>)currency).get("code") );
@@ -1233,7 +1233,7 @@ public class Blockchaincom extends BlockchaincomApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
@@ -1241,8 +1241,8 @@ public class Blockchaincom extends BlockchaincomApi
         }
         String address = this.safeString(transaction, "address");
         String txid = this.safeString(transaction, "txhash");
-        final Object finalId = id;
-        final Object finalType = type;
+        final String finalId = id;
+        final String finalType = type;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );

@@ -135,7 +135,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -317,7 +317,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
      */
     public CompletableFuture<Ticker> watchMarkPrice(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1071,18 +1071,18 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             String feeCurrencyId = this.safeString(trade, "N");
             String feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId));
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrencyCode );
             }};
         }
         String type = this.safeStringLower(trade, "o");
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalSide = side;
-        final Object finalPrice = price;
-        final Object finalAmount = amount;
-        final Object finalCost = cost;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalPrice = price;
+        final String finalAmount = amount;
+        final String finalCost = cost;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1332,7 +1332,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -2089,8 +2089,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 }
             }
         }
-        final Object finalPositionSide = positionSide;
-        final Object finalHedged = hedged;
+        final String finalPositionSide = positionSide;
+        final Boolean finalHedged = hedged;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -2448,7 +2448,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             String feeCurrencyId = this.safeString(order, "N");
             String feeCurrency = this.safeCurrencyCode((String) (feeCurrencyId));
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrency );
@@ -2469,10 +2469,10 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             timeInForce = "PO";
         }
         final Object finalMarket = market;
-        final Object finalClientOrderId = clientOrderId;
+        final String finalClientOrderId = clientOrderId;
         final Object finalTimestamp = timestamp;
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
-        final Object finalTimeInForce = timeInForce;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
+        final String finalTimeInForce = timeInForce;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );

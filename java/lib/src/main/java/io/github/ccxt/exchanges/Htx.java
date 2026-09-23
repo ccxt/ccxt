@@ -2264,8 +2264,8 @@ public class Htx extends HtxApi
                 status = ((((heartbeat != null && heartbeat == 1)))) ? "ok" : "maintenance";
                 eta = this.safeInteger(data, etaKey);
             }
-            final Object finalStatus = status;
-            final Object finalEta = eta;
+            final String finalStatus = status;
+            final Long finalEta = eta;
             final Object finalResponse = response;
             return new HashMap<String, Object>() {{
                 put( "status", finalStatus );
@@ -2568,8 +2568,8 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<Object> fetchMarketsByTypeAndSubType(String type2, String subType2, Object... optionalArgs)
     {
-        final Object type3 = type2;
-        final Object subType3 = subType2;
+        final String type3 = type2;
+        final String subType3 = subType2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object subType = subType3;
@@ -2847,15 +2847,15 @@ public class Htx extends HtxApi
                 }
     final Object finalId = id;
                 final Object finalLowercaseId = lowercaseId;
-                final Object finalSymbol = symbol;
-                final Object finalBase = base;
+                final String finalSymbol = symbol;
+                final String finalBase = base;
                 final Object finalBaseId = baseId;
                 final Object finalQuoteId = quoteId;
                 final Object finalSettleId = settleId;
                 final Object finalType = type;
                 final Object finalSpot = spot;
-                final Object finalSwap = swap;
-                final Object finalFuture = future;
+                final Boolean finalSwap = swap;
+                final Boolean finalFuture = future;
                 final Object finalActive = active;
                 final Object finalLinear = linear;
                 final Object finalInverse = inverse;
@@ -2865,9 +2865,9 @@ public class Htx extends HtxApi
                 final Object finalAmountPrecision = amountPrecision;
                 final Object finalPricePrecision = pricePrecision;
                 final Object finalCostPrecision = costPrecision;
-                final Object finalMinAmount = minAmount;
-                final Object finalMinCost = minCost;
-                final Object finalCreated = created;
+                final Double finalMinAmount = minAmount;
+                final Double finalMinCost = minCost;
+                final Long finalCreated = created;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", finalId );
                     put( "lowercaseId", finalLowercaseId );
@@ -3059,10 +3059,10 @@ public class Htx extends HtxApi
         String baseVolume = this.safeString(ticker, "amount");
         String quoteVolume = this.safeString(ticker, "vol");
         final Object finalSymbol = symbol;
-        final Object finalBid = bid;
-        final Object finalBidVolume = bidVolume;
-        final Object finalAsk = ask;
-        final Object finalAskVolume = askVolume;
+        final String finalBid = bid;
+        final String finalBidVolume = bidVolume;
+        final String finalAsk = ask;
+        final String finalAskVolume = askVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
             put( "timestamp", timestamp );
@@ -3656,8 +3656,8 @@ public class Htx extends HtxApi
         }
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCost = feeCost;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", finalFeeCurrency );
@@ -3675,10 +3675,10 @@ public class Htx extends HtxApi
         {
             id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("trade_id", "trade-id", "id")));
         }
-        final Object finalId = id;
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalAmountString = amountString;
+        final String finalId = id;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalAmountString = amountString;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
@@ -4515,7 +4515,7 @@ public class Htx extends HtxApi
             Object networkCode = this.networkIdToCode(uniqueChainId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalUniqueChainId = uniqueChainId;
+                final String finalUniqueChainId = uniqueChainId;
                 final Object finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chainEntry );
@@ -4539,7 +4539,7 @@ public class Htx extends HtxApi
 }});
             }
         }
-        final Object finalCode = code;
+        final String finalCode = code;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "code", finalCode );
@@ -6415,7 +6415,7 @@ public class Htx extends HtxApi
             {
                 feeCurrency = (((java.util.Objects.equals(side, "sell")))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
             }
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             final Object finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -6438,10 +6438,10 @@ public class Htx extends HtxApi
         }
         final Object finalMarket = market;
         final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalCost = cost;
-        final Object finalAmount = amount;
-        final Object finalStatus = status;
+        final String finalSide = side;
+        final String finalCost = cost;
+        final String finalAmount = amount;
+        final String finalStatus = status;
         final Object finalReduceOnly = reduceOnly;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -6558,8 +6558,8 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<Object> createSpotOrderRequest(String symbol, String type2, String side2, Object amount, Object... optionalArgs)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
@@ -8473,9 +8473,9 @@ public class Htx extends HtxApi
         }
         String subType = this.safeString(transaction, "sub-type");
         Boolean intern = java.util.Objects.equals(subType, "FAST");
-        final Object finalTxHash = txHash;
+        final String finalTxHash = txHash;
         final Object finalNetworkId = networkId;
-        final Object finalType = type;
+        final String finalType = type;
         final Object finalFeeCost = feeCost;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -8678,7 +8678,7 @@ public class Htx extends HtxApi
         {
             status = "failed";
         }
-        final Object finalStatus = status;
+        final String finalStatus = status;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", id );
@@ -10037,8 +10037,8 @@ public class Htx extends HtxApi
             marginRatio = marginRatioLinear;
         }
         Long timestamp = this.safeInteger(position, "created_time");
-        final Object finalSide = side;
-        final Object finalMarginMode = marginMode;
+        final String finalSide = side;
+        final String finalMarginMode = marginMode;
         final Object finalNotional = notional;
         final Object finalMaintenanceMargin = maintenanceMargin;
         final Object finalMaintenanceMarginPercentageResult = maintenanceMarginPercentageResult;
@@ -11370,7 +11370,7 @@ public class Htx extends HtxApi
             if (java.util.Objects.equals(withdrawFeeType, "fixed"))
             {
                 withdrawFee = this.safeNumber(chainEntry, "transactFeeWithdraw");
-                final Object finalWithdrawFee = withdrawFee;
+                final Double finalWithdrawFee = withdrawFee;
                 withdrawResult = new HashMap<String, Object>() {{
                     put( "fee", finalWithdrawFee );
                     put( "percentage", false );
@@ -11378,7 +11378,7 @@ public class Htx extends HtxApi
             } else
             {
                 withdrawFee = this.safeNumber(chainEntry, "transactFeeRateWithdraw");
-                final Object finalWithdrawFee_2 = withdrawFee;
+                final Double finalWithdrawFee_2 = withdrawFee;
                 withdrawResult = new HashMap<String, Object>() {{
                     put( "fee", finalWithdrawFee_2 );
                     put( "percentage", true );

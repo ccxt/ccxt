@@ -675,8 +675,8 @@ public class Dydx extends DydxApi
         {
             active = false;
         }
-        final Object finalBase = base;
-        final Object finalActive = active;
+        final String finalBase = base;
+        final Boolean finalActive = active;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", Dydx.this.safeString(market, "ticker") );
             put( "symbol", symbol );
@@ -1365,7 +1365,7 @@ public class Dydx extends DydxApi
             quantity = Precise.stringMul("-1", quantity);
         }
         Long timestamp = this.parse8601(this.safeString(position, "createdAt"));
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalQuantity = quantity;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
@@ -1750,13 +1750,13 @@ public class Dydx extends DydxApi
         Object defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
         Long clientOrderId = this.safeInteger(parameters, "clientOrderId", defaultClientOrderId);
         final Object finalSubaccountId = subaccountId;
-        final Object finalClientOrderId = clientOrderId;
+        final Long finalClientOrderId = clientOrderId;
         final Object finalOrderFlag = orderFlag;
         final Object finalGoodTillBlock = goodTillBlock;
         final Object finalGoodTillBlockTime = goodTillBlockTime;
         final Object finalTimeInForceNumber = timeInForceNumber;
-        final Object finalClientMetadata = clientMetadata;
-        final Object finalConditionalType = conditionalType;
+        final Integer finalClientMetadata = clientMetadata;
+        final Integer finalConditionalType = conditionalType;
         final Object finalConditionalOrderTriggerSubticks = conditionalOrderTriggerSubticks;
         Map<String, Object> orderPayload = new HashMap<String, Object>() {{
             put( "order", new HashMap<String, Object>() {{
@@ -1995,8 +1995,8 @@ public class Dydx extends DydxApi
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
             final Object finalSubAccountId = subAccountId;
-            final Object finalClientOrderId = clientOrderId;
-            final Object finalOrderFlags = orderFlags;
+            final String finalClientOrderId = clientOrderId;
+            final Long finalOrderFlags = orderFlags;
             final Object finalGoodTillBlock = goodTillBlock;
             final Object finalGoodTillBlockTime = goodTillBlockTime;
             Map<String, Object> cancelPayload = new HashMap<String, Object>() {{
@@ -2085,7 +2085,7 @@ public class Dydx extends DydxApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "goodTillBlock", "subaccountId")));
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
-            final Object finalClientOrderIds = clientOrderIds;
+            final List<Object> finalClientOrderIds = clientOrderIds;
             Map<String, Object> cancelOrders = new HashMap<String, Object>() {{
                 put( "clientIds", finalClientOrderIds );
                 put( "clobPairId", Helpers.GetValue(((Map<String, Object>)market).get("info"), "clobPairId") );
@@ -2220,7 +2220,7 @@ public class Dydx extends DydxApi
         Long timestamp = this.parse8601(this.safeString(item, "createdAt"));
         Map<String, Object> sender = (Map<String, Object>) this.safeDict(item, "sender");
         Map<String, Object> recipient = (Map<String, Object>) this.safeDict(item, "recipient");
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalType = type;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -2343,7 +2343,7 @@ public class Dydx extends DydxApi
             {
                 feeAmount = this.numberToString(Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(feeAmount)))));
             }
-            final Object finalFeeAmount = feeAmount;
+            final String finalFeeAmount = feeAmount;
             final Object finalDenom = denom;
             Map<String, Object> feeObj = new HashMap<String, Object>() {{
                 put( "amount", finalFeeAmount );
@@ -2371,7 +2371,7 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<TransferEntry> transfer(String code2, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         final Object fromAccount3 = fromAccount2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
@@ -2412,7 +2412,7 @@ public class Dydx extends DydxApi
                 {
                     throw new ArgumentsRequired((this.id + " transfer() requeire toSubaccoutnId.")) ;
                 }
-                final Object finalToSubaccountId = toSubaccountId;
+                final Long finalToSubaccountId = toSubaccountId;
                 payload = new HashMap<String, Object>() {{
                     put( "sender", Dydx.this.getWalletAddress() );
                     put( "recipient", new HashMap<String, Object>() {{
@@ -2430,8 +2430,8 @@ public class Dydx extends DydxApi
             } else
             {
                 final Object finalFromAccount = fromAccount;
-                final Object finalFromSubaccountId = fromSubaccountId;
-                final Object finalToSubaccountId_2 = toSubaccountId;
+                final Long finalFromSubaccountId = fromSubaccountId;
+                final Long finalToSubaccountId_2 = toSubaccountId;
                 payload = new HashMap<String, Object>() {{
                     put( "transfer", new HashMap<String, Object>() {{
                         put( "sender", new HashMap<String, Object>() {{
@@ -2633,7 +2633,7 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -2657,7 +2657,7 @@ public class Dydx extends DydxApi
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
             Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
-            final Object finalSubaccountId = subaccountId;
+            final Long finalSubaccountId = subaccountId;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "sender", new HashMap<String, Object>() {{
                     put( "owner", Dydx.this.getWalletAddress() );

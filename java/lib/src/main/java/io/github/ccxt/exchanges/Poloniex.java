@@ -1240,8 +1240,8 @@ public class Poloniex extends PoloniexApi
             type = "future";
         }
         String marketType = (((java.util.Objects.equals(type, "future")))) ? "future" : "swap";
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
         final Object finalType = type;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
@@ -1378,7 +1378,7 @@ public class Poloniex extends PoloniexApi
         String relativeChange = this.safeString2(ticker, "dailyChange", "dc");
         String percentage = Precise.stringMul(relativeChange, "100");
         final Object finalMarket = market;
-        final Object finalBaseVolume = baseVolume;
+        final String finalBaseVolume = baseVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -1778,7 +1778,7 @@ public class Poloniex extends PoloniexApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
@@ -2150,7 +2150,7 @@ public class Poloniex extends PoloniexApi
         }
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             final Object finalFeeCurrencyCode = feeCurrencyCode;
             fee = new HashMap<String, Object>() {{
                 put( "rate", rate );
@@ -2165,7 +2165,7 @@ public class Poloniex extends PoloniexApi
         Boolean hedged = !java.util.Objects.equals(this.safeString(order, "posSide"), "BOTH");
         final Object finalTimestamp = timestamp;
         final Object finalRawType = rawType;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalResultingTrades = resultingTrades;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -2909,7 +2909,7 @@ public class Poloniex extends PoloniexApi
 
     public CompletableFuture<String> fetchOrderStatus(String id2, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3375,8 +3375,8 @@ public class Poloniex extends PoloniexApi
             }
         }
         final Object finalNetworkEntry = networkEntry;
-        final Object finalAddress = address;
-        final Object finalTag = tag;
+        final String finalAddress = address;
+        final String finalTag = tag;
         return new HashMap<String, Object>() {{
             put( "info", response );
             put( "currency", Helpers.GetValue(currency, "code") );
@@ -3515,7 +3515,7 @@ public class Poloniex extends PoloniexApi
             Integer year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
             Long now = this.seconds();
             Object start = (((!java.util.Objects.equals(since, null)))) ? this.parseToInt(Helpers.divide(since, 1000)) : (now - (10L * ((long) year)));
-            final Object finalNow = now;
+            final Long finalNow = now;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "start", start );
                 put( "end", finalNow );
@@ -3938,8 +3938,8 @@ public class Poloniex extends PoloniexApi
         }
         final Object finalTransaction = transaction;
         final Object finalAmountString = amountString;
-        final Object finalStatus = status;
-        final Object finalType = type;
+        final String finalStatus = status;
+        final String finalType = type;
         return new HashMap<String, Object>() {{
             put( "info", finalTransaction );
             put( "id", id );
@@ -4126,8 +4126,8 @@ public class Poloniex extends PoloniexApi
         }
         final Object finalMarketId = marketId;
         final Object finalMarginMode = marginMode;
-        final Object finalLongLeverage = longLeverage;
-        final Object finalShortLeverage = shortLeverage;
+        final Long finalLongLeverage = longLeverage;
+        final Long finalShortLeverage = shortLeverage;
         return new HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", Poloniex.this.safeSymbol(finalMarketId, market) );

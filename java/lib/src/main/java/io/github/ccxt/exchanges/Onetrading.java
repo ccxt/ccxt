@@ -641,8 +641,8 @@ public class Onetrading extends OnetradingApi
         {
             symbol = ((symbol + ":") + quote);
         }
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
         final Object finalState = state;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
@@ -1343,7 +1343,7 @@ public class Onetrading extends OnetradingApi
             String feeCurrencyId = this.safeString(feeInfo, "fee_currency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             String feeRateString = this.safeString(feeInfo, "fee_percentage");
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
@@ -1603,7 +1603,7 @@ public class Onetrading extends OnetradingApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
             }
-            final Object finalUppercaseType = uppercaseType;
+            final String finalUppercaseType = uppercaseType;
             final Object finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_code", ((Map<String, Object>)market).get("id") );
@@ -2214,7 +2214,7 @@ public class Onetrading extends OnetradingApi
                 }
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

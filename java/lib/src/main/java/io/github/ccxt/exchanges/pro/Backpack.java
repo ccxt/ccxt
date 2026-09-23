@@ -248,7 +248,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -996,9 +996,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             orderId = this.safeString(trade, "a");
         }
         final Object finalMarket = market;
-        final Object finalOrderId = orderId;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalOrderId = orderId;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
@@ -1425,7 +1425,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String feeCurrency = this.safeString(order, "N");
         if (!java.util.Objects.equals(feeCurrency, null))
         {
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "currency", finalFeeCurrency );
                 put( "cost", null );
@@ -1668,8 +1668,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         Double maintenanceMarginPercentage = this.safeNumber(position, "m");
         Double initialMarginPercentage = this.safeNumber(position, "f");
-        final Object finalSide = side;
-        final Object finalHedged = hedged;
+        final String finalSide = side;
+        final Boolean finalHedged = hedged;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", id );

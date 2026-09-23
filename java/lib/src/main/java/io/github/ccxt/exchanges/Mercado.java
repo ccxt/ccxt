@@ -580,7 +580,7 @@ public class Mercado extends MercadoApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", null );
@@ -894,7 +894,7 @@ public class Mercado extends MercadoApi
         Object lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
         List<Object> rawTrades = (List<Object>) this.safeList(order, "operations", new ArrayList<Object>(Arrays.asList()));
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -970,7 +970,7 @@ public class Mercado extends MercadoApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;

@@ -933,9 +933,9 @@ public class Digifinex extends DigifinexApi
                 }
                 Boolean isActive = (!Helpers.isEqual(isAllowed, 0));
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalSettle = settle;
-                final Object finalType = type;
+                final String finalBase = base;
+                final String finalSettle = settle;
+                final String finalType = type;
                 final Object finalIsLinear = isLinear;
                 final Object finalIsInverse = isInverse;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -1583,8 +1583,8 @@ public class Digifinex extends DigifinexApi
             percentage = Precise.stringMul(percentage, "100");
         }
         final Object finalTimestamp = timestamp;
-        final Object finalPercentage = percentage;
-        final Object finalIndexPrice = indexPrice;
+        final String finalPercentage = percentage;
+        final Double finalIndexPrice = indexPrice;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
@@ -1746,17 +1746,17 @@ public class Digifinex extends DigifinexApi
             {
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             }
-            final Object finalFeeCostString = feeCostString;
-            final Object finalFeeCurrencyCode = feeCurrencyCode;
+            final String finalFeeCostString = feeCostString;
+            final String finalFeeCurrencyCode = feeCurrencyCode;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", finalFeeCurrencyCode );
             }};
         }
         final Object finalTimestamp = timestamp;
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -2769,8 +2769,8 @@ public class Digifinex extends DigifinexApi
         final Object finalTimestamp = timestamp;
         final Object finalLastTradeTimestamp = lastTradeTimestamp;
         final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalSide = side;
+        final String finalTimeInForce = timeInForce;
+        final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Digifinex.this.safeString2(order, "order_id", "data") );
@@ -3565,7 +3565,7 @@ public class Digifinex extends DigifinexApi
 
     public CompletableFuture<Object> fetchTransactionsByType(String type2, Object... optionalArgs)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3728,7 +3728,7 @@ public class Digifinex extends DigifinexApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
@@ -3813,8 +3813,8 @@ public class Digifinex extends DigifinexApi
             toAccount = "spot";
         }
         Long timestamp = this.safeInteger(transfer, "timestamp");
-        final Object finalFromAccount = fromAccount;
-        final Object finalToAccount = toAccount;
+        final String finalFromAccount = fromAccount;
+        final String finalToAccount = toAccount;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", Digifinex.this.safeString(transfer, "transfer_id") );
@@ -4756,9 +4756,9 @@ public class Digifinex extends DigifinexApi
         {
             side = "short";
         }
-        final Object finalMarginMode = marginMode;
+        final String finalMarginMode = marginMode;
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );

@@ -955,11 +955,11 @@ public class Paradex extends ParadexApi
             expiry = null;
         }
         String expireDatetime = ((((expiry != null && expiry == 0)))) ? null : this.iso8601(expiry);
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalType = type;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalType = type;
         final Object finalMakerFee = makerFee;
-        final Object finalExpiry = expiry;
+        final Long finalExpiry = expiry;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", finalSymbol );
@@ -1063,7 +1063,7 @@ public class Paradex extends ParadexApi
      */
     public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1390,7 +1390,7 @@ public class Paradex extends ParadexApi
         market = this.safeMarket(marketId, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(ticker, "created_at");
-        final Object finalPercentage = percentage;
+        final String finalPercentage = percentage;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1530,7 +1530,7 @@ public class Paradex extends ParadexApi
             interval = (hours + "h");
         }
         final Object finalMarket = market;
-        final Object finalInterval = interval;
+        final String finalInterval = interval;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", ((Boolean.TRUE.equals(funds))) ? ((Map<String, Object>)finalMarket).get("symbol") : null );
@@ -2217,7 +2217,7 @@ public class Paradex extends ParadexApi
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         String orderType = ((String)type).toUpperCase();
         String orderSide = ((String)((String)side)).toUpperCase();
-        final Object finalOrderType = orderType;
+        final String finalOrderType = orderType;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "market", ((Map<String, Object>)market).get("id") );
             put( "side", orderSide );
@@ -3291,7 +3291,7 @@ public class Paradex extends ParadexApi
         }
         Long timestamp = this.safeInteger(position, "time");
         Double liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalQuantity = quantity;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
@@ -3684,8 +3684,8 @@ public class Paradex extends ParadexApi
             fromAccount = "account";
             toAccount = "external";
         }
-        final Object finalFromAccount = fromAccount;
-        final Object finalToAccount = toAccount;
+        final String finalFromAccount = fromAccount;
+        final String finalToAccount = toAccount;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", Paradex.this.safeString(transfer, "id") );
@@ -3730,7 +3730,7 @@ public class Paradex extends ParadexApi
         type = (((java.util.Objects.equals(type, "DEPOSIT")))) ? "deposit" : "withdrawal";
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Double amount = this.safeNumber(transaction, "amount");
-        final Object finalType = type;
+        final String finalType = type;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", id );
@@ -4425,7 +4425,7 @@ public class Paradex extends ParadexApi
                 }
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

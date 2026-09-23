@@ -83,7 +83,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -659,7 +659,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
      */
     public CompletableFuture<FundingRate> watchFundingRate(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -748,7 +748,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
      */
     public CompletableFuture<Ticker> watchMarkPrice(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -824,7 +824,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -927,7 +927,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -963,7 +963,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             }}, parameters));
             String url = ((((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/candles/"), ((Map<String, Object>)market).get("id")) + "/") + candleType) + "?") + query);
             final Object finalSymbol = symbol;
-            final Object finalCandleType = candleType;
+            final String finalCandleType = candleType;
             final Object finalLimit = limit;
             Object ohlcv = (this.watch(url, messageHash, null, messageHash, new HashMap<String, Object>() {{
                 put( "name", "ohlcv" );

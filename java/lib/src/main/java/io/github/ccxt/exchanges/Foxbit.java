@@ -1272,7 +1272,7 @@ public class Foxbit extends FoxbitApi
                 String timeInForce = this.safeStringUpper(orderParams, "timeInForce");
                 Boolean postOnly = (Boolean) this.safeBool(orderParams, "postOnly", false);
                 Double triggerPrice = this.safeNumber(orderParams, "triggerPrice");
-                final Object finalType = type;
+                final String finalType = type;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "market_symbol", ((Map<String, Object>)market).get("id") );
                     put( "side", Foxbit.this.safeStringUpper(order, "side") );
@@ -1904,7 +1904,7 @@ public class Foxbit extends FoxbitApi
      */
     public CompletableFuture<Order> editOrder(String id, String symbol2, Object type2, Object side2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         final Object type3 = type2;
         final Object side3 = side2;
         return BaseExchange.supplyAsync(() -> {
@@ -2097,7 +2097,7 @@ public class Foxbit extends FoxbitApi
         String quote = this.safeCurrencyCode(quoteId);
         String symbol = ((base + "/") + quote);
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(market, "default_fees");
-        final Object finalBase = base;
+        final String finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
@@ -2288,12 +2288,12 @@ public class Foxbit extends FoxbitApi
             feeCurrency = this.safeStringUpper(market, "baseId");
         }
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalCost = cost;
         final Object finalAmount = amount;
         final Object finalFilled = filled;
         final Object finalRemaining = remaining;
-        final Object finalFeeCurrency = feeCurrency;
+        final String finalFeeCurrency = feeCurrency;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Foxbit.this.safeString(order, "id") );
             put( "info", order );
@@ -2394,7 +2394,7 @@ public class Foxbit extends FoxbitApi
             put( "currency", currencyCode );
             put( "rate", Foxbit.this.parseNumber(feeRate) );
         }};
-        final Object finalType = type;
+        final String finalType = type;
         final Object finalAmount = amount;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -2482,7 +2482,7 @@ public class Foxbit extends FoxbitApi
         {
             throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
         }
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalRealAmount = realAmount;
         final Object finalBalance = balance;
         final Object finalAmount = amount;

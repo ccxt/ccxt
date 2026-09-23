@@ -185,7 +185,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }
         String marketId = this.safeStringLower(trade, "symbol");
         String symbol = this.safeSymbol(marketId, market);
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "order", null );
@@ -935,8 +935,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             timeInForce = "PO";
             postOnly = true;
         }
-        final Object finalTimeInForce = timeInForce;
-        final Object finalPostOnly = postOnly;
+        final String finalTimeInForce = timeInForce;
+        final Boolean finalPostOnly = postOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Gemini.this.safeString(order, "order_id") );
             put( "clientOrderId", Gemini.this.safeString(order, "client_order_id") );

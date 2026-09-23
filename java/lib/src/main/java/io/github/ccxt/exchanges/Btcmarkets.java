@@ -605,9 +605,9 @@ public class Btcmarkets extends BtcmarketsApi
         {
             amount = Precise.stringSub(amount, fee);
         }
-        final Object finalAddress = address;
+        final String finalAddress = address;
         final Object finalTag = tag;
-        final Object finalType = type;
+        final String finalType = type;
         final Object finalAmount = amount;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
@@ -690,10 +690,10 @@ public class Btcmarkets extends BtcmarketsApi
         {
             minPrice = pricePrecision;
         }
-        final Object finalBase = base;
-        final Object finalQuote = quote;
+        final String finalBase = base;
+        final String finalQuote = quote;
         final Object finalStatus = status;
-        final Object finalMinPrice = minPrice;
+        final Double finalMinPrice = minPrice;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
@@ -1100,7 +1100,7 @@ public class Btcmarkets extends BtcmarketsApi
         String feeCostString = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
@@ -1108,7 +1108,7 @@ public class Btcmarkets extends BtcmarketsApi
         }
         String takerOrMaker = this.safeStringLower(trade, "liquidityType");
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1477,7 +1477,7 @@ public class Btcmarkets extends BtcmarketsApi
         String timeInForce = this.safeString(order, "timeInForce");
         Boolean postOnly = (Boolean) this.safeBool(order, "postOnly");
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -1720,7 +1720,7 @@ public class Btcmarkets extends BtcmarketsApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address2, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         final Object address3 = address2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;

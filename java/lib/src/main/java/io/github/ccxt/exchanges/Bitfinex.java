@@ -981,13 +981,13 @@ public class Bitfinex extends BitfinexApi
                 String minOrderSizeString = this.safeString(market, 3);
                 String maxOrderSizeString = this.safeString(market, 4);
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalQuote = quote;
-                final Object finalSettle = settle;
+                final String finalBase = base;
+                final String finalQuote = quote;
+                final String finalSettle = settle;
                 final Object finalBaseId = baseId;
                 final Object finalQuoteId = quoteId;
-                final Object finalSettleId = settleId;
-                final Object finalType = type;
+                final String finalSettleId = settleId;
+                final String finalType = type;
                 final Object finalSpot = spot;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", ("t" + id) );
@@ -1389,8 +1389,8 @@ public class Bitfinex extends BitfinexApi
             Object toCurrencyId = this.convertDerivativesId((Map<String, Object>) (currency), toAccount);
             Object requestedAmount = this.currencyToPrecision((String) (code), amount);
             // this request is slightly different from v1 fromAccount -> from
-            final Object finalFromId = fromId;
-            final Object finalToId = toId;
+            final String finalFromId = fromId;
+            final String finalToId = toId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", requestedAmount );
                 put( "currency", fromCurrencyId );
@@ -1679,14 +1679,14 @@ public class Bitfinex extends BitfinexApi
             low = this.safeString(ticker, (10L - ((long) minusIndex)));
         }
         final Object finalSymbol = symbol;
-        final Object finalHigh = high;
-        final Object finalLow = low;
-        final Object finalBid = bid;
-        final Object finalAsk = ask;
-        final Object finalLast = last;
-        final Object finalChange = change;
-        final Object finalPercentage = percentage;
-        final Object finalVolume = volume;
+        final String finalHigh = high;
+        final String finalLow = low;
+        final String finalBid = bid;
+        final String finalAsk = ask;
+        final String finalLast = last;
+        final String finalChange = change;
+        final String finalPercentage = percentage;
+        final String finalVolume = volume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
             put( "timestamp", null );
@@ -1880,7 +1880,7 @@ public class Bitfinex extends BitfinexApi
             feeCostString = Precise.stringNeg(feeCostString);
             String feeCurrencyId = this.safeString(tradeList, 10);
             String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrency );
@@ -1888,12 +1888,12 @@ public class Bitfinex extends BitfinexApi
             Object orderType = (tradeList == null || 6 >= ((List<?>)tradeList).size() ? null : ((List<?>)tradeList).get(6));
             type = this.safeString(((Map<String, Object>)this.options).get("exchangeTypes"), orderType);
         }
-        final Object finalSymbol = symbol;
-        final Object finalOrderId = orderId;
-        final Object finalSide = side;
-        final Object finalType = type;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalAmountString = amountString;
+        final String finalSymbol = symbol;
+        final String finalOrderId = orderId;
+        final String finalSide = side;
+        final String finalType = type;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalAmountString = amountString;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -2170,10 +2170,10 @@ public class Bitfinex extends BitfinexApi
         }
         String average = this.safeString(orderList, 17);
         String clientOrderId = this.safeString(orderList, 2);
-        final Object finalPostOnly = postOnly;
-        final Object finalPrice = price;
-        final Object finalTriggerPrice = triggerPrice;
-        final Object finalStatus = status;
+        final Boolean finalPostOnly = postOnly;
+        final String finalPrice = price;
+        final String finalTriggerPrice = triggerPrice;
+        final String finalStatus = status;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", orderList );
             put( "id", id );
@@ -3125,7 +3125,7 @@ public class Bitfinex extends BitfinexApi
             }
             String wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
             parameters = this.omit(parameters, "network", "wallet");
-            final Object finalNetworkId = networkId;
+            final String finalNetworkId = networkId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", finalNetworkId );
                 put( "wallet", wallet );
@@ -3310,17 +3310,17 @@ public class Bitfinex extends BitfinexApi
             comment = this.safeString(transaction, 21);
         }
         final Object finalId = id;
-        final Object finalTxid = txid;
-        final Object finalType = type;
+        final String finalTxid = txid;
+        final String finalType = type;
         final Object finalCode = code;
         final Object finalNetwork = network;
         final Object finalAmount = amount;
-        final Object finalStatus = status;
+        final String finalStatus = status;
         final Object finalTimestamp = timestamp;
-        final Object finalAddressTo = addressTo;
-        final Object finalTag = tag;
-        final Object finalUpdated = updated;
-        final Object finalComment = comment;
+        final String finalAddressTo = addressTo;
+        final String finalTag = tag;
+        final Long finalUpdated = updated;
+        final String finalComment = comment;
         final Object finalFeeCost = feeCost;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3594,7 +3594,7 @@ public class Bitfinex extends BitfinexApi
             }
             String wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
             parameters = this.omit(parameters, "network", "wallet");
-            final Object finalNetworkId = networkId;
+            final String finalNetworkId = networkId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", finalNetworkId );
                 put( "wallet", wallet );

@@ -324,7 +324,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -409,7 +409,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)messageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalName = name;
+            final String finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -479,7 +479,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)marketIds).add(((String)((Map<String, Object>)market).get("id")));
                 ((List<Object>)subMessageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
-            final Object finalName = name;
+            final String finalName = name;
             Object channels = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", finalName );
         put( "markets", marketIds );
@@ -506,7 +506,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -771,7 +771,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -785,7 +785,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String name = "book";
             String messageHash = ((name + "@") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalName = name;
+            final String finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -842,7 +842,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)messageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalName = name;
+            final String finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -915,7 +915,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)marketIds).add(((String)((Map<String, Object>)market).get("id")));
                 ((List<Object>)subMessageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
-            final Object finalName = name;
+            final String finalName = name;
             Object channels = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", finalName );
         put( "markets", marketIds );
@@ -1037,7 +1037,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String name = "getBook";
             String messageHash = ((name + "@") + marketId);
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalName = name;
+            final String finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", finalName );
                 put( "market", marketId );

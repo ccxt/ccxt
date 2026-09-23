@@ -770,14 +770,14 @@ public class Extended extends ExtendedApi
             linear = true;
             inverse = false;
         }
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalQuote = quote;
-        final Object finalSettle = settle;
-        final Object finalBaseId = baseId;
-        final Object finalQuoteId = quoteId;
-        final Object finalSettleId = settleId;
-        final Object finalType = type;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalQuote = quote;
+        final String finalSettle = settle;
+        final String finalBaseId = baseId;
+        final String finalQuoteId = quoteId;
+        final String finalSettleId = settleId;
+        final String finalType = type;
         final Object finalIsSpot = isSpot;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
@@ -918,8 +918,8 @@ public class Extended extends ExtendedApi
         String name = this.safeString(currency, "name");
         Long precision = this.safeInteger(currency, "precision", 0);
         Boolean isActive = (Boolean) this.safeBool(currency, "isActive");
-        final Object finalCurrencyId = currencyId;
-        final Object finalCode = code;
+        final String finalCurrencyId = currencyId;
+        final String finalCode = code;
         final Object finalPrecision = precision;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalCurrencyId );
@@ -1313,7 +1313,7 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
-                    final Object finalCursor = cursor;
+                    final String finalCursor = cursor;
                     entry = this.extend(entry, new HashMap<String, Object>() {{
                         put( "cursor", finalCursor );
                     }});
@@ -1405,7 +1405,7 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
-                    final Object finalCursor = cursor;
+                    final String finalCursor = cursor;
                     entry = this.extend(entry, new HashMap<String, Object>() {{
                         put( "cursor", finalCursor );
                     }});
@@ -1507,7 +1507,7 @@ public class Extended extends ExtendedApi
         String sideRaw = this.safeString2(trade, "S", "side");
         Object side = (((!java.util.Objects.equals(sideRaw, null)))) ? ((String)sideRaw).toLowerCase() : null;
         String feeCost = this.safeString(trade, "fee");
-        final Object finalFeeCost = feeCost;
+        final String finalFeeCost = feeCost;
         final Object finalMarket = market;
         Object fee = (((java.util.Objects.equals(feeCost, null)))) ? null : new HashMap<String, Object>() {{
     put( "cost", finalFeeCost );
@@ -1519,7 +1519,7 @@ public class Extended extends ExtendedApi
         {
             takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
         }
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Extended.this.safeString2(trade, "i", "id") );
             put( "info", trade );
@@ -1580,7 +1580,7 @@ public class Extended extends ExtendedApi
             }
             Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("candleType", "price", "until")));
-            final Object finalCandleType = candleType;
+            final String finalCandleType = candleType;
             final Object finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -1681,7 +1681,7 @@ public class Extended extends ExtendedApi
                 since = Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(Helpers.multiply(limit, 60), 60), 1000)));
             }
             final Object finalSince = since;
-            final Object finalEndTime = endTime;
+            final Long finalEndTime = endTime;
             final Object finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -1716,7 +1716,7 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
-                    final Object finalCursor = cursor;
+                    final String finalCursor = cursor;
                     entry = this.extend(entry, new HashMap<String, Object>() {{
                         put( "cursor", finalCursor );
                     }});
@@ -1793,7 +1793,7 @@ public class Extended extends ExtendedApi
                 since = Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(limit, this.parseTimeframe(timeframe)), 1000)));
             }
             final Object finalSince = since;
-            final Object finalEndTime = endTime;
+            final Long finalEndTime = endTime;
             final Object finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -2008,7 +2008,7 @@ public class Extended extends ExtendedApi
         {
             type = ((((accountIndex != null && accountIndex == 0)))) ? "main" : "subaccount";
         }
-        final Object finalType = type;
+        final String finalType = type;
         return new HashMap<String, Object>() {{
             put( "id", Extended.this.safeString2(account, "accountId", "id") );
             put( "type", finalType );
@@ -2068,7 +2068,7 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
-                    final Object finalCursor = cursor;
+                    final String finalCursor = cursor;
                     entry = this.extend(entry, new HashMap<String, Object>() {{
                         put( "cursor", finalCursor );
                     }});
@@ -2116,7 +2116,7 @@ public class Extended extends ExtendedApi
                 put( "cost", Extended.this.parseNumber(Precise.stringAbs(finalFeeCost)) );
             }};
         }
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalAmountString = amountString;
         final Object finalFee = fee;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
@@ -2211,7 +2211,7 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
-                    final Object finalCursor = cursor;
+                    final String finalCursor = cursor;
                     entry = this.extend(entry, new HashMap<String, Object>() {{
                         put( "cursor", finalCursor );
                     }});
@@ -2316,7 +2316,7 @@ public class Extended extends ExtendedApi
             Object amountString = this.currencyToPrecision((String) (code), amount);
             String accountId = this.safeString(account, "accountId");
             Object settlement = this.createWithdrawalSettlementData(address, ((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), parameters);
-            final Object finalChainId = chainId;
+            final String finalChainId = chainId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountId", accountId );
                 put( "amount", amountString );
@@ -2412,7 +2412,7 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
-                    final Object finalCursor = cursor;
+                    final String finalCursor = cursor;
                     entry = this.extend(entry, new HashMap<String, Object>() {{
                         put( "cursor", finalCursor );
                     }});
@@ -2495,7 +2495,7 @@ public class Extended extends ExtendedApi
             {
                 status = ((Boolean.TRUE.equals(validSignature))) ? "ok" : "failed";
             }
-            final Object finalStatus = status;
+            final String finalStatus = status;
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", Extended.this.safeString(data, "id") );
@@ -2537,9 +2537,9 @@ public class Extended extends ExtendedApi
         {
             status = this.parseTransactionStatus(this.safeString(transfer, "status"));
         }
-        final Object finalFromAccount = fromAccount;
-        final Object finalToAccount = toAccount;
-        final Object finalStatus = status;
+        final String finalFromAccount = fromAccount;
+        final String finalToAccount = toAccount;
+        final String finalStatus = status;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", Extended.this.safeString(transfer, "id") );
@@ -3031,7 +3031,7 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
-                    final Object finalCursor = cursor;
+                    final String finalCursor = cursor;
                     entry = this.extend(entry, new HashMap<String, Object>() {{
                         put( "cursor", finalCursor );
                     }});
@@ -3080,7 +3080,7 @@ public class Extended extends ExtendedApi
         String side = this.safeStringLower(position, "side");
         String margin = this.safeString(position, "margin");
         final Object finalMarket = market;
-        final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
+        final Long finalLastUpdateTimestamp = lastUpdateTimestamp;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Extended.this.safeString(position, "id") );
@@ -3210,8 +3210,8 @@ public class Extended extends ExtendedApi
             throw new BadRequest((this.id + " withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
         Object amount = this.getExtendedStarkAmount(amountString, resolution);
-        final Object finalPositionId = positionId;
-        final Object finalCollateralId = collateralId;
+        final String finalPositionId = positionId;
+        final String finalCollateralId = collateralId;
         Map<String, Object> settlement = new HashMap<String, Object>() {{
             put( "recipient", recipient );
             put( "positionId", finalPositionId );
@@ -3247,9 +3247,9 @@ public class Extended extends ExtendedApi
             throw new BadRequest((this.id + " transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
         Object transferAmount = this.getExtendedStarkAmount(amountString, resolution);
-        final Object finalCollateralId = collateralId;
-        final Object finalFromVault = fromVault;
-        final Object finalFromL2Key = fromL2Key;
+        final String finalCollateralId = collateralId;
+        final String finalFromVault = fromVault;
+        final String finalFromL2Key = fromL2Key;
         Map<String, Object> settlement = new HashMap<String, Object>() {{
             put( "amount", transferAmount );
             put( "assetId", finalCollateralId );
@@ -3271,8 +3271,8 @@ public class Extended extends ExtendedApi
 
     public CompletableFuture<Object> createExtendedOrderRequest(String symbol, String type2, String side2, Object amount, Object... optionalArgs)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
@@ -3351,10 +3351,10 @@ public class Extended extends ExtendedApi
                 throw new BadRequest((this.id + " createOrder() requires l2Config in market info")) ;
             }
             final Object finalTotalFee = totalFee;
-            final Object finalSyntheticId = syntheticId;
-            final Object finalSyntheticResolution = syntheticResolution;
-            final Object finalCollateralId = collateralId;
-            final Object finalCollateralResolution = collateralResolution;
+            final String finalSyntheticId = syntheticId;
+            final Long finalSyntheticResolution = syntheticResolution;
+            final String finalCollateralId = collateralId;
+            final Long finalCollateralResolution = collateralResolution;
             Map<String, Object> settlementParams = new HashMap<String, Object>() {{
                 put( "totalFee", finalTotalFee );
                 put( "starkKey", starkKey );
@@ -3368,10 +3368,10 @@ public class Extended extends ExtendedApi
             }};
             Boolean isBuy = (java.util.Objects.equals(uppercaseSide, "BUY"));
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id", this.uuid());
-            final Object finalUppercaseType = uppercaseType;
-            final Object finalUppercaseSide = uppercaseSide;
-            final Object finalTimeInForce = timeInForce;
-            final Object finalExpiryEpochMillis = expiryEpochMillis;
+            final String finalUppercaseType = uppercaseType;
+            final String finalUppercaseSide = uppercaseSide;
+            final String finalTimeInForce = timeInForce;
+            final Long finalExpiryEpochMillis = expiryEpochMillis;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", clientOrderId );
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -3515,7 +3515,7 @@ public class Extended extends ExtendedApi
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")));
             final Object finalParameters = parameters;
-            final Object finalNow = now;
+            final Long finalNow = now;
             return new HashMap<String, Object>() {{
                 put( "request", Extended.this.extend(request, finalParameters) );
                 put( "market", market );
@@ -3605,7 +3605,7 @@ public class Extended extends ExtendedApi
      */
     public CompletableFuture<Order> editOrder(String id2, String symbol, Object type, Object side, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3659,14 +3659,14 @@ public class Extended extends ExtendedApi
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires a price argument or an existing order with price")) ;
             }
-            final Object finalPostOnly = postOnly;
+            final Boolean finalPostOnly = postOnly;
             final Object finalReduceOnly = reduceOnly;
             parameters = this.extend(new HashMap<String, Object>() {{
                 put( "postOnly", finalPostOnly );
                 put( "reduceOnly", finalReduceOnly );
             }}, parameters);
-            final Object finalCancelId = cancelId;
-            final Object finalExpiryEpochMillis = expiryEpochMillis;
+            final String finalCancelId = cancelId;
+            final Long finalExpiryEpochMillis = expiryEpochMillis;
             Map<String, Object> requestParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "cancelId", finalCancelId );
                 put( "expiryEpochMillis", finalExpiryEpochMillis );
@@ -3723,7 +3723,7 @@ public class Extended extends ExtendedApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                final Object finalClientOrderId = clientOrderId;
+                final String finalClientOrderId = clientOrderId;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "externalId", finalClientOrderId );
                 }};
@@ -3748,7 +3748,7 @@ public class Extended extends ExtendedApi
             Object orderId = (((java.util.Objects.equals(clientOrderId, null)))) ? id : null;
             Object orderSymbol = (((java.util.Objects.equals(market, null)))) ? symbol : ((Map<String, Object>)market).get("symbol");
             final Object finalResponse = response;
-            final Object finalClientOrderId_2 = clientOrderId;
+            final String finalClientOrderId_2 = clientOrderId;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "id", orderId );
@@ -3923,7 +3923,7 @@ public class Extended extends ExtendedApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                final Object finalClientOrderId = clientOrderId;
+                final String finalClientOrderId = clientOrderId;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "externalId", finalClientOrderId );
                 }};
@@ -4094,7 +4094,7 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && (Helpers.isEqual(i, Helpers.subtract(dataLength, 1))))
                 {
-                    final Object finalCursor = cursor;
+                    final String finalCursor = cursor;
                     entry = this.extend(entry, new HashMap<String, Object>() {{
                         put( "cursor", finalCursor );
                     }});
@@ -4432,7 +4432,7 @@ public class Extended extends ExtendedApi
         {
             url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

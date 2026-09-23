@@ -750,7 +750,7 @@ public class Gemini extends GeminiApi
             networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkId = networkId;
+                final String finalNetworkId = networkId;
                 final Object finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", rawCurrency );
@@ -1181,19 +1181,19 @@ public class Gemini extends GeminiApi
         String type = ((Boolean.TRUE.equals(swap))) ? "swap" : "spot";
         Boolean isSpot = !Boolean.TRUE.equals(swap);
         final Object finalMarketId = marketId;
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
         final Object finalBaseId = baseId;
         final Object finalQuoteId = quoteId;
         final Object finalSettleId = settleId;
-        final Object finalSwap = swap;
+        final Boolean finalSwap = swap;
         final Object finalStatus = status;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
         final Object finalContractSize = contractSize;
         final Object finalTickSize = tickSize;
         final Object finalAmountPrecision = amountPrecision;
-        final Object finalMinSize = minSize;
+        final Double finalMinSize = minSize;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalMarketId );
             put( "symbol", finalSymbol );
@@ -1932,10 +1932,10 @@ public class Gemini extends GeminiApi
                 postOnly = true;
             }
         }
-        final Object finalStatus = status;
+        final String finalStatus = status;
         final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalPostOnly = postOnly;
+        final String finalTimeInForce = timeInForce;
+        final Boolean finalPostOnly = postOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -2111,7 +2111,7 @@ public class Gemini extends GeminiApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object amountString = this.amountToPrecision(symbol, amount);
             Object priceString = this.priceToPrecision(symbol, price);
-            final Object finalClientOrderId = clientOrderId;
+            final String finalClientOrderId = clientOrderId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "client_order_id", finalClientOrderId );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2440,7 +2440,7 @@ public class Gemini extends GeminiApi
         Double feeAmount = this.safeNumber(transaction, "feeAmount");
         if (!java.util.Objects.equals(feeAmount, null))
         {
-            final Object finalFeeAmount = feeAmount;
+            final Double finalFeeAmount = feeAmount;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeAmount );
                 put( "currency", code );
@@ -2566,7 +2566,7 @@ public class Gemini extends GeminiApi
                 put( "network", networkId );
             }};
             List<Object> response = (this.privatePostV1AddressesNetwork(this.extend(request, parameters))).join();
-            final Object finalNetworkCode = networkCode;
+            final String finalNetworkCode = networkCode;
             final Object finalCode = code;
             Object results = this.parseDepositAddresses(response, new ArrayList<Object>(Arrays.asList(code)), false, new HashMap<String, Object>() {{
                 put( "network", finalNetworkCode );
@@ -2605,7 +2605,7 @@ public class Gemini extends GeminiApi
             String payload = this.json(request);
             payload = this.stringToBase64(payload);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
-            final Object finalPayload = payload;
+            final String finalPayload = payload;
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "text/plain" );
                 put( "X-GEMINI-APIKEY", Gemini.this.apiKey );

@@ -806,7 +806,7 @@ public class Modetrade extends ModetradeApi
             {
                 status = "maintenance";
             }
-            final Object finalStatus = status;
+            final String finalStatus = status;
             return new HashMap<String, Object>() {{
                 put( "status", finalStatus );
                 put( "updated", null );
@@ -887,7 +887,7 @@ public class Modetrade extends ModetradeApi
         String settleId = this.safeString(parts, 2);
         String settle = this.safeCurrencyCode(settleId);
         String symbol = ((((base + "/") + quote) + ":") + settle);
-        final Object finalBase = base;
+        final String finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", symbol );
@@ -1112,7 +1112,7 @@ public class Modetrade extends ModetradeApi
         {
             String feeCurrencyId = this.safeString(item, feeTokenKey);
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrencyCode );
@@ -1174,7 +1174,7 @@ public class Modetrade extends ModetradeApi
             Boolean isMaker = java.util.Objects.equals(this.safeString(trade, "is_maker"), "1");
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -1910,8 +1910,8 @@ public class Modetrade extends ModetradeApi
         }
         Long lastUpdateTimestamp = (Long) this.safeInteger2(order, "updatedTime", "updated_time");
         final Object finalStatus = status;
-        final Object finalTakeProfitPrice = takeProfitPrice;
-        final Object finalStopLossPrice = stopLossPrice;
+        final Double finalTakeProfitPrice = takeProfitPrice;
+        final Double finalStopLossPrice = stopLossPrice;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
@@ -2029,7 +2029,7 @@ public class Modetrade extends ModetradeApi
             throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
         }
         String orderSide = ((String)side).toUpperCase();
-        final Object finalOrderSide = orderSide;
+        final String finalOrderSide = orderSide;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
             put( "side", finalOrderSide );
@@ -3175,14 +3175,14 @@ public class Modetrade extends ModetradeApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
             }};
         }
         final Object finalFee = fee;
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "id", Modetrade.this.safeString(item, "id") );
             put( "currency", code );
@@ -3269,14 +3269,14 @@ public class Modetrade extends ModetradeApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
             }};
         }
         Long timestamp = this.safeInteger(transaction, "created_time");
-        final Object finalMovementDirection = movementDirection;
+        final String finalMovementDirection = movementDirection;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3473,7 +3473,7 @@ public class Modetrade extends ModetradeApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3717,7 +3717,7 @@ public class Modetrade extends ModetradeApi
         String notional = Precise.stringMul(size, markPrice);
         final Object finalMarket = market;
         final Object finalSize = size;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -3934,8 +3934,8 @@ public class Modetrade extends ModetradeApi
             {
                 apiKey = ("ed25519:" + apiKey);
             }
-            final Object finalApiKey = apiKey;
-            final Object finalTs = ts;
+            final String finalApiKey = apiKey;
+            final String finalTs = ts;
             headers = new HashMap<String, Object>() {{
                 put( "orderly-account-id", Modetrade.this.accountId );
                 put( "orderly-key", finalApiKey );
@@ -3969,7 +3969,7 @@ public class Modetrade extends ModetradeApi
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
             ((Map<String, Object>)headers).put("orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

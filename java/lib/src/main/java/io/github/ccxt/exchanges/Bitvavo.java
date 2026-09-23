@@ -757,7 +757,7 @@ final Object finalBase = base;
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                final Object finalDeposit = deposit;
+                final Boolean finalDeposit = deposit;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", rawCurrency );
     put( "id", networkId );
@@ -776,7 +776,7 @@ final Object finalBase = base;
 }});
             }
         }
-        final Object finalDeposit_2 = deposit;
+        final Boolean finalDeposit_2 = deposit;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "id", id );
@@ -1090,14 +1090,14 @@ final Object finalBase = base;
         {
             String feeCurrencyId = this.safeString(trade, "feeCurrency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
             }};
         }
         String orderId = this.safeString(trade, "orderId");
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1546,7 +1546,7 @@ final Object finalBase = base;
                 throw new ArgumentsRequired((this.id + " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
             }
             final Object finalSubaccountId = subaccountId;
-            final Object finalDirection = direction;
+            final String finalDirection = direction;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "subaccountId", finalSubaccountId );
                 put( "direction", finalDirection );
@@ -1727,8 +1727,8 @@ final Object finalBase = base;
             timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
         }
         final Object finalTimestamp = timestamp;
-        final Object finalFromAccount = fromAccount;
-        final Object finalToAccount = toAccount;
+        final String finalFromAccount = fromAccount;
+        final String finalToAccount = toAccount;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", Bitvavo.this.safeString(transfer, "transferId") );
@@ -2579,7 +2579,7 @@ final Object finalBase = base;
         {
             String feeCurrencyId = this.safeString(order, "feeCurrency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrencyCode );
@@ -2589,7 +2589,7 @@ final Object finalBase = base;
         String timeInForce = this.safeString(order, "timeInForce");
         Object postOnly = this.safeValue(order, "postOnly");
         // https://github.com/ccxt/ccxt/issues/8489
-        final Object finalCost = cost;
+        final String finalCost = cost;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -2813,14 +2813,14 @@ final Object finalBase = base;
         {
             String feeCurrencyId = this.safeString(item, "feesCurrency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrencyCode );
             }};
         }
-        final Object finalDirection = direction;
-        final Object finalAmount = amount;
+        final String finalDirection = direction;
+        final String finalAmount = amount;
         final Object finalFee = fee;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -3114,7 +3114,7 @@ final Object finalBase = base;
         Double feeCost = this.safeNumber(transaction, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", code );
@@ -3129,7 +3129,7 @@ final Object finalBase = base;
             type = "deposit";
         }
         String tag = this.safeString(transaction, "paymentId");
-        final Object finalType = type;
+        final String finalType = type;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3283,7 +3283,7 @@ final Object finalBase = base;
             String auth = (((timestamp + method) + url) + payload);
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             String accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
-            final Object finalTimestamp = timestamp;
+            final String finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{
                 put( "BITVAVO-ACCESS-KEY", Bitvavo.this.apiKey );
                 put( "BITVAVO-ACCESS-SIGNATURE", signature );

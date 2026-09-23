@@ -1114,14 +1114,14 @@ public class Latoken extends LatokenApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", quote );
             }};
         }
-        final Object finalSymbol = symbol;
-        final Object finalSide = side;
+        final String finalSymbol = symbol;
+        final String finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1473,8 +1473,8 @@ public class Latoken extends LatokenApi
         }
         String clientOrderId = this.safeString(order, "clientOrderId");
         String timeInForce = this.parseTimeInForce(this.safeString(order, "condition"));
-        final Object finalStatus = status;
-        final Object finalSymbol = symbol;
+        final String finalStatus = status;
+        final String finalSymbol = symbol;
         final Object finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -1758,7 +1758,7 @@ public class Latoken extends LatokenApi
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
             }
             final Object finalSide = side;
-            final Object finalUppercaseType = uppercaseType;
+            final String finalUppercaseType = uppercaseType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "baseCurrency", ((Map<String, Object>)market).get("baseId") );
                 put( "quoteCurrency", ((Map<String, Object>)market).get("quoteId") );

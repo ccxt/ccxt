@@ -538,7 +538,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -777,7 +777,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            final Object finalProductId = productId;
+            final Long finalProductId = productId;
             Object stream = new HashMap<String, Object>() {{
                 put( "type", "order_update" );
                 put( "subaccount", sender );
@@ -828,7 +828,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            final Object finalProductId = productId;
+            final Long finalProductId = productId;
             Object stream = new HashMap<String, Object>() {{
                 put( "type", "order_update" );
                 put( "subaccount", sender );
@@ -879,7 +879,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            final Object finalProductId = productId;
+            final Long finalProductId = productId;
             Object stream = new HashMap<String, Object>() {{
                 put( "type", "fill" );
                 put( "subaccount", sender );
@@ -930,7 +930,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            final Object finalProductId = productId;
+            final Long finalProductId = productId;
             Object stream = new HashMap<String, Object>() {{
                 put( "type", "fill" );
                 put( "subaccount", sender );
@@ -984,7 +984,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            final Object finalProductId = productId;
+            final Long finalProductId = productId;
             Object stream = new HashMap<String, Object>() {{
                 put( "type", "position_change" );
                 put( "subaccount", sender );
@@ -1038,7 +1038,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             subaccount = ((List<Object>) subaccountparametersVariable).get(0);
             parameters = ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            final Object finalProductId = productId;
+            final Long finalProductId = productId;
             Object stream = new HashMap<String, Object>() {{
                 put( "type", "position_change" );
                 put( "subaccount", sender );
@@ -1333,7 +1333,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     public CompletableFuture<Object> watchExecuteRequest(String requestIdString2, Map<String, Object> request)
     {
-        final Object requestIdString3 = requestIdString2;
+        final String requestIdString3 = requestIdString2;
         return BaseExchange.supplyAsync(() -> {
             Object requestIdString = requestIdString3;
             // the v2 gateway dispatches requests concurrently, so responses arrive
@@ -1682,7 +1682,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             side = ((Boolean.TRUE.equals(isTakerBuyer))) ? "buy" : "sell";
         }
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
@@ -1749,8 +1749,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }};
         }
         final Object finalMarket_2 = market;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1890,7 +1890,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final Object finalFilled = filled;
         final Object finalMarket = market;
         final Object finalRemaining = remaining;
-        final Object finalStatus = status;
+        final String finalStatus = status;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -1973,7 +1973,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
         }
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalContracts = contracts;
         final Object finalEntryPrice = entryPrice;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{

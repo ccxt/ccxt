@@ -732,7 +732,7 @@ public class Bithumb extends BithumbApi
                         final Object finalBase = base;
                         final Object finalQuote = quote;
                         final Object finalQuoteId = quoteId;
-                        final Object finalActive = active;
+                        final Boolean finalActive = active;
                         Map<String, Object> entry = this.deepExtend(new HashMap<String, Object>() {{
                             put( "id", finalCurrencyId );
                             put( "symbol", Helpers.add((finalBase + "/"), finalQuote) );
@@ -1124,11 +1124,11 @@ public class Bithumb extends BithumbApi
         {
             low = close;
         }
-        final Object finalHigh = high;
-        final Object finalLow = low;
-        final Object finalClose = close;
-        final Object finalChange = change;
-        final Object finalPercentage = percentage;
+        final String finalHigh = high;
+        final String finalLow = low;
+        final String finalClose = close;
+        final String finalChange = change;
+        final String finalPercentage = percentage;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1755,7 +1755,7 @@ public class Bithumb extends BithumbApi
         {
             String feeCurrencyId = this.safeString(trade, "fee_currency");
             Object feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
@@ -1763,7 +1763,7 @@ public class Bithumb extends BithumbApi
         }
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalAmountString = amountString;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -2142,7 +2142,7 @@ public class Bithumb extends BithumbApi
             final Object finalResponse = response;
             final Object finalType = type;
             final Object finalSide = side;
-            final Object finalId = id;
+            final String finalId = id;
             return this.extend(this.parseOrder(response, market), new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "symbol", symbol );
@@ -2643,7 +2643,7 @@ public class Bithumb extends BithumbApi
                 currency = ((Map<String, Object>)market).get("quote");
             }
             final Object finalCurrency = currency;
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", finalCurrency );
                 put( "cost", finalFeeCost );
@@ -2658,15 +2658,15 @@ public class Bithumb extends BithumbApi
             postOnly = true;
         }
         final Object finalTimestamp = timestamp;
-        final Object finalDatetime = datetime;
+        final String finalDatetime = datetime;
         final Object finalSymbol = symbol;
-        final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
+        final String finalType = type;
+        final String finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
-        final Object finalSide = side;
-        final Object finalPrice = price;
+        final String finalSide = side;
+        final String finalPrice = price;
         final Object finalRemaining = remaining;
-        final Object finalStatus = status;
+        final String finalStatus = status;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -3160,7 +3160,7 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3306,7 +3306,7 @@ public class Bithumb extends BithumbApi
             }
         }
         final Object finalTimestamp = timestamp;
-        final Object finalDatetime = datetime;
+        final String finalDatetime = datetime;
         final Object finalCurrency = currency;
         return new HashMap<String, Object>() {{
             put( "id", Bithumb.this.safeString(transaction, "uuid") );
@@ -3426,7 +3426,7 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<Object> fetchWithdrawal(String id2, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3571,7 +3571,7 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<Object> fetchDeposit(String id2, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -3876,7 +3876,7 @@ public class Bithumb extends BithumbApi
             throw new ExchangeError((this.id + " parseDepositAddress() could not find deposit_address")) ;
         }
         this.checkAddress(address);
-        final Object finalAddress = address;
+        final String finalAddress = address;
         return new HashMap<String, Object>() {{
             put( "info", response );
             put( "currency", code );
@@ -4007,7 +4007,7 @@ public class Bithumb extends BithumbApi
                 ((Map<String, Object>)headers).put("Authorization", ("Bearer " + token));
             } else
             {
-                final Object finalEndpoint = endpoint;
+                final String finalEndpoint = endpoint;
                 body = this.urlencode(this.extend(new HashMap<String, Object>() {{
                     put( "endpoint", finalEndpoint );
                 }}, query));
@@ -4028,7 +4028,7 @@ public class Bithumb extends BithumbApi
                 }};
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

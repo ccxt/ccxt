@@ -1427,8 +1427,8 @@ public class Mexc extends MexcApi
                 updated = this.safeInteger(response, "data");
             }
             final Object finalStatus = status;
-            final Object finalUpdated = updated;
-            final Object finalResponse = response;
+            final Long finalUpdated = updated;
+            final Map<String, Object> finalResponse = response;
             return new HashMap<String, Object>() {{
                 put( "status", finalStatus );
                 put( "updated", finalUpdated );
@@ -1708,7 +1708,7 @@ public class Mexc extends MexcApi
                 Double takerCommission = this.safeNumber(market, "takerCommission");
                 Double maxQuoteAmount = this.safeNumber(market, "maxQuoteAmount");
     final Object finalBase = base;
-                final Object finalActive = active;
+                final Boolean finalActive = active;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", ((finalBase + "/") + quote) );
@@ -2239,14 +2239,14 @@ public class Mexc extends MexcApi
             id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
         }
         final Object finalId = id;
-        final Object finalOrderId = orderId;
+        final String finalOrderId = orderId;
         final Object finalTimestamp = timestamp;
         final Object finalSymbol = symbol;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalPriceString = priceString;
-        final Object finalAmountString = amountString;
-        final Object finalCostString = costString;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalPriceString = priceString;
+        final String finalAmountString = amountString;
+        final String finalCostString = costString;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
@@ -2671,18 +2671,18 @@ public class Mexc extends MexcApi
         }
         final Object finalMarket = market;
         final Object finalTimestamp = timestamp;
-        final Object finalOpen = open;
-        final Object finalHigh = high;
-        final Object finalLow = low;
-        final Object finalBid = bid;
-        final Object finalBidVolume = bidVolume;
-        final Object finalAsk = ask;
-        final Object finalAskVolume = askVolume;
-        final Object finalPrevClose = prevClose;
-        final Object finalChangeValue = changeValue;
-        final Object finalChangePcnt = changePcnt;
-        final Object finalBaseVolume = baseVolume;
-        final Object finalQuoteVolume = quoteVolume;
+        final String finalOpen = open;
+        final String finalHigh = high;
+        final String finalLow = low;
+        final String finalBid = bid;
+        final String finalBidVolume = bidVolume;
+        final String finalAsk = ask;
+        final String finalAskVolume = askVolume;
+        final String finalPrevClose = prevClose;
+        final String finalChangeValue = changeValue;
+        final String finalChangePcnt = changePcnt;
+        final String finalBaseVolume = baseVolume;
+        final String finalQuoteVolume = quoteVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", finalTimestamp );
@@ -4350,7 +4350,7 @@ public class Mexc extends MexcApi
             String takerFee = this.safeString(order, "takerFee");
             String makerFee = this.safeString(order, "makerFee");
             String feeSum = Precise.stringAdd(takerFee, makerFee);
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "currency", finalFeeCurrency );
                 put( "cost", Mexc.this.parseNumber(feeSum) );
@@ -4448,7 +4448,7 @@ public class Mexc extends MexcApi
 
     public CompletableFuture<Object> fetchAccountHelper(String type2, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             if (java.util.Objects.equals(type, "spot"))
@@ -5073,7 +5073,7 @@ public class Mexc extends MexcApi
             {
                 (this.loadMarkets()).join();
             }
-            final Object finalPositionId = positionId;
+            final Long finalPositionId = positionId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "positionId", finalPositionId );
                 put( "amount", amount );
@@ -5304,7 +5304,7 @@ public class Mexc extends MexcApi
         {
             intervalString = (interval + "h");
         }
-        final Object finalIntervalString = intervalString;
+        final String finalIntervalString = intervalString;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -6069,9 +6069,9 @@ final Object finalRiskIncrVol = riskIncrVol;
             // mexc withdrawal amount includes the fee
             amountString = Precise.stringSub(amountString, feeCostString);
         }
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalNetwork = network;
-        final Object finalType = type;
+        final String finalType = type;
         final Object finalAmountString = amountString;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
@@ -6563,8 +6563,8 @@ final Object finalRiskIncrVol = riskIncrVol;
                 Object keys = new ArrayList<Object>(accounts.keySet());
                 throw new ExchangeError(((this.id + " toAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
-            final Object finalFromId = fromId;
-            final Object finalToId = toId;
+            final String finalFromId = fromId;
+            final String finalToId = toId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
@@ -6665,7 +6665,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             accountFrom = this.safeString(transfer, "from");
             accountTo = this.safeString(transfer, "to");
         }
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final Object finalAccountFrom = accountFrom;
         final Object finalAccountTo = accountTo;
         return new HashMap<String, Object>() {{
@@ -7157,9 +7157,9 @@ final Object finalRiskIncrVol = riskIncrVol;
             }
             marginMode = ((((openType != null && openType == 1)))) ? "isolated" : "cross";
         }
-        final Object finalMarginMode = marginMode;
-        final Object finalLongLeverage = longLeverage;
-        final Object finalShortLeverage = shortLeverage;
+        final String finalMarginMode = marginMode;
+        final Long finalLongLeverage = longLeverage;
+        final Long finalShortLeverage = shortLeverage;
         return new HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", Mexc.this.safeString(market, "symbol") );
@@ -7323,7 +7323,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a leverage parameter")) ;
             }
             String direction = this.safeStringLower2(parameters, "direction", "positionId");
-            final Object finalLeverage = leverage;
+            final Long finalLeverage = leverage;
             final Object finalMarginModeLower = marginModeLower;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "leverage", finalLeverage );

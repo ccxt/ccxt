@@ -203,7 +203,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
-            final Object finalStatus = status;
+            final String finalStatus = status;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "clientOrderId", clientOrderId );
@@ -283,7 +283,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
-            final Object finalStatus = status;
+            final String finalStatus = status;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "clientOrderId", clientOrderId );
@@ -460,7 +460,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
-            final Object finalStatus = status;
+            final String finalStatus = status;
             final Object finalSymbol = symbol;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", orderId );
@@ -1001,7 +1001,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1046,7 +1046,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Object> unWatchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1186,8 +1186,8 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             takerOrMaker = null;
         }
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1222,7 +1222,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -1271,7 +1271,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";

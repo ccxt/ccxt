@@ -2902,19 +2902,19 @@ public class Okx extends OkxApi
         Object baseEqualSettle = (java.util.Objects.equals(baseId, settleId));
         String status = this.safeString(market, "state");
         Long instIdCode = this.safeInteger(market, "instIdCode");
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalQuote = quote;
-        final Object finalSettle = settle;
-        final Object finalBaseId = baseId;
-        final Object finalQuoteId = quoteId;
-        final Object finalType = type;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalQuote = quote;
+        final String finalSettle = settle;
+        final String finalBaseId = baseId;
+        final String finalQuoteId = quoteId;
+        final String finalType = type;
         final Object finalSpot = spot;
-        final Object finalSwap = swap;
+        final Boolean finalSwap = swap;
         final Object finalStatus = status;
         final Object finalExpiry = expiry;
         final Object finalStrikePrice = strikePrice;
-        final Object finalOptionType = optionType;
+        final String finalOptionType = optionType;
         final Object finalMaxLeverage = maxLeverage;
         return this.extend(fees, new HashMap<String, Object>() {{
             put( "id", id );
@@ -3163,7 +3163,7 @@ public class Okx extends OkxApi
             Object networkCode = this.networkIdToCode(chainPart, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkId = networkId;
+                final String finalNetworkId = networkId;
                 final Object finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", finalNetworkId );
@@ -3183,7 +3183,7 @@ public class Okx extends OkxApi
 }});
             }
         }
-        final Object finalType = type;
+        final String finalType = type;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", chains );
             put( "code", code );
@@ -3684,7 +3684,7 @@ public class Okx extends OkxApi
         {
             takerOrMaker = "maker";
         }
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -3890,7 +3890,7 @@ public class Okx extends OkxApi
             {
                 bar = (bar + timezone.toLowerCase());
             }
-            final Object finalBar = bar;
+            final String finalBar = bar;
             final Object finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
@@ -5814,15 +5814,15 @@ public class Okx extends OkxApi
         {
             reduceOnly = (java.util.Objects.equals(reduceOnlyRaw, "true"));
         }
-        final Object finalClientOrderId = clientOrderId;
-        final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
+        final String finalClientOrderId = clientOrderId;
+        final String finalType = type;
+        final String finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
-        final Object finalSide = side;
-        final Object finalCost = cost;
-        final Object finalAmount = amount;
+        final String finalSide = side;
+        final String finalCost = cost;
+        final String finalAmount = amount;
         final Object finalFee = fee;
-        final Object finalReduceOnly = reduceOnly;
+        final Boolean finalReduceOnly = reduceOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -7055,7 +7055,7 @@ public class Okx extends OkxApi
         String network = this.safeString(networkData, "network");
         Object networkCode = this.networkIdToCode(network, code);
         this.checkAddress(address);
-        final Object finalTag = tag;
+        final String finalTag = tag;
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
@@ -7130,7 +7130,7 @@ public class Okx extends OkxApi
      */
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code2, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -7670,10 +7670,10 @@ public class Okx extends OkxApi
             feeCost = this.safeNumber(transaction, "fee");
         }
         // todo parse tags
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalNetwork = network;
-        final Object finalTagTo = tagTo;
-        final Object finalType = type;
+        final String finalTagTo = tagTo;
+        final String finalType = type;
         final Object finalFeeCost = feeCost;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -7788,8 +7788,8 @@ public class Okx extends OkxApi
         }
         final Object finalMarketId = marketId;
         final Object finalMarginMode = marginMode;
-        final Object finalLongLeverage = longLeverage;
-        final Object finalShortLeverage = shortLeverage;
+        final Long finalLongLeverage = longLeverage;
+        final Long finalShortLeverage = shortLeverage;
         return new HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", Okx.this.safeSymbol(finalMarketId, market) );
@@ -8175,8 +8175,8 @@ public class Okx extends OkxApi
         Double percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Long timestamp = this.safeInteger(position, "cTime");
         Double marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
-        final Object finalMarginMode = marginMode;
-        final Object finalSide = side;
+        final String finalMarginMode = marginMode;
+        final String finalSide = side;
         final Object finalCollateralString = collateralString;
         final Object finalInitialMarginString = initialMarginString;
         final Object finalInitialMarginPercentage = initialMarginPercentage;
@@ -8238,8 +8238,8 @@ public class Okx extends OkxApi
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
-            final Object finalFromId = fromId;
-            final Object finalToId = toId;
+            final String finalFromId = fromId;
+            final String finalToId = toId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ccy", ((Map<String, Object>)currency).get("id") );
                 put( "amt", Okx.this.currencyToPrecision((String) (code), amount) );
@@ -8560,7 +8560,7 @@ public class Okx extends OkxApi
                 }
             }
             String timestamp = this.iso8601(this.nonce());
-            final Object finalTimestamp = timestamp;
+            final String finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{
                 put( "OK-ACCESS-KEY", Okx.this.apiKey );
                 put( "OK-ACCESS-PASSPHRASE", Okx.this.password );
@@ -9083,7 +9083,7 @@ public class Okx extends OkxApi
             {
                 hedgeMode = "net_mode";
             }
-            final Object finalHedgeMode = hedgeMode;
+            final String finalHedgeMode = hedgeMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "posMode", finalHedgeMode );
             }};
@@ -9144,7 +9144,7 @@ public class Okx extends OkxApi
                 throw new BadRequest((this.id + " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage")));
-            final Object finalLever = lever;
+            final Long finalLever = lever;
             final Object finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "lever", finalLever );
@@ -9547,7 +9547,7 @@ public class Okx extends OkxApi
         Map<String, Object> responseMarket = (Map<String, Object>) this.safeMarket(marketId, market);
         Object code = (((java.util.Objects.equals(((Map<String, Object>)responseMarket).get("inverse"), true)))) ? ((Map<String, Object>)responseMarket).get("base") : ((Map<String, Object>)responseMarket).get("quote");
         Long timestamp = this.safeInteger(data, "ts");
-        final Object finalType = type;
+        final String finalType = type;
         return new HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", ((Map<String, Object>)responseMarket).get("symbol") );
@@ -9642,9 +9642,9 @@ public class Okx extends OkxApi
             {
                 marginMode = this.safeString(parameters, "tdMode", "cross"); // cross as default marginMode
             }
-            final Object finalType = type;
+            final String finalType = type;
             final Object finalMarginMode = marginMode;
-            final Object finalUly = uly;
+            final String finalUly = uly;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", finalType );
                 put( "tdMode", finalMarginMode );
@@ -9914,7 +9914,7 @@ public class Okx extends OkxApi
                 throw new ArgumentsRequired((this.id + " repayCrossMargin() requires an id parameter")) ;
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            final Object finalId = id;
+            final String finalId = id;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ccy", ((Map<String, Object>)currency).get("id") );
                 put( "amt", Okx.this.currencyToPrecision((String) (code), amount) );
@@ -10064,7 +10064,7 @@ public class Okx extends OkxApi
             {
                 instType = "OPTION";
             }
-            final Object finalInstType = instType;
+            final String finalInstType = instType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
             }};
@@ -10120,7 +10120,7 @@ public class Okx extends OkxApi
      */
     public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1d";
@@ -10247,10 +10247,10 @@ public class Okx extends OkxApi
             openInterestAmount = this.safeNumber(interest, "oi");
             openInterestValue = this.safeNumber(interest, "oiUsd");
         }
-        final Object finalBaseVolume = baseVolume;
-        final Object finalQuoteVolume = quoteVolume;
-        final Object finalOpenInterestAmount = openInterestAmount;
-        final Object finalOpenInterestValue = openInterestValue;
+        final Double finalBaseVolume = baseVolume;
+        final Double finalQuoteVolume = quoteVolume;
+        final Double finalOpenInterestAmount = openInterestAmount;
+        final Double finalOpenInterestValue = openInterestValue;
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Okx.this.safeSymbol(id) );
             put( "baseVolume", finalBaseVolume );
@@ -11460,7 +11460,7 @@ public class Okx extends OkxApi
                 String code = this.safeCurrencyCode(id);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    final Object finalCode = code;
+                    final String finalCode = code;
                     ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
@@ -11586,7 +11586,7 @@ public class Okx extends OkxApi
                     throw new BadRequest(((this.id + " cannot fetch margin adjustments for type ") + type)) ;
                 }
             }
-            final Object finalSubType = subType;
+            final String finalSubType = subType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "subType", finalSubType );
                 put( "mgnMode", "isolated" );

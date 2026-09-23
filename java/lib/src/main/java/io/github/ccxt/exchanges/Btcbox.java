@@ -311,7 +311,7 @@ public class Btcbox extends BtcboxApi
                 Map<String, Object> details = (Map<String, Object>) this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
                 Map<String, Object> tradeDetails = (Map<String, Object>) this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
     final Object finalId = id;
-                final Object finalBaseCurr = baseCurr;
+                final String finalBaseCurr = baseCurr;
                             ((List<Object>)markets).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", finalId );
                     put( "uppercaseId", null );
@@ -377,7 +377,7 @@ public class Btcbox extends BtcboxApi
         String quoteId = this.safeString(market, "quote");
         String quote = this.safeCurrencyCode(quoteId);
         String symbol = ((base + "/") + quote);
-        final Object finalBase = base;
+        final String finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", Btcbox.this.safeString(market, "symbol") );
             put( "uppercaseId", null );
@@ -822,7 +822,7 @@ public class Btcbox extends BtcboxApi
         market = this.safeMarket(null, market);
         String side = this.safeString(order, "type");
         final Object finalTimestamp = timestamp;
-        final Object finalStatus = status;
+        final String finalStatus = status;
         final Object finalMarket = market;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -900,7 +900,7 @@ public class Btcbox extends BtcboxApi
 
     public CompletableFuture<Object> fetchOrdersByType(String type2, Object... optionalArgs)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1038,7 +1038,7 @@ public class Btcbox extends BtcboxApi
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{

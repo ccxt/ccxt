@@ -3671,7 +3671,7 @@ public class Bitget extends BitgetApi
 
     public CompletableFuture<Object> handleUTAAndParams(Map<String, Object> parameters2, String methodName, Object... optionalArgs)
     {
-        final Object parameters3 = parameters2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object parameters = parameters3;
             Object defaultValue = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
@@ -4016,24 +4016,24 @@ public class Bitget extends BitgetApi
                 }
                 Object contractSize = ((Boolean.TRUE.equals(contract))) ? 1 : null;
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalQuote = quote;
-                final Object finalSettleId = settleId;
+                final String finalBase = base;
+                final String finalQuote = quote;
+                final String finalSettleId = settleId;
                 final Object finalType = type;
                 final Object finalSpot = spot;
                 final Object finalIsMarginTradingAllowed = isMarginTradingAllowed;
                 final Object finalMarginModes = marginModes;
-                final Object finalSwap = swap;
-                final Object finalFuture = future;
+                final Boolean finalSwap = swap;
+                final Boolean finalFuture = future;
                 final Object finalActive = active;
-                final Object finalContract = contract;
+                final Boolean finalContract = contract;
                 final Object finalLinear = linear;
                 final Object finalInverse = inverse;
-                final Object finalExpiry = expiry;
-                final Object finalExpiryDatetime = expiryDatetime;
+                final Long finalExpiry = expiry;
+                final String finalExpiryDatetime = expiryDatetime;
                 final Object finalAmountPrecision = amountPrecision;
                 final Object finalPricePrecision = pricePrecision;
-                final Object finalMinCost = minCost;
+                final Double finalMinCost = minCost;
                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", marketId );
                     put( "symbol", finalSymbol );
@@ -4303,21 +4303,21 @@ public class Bitget extends BitgetApi
                 }
                 Object contractSize = ((Boolean.TRUE.equals(contract))) ? 1 : null;
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalSettle = settle;
-                final Object finalSettleId = settleId;
-                final Object finalType = type;
+                final String finalBase = base;
+                final String finalSettle = settle;
+                final String finalSettleId = settleId;
+                final String finalType = type;
                 final Object finalSpot = spot;
                 final Object finalIsMarginTradingAllowed = isMarginTradingAllowed;
                 final Object finalMarginModes = marginModes;
-                final Object finalSwap = swap;
-                final Object finalFuture = future;
+                final Boolean finalSwap = swap;
+                final Boolean finalFuture = future;
                 final Object finalActive = active;
-                final Object finalContract = contract;
+                final Boolean finalContract = contract;
                 final Object finalLinear = linear;
                 final Object finalInverse = inverse;
-                final Object finalExpiry = expiry;
-                final Object finalExpiryDatetime = expiryDatetime;
+                final Long finalExpiry = expiry;
+                final String finalExpiryDatetime = expiryDatetime;
                 final Object finalAmountPrecision = amountPrecision;
                 final Object finalPricePrecision = pricePrecision;
                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -5204,7 +5204,7 @@ final Object finalMinNotional = minNotional;
             }};
             amountString = Precise.stringSub(amountString, feeCostAbsString);
         }
-        final Object finalTxid = txid;
+        final String finalTxid = txid;
         final Object finalAmountString = amountString;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
@@ -5558,7 +5558,7 @@ final Object finalMinNotional = minNotional;
         // both fields are ratios, and a ticker reports (change/open) * 100
         String percentage = Precise.stringMul(this.safeString2(ticker, "price24hPcnt", "change24h"), "100");
         final Object finalMarketType = marketType;
-        final Object finalMarkPrice = markPrice;
+        final String finalMarkPrice = markPrice;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Bitget.this.safeSymbol(marketId, market, null, finalMarketType) );
             put( "timestamp", timestamp );
@@ -6870,7 +6870,7 @@ final Object finalMinNotional = minNotional;
                     }
                     // Recent endpoint for mark/index prices
                     // https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
-                    final Object finalPriceType = priceType;
+                    final String finalPriceType = priceType;
                     response = (this.publicMixGetV2MixMarketCandles(this.extend(new HashMap<String, Object>() {{
                         put( "kLineType", finalPriceType );
                     }}, extended))).join();
@@ -7584,13 +7584,13 @@ final Object finalMinNotional = minNotional;
             size = this.safeString(order, "baseVolume");
         }
         final Object finalMarket_3 = market;
-        final Object finalOrderType = orderType;
-        final Object finalSide = side;
-        final Object finalPrice = price;
-        final Object finalSize = size;
-        final Object finalAverage = average;
-        final Object finalFilled = filled;
-        final Object finalTimeInForce = timeInForce;
+        final String finalOrderType = orderType;
+        final String finalSide = side;
+        final String finalPrice = price;
+        final String finalSize = size;
+        final String finalAverage = average;
+        final String finalFilled = filled;
+        final String finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
         final Object finalReduceOnly = reduceOnly;
         final Object finalFee = fee;
@@ -10615,7 +10615,7 @@ final Object finalMinNotional = minNotional;
                     }});
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        final Object finalSymbol = symbol;
+                        final String finalSymbol = symbol;
                         parameters = this.extend(parameters, new HashMap<String, Object>() {{
                             put( "symbol", finalSymbol );
                         }});
@@ -10633,7 +10633,7 @@ final Object finalMinNotional = minNotional;
                 }});
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    final Object finalSymbol_2 = symbol;
+                    final String finalSymbol_2 = symbol;
                     parameters = this.extend(parameters, new HashMap<String, Object>() {{
                         put( "symbol", finalSymbol_2 );
                     }});
@@ -10851,7 +10851,7 @@ final Object finalMinNotional = minNotional;
         {
             direction = "out";
         }
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalBefore = before;
         final Object finalFeeCost = feeCost;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
@@ -11891,10 +11891,10 @@ final Object finalMinNotional = minNotional;
         String feeToClose = Precise.stringMul(notional, calcTakerFeeRate);
         String maintenanceMargin = Precise.stringAdd(Precise.stringMul(maintenanceMarginPercentage, notional), feeToClose);
         String percentage = Precise.stringMul(Precise.stringDiv(unrealizedPnl, initialMargin, 4), "100");
-        final Object finalMarginMode = marginMode;
+        final String finalMarginMode = marginMode;
         final Object finalLiquidationPrice = liquidationPrice;
         final Object finalContracts = contracts;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalHedged = hedged;
         final Object finalCollateral = collateral;
         final Object finalInitialMargin = initialMargin;
@@ -12321,7 +12321,7 @@ final Object finalMinNotional = minNotional;
         {
             intervalString = (interval + "h");
         }
-        final Object finalIntervalString = intervalString;
+        final String finalIntervalString = intervalString;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -14386,7 +14386,7 @@ final Object finalMinNotional = minNotional;
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marginType = this.safeString(marginMode, "marginMode");
         marginType = (((java.util.Objects.equals(marginType, "crossed")))) ? "cross" : marginType;
-        final Object finalMarginType = marginType;
+        final String finalMarginType = marginType;
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", Bitget.this.safeString(market, "symbol") );
@@ -14559,8 +14559,8 @@ final Object finalMinNotional = minNotional;
                 throw new ArgumentsRequired((this.id + " createConvertTrade() requires a toAmount parameter")) ;
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "toAmount")));
-            final Object finalToAmount = toAmount;
-            final Object finalPrice = price;
+            final String finalToAmount = toAmount;
+            final String finalPrice = price;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "traceId", id );
                 put( "fromCoin", fromCode );
@@ -14769,7 +14769,7 @@ final Object finalMinNotional = minNotional;
                 String code = this.safeCurrencyCode(id);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    final Object finalCode = code;
+                    final String finalCode = code;
                     ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
@@ -15029,7 +15029,7 @@ final Object finalMinNotional = minNotional;
             }
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             String broker = this.safeString(this.options, "broker");
-            final Object finalTimestamp = timestamp;
+            final String finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{
                 put( "ACCESS-KEY", Bitget.this.apiKey );
                 put( "ACCESS-SIGN", signature );

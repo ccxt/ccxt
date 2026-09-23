@@ -1236,7 +1236,7 @@ public class Coinsph extends CoinsphApi
         String changePcnt = this.safeString(ticker, "priceChangePercent");
         changePcnt = Precise.stringMul(changePcnt, "100");
         final Object finalMarket = market;
-        final Object finalChangePcnt = changePcnt;
+        final String finalChangePcnt = changePcnt;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", timestamp );
@@ -1591,7 +1591,7 @@ public class Coinsph extends CoinsphApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(trade, "commissionAsset");
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", Coinsph.this.safeCurrencyCode(feeCurrencyId) );
@@ -1614,11 +1614,11 @@ public class Coinsph extends CoinsphApi
         {
             costString = this.safeString(trade, "quoteQty");
         }
-        final Object finalOrderId = orderId;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalCostString = costString;
-        final Object finalFee = fee;
+        final String finalOrderId = orderId;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalCostString = costString;
+        final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "order", finalOrderId );
@@ -1739,8 +1739,8 @@ public class Coinsph extends CoinsphApi
             orderType = this.encodeOrderType(orderType);
             parameters = this.omit(parameters, "type");
             String orderSide = this.encodeOrderSide((String) (side));
-            final Object finalOrderType = orderType;
-            final Object finalOrderSide = orderSide;
+            final String finalOrderType = orderType;
+            final String finalOrderSide = orderSide;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "type", finalOrderType );
@@ -2127,7 +2127,7 @@ public class Coinsph extends CoinsphApi
             triggerPrice = null;
         }
         final Object finalMarket = market;
-        final Object finalTriggerPrice = triggerPrice;
+        final String finalTriggerPrice = triggerPrice;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", Coinsph.this.safeString(order, "clientOrderId") );
@@ -2636,7 +2636,7 @@ public class Coinsph extends CoinsphApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
@@ -2645,9 +2645,9 @@ public class Coinsph extends CoinsphApi
         String network = this.safeString(transaction, "network");
         Boolean intern = java.util.Objects.equals(network, "Internal");
         final Object finalTimestamp = timestamp;
-        final Object finalNetwork = network;
-        final Object finalTag = tag;
-        final Object finalType = type;
+        final String finalNetwork = network;
+        final String finalTag = tag;
+        final String finalType = type;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );

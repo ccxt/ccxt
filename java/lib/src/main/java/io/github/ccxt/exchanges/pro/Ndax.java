@@ -88,7 +88,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "OMSId", omsId );
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
             }};
-            final Object finalName = name;
+            final String finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "m", 0 );
                 put( "i", requestId );
@@ -154,7 +154,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -176,7 +176,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
                 put( "IncludeLastCount", 100 );
             }};
-            final Object finalName = name;
+            final String finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "m", 0 );
                 put( "i", requestId );
@@ -263,7 +263,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -287,7 +287,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "Interval", Helpers.parseInt(Ndax.this.safeString(Ndax.this.timeframes, timeframe, timeframe)) );
                 put( "IncludeLastCount", 100 );
             }};
-            final Object finalName = name;
+            final String finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "m", 0 );
                 put( "i", requestId );
@@ -434,7 +434,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -457,7 +457,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
                 put( "Depth", finalLimit );
             }};
-            final Object finalName = name;
+            final String finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "m", 0 );
                 put( "i", requestId );

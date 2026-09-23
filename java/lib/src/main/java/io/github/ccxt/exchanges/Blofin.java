@@ -866,11 +866,11 @@ public class Blofin extends BlofinApi
         String contractType = this.safeString(market, "contractType");
         Double maxLimitAmount = this.safeNumber(market, "maxLimitSize");
         Double maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalType = type;
-        final Object finalSpot = spot;
-        final Object finalSwap = swap;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalType = type;
+        final Boolean finalSpot = spot;
+        final Boolean finalSwap = swap;
         final Object finalContractType = contractType;
         final Object finalMaxLeverage = maxLeverage;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -1206,7 +1206,7 @@ public class Blofin extends BlofinApi
         }
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             final Object finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1925,12 +1925,12 @@ public class Blofin extends BlofinApi
         Double takeProfitPrice = this.safeNumber(order, "tpOrderPrice");
         String reduceOnlyRaw = this.safeString(order, "reduceOnly");
         Boolean reduceOnly = (java.util.Objects.equals(reduceOnlyRaw, "true"));
-        final Object finalClientOrderId = clientOrderId;
-        final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
+        final String finalClientOrderId = clientOrderId;
+        final String finalType = type;
+        final String finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
-        final Object finalAverage = average;
-        final Object finalCost = cost;
+        final String finalAverage = average;
+        final String finalCost = cost;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -2060,7 +2060,7 @@ public class Blofin extends BlofinApi
             positionSide = (((java.util.Objects.equals(side, "buy")))) ? "short" : "long";
         }
         final Object finalSide = side;
-        final Object finalPositionSide = positionSide;
+        final String finalPositionSide = positionSide;
         final Object finalParameters = parameters;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "instId", ((Map<String, Object>)market).get("id") );
@@ -2790,9 +2790,9 @@ public class Blofin extends BlofinApi
         String feeCurrencyId = this.safeString(transaction, "feeCurrency");
         String feeCode = this.safeCurrencyCode(feeCurrencyId);
         Double feeCost = this.safeNumber(transaction, "fee");
-        final Object finalId = id;
-        final Object finalStatus = status;
-        final Object finalType = type;
+        final String finalId = id;
+        final String finalStatus = status;
+        final String finalType = type;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", finalId );
@@ -3329,8 +3329,8 @@ public class Blofin extends BlofinApi
         Double percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Long timestamp = this.safeInteger(position, "updateTime");
         Double marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
-        final Object finalMarginMode = marginMode;
-        final Object finalSide = side;
+        final String finalMarginMode = marginMode;
+        final String finalSide = side;
         final Object finalCollateralString = collateralString;
         final Object finalInitialMarginString = initialMarginString;
         final Object finalInitialMarginPercentage = initialMarginPercentage;

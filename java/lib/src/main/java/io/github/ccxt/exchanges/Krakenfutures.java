@@ -630,11 +630,11 @@ public class Krakenfutures extends KrakenfuturesApi
                     }
                 }
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalSettle = settle;
+                final String finalBase = base;
+                final String finalSettle = settle;
                 final Object finalSettleId = settleId;
-                final Object finalType = type;
-                final Object finalSwap = swap;
+                final String finalType = type;
+                final Boolean finalSwap = swap;
                 final Object finalLinear = linear;
                 final Object finalInverse = inverse;
                 final Object finalExpiry = expiry;
@@ -935,8 +935,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 quoteVolume = volume;
             }
         }
-        final Object finalBaseVolume = baseVolume;
-        final Object finalQuoteVolume = quoteVolume;
+        final String finalBaseVolume = baseVolume;
+        final String finalQuoteVolume = quoteVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1130,7 +1130,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 throw new NotSupported((this.id + " fetchOHLCV() price parameter must be one of \"trade\", \"mark\", \"index\" or \"spot\"")) ;
             }
-            final Object finalPriceType = priceType;
+            final String finalPriceType = priceType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "price_type", finalPriceType );
@@ -1496,24 +1496,24 @@ public class Krakenfutures extends KrakenfuturesApi
                 feeCurrency = this.safeString(market, "quote");
             }
             final Object finalCost = cost;
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", Precise.stringMul(finalCost, feeRate) );
                 put( "currency", finalFeeCurrency );
                 put( "rate", feeRate );
             }};
         }
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalMarket = market;
         final Object finalTimestamp = timestamp;
-        final Object finalOrder = order;
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalPrice = price;
+        final String finalOrder = order;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalPrice = price;
         final Object finalLinear = linear;
         final Object finalAmount = amount;
-        final Object finalCost_2 = cost;
+        final String finalCost_2 = cost;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -2933,19 +2933,19 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             triggerPrice = this.safeString(priceTriggerOptions, "triggerPrice");
         }
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalDetails = details;
         final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalPrice = price;
-        final Object finalTriggerPrice = triggerPrice;
-        final Object finalAmount = amount;
-        final Object finalCost = cost;
-        final Object finalAverage = average;
-        final Object finalFilled = filled;
-        final Object finalRemaining = remaining;
-        final Object finalStatus = status;
-        final Object finalTrades = trades;
+        final String finalTimeInForce = timeInForce;
+        final String finalPrice = price;
+        final String finalTriggerPrice = triggerPrice;
+        final String finalAmount = amount;
+        final String finalCost = cost;
+        final String finalAverage = average;
+        final String finalFilled = filled;
+        final String finalRemaining = remaining;
+        final String finalStatus = status;
+        final List<Object> finalTrades = trades;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", finalId );
@@ -3323,7 +3323,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 direction = "in";
             }
         }
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalAmount = amount;
         final Object finalBefore = before;
         final Object finalAfter = after;
@@ -4053,13 +4053,13 @@ public class Krakenfutures extends KrakenfuturesApi
         String marketId = this.safeString2(position, "symbol", "tradeable");
         market = this.safeMarket(marketId, market);
         final Object finalMarket = market;
-        final Object finalTimestamp = timestamp;
-        final Object finalDatetime = datetime;
+        final Long finalTimestamp = timestamp;
+        final String finalDatetime = datetime;
         final Object finalEntryPrice = entryPrice;
-        final Object finalLeverage = leverage;
+        final Double finalLeverage = leverage;
         final Object finalContracts = contracts;
-        final Object finalMarginType = marginType;
-        final Object finalSide = side;
+        final String finalMarginType = marginType;
+        final String finalSide = side;
         return new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Krakenfutures.this.safeString(position, "executionUid") );
@@ -4474,7 +4474,7 @@ final Object finalI = i;
      */
     public CompletableFuture<Leverage> fetchLeverage(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

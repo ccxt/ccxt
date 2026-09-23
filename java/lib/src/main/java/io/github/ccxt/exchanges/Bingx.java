@@ -1597,17 +1597,17 @@ public class Bingx extends BingxApi
         {
             timeOnline = null;
         }
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalCurrency = currency;
-        final Object finalType = type;
-        final Object finalIsActive = isActive;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalCurrency = currency;
+        final String finalType = type;
+        final Boolean finalIsActive = isActive;
         final Object finalContractSize = contractSize;
         final Object finalQuantityPrecision = quantityPrecision;
         final Object finalPricePrecision = pricePrecision;
-        final Object finalMinAmount = minAmount;
-        final Object finalTimeOnline = timeOnline;
+        final Double finalMinAmount = minAmount;
+        final Long finalTimeOnline = timeOnline;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
@@ -2140,9 +2140,9 @@ public class Bingx extends BingxApi
         final Object finalTime = time;
         final Object finalMarket = market;
         final Object finalSide = side;
-        final Object finalTakeOrMaker = takeOrMaker;
-        final Object finalPrice = price;
-        final Object finalAmount = amount;
+        final String finalTakeOrMaker = takeOrMaker;
+        final String finalPrice = price;
+        final String finalAmount = amount;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Bingx.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("id", "t", "fillId"))) );
             put( "info", trade );
@@ -2429,7 +2429,7 @@ public class Bingx extends BingxApi
         {
             intervalString = (interval + "h");
         }
-        final Object finalIntervalString = intervalString;
+        final String finalIntervalString = intervalString;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", Bingx.this.safeSymbol(marketId, market, "-", "swap") );
@@ -3156,8 +3156,8 @@ public class Bingx extends BingxApi
         String bidVolume = this.safeString(ticker, "bidQty");
         String ask = this.safeString(ticker, "askPrice");
         String askVolume = this.safeString(ticker, "askQty");
-        final Object finalTs = ts;
-        final Object finalPercentage = percentage;
+        final Long finalTs = ts;
+        final String finalPercentage = percentage;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTs );
@@ -3653,7 +3653,7 @@ public class Bingx extends BingxApi
         }
         Long timestamp = this.safeInteger(position, "openTime");
         final Object finalMarketId = marketId;
-        final Object finalMarginMode = marginMode;
+        final String finalMarginMode = marginMode;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Bingx.this.safeString(position, "positionId") );
@@ -5801,8 +5801,8 @@ public class Bingx extends BingxApi
                     toId = "USDTMPerp";
                 }
             }
-            final Object finalFromId = fromId;
-            final Object finalToId = toId;
+            final String finalFromId = fromId;
+            final String finalToId = toId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "fromAccount", finalFromId );
                 put( "toAccount", finalToId );
@@ -6093,7 +6093,7 @@ public class Bingx extends BingxApi
             }
         }
         this.checkAddress(address);
-        final Object finalAddress = address;
+        final String finalAddress = address;
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
@@ -6313,8 +6313,8 @@ public class Bingx extends BingxApi
         String type = (((java.util.Objects.equals(rawType, "0")))) ? "deposit" : "withdrawal";
         final Object finalCode = code;
         final Object finalNetwork = network;
-        final Object finalTimestamp = timestamp;
-        final Object finalDatetime = datetime;
+        final Long finalTimestamp = timestamp;
+        final String finalDatetime = datetime;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", id );
@@ -6482,7 +6482,7 @@ public class Bingx extends BingxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalType = type;
+            final Long finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "amount", Bingx.this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount) );
@@ -7308,7 +7308,7 @@ public class Bingx extends BingxApi
             {
                 dualSidePosition = "false";
             }
-            final Object finalDualSidePosition = dualSidePosition;
+            final String finalDualSidePosition = dualSidePosition;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "dualSidePosition", finalDualSidePosition );
             }};
@@ -7438,7 +7438,7 @@ public class Bingx extends BingxApi
         String marketId = this.safeString(marginMode, "symbol");
         String marginType = this.safeStringLower(marginMode, "marginType");
         marginType = (((java.util.Objects.equals(marginType, "crossed")))) ? "cross" : marginType;
-        final Object finalMarginType = marginType;
+        final String finalMarginType = marginType;
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", Bingx.this.safeSymbol(marketId, market, "-", "swap") );
@@ -7777,7 +7777,7 @@ final Object finalMarket = market;
                 url = (url + (((("?" + query) + "&") + "signature=") + signature));
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

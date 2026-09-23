@@ -665,7 +665,7 @@ public class Bydfi extends BydfiApi
         Double maker = this.safeNumber(market, "feeRateMaker");
         Double maxLeverage = this.safeNumber(market, "maxLeverageLevel");
         String status = this.safeString(market, "status");
-        final Object finalBase = base;
+        final String finalBase = base;
         final Object finalStatus = status;
         final Object finalInverse = inverse;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -994,7 +994,7 @@ public class Bydfi extends BydfiApi
         String feeCost = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             final Object finalMarket = market;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1009,7 +1009,7 @@ public class Bydfi extends BydfiApi
             side = this.safeStringLower(trade, "side");
         }
         final Object finalMarket_2 = market;
-        final Object finalOrderId = orderId;
+        final String finalOrderId = orderId;
         final Object finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -2039,7 +2039,7 @@ public class Bydfi extends BydfiApi
      */
     public CompletableFuture<Object> fetchOpenOrder(String id2, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -2333,7 +2333,7 @@ public class Bydfi extends BydfiApi
         }
         final Object finalMarket = market;
         final Object finalRawType = rawType;
-        final Object finalTimeInForce = timeInForce;
+        final String finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -2461,7 +2461,7 @@ public class Bydfi extends BydfiApi
      */
     public CompletableFuture<Leverage> fetchLeverage(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -3643,7 +3643,7 @@ public class Bydfi extends BydfiApi
         Double feeCost = this.safeNumber(transaction, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", null );

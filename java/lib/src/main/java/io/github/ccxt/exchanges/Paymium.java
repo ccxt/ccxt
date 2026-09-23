@@ -684,7 +684,7 @@ public class Paymium extends PaymiumApi
      */
     public CompletableFuture<TransferEntry> transfer(String code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -827,7 +827,7 @@ public class Paymium extends PaymiumApi
             this.checkRequiredCredentials();
             String nonce = String.valueOf(this.nonce());
             Object auth = (nonce + url);
-            final Object finalNonce = nonce;
+            final String finalNonce = nonce;
             headers = new HashMap<String, Object>() {{
                 put( "Api-Key", Paymium.this.apiKey );
                 put( "Api-Nonce", finalNonce );
@@ -851,7 +851,7 @@ public class Paymium extends PaymiumApi
             }
             ((Map<String, Object>)headers).put("Api-Signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

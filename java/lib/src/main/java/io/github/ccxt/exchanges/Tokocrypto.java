@@ -913,9 +913,9 @@ public class Tokocrypto extends TokocryptoApi
                     }
                 }
                 String marginTradingEnable = this.safeString(market, "marginTradingEnable");
-                final Object finalBase = base;
+                final String finalBase = base;
                 final Object finalMarginTradingEnable = marginTradingEnable;
-                final Object finalActive = active;
+                final Boolean finalActive = active;
                 Map<String, Object> entry = new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "lowercaseId", lowercaseId );
@@ -1224,9 +1224,9 @@ public class Tokocrypto extends TokocryptoApi
         {
             takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("maker"), true)))) ? "maker" : "taker";
         }
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1435,8 +1435,8 @@ public class Tokocrypto extends TokocryptoApi
             baseVolume = this.safeString(ticker, "volume");
             quoteVolume = this.safeString(ticker, "quoteVolume");
         }
-        final Object finalBaseVolume = baseVolume;
-        final Object finalQuoteVolume = quoteVolume;
+        final String finalBaseVolume = baseVolume;
+        final String finalQuoteVolume = quoteVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1993,9 +1993,9 @@ public class Tokocrypto extends TokocryptoApi
             timeInForce = "PO";
         }
         Boolean postOnly = (java.util.Objects.equals(type, "limit_maker")) || (java.util.Objects.equals(timeInForce, "PO"));
-        final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalSide = side;
+        final String finalType = type;
+        final String finalTimeInForce = timeInForce;
+        final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -2646,7 +2646,7 @@ public class Tokocrypto extends TokocryptoApi
                 tag = null;
             }
             this.checkAddress(address);
-            final Object finalTag = tag;
+            final String finalTag = tag;
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
@@ -2936,12 +2936,12 @@ public class Tokocrypto extends TokocryptoApi
             id = this.safeString(data, "withdrawId");
             type = "withdrawal";
         }
-        final Object finalId = id;
-        final Object finalTxid = txid;
+        final String finalId = id;
+        final String finalTxid = txid;
         final Object finalType = type;
         final Object finalTimestamp = timestamp;
-        final Object finalTag = tag;
-        final Object finalIntern = intern;
+        final String finalTag = tag;
+        final Boolean finalIntern = intern;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", finalId );

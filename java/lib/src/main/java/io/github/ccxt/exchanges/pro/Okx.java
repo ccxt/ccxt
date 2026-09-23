@@ -200,7 +200,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> subscribe(Object access, Object messageHash2, Object channel, String symbol2, Object... optionalArgs)
     {
         final Object messageHash3 = messageHash2;
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object symbol = symbol3;
@@ -310,7 +310,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (java.util.Objects.equals(channel, "trades-all"))
             {
                 access = "business";
-                final Object finalAccess = access;
+                final String finalAccess = access;
                 (this.authenticate(new HashMap<String, Object>() {{
                     put( "finalAccess", finalAccess );
                 }})).join();
@@ -374,7 +374,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (java.util.Objects.equals(channel, "trades-all"))
             {
                 access = "business";
-                final Object finalAccess = access;
+                final String finalAccess = access;
                 (this.authenticate(new HashMap<String, Object>() {{
                     put( "finalAccess", finalAccess );
                 }})).join();
@@ -470,7 +470,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      */
     public CompletableFuture<FundingRate> watchFundingRate(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -514,7 +514,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((channel + ":") + symbol));
                 Object marketId = this.marketId((String) (symbol));
-                final Object finalChannel = channel;
+                final String finalChannel = channel;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
                     put( "instId", marketId );
@@ -589,7 +589,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -675,7 +675,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      */
     public CompletableFuture<Ticker> watchMarkPrice(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -967,10 +967,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             bid = this.safeString(firstBid, 0);
             bidVolume = this.safeString(firstBid, 1);
         }
-        final Object finalAsk = ask;
-        final Object finalAskVolume = askVolume;
-        final Object finalBid = bid;
-        final Object finalBidVolume = bidVolume;
+        final String finalAsk = ask;
+        final String finalAskVolume = askVolume;
+        final String finalBid = bid;
+        final String finalBidVolume = bidVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1330,7 +1330,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -2009,7 +2009,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String auth = ((timestamp + method) + path);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 String operation = "login";
-                final Object finalTimestamp = timestamp;
+                final String finalTimestamp = timestamp;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "op", operation );
                     put( "args", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2254,7 +2254,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     uppercaseType = "MARGIN";
                 }
             }
-            final Object finalUppercaseType = uppercaseType;
+            final String finalUppercaseType = uppercaseType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", finalUppercaseType );
             }};
@@ -2493,7 +2493,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     uppercaseType = "MARGIN";
                 }
             }
-            final Object finalUppercaseType = uppercaseType;
+            final String finalUppercaseType = uppercaseType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", finalUppercaseType );
             }};

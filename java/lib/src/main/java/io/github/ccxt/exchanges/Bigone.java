@@ -669,7 +669,7 @@ public class Bigone extends BigoneApi
         {
             type = "crypto";
         }
-        final Object finalType = type;
+        final String finalType = type;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
@@ -1349,9 +1349,9 @@ public class Bigone extends BigoneApi
         }
         String id = this.safeString(trade, "id");
         final Object finalMarket = market;
-        final Object finalOrderId = orderId;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalOrderId = orderId;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "id", id );
             put( "timestamp", timestamp );
@@ -1422,7 +1422,7 @@ public class Bigone extends BigoneApi
 }})));
             } else
             {
-                final Object finalMakerFeeCost_2 = makerFeeCost;
+                final String finalMakerFeeCost_2 = makerFeeCost;
                 ((Map<String, Object>)result).put("fee", new HashMap<String, Object>() {{
     put( "cost", finalMakerFeeCost_2 );
     put( "currency", makerCode );
@@ -1431,7 +1431,7 @@ public class Bigone extends BigoneApi
         } else if (!java.util.Objects.equals(takerFeeCost, null))
         {
             Object takerCode2 = takerCurrencyCode;
-            final Object finalTakerFeeCost_2 = takerFeeCost;
+            final String finalTakerFeeCost_2 = takerFeeCost;
             ((Map<String, Object>)result).put("fee", new HashMap<String, Object>() {{
     put( "cost", finalTakerFeeCost_2 );
     put( "currency", takerCode2 );
@@ -1746,13 +1746,13 @@ public class Bigone extends BigoneApi
             amount = this.safeString(order, "amount");
             filled = this.safeString(order, "filled_amount");
         }
-        final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalSide = side;
-        final Object finalTriggerPrice = triggerPrice;
-        final Object finalAmount = amount;
-        final Object finalCost = cost;
-        final Object finalFilled = filled;
+        final String finalType = type;
+        final String finalTimeInForce = timeInForce;
+        final String finalSide = side;
+        final String finalTriggerPrice = triggerPrice;
+        final String finalAmount = amount;
+        final String finalCost = cost;
+        final String finalFilled = filled;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
@@ -2336,7 +2336,7 @@ public class Bigone extends BigoneApi
             }
         }
         ((Map<String, Object>)headers).put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

@@ -209,7 +209,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -568,7 +568,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -688,14 +688,14 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String feeValue = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeValue, null))
         {
-            final Object finalFeeValue = feeValue;
+            final String finalFeeValue = feeValue;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeValue );
                 put( "currency", Modetrade.this.safeCurrencyCode(Modetrade.this.safeString(trade, "feeAsset")) );
             }};
         }
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalFee = fee;
+        final String finalTakerOrMaker = takerOrMaker;
+        final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Modetrade.this.safeString(trade, "tradeId") );
             put( "timestamp", timestamp );
@@ -1018,8 +1018,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Object trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
-        final Object finalPrice = price;
-        final Object finalRemaining = remaining;
+        final Double finalPrice = price;
+        final String finalRemaining = remaining;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
@@ -1402,7 +1402,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String notional = Precise.stringMul(size, markPrice);
         final Object finalMarket = market;
         final Object finalSize = size;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );

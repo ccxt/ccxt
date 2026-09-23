@@ -2538,9 +2538,9 @@ public class Gate extends GateApi
             contractSize = "1"; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         }
         String status = this.safeString(market, "status", "trading"); // or "suspend"
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalQuote = quote;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalQuote = quote;
         final Object finalMarketType = marketType;
         final Object finalStatus = status;
         final Object finalContractSize = contractSize;
@@ -2677,7 +2677,7 @@ public class Gate extends GateApi
                         createdTs = null;
                     }
     final Object finalSymbol = symbol;
-                    final Object finalBase = base;
+                    final String finalBase = base;
                     final Object finalCreatedTs = createdTs;
                                     ((List<Object>)result).add(new HashMap<String, Object>() {{
                         put( "id", id );
@@ -3297,7 +3297,7 @@ public class Gate extends GateApi
 
     public CompletableFuture<Object> fetchNetworkDepositAddress(String code2, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -4182,8 +4182,8 @@ public class Gate extends GateApi
             quoteVolume = "0";
         }
         String percentage = this.safeString(ticker, "change_percentage");
-        final Object finalBaseVolume = baseVolume;
-        final Object finalQuoteVolume = quoteVolume;
+        final String finalBaseVolume = baseVolume;
+        final String finalQuoteVolume = quoteVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -5378,7 +5378,7 @@ public class Gate extends GateApi
                 feeCurrencyCode = this.safeString(market, "settle");
             }
 final Object finalFeeAmount = feeAmount;
-            final Object finalFeeCurrencyCode = feeCurrencyCode;
+            final String finalFeeCurrencyCode = feeCurrencyCode;
                         ((List<Object>)fees).add(new HashMap<String, Object>() {{
                 put( "cost", finalFeeAmount );
                 put( "currency", finalFeeCurrencyCode );
@@ -5403,7 +5403,7 @@ final Object finalPointFee = pointFee;
         String takerOrMaker = this.safeString(trade, "role");
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
-        final Object finalAmountString = amountString;
+        final String finalAmountString = amountString;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
@@ -5723,9 +5723,9 @@ final Object finalPointFee = pointFee;
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "memo");
         Object timestamp = this.safeTimestamp(transaction, "timestamp");
-        final Object finalId = id;
+        final String finalId = id;
         final Object finalAmountString = amountString;
-        final Object finalType = type;
+        final String finalType = type;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", finalId );
@@ -6229,7 +6229,7 @@ final Object finalPointFee = pointFee;
                         throw new BadRequest((this.id + " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")) ;
                     }
                     parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price_type")));
-                    final Object finalPriceType = priceType;
+                    final Long finalPriceType = priceType;
                     final Object finalTriggerOrderPrice = triggerOrderPrice;
                     final Object finalRule = rule;
                     ((Map<String, Object>)request).put("trigger", new HashMap<String, Object>() {{
@@ -6267,7 +6267,7 @@ final Object finalPointFee = pointFee;
                 final Object finalPrice = price;
                 final Object finalAmount_3 = amount;
                 final Object finalMarginMode = marginMode;
-                final Object finalTimeInForce = timeInForce;
+                final String finalTimeInForce = timeInForce;
                 request = new HashMap<String, Object>() {{
                     put( "put", new HashMap<String, Object>() {{
                         put( "type", finalType_2 );
@@ -6858,18 +6858,18 @@ final Object finalRebate = rebate;
                 clientOrderId = this.safeString(((Map<String, Object>)order).get("trigger"), "text");
             }
         }
-        final Object finalClientOrderId = clientOrderId;
+        final String finalClientOrderId = clientOrderId;
         final Object finalTimestamp = timestamp;
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
-        final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalSide = side;
-        final Object finalPrice = price;
-        final Object finalTriggerPrice = triggerPrice;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
+        final String finalType = type;
+        final String finalTimeInForce = timeInForce;
+        final String finalSide = side;
+        final String finalPrice = price;
+        final Double finalTriggerPrice = triggerPrice;
         final Object finalAverage = average;
         final Object finalAmount = amount;
         final Object finalCost = cost;
-        final Object finalRemaining = remaining;
+        final String finalRemaining = remaining;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Gate.this.safeString(order, "id") );
             put( "clientOrderId", finalClientOrderId );
@@ -7186,7 +7186,7 @@ final Object finalRebate = rebate;
 
     public CompletableFuture<Object> fetchOrdersByStatus(String status2, Object... optionalArgs)
     {
-        final Object status3 = status2;
+        final String status3 = status2;
         return BaseExchange.supplyAsync(() -> {
             Object status = status3;
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -8135,8 +8135,8 @@ final Object finalRebate = rebate;
         final Object finalTimestamp = timestamp;
         final Object finalUnrealisedPnl = unrealisedPnl;
         final Object finalCollateral = collateral;
-        final Object finalMarginMode = marginMode;
-        final Object finalSide = side;
+        final String finalMarginMode = marginMode;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -9896,7 +9896,7 @@ final Object finalI = i;
         String balanceString = this.safeString(item, "balance");
         String changeString = this.safeString(item, "change");
         Double before = this.parseNumber(Precise.stringSub(balanceString, changeString));
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalCurrency = currency;
         final Object finalAmount = amount;
         final Object finalTimestamp = timestamp;
@@ -10288,7 +10288,7 @@ final Object finalI = i;
                 }
             }
         }
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalQuoteValueString = quoteValueString;
         return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", liquidation );
@@ -10463,7 +10463,7 @@ final Object finalI = i;
      */
     public CompletableFuture<Leverage> fetchLeverage(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

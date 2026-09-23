@@ -556,8 +556,8 @@ public class Bitso extends BitsoApi
             }};
         }
         Long timestamp = this.parse8601(this.safeString(item, "created_at"));
-        final Object finalDirection = direction;
-        final Object finalReferenceId = referenceId;
+        final String finalDirection = direction;
+        final String finalReferenceId = referenceId;
         final Object finalFee = fee;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -1190,7 +1190,7 @@ public class Bitso extends BitsoApi
         {
             String feeCurrencyId = this.safeString(trade, "fees_currency");
             String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrency );
@@ -1204,10 +1204,10 @@ public class Bitso extends BitsoApi
         String price = this.safeString(trade, "price");
         String orderId = this.safeString(trade, "oid");
         String id = this.safeString(trade, "tid");
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalAmount = amount;
-        final Object finalCost = cost;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalAmount = amount;
+        final String finalCost = cost;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -1913,8 +1913,8 @@ public class Bitso extends BitsoApi
                 tag = this.safeString(parts, 1);
             }
             this.checkAddress(address);
-            final Object finalAddress = address;
-            final Object finalTag = tag;
+            final String finalAddress = address;
+            final String finalTag = tag;
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
@@ -2218,7 +2218,7 @@ public class Bitso extends BitsoApi
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;

@@ -4954,7 +4954,7 @@ public class Binance extends BinanceApi
             }
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetwork = network;
+                final String finalNetwork = network;
                 final Object finalNetworkCode = networkCode;
                 final Object finalWithdrawPrecision = withdrawPrecision;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
@@ -4991,7 +4991,7 @@ public class Binance extends BinanceApi
             type = "crypto";
         }
         Boolean trading = (Boolean) this.safeBool(entry, "trading");
-        final Object finalType = type;
+        final String finalType = type;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", name );
@@ -5503,25 +5503,25 @@ public class Binance extends BinanceApi
                 active = true;
             }
         }
-        final Object finalId = id;
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalQuoteId = quoteId;
-        final Object finalSettleId = settleId;
-        final Object finalUnifiedType = unifiedType;
+        final String finalId = id;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalQuoteId = quoteId;
+        final String finalSettleId = settleId;
+        final String finalUnifiedType = unifiedType;
         final Object finalSpot = spot;
         final Object finalMarginModes = marginModes;
-        final Object finalSwap = swap;
-        final Object finalFuture = future;
-        final Object finalOption = option;
-        final Object finalStock = stock;
-        final Object finalActive = active;
-        final Object finalContract = contract;
+        final Boolean finalSwap = swap;
+        final Boolean finalFuture = future;
+        final Boolean finalOption = option;
+        final Boolean finalStock = stock;
+        final Boolean finalActive = active;
+        final Boolean finalContract = contract;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
         final Object finalFees = fees;
-        final Object finalContractSize = contractSize;
+        final Double finalContractSize = contractSize;
         final Object finalExpiry = expiry;
         final Object finalParsedStrike = parsedStrike;
         Map<String, Object> entry = new HashMap<String, Object>() {{
@@ -6379,8 +6379,8 @@ public class Binance extends BinanceApi
             baseVolume = this.safeString(ticker, "volume");
             quoteVolume = this.safeString2(ticker, "quoteVolume", "amount");
         }
-        final Object finalBaseVolume = baseVolume;
-        final Object finalQuoteVolume = quoteVolume;
+        final String finalBaseVolume = baseVolume;
+        final String finalQuoteVolume = quoteVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -7424,7 +7424,7 @@ public class Binance extends BinanceApi
         }
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalAmount = amount;
+        final String finalAmount = amount;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -8888,18 +8888,18 @@ public class Binance extends BinanceApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", Binance.this.safeString2(order, "quoteAsset", "quote") );
                 put( "cost", finalFeeCost );
                 put( "rate", null );
             }};
         }
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
         final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalCost = cost;
-        final Object finalStatus = status;
+        final String finalTimeInForce = timeInForce;
+        final String finalCost = cost;
+        final String finalStatus = status;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -9221,7 +9221,7 @@ public class Binance extends BinanceApi
         Boolean isMarketOrder = java.util.Objects.equals(initialUppercaseType, "MARKET");
         Boolean isLimitOrder = java.util.Objects.equals(initialUppercaseType, "LIMIT");
         String upperCaseSide = ((String)side).toUpperCase();
-        final Object finalUpperCaseSide = upperCaseSide;
+        final String finalUpperCaseSide = upperCaseSide;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
             put( "side", finalUpperCaseSide );
@@ -11865,8 +11865,8 @@ public class Binance extends BinanceApi
         Double cost = this.parseNumber(costString);
         Object type = null;
         Object takerOrMaker = null;
-        final Object finalSymbol = symbol;
-        final Object finalSide = side;
+        final String finalSymbol = symbol;
+        final String finalSide = side;
         return new HashMap<String, Object>() {{
             put( "id", id );
             put( "timestamp", timestamp );
@@ -12236,8 +12236,8 @@ public class Binance extends BinanceApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalCode = code;
-            final Object finalFeeCost = feeCost;
+            final String finalCode = code;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", finalCode );
                 put( "cost", finalFeeCost );
@@ -12251,11 +12251,11 @@ public class Binance extends BinanceApi
         }
         String networkId = this.safeString(transaction, "network");
         Object network = this.networkIdToCode(networkId, code);
-        final Object finalTxid = txid;
+        final String finalTxid = txid;
         final Object finalTimestamp = timestamp;
-        final Object finalTag = tag;
-        final Object finalType = type;
-        final Object finalCode_2 = code;
+        final String finalTag = tag;
+        final String finalType = type;
+        final String finalCode_2 = code;
         final Object finalIntern = intern;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
@@ -12385,8 +12385,8 @@ public class Binance extends BinanceApi
         }
         Long timestamp = (Long) this.safeInteger2(transfer, "timestamp", "transactionTime");
         String status = this.parseTransferStatus(this.safeString(transfer, "status"));
-        final Object finalFromAccount = fromAccount;
-        final Object finalToAccount = toAccount;
+        final String finalFromAccount = fromAccount;
+        final String finalToAccount = toAccount;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", id );
@@ -12735,7 +12735,7 @@ public class Binance extends BinanceApi
             tag = null;
         }
         this.checkAddress(address);
-        final Object finalTag = tag;
+        final String finalTag = tag;
         return new HashMap<String, Object>() {{
             put( "info", response );
             put( "currency", code );
@@ -13732,7 +13732,7 @@ public class Binance extends BinanceApi
         {
             intervalString = (interval + "h");
         }
-        final Object finalIntervalString = intervalString;
+        final String finalIntervalString = intervalString;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -14052,12 +14052,12 @@ public class Binance extends BinanceApi
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
         final Object finalTimestamp = timestamp;
         final Object finalInitialMarginPercentageString = initialMarginPercentageString;
-        final Object finalEntryPrice = entryPrice;
+        final Double finalEntryPrice = entryPrice;
         final Object finalLeverageString = leverageString;
         final Object finalMarginRatio = marginRatio;
         final Object finalLiquidationPrice = liquidationPrice;
-        final Object finalMarginMode = marginMode;
-        final Object finalSide = side;
+        final String finalMarginMode = marginMode;
+        final String finalSide = side;
         final Object finalPercentage = percentage;
         return new HashMap<String, Object>() {{
             put( "info", position );
@@ -14324,8 +14324,8 @@ public class Binance extends BinanceApi
         final Object finalInitialMarginString = initialMarginString;
         final Object finalInitialMarginPercentageString = initialMarginPercentageString;
         final Object finalMarginRatio = marginRatio;
-        final Object finalMarginMode = marginMode;
-        final Object finalSide = side;
+        final String finalMarginMode = marginMode;
+        final String finalSide = side;
         final Object finalPercentage = percentage;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
@@ -14751,7 +14751,7 @@ final Object finalMarket = market;
             quantity = Precise.stringMul("-1", quantity);
         }
         Long timestamp = this.safeInteger(position, "time");
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalQuantity = quantity;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
@@ -15427,7 +15427,7 @@ final Object finalMarket = market;
             {
                 dualSidePosition = "false";
             }
-            final Object finalDualSidePosition = dualSidePosition;
+            final String finalDualSidePosition = dualSidePosition;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "dualSidePosition", finalDualSidePosition );
             }};
@@ -15570,9 +15570,9 @@ final Object finalMarket = market;
         {
             shortLeverage = leverageValue;
         }
-        final Object finalMarginMode = marginMode;
-        final Object finalLongLeverage = longLeverage;
-        final Object finalShortLeverage = shortLeverage;
+        final String finalMarginMode = marginMode;
+        final Long finalLongLeverage = longLeverage;
+        final Long finalShortLeverage = shortLeverage;
         return new HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", Binance.this.safeSymbol(marketId, market) );
@@ -16042,7 +16042,7 @@ final Object finalMarket = market;
         currency = this.safeCurrency(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(item, "createDate", "time");
         String type = this.safeString2(item, "type", "incomeType");
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalAmount = amount;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -17144,7 +17144,7 @@ final Object finalMarket = market;
         String symbol = this.safeString(info, "isolatedSymbol");
         Long timestamp = this.safeInteger(info, "interestAccuredTime");
         String marginMode = (((java.util.Objects.equals(symbol, null)))) ? "cross" : "isolated";
-        final Object finalSymbol = symbol;
+        final String finalSymbol = symbol;
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", finalSymbol );
@@ -17496,7 +17496,7 @@ final Object finalMarket = market;
      */
     public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -18250,7 +18250,7 @@ final Object finalMarket = market;
             reMarginMode = (((java.util.Objects.equals(marginTypeRaw, "crossed")))) ? "cross" : "isolated";
         }
         final Object finalMarket = market;
-        final Object finalReMarginMode = reMarginMode;
+        final String finalReMarginMode = reMarginMode;
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", Binance.this.safeString(finalMarket, "symbol") );
@@ -18488,7 +18488,7 @@ final Object finalMarket = market;
                 String code = this.safeCurrencyCode(id);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    final Object finalCode = code;
+                    final String finalCode = code;
                     ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
@@ -19210,7 +19210,7 @@ final Object finalMarket = market;
         }
         String marketId = this.safeString(info, "symbol");
         Long timestamp = (Long) this.safeInteger2(info, "timestamp", "updateTime");
-        final Object finalRank = rank;
+        final Double finalRank = rank;
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", Binance.this.safeSymbol(marketId, market, null, "contract") );

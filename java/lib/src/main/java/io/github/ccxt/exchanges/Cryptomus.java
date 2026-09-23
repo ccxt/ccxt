@@ -425,7 +425,7 @@ public class Cryptomus extends CryptomusApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, "trading");
-        final Object finalMarketId = marketId;
+        final String finalMarketId = marketId;
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalMarketId );
@@ -567,8 +567,8 @@ public class Cryptomus extends CryptomusApi
 }});
             }
         }
-        final Object finalId = id;
-        final Object finalCode = code;
+        final String finalId = id;
+        final String finalCode = code;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "code", finalCode );
@@ -1249,7 +1249,7 @@ public class Cryptomus extends CryptomusApi
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         String clientOrderId = this.safeString(order, "clientOrderId");
         final Object finalMarket = market;
-        final Object finalPrice = price;
+        final Double finalPrice = price;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -1452,7 +1452,7 @@ public class Cryptomus extends CryptomusApi
                 url = (url + ("?" + query));
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

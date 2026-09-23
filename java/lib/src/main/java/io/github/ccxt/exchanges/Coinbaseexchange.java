@@ -1160,13 +1160,13 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             volume = this.safeString(ticker, "volume");
         }
         final Object finalTimestamp = timestamp;
-        final Object finalHigh = high;
-        final Object finalLow = low;
-        final Object finalBid = bid;
-        final Object finalAsk = ask;
-        final Object finalOpen = open;
-        final Object finalLast = last;
-        final Object finalVolume = volume;
+        final String finalHigh = high;
+        final String finalLow = low;
+        final String finalBid = bid;
+        final String finalAsk = ask;
+        final String finalOpen = open;
+        final String finalLast = last;
+        final String finalVolume = volume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
@@ -1356,7 +1356,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         }
         String feeCost = this.safeString2(trade, "fill_fees", "fee");
         final Object finalMarket = market;
-        final Object finalFeeRate = feeRate;
+        final String finalFeeRate = feeRate;
         Map<String, Object> fee = new HashMap<String, Object>() {{
             put( "cost", feeCost );
             put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
@@ -1375,10 +1375,10 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "size");
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        final Object finalOrderId = orderId;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalSide = side;
-        final Object finalCost = cost;
+        final String finalOrderId = orderId;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalCost = cost;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "order", finalOrderId );
@@ -1735,7 +1735,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             final Object finalMarket = market;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1750,7 +1750,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Boolean postOnly = (Boolean) this.safeBool(order, "post_only");
         Double triggerPrice = this.safeNumber(order, "stop_price");
         String clientOrderId = this.safeString(order, "client_oid");
-        final Object finalStatus = status;
+        final String finalStatus = status;
         final Object finalMarket_2 = market;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -2307,11 +2307,11 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             referenceId = this.safeString(details, "order_id");
         }
         String status = "ok";
-        final Object finalDirection = direction;
-        final Object finalAccount = account;
-        final Object finalReferenceAccount = referenceAccount;
-        final Object finalReferenceId = referenceId;
-        final Object finalType = type;
+        final String finalDirection = direction;
+        final String finalAccount = account;
+        final String finalReferenceAccount = referenceAccount;
+        final String finalReferenceId = referenceId;
+        final String finalType = type;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", id );
@@ -2669,9 +2669,9 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }
         }
         String networkId = this.safeString(details, "network");
-        final Object finalType = type;
+        final String finalType = type;
         final Object finalAmount = amount;
-        final Object finalAddress = address;
+        final String finalAddress = address;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Coinbaseexchange.this.safeString(transaction, "id") );
@@ -2787,7 +2787,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 throw new AuthenticationError((this.id + " sign() invalid base64 secret")) ;
             }
             String signature = (String) this.hmac(this.encode(what), secret, sha256(), "base64");
-            final Object finalNonce = nonce;
+            final String finalNonce = nonce;
             headers = new HashMap<String, Object>() {{
                 put( "CB-ACCESS-KEY", Coinbaseexchange.this.apiKey );
                 put( "CB-ACCESS-SIGN", signature );

@@ -987,7 +987,7 @@ public class Woo extends WooApi
             {
                 status = "maintenance";
             }
-            final Object finalStatus = status;
+            final String finalStatus = status;
             return new HashMap<String, Object>() {{
                 put( "status", finalStatus );
                 put( "updated", null );
@@ -1128,14 +1128,14 @@ public class Woo extends WooApi
             inverse = false;
         }
         Boolean active = java.util.Objects.equals(this.safeString(market, "status"), "TRADING");
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalSettleId = settleId;
-        final Object finalMarketType = marketType;
-        final Object finalSpot = spot;
-        final Object finalMargin = margin;
-        final Object finalSwap = swap;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalSettleId = settleId;
+        final String finalMarketType = marketType;
+        final Boolean finalSpot = spot;
+        final Boolean finalMargin = margin;
+        final Boolean finalSwap = swap;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
         final Object finalContractSize = contractSize;
@@ -1314,7 +1314,7 @@ public class Woo extends WooApi
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         final Object finalTimestamp = timestamp;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -1341,7 +1341,7 @@ public class Woo extends WooApi
         {
             String feeCurrencyId = this.safeStringN(item, feeTokenKeys);
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrencyCode );
@@ -1851,7 +1851,7 @@ public class Woo extends WooApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String orderSide = ((String)((String)side)).toUpperCase();
-            final Object finalOrderSide = orderSide;
+            final String finalOrderSide = orderSide;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "side", finalOrderSide );
@@ -3802,7 +3802,7 @@ public class Woo extends WooApi
         String addressTo = this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("target_address", "targetAddress", "addressTo")));
         String addressFrom = this.safeString2(transaction, "source_address", "sourceAddress");
         Object timestamp = this.safeTimestampN(transaction, new ArrayList<Object>(Arrays.asList("created_time", "createdTime")), this.safeInteger(transaction, "timestamp"));
-        final Object finalMovementDirection = movementDirection;
+        final String finalMovementDirection = movementDirection;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Woo.this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("id", "withdraw_id", "withdrawId"))) );
@@ -4094,7 +4094,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             final Object finalTag = tag;
-            final Object finalNetwork = network;
+            final String finalNetwork = network;
             Map<String, Object> transactionData = this.extend(data, new HashMap<String, Object>() {{
                 put( "id", Woo.this.safeString(data, "withdrawId") );
                 put( "timestamp", Woo.this.safeInteger(response, "timestamp") );
@@ -4236,7 +4236,7 @@ public class Woo extends WooApi
             Object auth = "";
             String ts = String.valueOf(this.nonce());
             url = (url + pathWithParams);
-            final Object finalTs = ts;
+            final String finalTs = ts;
             headers = new HashMap<String, Object>() {{
                 put( "x-api-key", Woo.this.apiKey );
                 put( "x-api-timestamp", finalTs );
@@ -4472,7 +4472,7 @@ public class Woo extends WooApi
             interval = (intervalString + "h");
         }
         final Object finalMarket = market;
-        final Object finalInterval = interval;
+        final String finalInterval = interval;
         return new HashMap<String, Object>() {{
             put( "info", fundingRate );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -4736,7 +4736,7 @@ public class Woo extends WooApi
             {
                 hedgeMode = "ONE_WAY";
             }
-            final Object finalHedgeMode = hedgeMode;
+            final String finalHedgeMode = hedgeMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "positionMode", finalHedgeMode );
             }};
@@ -4832,8 +4832,8 @@ public class Woo extends WooApi
             }
         }
         final Object finalMarket = market;
-        final Object finalLongLeverage = longLeverage;
-        final Object finalShortLeverage = shortLeverage;
+        final Long finalLongLeverage = longLeverage;
+        final Long finalShortLeverage = shortLeverage;
         return new HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -5179,7 +5179,7 @@ public class Woo extends WooApi
         final Object finalMarket = market;
         final Object finalTimestamp = timestamp;
         final Object finalSize = size;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalPositionSide = positionSide;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
@@ -5530,7 +5530,7 @@ public class Woo extends WooApi
                 String code = this.safeCurrencyCode(id);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    final Object finalCode = code;
+                    final String finalCode = code;
                     ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );

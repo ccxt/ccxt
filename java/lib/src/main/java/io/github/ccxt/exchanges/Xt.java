@@ -1416,8 +1416,8 @@ public class Xt extends XtApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    final Object finalCode = code;
-                    final Object finalType = type;
+                    final String finalCode = code;
+                    final String finalType = type;
                     ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", currencyId );
@@ -1847,26 +1847,26 @@ public class Xt extends XtApi
                 isActive = true;
             }
         }
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalSettle = settle;
-        final Object finalSettleId = settleId;
-        final Object finalType = type;
-        final Object finalSpot = spot;
-        final Object finalSwap = swap;
-        final Object finalFuture = future;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalSettle = settle;
+        final String finalSettleId = settleId;
+        final String finalType = type;
+        final Boolean finalSpot = spot;
+        final Boolean finalSwap = swap;
+        final Boolean finalFuture = future;
         final Object finalIsActive = isActive;
-        final Object finalContract = contract;
+        final Boolean finalContract = contract;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
         final Object finalExpiry = expiry;
         final Object finalAmountPrecision = amountPrecision;
-        final Object finalMinAmount = minAmount;
-        final Object finalMaxAmount = maxAmount;
-        final Object finalMinPrice = minPrice;
-        final Object finalMaxPrice = maxPrice;
-        final Object finalMinCost = minCost;
-        final Object finalMaxCost = maxCost;
+        final Double finalMinAmount = minAmount;
+        final Double finalMaxAmount = maxAmount;
+        final Double finalMinPrice = minPrice;
+        final Double finalMaxPrice = maxPrice;
+        final Double finalMinCost = minCost;
+        final Double finalMaxCost = maxCost;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
@@ -2994,7 +2994,7 @@ public class Xt extends XtApi
         final Object finalMarket = market;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalAmount = amount;
+        final String finalAmount = amount;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Xt.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("i", "tradeId", "execId"))) );
@@ -4902,9 +4902,9 @@ public class Xt extends XtApi
                 }
             }
         }
-        final Object finalTimeInForce = timeInForce;
+        final String finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Xt.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("orderId", "result", "cancelId", "entrustId", "profitId", "trackId"))) );
@@ -5429,7 +5429,7 @@ public class Xt extends XtApi
         Double fee = this.safeNumber(transaction, "fee");
         String feeCurrency = (((!java.util.Objects.equals(fee, null)))) ? currencyCode : null;
         String networkId = this.safeString(transaction, "chain");
-        final Object finalFee = fee;
+        final Double finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Xt.this.safeString(transaction, "id") );
@@ -6062,7 +6062,7 @@ final Object finalMarket = market;
         {
             interval = (interval + "h");
         }
-        final Object finalInterval = interval;
+        final String finalInterval = interval;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );

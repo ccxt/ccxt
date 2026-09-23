@@ -626,7 +626,7 @@ public class Lbank extends LbankApi
             Object networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkId = networkId;
+                final String finalNetworkId = networkId;
                 final Object finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", finalNetworkId );
@@ -1313,7 +1313,7 @@ public class Lbank extends LbankApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurr = (((java.util.Objects.equals(side, "buy")))) ? this.safeString(market, "base") : this.safeString(market, "quote");
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurr );
@@ -1321,13 +1321,13 @@ public class Lbank extends LbankApi
             }};
         }
         final Object finalTimestamp = timestamp;
-        final Object finalId = id;
-        final Object finalType = type;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalSide = side;
-        final Object finalPriceString = priceString;
-        final Object finalAmountString = amountString;
-        final Object finalCostString = costString;
+        final String finalId = id;
+        final String finalType = type;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalPriceString = priceString;
+        final String finalAmountString = amountString;
+        final String finalCostString = costString;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "timestamp", finalTimestamp );
@@ -1689,7 +1689,7 @@ public class Lbank extends LbankApi
             Long interval = this.parseToInt((((double) (((double) positionFeeTime) / ((double) 60))) / ((double) 60)));
             intervalString = (String.valueOf(interval) + "h");
         }
-        final Object finalIntervalString = intervalString;
+        final String finalIntervalString = intervalString;
         return new HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", symbol );
@@ -2250,10 +2250,10 @@ public class Lbank extends LbankApi
         }
         String filledString = this.safeString2(order, "executedQty", "deal_amount");
         final Object finalMarket = market;
-        final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalPostOnly = postOnly;
-        final Object finalAmountString = amountString;
+        final String finalType = type;
+        final String finalTimeInForce = timeInForce;
+        final Boolean finalPostOnly = postOnly;
+        final String finalAmountString = amountString;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -3044,16 +3044,16 @@ public class Lbank extends LbankApi
         Double feeCost = this.safeNumber(transaction, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", code );
             }};
         }
-        final Object finalId = id;
-        final Object finalAddressTo = addressTo;
-        final Object finalAddressFrom = addressFrom;
-        final Object finalType = type;
+        final String finalId = id;
+        final String finalAddressTo = addressTo;
+        final String finalAddressFrom = addressFrom;
+        final String finalType = type;
         final Object finalStatus = status;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
@@ -3604,7 +3604,7 @@ public class Lbank extends LbankApi
                         Object networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
                         if (!java.util.Objects.equals(networkCode, null))
                         {
-                            final Object finalWithdrawFee = withdrawFee;
+                            final Double finalWithdrawFee = withdrawFee;
                             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(result, code), "networks"), networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", finalWithdrawFee );
@@ -3617,7 +3617,7 @@ public class Lbank extends LbankApi
 }});
                         } else
                         {
-                            final Object finalWithdrawFee_2 = withdrawFee;
+                            final Double finalWithdrawFee_2 = withdrawFee;
                             Helpers.addElementToObject(Helpers.GetValue(result, code), "withdraw", new HashMap<String, Object>() {{
     put( "fee", finalWithdrawFee_2 );
     put( "percentage", null );
@@ -3672,7 +3672,7 @@ public class Lbank extends LbankApi
             {
                 if (java.util.Objects.equals(isDefault, true))
                 {
-                    final Object finalWithdrawFee = withdrawFee;
+                    final Double finalWithdrawFee = withdrawFee;
                     Helpers.addElementToObject(result, "withdraw", new HashMap<String, Object>() {{
     put( "fee", finalWithdrawFee );
     put( "percentage", null );
@@ -3680,7 +3680,7 @@ public class Lbank extends LbankApi
                 }
                 if (!java.util.Objects.equals(networkCode, null))
                 {
-                    final Object finalWithdrawFee_2 = withdrawFee;
+                    final Double finalWithdrawFee_2 = withdrawFee;
                     Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", finalWithdrawFee_2 );
@@ -3769,7 +3769,7 @@ public class Lbank extends LbankApi
             }
             Helpers.addElementToObject(query, "sign", sign);
             body = this.urlencode(this.keysort(query));
-            final Object finalSignatureMethod = signatureMethod;
+            final String finalSignatureMethod = signatureMethod;
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "timestamp", timestamp );

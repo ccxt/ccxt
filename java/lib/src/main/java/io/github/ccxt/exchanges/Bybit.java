@@ -2705,9 +2705,9 @@ public class Bybit extends BybitApi
                     url = this.safeString(eventVar, "href");
                 }
             }
-            final Object finalStatus = status;
-            final Object finalEta = eta;
-            final Object finalUrl = url;
+            final String finalStatus = status;
+            final Long finalEta = eta;
+            final String finalUrl = url;
             return new HashMap<String, Object>() {{
                 put( "status", finalStatus );
                 put( "updated", null );
@@ -3249,11 +3249,11 @@ public class Bybit extends BybitApi
                     symbol = ((symbol + "-") + this.yymmdd(expiry));
                 }
                 Object contractSize = ((Boolean.TRUE.equals(inverse))) ? this.safeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty") : this.parseNumber("1");
-                final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalSettle = settle;
-                final Object finalSettleId = settleId;
-                final Object finalType = type;
+                final String finalSymbol = symbol;
+                final String finalBase = base;
+                final String finalSettle = settle;
+                final String finalSettleId = settleId;
+                final String finalType = type;
                 final Object finalStatus = status;
                 final Object finalExpiry = expiry;
                 Map<String, Object> parsedMarket = (Map<String, Object>) this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -3427,7 +3427,7 @@ public class Bybit extends BybitApi
                 {
     final Object finalId = id;
                     final Object finalBase = base;
-                    final Object finalIsActive = isActive;
+                    final Boolean finalIsActive = isActive;
                                     ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                         put( "id", finalId );
                         put( "symbol", ((((((((((finalBase + "/") + quote) + ":") + settle) + "-") + Bybit.this.yymmdd(expiry)) + "-") + strike) + "-") + optionLetter) );
@@ -3583,7 +3583,7 @@ public class Bybit extends BybitApi
         String ask = this.safeString(ticker, "ask1Price");
         String high = this.safeString(ticker, "highPrice24h");
         String low = this.safeString(ticker, "lowPrice24h");
-        final Object finalPercentage = percentage;
+        final String finalPercentage = percentage;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -3621,7 +3621,7 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -4055,7 +4055,7 @@ public class Bybit extends BybitApi
             intervalString = (String.valueOf(interval) + "h");
         }
         final Object finalTicker = ticker;
-        final Object finalIntervalString = intervalString;
+        final String finalIntervalString = intervalString;
         return new HashMap<String, Object>() {{
             put( "info", finalTicker );
             put( "symbol", symbol );
@@ -4532,7 +4532,7 @@ public class Bybit extends BybitApi
             {
                 feeCurrencyCode = (((java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)))) ? ((Map<String, Object>)market).get("base") : ((Map<String, Object>)market).get("settle");
             }
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             final Object finalFeeCurrencyCode = feeCurrencyCode;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -4540,8 +4540,8 @@ public class Bybit extends BybitApi
                 put( "rate", feeRateString );
             }};
         }
-        final Object finalOrderType = orderType;
-        final Object finalSide = side;
+        final String finalOrderType = orderType;
+        final String finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -4576,7 +4576,7 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -5351,14 +5351,14 @@ public class Bybit extends BybitApi
                 takeProfitPrice = triggerPrice;
             }
         }
-        final Object finalClientOrderId = clientOrderId;
-        final Object finalType = type;
-        final Object finalSide = side;
+        final String finalClientOrderId = clientOrderId;
+        final String finalType = type;
+        final String finalSide = side;
         final Object finalTriggerPrice = triggerPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
         final Object finalStopLossPrice = stopLossPrice;
-        final Object finalAmount = amount;
-        final Object finalCost = cost;
+        final String finalAmount = amount;
+        final String finalCost = cost;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -6126,7 +6126,7 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<Order> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -8000,7 +8000,7 @@ public class Bybit extends BybitApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", code );
@@ -8282,7 +8282,7 @@ public class Bybit extends BybitApi
         {
             timestamp = (Long) this.safeInteger(item, "transactionTime");
         }
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalAmount = amount;
         final Object finalTimestamp = timestamp;
         final Object finalBefore = before;
@@ -8873,14 +8873,14 @@ public class Bybit extends BybitApi
         String maintenanceMarginPercentage = Precise.stringDiv(maintenanceMarginString, notional);
         String marginRatio = Precise.stringDiv(maintenanceMarginString, collateralString, 4);
         final Object finalMarket = market;
-        final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
+        final Long finalLastUpdateTimestamp = lastUpdateTimestamp;
         final Object finalInitialMarginString = initialMarginString;
         final Object finalNotional = notional;
         final Object finalMaintenanceMarginString = maintenanceMarginString;
         final Object finalEntryPrice = entryPrice;
         final Object finalLiquidationPrice = liquidationPrice;
         final Object finalCollateralString = collateralString;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalHedged = hedged;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
@@ -9242,7 +9242,7 @@ public class Bybit extends BybitApi
             {
                 throw new BadRequest((((this.id + " fetchOpenInterestHistory() cannot use the ") + timeframe) + " timeframe")) ;
             }
-            final Object finalInterval = interval;
+            final String finalInterval = interval;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "intervalTime", finalInterval );
@@ -9336,7 +9336,7 @@ public class Bybit extends BybitApi
             }
             String subType = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? "linear" : "inverse";
             String category = this.safeString(parameters, "category", subType);
-            final Object finalInterval = interval;
+            final String finalInterval = interval;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "intervalTime", finalInterval );
@@ -11745,7 +11745,7 @@ final Object finalMarket = market;
                 String code = this.safeCurrencyCode(id);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    final Object finalCode = code;
+                    final String finalCode = code;
                     ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
@@ -12459,7 +12459,7 @@ final Object finalMarket = market;
                 }
                 String payload = ((timestamp + this.apiKey) + body);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
-                final Object finalTimestamp = timestamp;
+                final String finalTimestamp = timestamp;
                 headers = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
                     put( "X-BAPI-API-KEY", Bybit.this.apiKey );
@@ -12468,7 +12468,7 @@ final Object finalMarket = market;
                 }};
             } else if (Boolean.TRUE.equals(isV3UnifiedMargin) || Boolean.TRUE.equals(isV3Contract) || Boolean.TRUE.equals(isV5UnifiedAccount))
             {
-                final Object finalTimestamp_2 = timestamp;
+                final String finalTimestamp_2 = timestamp;
                 headers = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
                     put( "X-BAPI-API-KEY", Bybit.this.apiKey );
@@ -12503,7 +12503,7 @@ final Object finalMarket = market;
                 ((Map<String, Object>)headers).put("X-BAPI-SIGN", signature);
             } else
             {
-                final Object finalTimestamp_3 = timestamp;
+                final String finalTimestamp_3 = timestamp;
                 Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                     put( "api_key", Bybit.this.apiKey );
                     put( "recv_window", ((Map<String, Object>)Bybit.this.options).get("recvWindow") );
@@ -12552,7 +12552,7 @@ final Object finalMarket = market;
             headers = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
             ((Map<String, Object>)headers).put("Referer", brokerId);
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

@@ -740,7 +740,7 @@ public class P2b extends P2bApi
                 throw new ArgumentsRequired((this.id + " fetchTrades () requires an extra parameter params[\"lastId\"]")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalLastId = lastId;
+            final Long finalLastId = lastId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "lastId", finalLastId );
@@ -827,7 +827,7 @@ public class P2b extends P2bApi
         {
             takerOrMaker = "taker";
         }
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", P2b.this.safeString2(trade, "id", "deal_id") );

@@ -545,8 +545,8 @@ public class Hyperliquid extends HyperliquidApi
         String name = this.safeString(rawCurrency, "name");
         String code = this.safeCurrencyCode(name);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("cachedCurrenciesById")), id, name);
-        final Object finalName = name;
-        final Object finalCode = code;
+        final String finalName = name;
+        final String finalCode = code;
         Map<String, Object> result = (Map<String, Object>) this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", finalName );
@@ -1037,9 +1037,9 @@ public class Hyperliquid extends HyperliquidApi
                 String pricePrecisionStr = this.numberToString(pricePrecision);
                 // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
                 String baseId = this.numberToString(Helpers.add(index, 10000));
-                final Object finalMappedBase = mappedBase;
-                final Object finalBaseName = baseName;
-                final Object finalQuoteId = quoteId;
+                final String finalMappedBase = mappedBase;
+                final String finalBaseName = baseName;
+                final String finalQuoteId = quoteId;
                 Map<String, Object> entry = new HashMap<String, Object>() {{
                     put( "id", marketName );
                     put( "symbol", mappedSymbol );
@@ -1164,9 +1164,9 @@ public class Hyperliquid extends HyperliquidApi
         {
             active = !Boolean.TRUE.equals(isDelisted);
         }
-        final Object finalSymbol = symbol;
+        final String finalSymbol = symbol;
         final Object finalBase = base;
-        final Object finalActive = active;
+        final Boolean finalActive = active;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", baseId );
             put( "symbol", finalSymbol );
@@ -1799,7 +1799,7 @@ public class Hyperliquid extends HyperliquidApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -2747,7 +2747,7 @@ public class Hyperliquid extends HyperliquidApi
 }});
         } else
         {
-            final Object finalTimeInForce = timeInForce;
+            final String finalTimeInForce = timeInForce;
             ((Map<String, Object>)orderType).put("limit", new HashMap<String, Object>() {{
     put( "tif", finalTimeInForce );
 }});
@@ -2887,7 +2887,7 @@ public class Hyperliquid extends HyperliquidApi
         vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
         parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
         vaultAddress = this.formatVaultAddress(vaultAddress);
-        final Object finalGrouping = grouping;
+        final String finalGrouping = grouping;
         Map<String, Object> orderAction = new HashMap<String, Object>() {{
             put( "type", "order" );
             put( "orders", orderReq );
@@ -3416,7 +3416,7 @@ final Object finalClientOrderId = clientOrderId;
 }});
             } else
             {
-                final Object finalTimeInForce = timeInForce;
+                final String finalTimeInForce = timeInForce;
                 ((Map<String, Object>)orderType).put("limit", new HashMap<String, Object>() {{
     put( "tif", finalTimeInForce );
 }});
@@ -3490,7 +3490,7 @@ final Object finalClientOrderId = clientOrderId;
      */
     public CompletableFuture<Order> editOrder(String id2, String symbol, Object type, Object side, Object... optionalArgs)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -4253,12 +4253,12 @@ final Object finalClientOrderId = clientOrderId;
         }
         final Object finalOrder = order;
         final Object finalEntry = entry;
-        final Object finalTif = tif;
+        final String finalTif = tif;
         final Object finalPostOnly = postOnly;
-        final Object finalSide = side;
-        final Object finalTriggerPx = triggerPx;
-        final Object finalStopLossPrice = stopLossPrice;
-        final Object finalTakeProfitPrice = takeProfitPrice;
+        final String finalSide = side;
+        final Double finalTriggerPx = triggerPx;
+        final Double finalStopLossPrice = stopLossPrice;
+        final Double finalTakeProfitPrice = takeProfitPrice;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", finalOrder );
             put( "id", Hyperliquid.this.safeString(finalEntry, "oid") );
@@ -4454,9 +4454,9 @@ final Object finalClientOrderId = clientOrderId;
         {
             fee = Precise.stringAdd(fee, builderFee);
         }
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalFee = fee;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -4684,10 +4684,10 @@ final Object finalClientOrderId = clientOrderId;
             initialMargin = marginUsed;
         }
         String percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, marginUsed), "100");
-        final Object finalSide = side;
+        final String finalSide = side;
         final Object finalSize = size;
         final Object finalInitialMargin = initialMargin;
-        final Object finalMarginMode = marginMode;
+        final String finalMarginMode = marginMode;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -4752,7 +4752,7 @@ final Object finalClientOrderId = clientOrderId;
             Boolean isCross = (java.util.Objects.equals(marginMode, "cross"));
             Object nonce = this.incrementingNonce();
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage")));
-            final Object finalLeverage = leverage;
+            final Long finalLeverage = leverage;
             Map<String, Object> updateAction = new HashMap<String, Object>() {{
                 put( "type", "updateLeverage" );
                 put( "asset", asset );
@@ -5000,7 +5000,7 @@ final Object finalClientOrderId = clientOrderId;
      */
     public CompletableFuture<TransferEntry> transfer(String code2, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
         return BaseExchange.supplyAsync(() -> {
@@ -5086,7 +5086,7 @@ final Object finalClientOrderId = clientOrderId;
                 // Transfer USDC with subAccountTransfer
                 Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
                 final Object finalSubAccountAddress = subAccountAddress;
-                final Object finalIsDeposit = isDeposit;
+                final Boolean finalIsDeposit = isDeposit;
                 Map<String, Object> action = new HashMap<String, Object>() {{
                     put( "type", "subAccountTransfer" );
                     put( "subAccountUser", finalSubAccountAddress );
@@ -5118,7 +5118,7 @@ final Object finalClientOrderId = clientOrderId;
                 String tokenId = this.safeString(currencyInfo, "tokenId");
                 String token = ((tokenName + ":") + tokenId);
                 final Object finalSubAccountAddress_2 = subAccountAddress;
-                final Object finalIsDeposit_2 = isDeposit;
+                final Boolean finalIsDeposit_2 = isDeposit;
                 Map<String, Object> action = new HashMap<String, Object>() {{
                     put( "type", "subAccountSpotTransfer" );
                     put( "subAccountUser", finalSubAccountAddress_2 );
@@ -5174,7 +5174,7 @@ final Object finalClientOrderId = clientOrderId;
      */
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -5232,7 +5232,7 @@ final Object finalClientOrderId = clientOrderId;
                     put( "type", "withdraw3" );
                 }};
             }
-            final Object finalAction = action;
+            final Map<String, Object> finalAction = action;
             final Object finalSig = sig;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", finalAction );
@@ -5268,7 +5268,7 @@ final Object finalClientOrderId = clientOrderId;
         Long feeCost = this.safeInteger(delta, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Long finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", "USDC" );
                 put( "cost", finalFeeCost );
@@ -5513,7 +5513,7 @@ final Object finalClientOrderId = clientOrderId;
         Long feeCost = this.safeInteger(delta, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Long finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", "USDC" );
                 put( "cost", finalFeeCost );
@@ -5778,7 +5778,7 @@ final Object finalClientOrderId = clientOrderId;
      */
     public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

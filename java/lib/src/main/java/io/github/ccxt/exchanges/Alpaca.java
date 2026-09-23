@@ -795,10 +795,10 @@ public class Alpaca extends AlpacaApi
             // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
             minCost = this.safeNumber(this.options, "minCostUSD", this.parseNumber("10"));
         }
-        final Object finalMarketId = marketId;
-        final Object finalBase = base;
-        final Object finalQuote = quote;
-        final Object finalMinCost = minCost;
+        final String finalMarketId = marketId;
+        final String finalBase = base;
+        final String finalQuote = quote;
+        final Double finalMinCost = minCost;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalMarketId );
             put( "symbol", symbol );
@@ -1208,7 +1208,7 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1845,7 +1845,7 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<Order> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1944,7 +1944,7 @@ public class Alpaca extends AlpacaApi
         Object fee = null;
         if (!java.util.Objects.equals(feeValue, null))
         {
-            final Object finalFeeValue = feeValue;
+            final String finalFeeValue = feeValue;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeValue );
                 put( "currency", "USD" );
@@ -1961,7 +1961,7 @@ public class Alpaca extends AlpacaApi
         }
         String datetime = this.safeString(order, "submitted_at");
         Long timestamp = this.parse8601(datetime);
-        final Object finalOrderType = orderType;
+        final String finalOrderType = orderType;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Alpaca.this.safeString(order, "id") );
@@ -2148,7 +2148,7 @@ public class Alpaca extends AlpacaApi
         }
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "s", "qty");
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Alpaca.this.safeString2(trade, "i", "id") );
@@ -2556,24 +2556,24 @@ public class Alpaca extends AlpacaApi
             String fees = this.safeString(transaction, "fees");
             String networkFee = this.safeString(transaction, "network_fee");
             String totalFee = Precise.stringAdd(fees, networkFee);
-            final Object finalCode = code;
+            final String finalCode = code;
             fee = new HashMap<String, Object>() {{
                 put( "cost", Alpaca.this.parseNumber(totalFee) );
                 put( "currency", finalCode );
             }};
         }
-        final Object finalTxid = txid;
-        final Object finalTimestamp = timestamp;
-        final Object finalDatetime = datetime;
-        final Object finalNetwork = network;
-        final Object finalAddress = address;
-        final Object finalAddressTo = addressTo;
-        final Object finalAddressFrom = addressFrom;
-        final Object finalType = type;
+        final String finalTxid = txid;
+        final Long finalTimestamp = timestamp;
+        final String finalDatetime = datetime;
+        final String finalNetwork = network;
+        final String finalAddress = address;
+        final String finalAddressTo = addressTo;
+        final String finalAddressFrom = addressFrom;
+        final String finalType = type;
         final Object finalAmount = amount;
-        final Object finalCode_2 = code;
-        final Object finalStatus = status;
-        final Object finalComment = comment;
+        final String finalCode_2 = code;
+        final String finalStatus = status;
+        final String finalComment = comment;
         final Object finalIntern = intern;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
@@ -2811,7 +2811,7 @@ public class Alpaca extends AlpacaApi
             }
         }
         url = (url + endpoint);
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

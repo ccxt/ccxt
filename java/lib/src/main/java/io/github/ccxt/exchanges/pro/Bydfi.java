@@ -142,7 +142,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 ((Map<String, Object>)subscriptionParams).put("unsubscribe", true);
                 ((Map<String, Object>)subscriptionParams).put("messageHashes", messageHashes);
             }
-            final Object finalMethod = method;
+            final String finalMethod = method;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", finalMethod );

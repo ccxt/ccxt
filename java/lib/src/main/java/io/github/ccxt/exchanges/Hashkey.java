@@ -1258,19 +1258,19 @@ public class Hashkey extends HashkeyApi
         }
         Map<String, Object> tradingFees = (Map<String, Object>) this.safeDict(this.fees, "trading");
         Object fees = ((Boolean.TRUE.equals(isSpot))) ? this.safeDict(tradingFees, "spot") : this.safeDict(tradingFees, "swap");
-        final Object finalBase = base;
-        final Object finalBaseId = baseId;
-        final Object finalMarketType = marketType;
-        final Object finalSubType = subType;
-        final Object finalIsSpot = isSpot;
-        final Object finalIsSwap = isSwap;
+        final String finalBase = base;
+        final String finalBaseId = baseId;
+        final String finalMarketType = marketType;
+        final String finalSubType = subType;
+        final Boolean finalIsSpot = isSpot;
+        final Boolean finalIsSwap = isSwap;
         final Object finalIsLinear = isLinear;
-        final Object finalIsInverse = isInverse;
+        final Boolean finalIsInverse = isInverse;
         final Object finalAmountPrecisionString = amountPrecisionString;
         final Object finalAmountMinLimitString = amountMinLimitString;
         final Object finalAmountMaxLimitString = amountMaxLimitString;
-        final Object finalMinLeverage = minLeverage;
-        final Object finalMaxLeverage = maxLeverage;
+        final Long finalMinLeverage = minLeverage;
+        final Long finalMaxLeverage = maxLeverage;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", symbol );
@@ -1738,8 +1738,8 @@ public class Hashkey extends HashkeyApi
             }};
         }
         final Object finalMarket = market;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString2(trade, "id", "tradeId") );
@@ -1960,7 +1960,7 @@ public class Hashkey extends HashkeyApi
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(((Map<String, Object>)market).get("contractSize")));
         }
-        final Object finalBaseVolume = baseVolume;
+        final String finalBaseVolume = baseVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -2253,7 +2253,7 @@ public class Hashkey extends HashkeyApi
         {
             tag = null;
         }
-        final Object finalTag = tag;
+        final String finalTag = tag;
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", Hashkey.this.safeString(currency, "code") );
@@ -2544,7 +2544,7 @@ public class Hashkey extends HashkeyApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", code );
@@ -2651,7 +2651,7 @@ public class Hashkey extends HashkeyApi
         {
             status = "ok";
         }
-        final Object finalStatus = status;
+        final String finalStatus = status;
         return new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString(transfer, "orderId") );
             put( "timestamp", timestamp );
@@ -2889,7 +2889,7 @@ public class Hashkey extends HashkeyApi
         String afterString = this.safeString(item, "total");
         Double after = this.parseNumber(afterString);
         String status = "ok";
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", id );
@@ -4739,8 +4739,8 @@ public class Hashkey extends HashkeyApi
             {
                 amountString = Precise.stringMul(amountString, "-1");
             }
-            final Object finalSide = side;
-            final Object finalAmountString = amountString;
+            final String finalSide = side;
+            final String finalAmountString = amountString;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "side", finalSide );

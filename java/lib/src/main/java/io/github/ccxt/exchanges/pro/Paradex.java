@@ -137,7 +137,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -327,7 +327,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -338,7 +338,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             symbol = this.symbol(symbol);
             String channel = "markets_summary";
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
@@ -375,7 +375,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             symbols = this.marketSymbols(symbols);
             String channel = "markets_summary";
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
@@ -562,7 +562,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      */
     public CompletableFuture<FundingRate> watchFundingRate(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -573,7 +573,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             symbol = this.symbol(symbol);
             String channel = "funding_data";
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
@@ -610,7 +610,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             symbols = this.marketSymbols(symbols);
             String channel = "funding_data";
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );

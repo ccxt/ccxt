@@ -966,17 +966,17 @@ public class Pacifica extends PacificaApi
         Double amountPrecision = this.safeNumber(market, "lot_size");
         Double pricePrecision = this.safeNumber(market, "tick_size");
         Boolean active = true; // there is no non-active markets comes from endpoint market info
-        final Object finalId = id;
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalQuoteId = quoteId;
-        final Object finalSettleId = settleId;
-        final Object finalType = type;
+        final String finalId = id;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalQuoteId = quoteId;
+        final String finalSettleId = settleId;
+        final String finalType = type;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
         final Object finalContractSize = contractSize;
         final Object finalMinLeverage = minLeverage;
-        final Object finalMaxLeverage = maxLeverage;
+        final Long finalMaxLeverage = maxLeverage;
         final Object finalCrossMargin = crossMargin;
         final Object finalIsolatedMargin = isolatedMargin;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -1879,9 +1879,9 @@ public class Pacifica extends PacificaApi
         {
             takerOrMaker = null;
         }
-        final Object finalOrderId = orderId;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalOrderId = orderId;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1976,7 +1976,7 @@ public class Pacifica extends PacificaApi
             }
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "order_id");
-            final Object finalStatus = status;
+            final String finalStatus = status;
             final Object finalResponse = response;
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", orderId );
@@ -3332,7 +3332,7 @@ public class Pacifica extends PacificaApi
         String totalAmount = this.safeString2(order, "initial_amount", "a");
         String filledAmount = this.safeString2(order, "filled_amount", "f");
         String remaining = Precise.stringSub(totalAmount, filledAmount);
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Pacifica.this.safeString2(order, "order_id", "i") );
@@ -3471,9 +3471,9 @@ public class Pacifica extends PacificaApi
             side = (((java.util.Objects.equals(side, "bid")))) ? "long" : "short";
         }
         Long createdAt = this.safeInteger(position, "created_at");
-        final Object finalSide = side;
-        final Object finalMargin = margin;
-        final Object finalMarginMode = marginMode;
+        final String finalSide = side;
+        final String finalMargin = margin;
+        final String finalMarginMode = marginMode;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -3758,7 +3758,7 @@ public class Pacifica extends PacificaApi
      */
     public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -4134,7 +4134,7 @@ public class Pacifica extends PacificaApi
         {
             status = (((java.util.Objects.equals(success, true)))) ? "ok" : "failed";
         }
-        final Object finalStatus = status;
+        final String finalStatus = status;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
@@ -4207,7 +4207,7 @@ public class Pacifica extends PacificaApi
             List<Object> expiryWindowparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
             expiryWindow = ((List<Object>) expiryWindowparametersVariable).get(0);
             parameters = ((List<Object>) expiryWindowparametersVariable).get(1);
-            final Object finalTimestamp = timestamp;
+            final Long finalTimestamp = timestamp;
             final Object finalExpiryWindow = expiryWindow;
             Map<String, Object> subaccountSignatureHeader = new HashMap<String, Object>() {{
                 put( "timestamp", finalTimestamp );
@@ -4445,7 +4445,7 @@ public class Pacifica extends PacificaApi
         {
             ((Map<String, Object>)headers).put("PF-API-KEY", ((Map<String, Object>)this.options).get("apiKey"));
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

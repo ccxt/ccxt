@@ -273,7 +273,7 @@ public class Revolutx extends RevolutxApi
             }
             String message = ((((timestamp + ((String)method).toUpperCase()) + requestPath) + queryString) + bodyString);
             Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
-            final Object finalTimestamp = timestamp;
+            final String finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{
                 put( "X-Revx-API-Key", Revolutx.this.apiKey );
                 put( "X-Revx-Timestamp", finalTimestamp );
@@ -300,7 +300,7 @@ public class Revolutx extends RevolutxApi
                 }};
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
@@ -335,7 +335,7 @@ public class Revolutx extends RevolutxApi
         String status = this.safeString(market, "status");
         Boolean active = (java.util.Objects.equals(status, "active"));
         String symbol = ((base + "/") + quote);
-        final Object finalBase = base;
+        final String finalBase = base;
         return new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
@@ -577,9 +577,9 @@ public class Revolutx extends RevolutxApi
             String percentageString = Precise.stringDiv(priceChange, open, 8);
             percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         }
-        final Object finalOpen = open;
-        final Object finalLast = last;
-        final Object finalPriceChange = priceChange;
+        final String finalOpen = open;
+        final String finalLast = last;
+        final String finalPriceChange = priceChange;
         final Object finalPercentage = percentage;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -882,8 +882,8 @@ public class Revolutx extends RevolutxApi
         {
             cost = Helpers.multiply(price, amount);
         }
-        final Object finalPrice = price;
-        final Object finalAmount = amount;
+        final Double finalPrice = price;
+        final Double finalAmount = amount;
         final Object finalCost = cost;
         return new HashMap<String, Object>() {{
             put( "info", trade );
@@ -918,7 +918,7 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1579,8 +1579,8 @@ public class Revolutx extends RevolutxApi
             cost = Helpers.multiply(price, amount);
         }
         String symbol = this.safeSymbol(null, market);
-        final Object finalPrice = price;
-        final Object finalAmount = amount;
+        final Double finalPrice = price;
+        final Double finalAmount = amount;
         final Object finalCost = cost;
         return new HashMap<String, Object>() {{
             put( "info", trade );

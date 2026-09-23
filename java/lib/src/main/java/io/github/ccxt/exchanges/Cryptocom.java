@@ -1121,12 +1121,12 @@ public class Cryptocom extends CryptocomApi
                 Object isLinear = (((java.util.Objects.equals(contract, true)))) ? true : null;
                 Object isInverse = (((java.util.Objects.equals(contract, true)))) ? false : null;
     final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalType = type;
+                final String finalBase = base;
+                final String finalType = type;
                 final Object finalMarginBuyEnabled = marginBuyEnabled;
                 final Object finalMarginSellEnabled = marginSellEnabled;
                 final Object finalContract = contract;
-                final Object finalOptionType = optionType;
+                final String finalOptionType = optionType;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", Cryptocom.this.safeString(market, "symbol") );
                     put( "symbol", finalSymbol );
@@ -1266,7 +1266,7 @@ public class Cryptocom extends CryptocomApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -2052,7 +2052,7 @@ public class Cryptocom extends CryptocomApi
             String listId = this.safeString(result, "list_id");
             if (!java.util.Objects.equals(listId, null))
             {
-                final Object finalListId = listId;
+                final String finalListId = listId;
                 List<Object> ocoOrders = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "order_id", finalListId );
     }}));
@@ -3349,14 +3349,14 @@ public class Cryptocom extends CryptocomApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
             }};
         }
-        final Object finalType = type;
-        final Object finalStatus = status;
+        final String finalType = type;
+        final String finalStatus = status;
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3626,7 +3626,7 @@ public class Cryptocom extends CryptocomApi
         {
             direction = "in";
         }
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalAmount = amount;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );

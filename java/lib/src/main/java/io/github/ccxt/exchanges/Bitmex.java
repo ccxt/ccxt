@@ -817,8 +817,8 @@ public class Bitmex extends BitmexApi
             if (!java.util.Objects.equals(network, null))
             {
                 final Object finalNetwork = network;
-                final Object finalIsDepositEnabled = isDepositEnabled;
-                final Object finalIsWithdrawEnabled = isWithdrawEnabled;
+                final Boolean finalIsDepositEnabled = isDepositEnabled;
+                final Boolean finalIsWithdrawEnabled = isWithdrawEnabled;
                 ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
@@ -850,8 +850,8 @@ public class Bitmex extends BitmexApi
         String minDepositString = this.safeString(currency, "minDepositAmount");
         Double minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
         Boolean isCrypto = java.util.Objects.equals(this.safeString(currency, "currencyType"), "Crypto");
-        final Object finalDepositEnabled = depositEnabled;
-        final Object finalWithdrawEnabled = withdrawEnabled;
+        final Boolean finalDepositEnabled = depositEnabled;
+        final Boolean finalWithdrawEnabled = withdrawEnabled;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
@@ -1233,20 +1233,20 @@ public class Bitmex extends BitmexApi
         {
             throw new ArgumentsRequired((this.id + " parseMarket() requires a symbol")) ;
         }
-        final Object finalSymbol = symbol;
-        final Object finalBase = base;
-        final Object finalBaseId = baseId;
-        final Object finalQuoteId = quoteId;
-        final Object finalType = type;
-        final Object finalSpot = spot;
-        final Object finalSwap = swap;
-        final Object finalFuture = future;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalBaseId = baseId;
+        final String finalQuoteId = quoteId;
+        final String finalType = type;
+        final Boolean finalSpot = spot;
+        final Boolean finalSwap = swap;
+        final Boolean finalFuture = future;
         final Object finalLinear = linear;
         final Object finalIsInverse = isInverse;
         final Object finalIsQuanto = isQuanto;
         final Object finalContractSize = contractSize;
-        final Object finalExpiry = expiry;
-        final Object finalExpiryDatetime = expiryDatetime;
+        final Long finalExpiry = expiry;
+        final String finalExpiryDatetime = expiryDatetime;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
@@ -1889,7 +1889,7 @@ public class Bitmex extends BitmexApi
         }
         String status = this.parseTransactionStatus(this.safeString(item, "transactStatus"));
         final Object finalTimestamp = timestamp;
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalAmount = amount;
         final Object finalAfter = after;
         final Object finalFee = fee;
@@ -2092,11 +2092,11 @@ public class Bitmex extends BitmexApi
             status = this.parseTransactionStatus(status);
         }
         Object code = ((Map<String, Object>)currency).get("code");
-        final Object finalType = type;
-        final Object finalStatus = status;
-        final Object finalAddress = address;
-        final Object finalAddressFrom = addressFrom;
-        final Object finalAddressTo = addressTo;
+        final String finalType = type;
+        final String finalStatus = status;
+        final String finalAddress = address;
+        final String finalAddressFrom = addressFrom;
+        final String finalAddressTo = addressTo;
         final Object finalCurrency = currency;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -2444,7 +2444,7 @@ public class Bitmex extends BitmexApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String currencyId = this.safeString2(trade, "settlCurrency", "currency");
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", Bitmex.this.safeCurrencyCode(currencyId) );
@@ -2459,7 +2459,7 @@ public class Bitmex extends BitmexApi
             takerOrMaker = ((Precise.stringLt(feeCostString, "0"))) ? "maker" : "taker";
         }
         String type = this.safeStringLower(trade, "ordType");
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -2595,7 +2595,7 @@ public class Bitmex extends BitmexApi
         final Object finalReduceOnly = reduceOnly;
         final Object finalAmount = amount;
         final Object finalCost = cost;
-        final Object finalFilled = filled;
+        final String finalFilled = filled;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bitmex.this.safeString(order, "orderID") );
@@ -3411,7 +3411,7 @@ public class Bitmex extends BitmexApi
                 side = "long";
             }
         }
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Bitmex.this.safeString(position, "account") );
@@ -3822,7 +3822,7 @@ public class Bitmex extends BitmexApi
             //
             //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
             //
-            final Object finalNetworkCode = networkCode;
+            final String finalNetworkCode = networkCode;
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
@@ -4035,7 +4035,7 @@ public class Bitmex extends BitmexApi
         }
         Double openInterest = this.safeNumber(interest, "openInterest");
         Double openValue = this.safeNumber(interest, "openValue");
-        final Object finalSymbol = symbol;
+        final String finalSymbol = symbol;
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "info", interest );
             put( "symbol", finalSymbol );

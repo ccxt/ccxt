@@ -411,11 +411,11 @@ public class Btcturk extends BtcturkApi
         String status = this.safeString(entry, "status");
         final Object finalBase = base;
         final Object finalStatus = status;
-        final Object finalMinAmount = minAmount;
-        final Object finalMaxAmount = maxAmount;
-        final Object finalMinPrice = minPrice;
-        final Object finalMaxPrice = maxPrice;
-        final Object finalMinCost = minCost;
+        final Double finalMinAmount = minAmount;
+        final Double finalMaxAmount = maxAmount;
+        final Double finalMinPrice = minPrice;
+        final Double finalMaxPrice = maxPrice;
+        final Double finalMinCost = minCost;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", ((finalBase + "/") + quote) );

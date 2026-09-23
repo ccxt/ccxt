@@ -468,7 +468,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      */
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -1111,7 +1111,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             if (java.util.Objects.equals(authenticated, null))
             {
                 // auth sign
-                final Object finalTimestamp = timestamp;
+                final String finalTimestamp = timestamp;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "type", "login" );
                     put( "topics", new ArrayList<Object>(Arrays.asList("ws_zk_accounts_v3")) );

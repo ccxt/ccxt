@@ -653,7 +653,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -868,7 +868,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1113,7 +1113,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -1422,7 +1422,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Long isMaker = this.safeInteger(trade, "m");
         String feeAmount = this.safeString2(trade, "n", "feeAmount");
         String feeCurrencyId = this.safeString2(trade, "N", "feeCurrency");
-        final Object finalTradeId = tradeId;
+        final String finalTradeId = tradeId;
         final Object finalTimestamp = timestamp;
         final Object finalIsMaker = isMaker;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -1689,7 +1689,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String feeCurrency = this.safeString(order, "N");
         if (!java.util.Objects.equals(feeCurrency, null))
         {
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "currency", finalFeeCurrency );
                 put( "cost", null );
@@ -2125,7 +2125,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
@@ -2225,7 +2225,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      */
     public CompletableFuture<Object> unWatchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
@@ -2380,7 +2380,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
     public CompletableFuture<Object> keepAliveListenKey(String listenKey2, Object... optionalArgs)
     {
-        final Object listenKey3 = listenKey2;
+        final String listenKey3 = listenKey2;
         return BaseExchange.supplyAsync(() -> {
             Object listenKey = listenKey3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};

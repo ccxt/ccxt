@@ -450,7 +450,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -661,7 +661,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
@@ -826,7 +826,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         if (!java.util.Objects.equals(marketCode, null))
         {
             Long tradeTimestamp = this.safeInteger(trade, "trade_timestamp");
-            final Object finalMarketCode = marketCode;
+            final String finalMarketCode = marketCode;
             Map<String, Object> normalized = this.extend(trade, new HashMap<String, Object>() {{
                 put( "market", finalMarketCode );
                 put( "timestamp", tradeTimestamp );
@@ -1087,7 +1087,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateGen2");
             String messageHash = "myOrder";
             List<Object> codes = (List<Object>) this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
-            final Object finalMessageHash = messageHash;
+            final String finalMessageHash = messageHash;
             Object request = this.buildGen2SubscriptionRequest(messageHash, (Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "type", finalMessageHash );
                 put( "codes", codes );
@@ -1224,15 +1224,15 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             Map<String, Object> marketForFee = (Map<String, Object>) this.safeMarket(marketId, market);
             String feeCurrency = this.safeString(marketForFee, "quote");
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrency );
             }};
         }
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalStatus = status;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalStatus = status;
         final Object finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );

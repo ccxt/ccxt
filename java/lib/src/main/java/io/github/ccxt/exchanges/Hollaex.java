@@ -994,7 +994,7 @@ public class Hollaex extends HollaexApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            final Object finalFeeCostString = feeCostString;
+            final String finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", Hollaex.this.safeCurrencyCode(feeCoin) );
@@ -1829,8 +1829,8 @@ public class Hollaex extends HollaexApi
         currency = this.safeCurrency(currencyId, currency);
         String network = this.safeString(depositAddress, "network");
         final Object finalCurrency = currency;
-        final Object finalAddress = address;
-        final Object finalTag = tag;
+        final String finalAddress = address;
+        final String finalTag = tag;
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", ((Map<String, Object>)finalCurrency).get("code") );
@@ -2192,16 +2192,16 @@ public class Hollaex extends HollaexApi
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
+            final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", feeCurrencyCode );
                 put( "cost", finalFeeCost );
             }};
         }
-        final Object finalAddress = address;
-        final Object finalAddressTo = addressTo;
-        final Object finalTag = tag;
-        final Object finalTagTo = tagTo;
+        final String finalAddress = address;
+        final String finalAddressTo = addressTo;
+        final String finalTag = tag;
+        final String finalTagTo = tagTo;
         final Object finalCurrency = currency;
         final Object finalStatus = status;
         final Object finalFee = fee;
