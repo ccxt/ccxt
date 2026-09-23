@@ -3495,6 +3495,9 @@ const HANDLE_ELEMENT_TYPES = {
     // element 0 of both is null-or-String on every return path (no other element is named)
     'handleTriggerDirectionAndParams': { element0: 'String' },
     'handleTriggerPricesAndParams': { element0: 'String' },
+    // element 0 is a safeString2 / market['type'] / option String, or the caller's default
+    'handleMarketTypeAndParams': { element0: 'String', stringDefaultArg: 3 },
+    'handleSubTypeAndParams': { element0: 'String', stringDefaultArg: 3 },
 };
 
 // callee name -> element 1 is the caller's params box: the base tier's tuple producers
@@ -3550,6 +3553,22 @@ const HANDLE_STRING_RECEIVER_METHODS = new Set ([
 function handleIsBooleanLiteral (node) {
     return node !== undefined
         && (node.kind === ts.SyntaxKind.TrueKeyword || node.kind === ts.SyntaxKind.FalseKeyword);
+}
+
+// a string literal, `undefined`, or an expression TS types as string | undefined | null
+function handleIsStringValued (printer, node) {
+    if (ts.isStringLiteralLike (node) || (ts.isIdentifier (node) && node.escapedText === 'undefined')) {
+        return true;
+    }
+    let type;
+    try {
+        type = printer.getChecker ().getTypeAtLocation (node);
+    } catch (e) {
+        return false;
+    }
+    const parts = (type?.isUnion?.() ? type.types : [ type ]);
+    const allowed = ts.TypeFlags.StringLike | ts.TypeFlags.Undefined | ts.TypeFlags.Null;
+    return type !== undefined && parts.every ((part) => (part.flags & allowed) !== 0);
 }
 
 // the receiver of a String-cast method call: the printer wraps any receiver in
@@ -3734,6 +3753,12 @@ function handleElementType (printer, callNode, index) {
             // the caller's default flows out of safeBool untouched when the found value is
             // not a Boolean — only an absent / boolean-literal default proves the box
             return undefined;
+        }
+    }
+    if (spec.stringDefaultArg !== undefined) {
+        const defaultArgument = callNode.arguments[spec.stringDefaultArg];
+        if (defaultArgument !== undefined && !handleIsStringValued (printer, defaultArgument)) {
+            return undefined; // a non-String caller default flows out as element 0
         }
     }
     let declaration;

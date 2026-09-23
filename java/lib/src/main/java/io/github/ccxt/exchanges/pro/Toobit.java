@@ -973,9 +973,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
@@ -991,7 +991,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             Object url = this.getUserStreamUrl();
             Client client = this.client(url);
-            this.setBalanceCache(client, (String) (marketType), subscriptionHash, parameters);
+            this.setBalanceCache(client, marketType, subscriptionHash, parameters);
             client.future((type + ":fetchBalanceSnapshot"));
             return (this.watch(url, messageHash, parameters, subscriptionHash, null)).join();
         }).thenApply(Balances::new);

@@ -3015,6 +3015,21 @@ func ReturnPanicError(ch chan any) {
 	}
 }
 
+// AsyncResult is one received async-core value: Err is set when the core delivered a failure.
+type AsyncResult struct {
+	Value any
+	Err   error
+}
+
+// AwaitResult receives once from an async core and classifies the value like IsError/CreateReturnError.
+func AwaitResult(ch <-chan any) AsyncResult {
+	v := <-ch
+	if IsError(v) {
+		return AsyncResult{Value: v, Err: CreateReturnError(v)}
+	}
+	return AsyncResult{Value: v}
+}
+
 // EndpointResult carries one implicit-API response: Raw is exactly what Fetch2Async
 // delivered (the response or a "panic:..." string), Value its typed view (zero on shape mismatch).
 type EndpointResult[T any] struct {
