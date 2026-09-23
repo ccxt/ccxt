@@ -1512,9 +1512,9 @@ public class Bitbank extends BitbankApi
         return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

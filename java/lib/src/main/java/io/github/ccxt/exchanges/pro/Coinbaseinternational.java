@@ -836,7 +836,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //       "type": "UPDATE"
         //    }
         //
-        Object trade = this.parseWsTrade((Map<String, Object>) (message));
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message));
         Object symbol = ((Map<String, Object>)trade).get("symbol");
         String channel = this.safeString(message, "channel");
         if (!(((Map<?, ?>)this.trades).containsKey(((String)symbol))))
@@ -853,7 +853,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return message;
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //    {
@@ -869,7 +869,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //    }
         String marketId = this.safeString2(trade, "symbol", "product_id");
         String datetime = this.safeString(trade, "time");
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Coinbaseinternational.this.safeString(trade, "match_id") );
             put( "order", null );
@@ -883,9 +883,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             put( "amount", Coinbaseinternational.this.safeString(trade, "trade_qty") );
             put( "cost", null );
             put( "fee", null );
-        }}));
+        }})));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

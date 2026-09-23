@@ -353,7 +353,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Object token = (this.authenticate()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             String messageHash = this.numberToString(requestId);
             Object request = new HashMap<String, Object>() {{
                 put( "method", "add_order" );
@@ -447,7 +447,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             String messageHash = this.numberToString(requestId);
             Object request = new HashMap<String, Object>() {{
                 put( "method", "amend_order" );
@@ -506,7 +506,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             String messageHash = this.numberToString(requestId);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "cancel_order" );
@@ -557,7 +557,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             String messageHash = this.numberToString(requestId);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "cancel_order" );
@@ -625,7 +625,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             String messageHash = this.numberToString(requestId);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "cancel_all" );
@@ -697,7 +697,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object ticker = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
         Object symbol = this.safeString(ticker, "symbol");
-        Object messageHash = this.getMessageHash("ticker", null, symbol);
+        String messageHash = this.getMessageHash("ticker", null, symbol);
         String vwap = this.safeString(ticker, "vwap");
         String quoteVolume = null;
         String baseVolume = this.safeString(ticker, "volume");
@@ -757,7 +757,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object trade = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
         Object symbol = this.safeString(trade, "symbol");
-        Object messageHash = this.getMessageHash("trade", null, symbol);
+        String messageHash = this.getMessageHash("trade", null, symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -808,7 +808,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
         Long interval = this.safeInteger(first, "interval");
         Object timeframe = ((String)this.findTimeframe(interval));
-        Object messageHash = this.getMessageHash("ohlcv", null, symbol);
+        String messageHash = this.getMessageHash("ohlcv", null, symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (java.util.Objects.equals(stored, null))
@@ -829,7 +829,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         client.resolve(stored, messageHash);
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         // their support said that reqid must be an int32, not documented
         Object reqid;
@@ -837,7 +837,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
         Helpers.addElementToObject(this.options, "reqid", reqid);
         }
-        return reqid;
+        return Helpers.toLongOrNull(reqid);
     }
 
     /**
@@ -1144,8 +1144,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
-            Object requestId = this.requestId();
-            Object messageHash = this.getMessageHash("ohlcv", null, symbol);
+            Long requestId = this.requestId();
+            String messageHash = this.getMessageHash("ohlcv", null, symbol);
             final String finalSymbol = symbol;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
@@ -1328,7 +1328,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         List<Object> a = (List<Object>) this.safeList(first, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> b = (List<Object>) this.safeList(first, "bids", new ArrayList<Object>(Arrays.asList()));
         Long c = this.safeInteger(first, "checksum");
-        Object messageHash = this.getMessageHash("orderbook", null, symbol);
+        String messageHash = this.getMessageHash("orderbook", null, symbol);
         Object orderbook = null;
         if (java.util.Objects.equals(type, "update"))
         {
@@ -1564,7 +1564,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 messageHash = (messageHash + (":" + symbol));
             }
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1675,7 +1675,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             for (var i = 0; i < ((List<?>)allTrades).size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(allTrades, i, new HashMap<String, Object>() {{}});
-                Object parsed = this.parseWsTrade((Map<String, Object>) (trade));
+                Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade));
                 Helpers.callDynamically(stored, "append", new Object[]{parsed});
                 Object symbol = ((String)((Map<String, Object>)parsed).get("symbol"));
                 ((Map<String, Object>)symbols).put((String)symbol, true);
@@ -1695,7 +1695,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         this.handleMyTrades(client, message, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -1757,7 +1757,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             put( "fee", finalFee );
         }};
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -2023,7 +2023,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Object token = (this.authenticate()).join();
             String messageHash = "balances";
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "req_id", requestId );
@@ -2095,7 +2095,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), channel);
     }
 
-    public Object getMessageHash(Object unifiedElementName, String subChannelName, String symbol)
+    public String getMessageHash(Object unifiedElementName, String subChannelName, String symbol)
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
@@ -2112,9 +2112,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             messageHash = (messageHash + ("#" + subChannelName));
         }
-        return messageHash;
+        return (String) (messageHash);
     }
-    public Object getMessageHash(Object unifiedElementName, Object... optionalArgs)
+    public String getMessageHash(Object unifiedElementName, Object... optionalArgs)
     {
         return this.getMessageHash(unifiedElementName, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null));
     }

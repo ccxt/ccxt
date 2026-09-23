@@ -814,7 +814,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         return this.parseWsOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // see: parseWsOrder
         String side = this.safeStringLower(trade, "ask_bid");
@@ -842,7 +842,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         final Map<String, Object> finalMarket_2 = market;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Upbit.this.safeString(trade, "trade_uuid") );
             put( "timestamp", timestamp );
             put( "datetime", Upbit.this.iso8601(timestamp) );
@@ -856,9 +856,9 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             put( "type", Upbit.this.safeString(trade, "order_type") );
             put( "fee", finalFee );
             put( "info", trade );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -883,7 +883,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trade = this.parseWsTrade((Map<String, Object>) (message));
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message));
         Helpers.callDynamically(myTrades, "append", new Object[]{trade});
         String messageHash = "myTrades";
         client.resolve(myTrades, messageHash);

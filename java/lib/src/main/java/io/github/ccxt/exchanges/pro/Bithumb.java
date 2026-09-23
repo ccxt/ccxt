@@ -840,7 +840,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 fallbackSymbol = this.safeSymbol(marketId, null, "_");
             }
-            Object parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
+            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
             String symbol = this.safeString(parsed, "symbol", fallbackSymbol);
             if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
             {
@@ -855,7 +855,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // generation 1
@@ -898,7 +898,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 put( "market", finalMarketCode );
                 put( "timestamp", tradeTimestamp );
             }});
-            return this.parseTrade(normalized, market);
+            return (Map<String, Object>) (this.parseTrade(normalized, market));
         }
         String marketId = this.safeString(trade, "symbol");
         String datetime = this.safeString(trade, "contDtm");
@@ -906,7 +906,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Object timestamp = Helpers.subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
         String sideId = this.safeString(trade, "buySellGb");
         final String finalSideId = sideId;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", null );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -920,9 +920,9 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             put( "amount", Bithumb.this.safeString(trade, "contQty") );
             put( "cost", Bithumb.this.safeString(trade, "contAmt") );
             put( "fee", null );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

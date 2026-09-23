@@ -52,11 +52,11 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         }});
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
-        return requestId;
+        return Helpers.toLongOrNull(requestId);
     }
 
     /**
@@ -82,7 +82,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String name = "SubscribeLevel1";
             String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
@@ -181,7 +181,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String name = "SubscribeTrades";
             String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
@@ -304,7 +304,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String name = "SubscribeTicker";
             String messageHash = ((((name + ":") + timeframe) + ":") + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
@@ -489,7 +489,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String name = "SubscribeLevel2";
             String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             limit = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             final Object finalLimit = limit;
             Map<String, Object> payload = new HashMap<String, Object>() {{

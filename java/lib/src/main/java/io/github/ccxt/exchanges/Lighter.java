@@ -1020,7 +1020,7 @@ public class Lighter extends LighterApi
         Helpers.addElementToObject(this.options, "chainId", ((Helpers.isTrue(enable))) ? 300 : 304);
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -1219,9 +1219,9 @@ public class Lighter extends LighterApi
                 ((List<Object>)orders).add(orderObj);
             }
         }
-        return orders;
+        return (List<Object>) (orders);
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1291,7 +1291,7 @@ public class Lighter extends LighterApi
             List<Object> groupingTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "groupingType", 3);
             groupingType = ((List<Object>) groupingTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) groupingTypeparametersVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
-            Object orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            List<Object> orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Integer totalOrderRequests = ((List<?>)orderRequests).size();
             Object apiKeyIndex = null;
             Object order = null;

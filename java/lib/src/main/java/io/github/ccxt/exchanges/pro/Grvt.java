@@ -160,14 +160,14 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         return this.subscribeMultiple(messageHashes, request, rawHashes, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true);
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object newValue;
         synchronized (this) {
         newValue = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", newValue);
         }
-        return newValue;
+        return Helpers.toLongOrNull(newValue);
     }
 
     /**
@@ -521,18 +521,18 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        Object parsed = this.parseWsTrade((Map<String, Object>) (data));
+        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, ("trade::" + symbol));
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // same as REST api
-        return this.parseTrade(trade, market);
+        return (Map<String, Object>) (this.parseTrade(trade, market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

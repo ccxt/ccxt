@@ -1458,7 +1458,7 @@ public class Mercado extends MercadoApi
         {
             this.checkRequiredCredentials();
             url = Helpers.add(url, (this.version + "/"));
-            Object nonce = this.nonce();
+            Long nonce = this.nonce();
             body = (String) (this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );

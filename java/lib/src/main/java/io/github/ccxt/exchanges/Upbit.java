@@ -3409,9 +3409,9 @@ public class Upbit extends UpbitApi
         return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

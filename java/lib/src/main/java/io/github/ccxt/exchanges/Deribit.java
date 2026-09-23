@@ -5469,9 +5469,9 @@ public class Deribit extends DeribitApi
         return this.parseOpenInterest(interest, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

@@ -5258,7 +5258,7 @@ public class Btse extends BtseApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = this.nonce();
+            Long nonce = this.nonce();
             String bodyString = this.json(query);
             if (((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"))) && !Boolean.TRUE.equals(isBodyDelete))
             {
@@ -5325,8 +5325,8 @@ public class Btse extends BtseApi
         return result;
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 }

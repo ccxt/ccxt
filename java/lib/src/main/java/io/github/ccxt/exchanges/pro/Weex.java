@@ -105,14 +105,14 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }});
     }
 
-    public Object requestId()
+    public String requestId()
     {
         Object requestId;
         synchronized (this) {
         requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
         }
-        return this.numberToString(requestId);
+        return (String) (this.numberToString(requestId));
     }
 
     public CompletableFuture<Object> subscribePublic(Object messageHashes, Object channels, Object isContract, Map<String, Object> parameters, Map<String, Object> subscription2)
@@ -120,7 +120,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         final Map<String, Object> subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
             Object subscription = subscription3;
-            Object id = this.requestId();
+            String id = this.requestId();
             String method = "SUBSCRIBE";
             Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
             if (java.util.Objects.equals(unsubscribe, true))
@@ -161,7 +161,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 method = "UNSUBSCRIBE";
             }
-            Object id = this.requestId();
+            String id = this.requestId();
             final String finalMethod = method;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -187,7 +187,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             return;
         }
-        Object timestamp = this.nonce();
+        Long timestamp = this.nonce();
         String payload = (String.valueOf(timestamp) + "/v3/ws/private");
         String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
         Object originalHeaders = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "options"), "headers");
@@ -771,7 +771,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Object trade = this.parseWsTrade((Map<String, Object>) (rawTrade), market);
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (rawTrade), market);
             ((List<Object>)newTrades).add(trade);
         }
         List<Object> sorted = this.sortBy(newTrades, "timestamp");
@@ -784,7 +784,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(tradesArray, messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -808,7 +808,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Weex.this.safeString(trade, "t") );
             put( "timestamp", timestamp );
@@ -822,9 +822,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "amount", Weex.this.safeString(trade, "q") );
             put( "cost", Weex.this.safeString(trade, "v") );
             put( "fee", null );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

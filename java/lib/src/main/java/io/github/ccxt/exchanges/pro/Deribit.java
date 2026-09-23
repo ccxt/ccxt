@@ -91,11 +91,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         }});
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
-        return requestId;
+        return Helpers.toLongOrNull(requestId);
     }
 
     /**
@@ -1473,7 +1473,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             if (java.util.Objects.equals(future, null))
             {
                 this.checkRequiredCredentials();
-                Object requestId = this.requestId();
+                Long requestId = this.requestId();
                 String lineBreak = "\n"; // eslint-disable-line quotes
                 String signature = (String) this.hmac(this.encode((((timeString + lineBreak) + nonce) + lineBreak)), this.encode(this.secret), sha256());
                 Map<String, Object> request = new HashMap<String, Object>() {{

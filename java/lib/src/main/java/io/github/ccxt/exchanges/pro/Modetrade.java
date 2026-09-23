@@ -93,13 +93,13 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }});
     }
 
-    public Object requestId(Object url)
+    public Long requestId(Object url)
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
-        return newValue;
+        return Helpers.toLongOrNull(newValue);
     }
 
     public CompletableFuture<Object> watchPublic(Object messageHash, Map<String, Object> message)
@@ -114,7 +114,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 id = this.accountId;
             }
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), "/"), id);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
@@ -696,7 +696,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
-        Object trade = this.parseWsTrade((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
         }})), market);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
@@ -711,7 +711,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         client.resolve(trades, topic);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -775,7 +775,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Modetrade.this.safeString(trade, "tradeId") );
             put( "timestamp", timestamp );
             put( "datetime", Modetrade.this.iso8601(timestamp) );
@@ -789,9 +789,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             put( "type", Modetrade.this.safeStringLower(trade, "type") );
             put( "fee", finalFee );
             put( "info", trade );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -874,7 +874,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
             (this.authenticate(parameters)).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.accountId);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
@@ -895,7 +895,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
             (this.authenticate(parameters)).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.accountId);
-            Object requestId = this.requestId(url);
+            Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
@@ -1306,7 +1306,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
-        Object trade = this.parseWsTrade((Map<String, Object>) (message), market);
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), market);
         Object trades = this.myTrades;
         if (java.util.Objects.equals(trades, null))
         {

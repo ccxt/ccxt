@@ -122,7 +122,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }});
     }
 
-    public Object getInstType(String methodName, Map<String, Object> market, Object uta, Map<String, Object> parameters)
+    public List<Object> getInstType(String methodName, Map<String, Object> market, Object uta, Map<String, Object> parameters)
     {
         Object instType = null;
         if (java.util.Objects.equals(market, null))
@@ -150,7 +150,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         return new ArrayList<Object>(Arrays.asList(instType, parameters));
     }
-    public Object getInstType(String methodName, Map<String, Object> market, Object... optionalArgs)
+    public List<Object> getInstType(String methodName, Map<String, Object> market, Object... optionalArgs)
     {
         return this.getInstType(methodName, market, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1621,14 +1621,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             Object index = Helpers.subtract(Helpers.subtract(length, i), 1);
             Object rawTrade = Helpers.GetValue(data, index);
-            Object parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), market);
+            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         String messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -1755,7 +1755,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         final Map<String, Object> finalMarket = market;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Bitget.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("tradeId", "i", "execId"))) );
             put( "order", Bitget.this.safeString2(trade, "orderId", "L") );
@@ -1769,9 +1769,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             put( "amount", Bitget.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("size", "baseVolume", "execQty", "v"))) );
             put( "cost", Bitget.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("amount", "quoteVolume", "execValue"))) );
             put( "fee", finalFee );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -2970,7 +2970,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 String marketId = this.safeString2(trade, "instId", "symbol");
                 market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
             }
-            Object parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
+            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             String symbolSpecificMessageHash = ("myTrades:" + symbol);

@@ -2118,7 +2118,7 @@ public class Deepcoin extends DeepcoinApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String triggerPrice = this.safeString(parameters, "triggerPrice");
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(triggerPrice, null))
             {
@@ -2176,7 +2176,7 @@ public class Deepcoin extends DeepcoinApi
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -2206,18 +2206,18 @@ public class Deepcoin extends DeepcoinApi
         }
         if (Boolean.TRUE.equals(isTriggerOrder))
         {
-            return this.createTriggerOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            return (Map<String, Object>) (this.createTriggerOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters));
         } else
         {
-            return this.createRegularOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            return (Map<String, Object>) (this.createRegularOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters));
         }
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createRegularOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createRegularOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -2347,14 +2347,14 @@ public class Deepcoin extends DeepcoinApi
             }
             ((Map<String, Object>)request).put("posSide", posSide);
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createRegularOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createRegularOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createRegularOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createTriggerOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createTriggerOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -2448,9 +2448,9 @@ public class Deepcoin extends DeepcoinApi
         mrgPosition = ((List<Object>) mrgPositionparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) mrgPositionparametersVariable).get(1);
         ((Map<String, Object>)request).put("mrgPosition", mrgPosition);
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createTriggerOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createTriggerOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createTriggerOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

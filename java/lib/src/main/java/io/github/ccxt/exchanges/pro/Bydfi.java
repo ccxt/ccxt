@@ -111,14 +111,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }};
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object reqid;
         synchronized (this) {
         reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
         Helpers.addElementToObject(this.options, "reqid", reqid);
         }
-        return reqid;
+        return Helpers.toLongOrNull(reqid);
     }
 
     public CompletableFuture<Object> watchPublic(Object messageHashes, Object channels, Map<String, Object> parameters2, Map<String, Object> subscription)
@@ -127,7 +127,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object id = this.requestId();
+            Long id = this.requestId();
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
@@ -168,7 +168,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Map<String, Object> subscription = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(privateSubscription, null))
             {
-                Object id = this.requestId();
+                Long id = this.requestId();
                 String timestamp = String.valueOf(this.milliseconds());
                 String payload = (this.apiKey + timestamp);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");

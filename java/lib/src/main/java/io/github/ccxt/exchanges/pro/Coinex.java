@@ -110,14 +110,14 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         }});
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object requestId;
         synchronized (this) {
         requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
         }
-        return requestId;
+        return Helpers.toLongOrNull(requestId);
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -615,7 +615,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object parsed = this.parseWsTrade((Map<String, Object>) (data), market);
+        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageWithType);
@@ -681,14 +681,14 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
-            Object parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
+            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // spot watchTrades
@@ -745,7 +745,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         }
         final Map<String, Object> finalMarket = market;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Coinex.this.safeString(trade, "deal_id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -759,9 +759,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             put( "amount", Coinex.this.safeString(trade, "amount") );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1868,7 +1868,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 return ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "future", messageHash );

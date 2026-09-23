@@ -157,14 +157,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }});
     }
 
-    public Object requestId()
+    public String requestId()
     {
         Object requestId;
         synchronized (this) {
         requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
         }
-        return String.valueOf(requestId);
+        return (String) (String.valueOf(requestId));
     }
 
     /**
@@ -888,7 +888,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Long attempts = this.safeInteger(subscription, "numAttempts", 0);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object url = this.getUrlByMarketType(((Map<String, Object>)market).get("type"), ((Map<String, Object>)market).get("linear"), false, true);
-            Object requestId = this.requestId();
+            String requestId = this.requestId();
             final String finalMessageHash = messageHash;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "req", finalMessageHash );
@@ -3302,7 +3302,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     for (var i = 0; i < ((List<?>)data).size(); i++)
                     {
-                        Object parsed = this.parseWsTrade((Map<String, Object>) ((data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i))), market);
+                        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) ((data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i))), market);
                         String symbol = this.safeString(parsed, "symbol");
                         if (!java.util.Objects.equals(symbol, null))
                         {
@@ -3311,7 +3311,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     }
                 } else
                 {
-                    Object parsed = this.parseWsTrade((Map<String, Object>) (data), market);
+                    Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), market);
                     String symbol = this.safeString(parsed, "symbol");
                     if (!java.util.Objects.equals(symbol, null))
                     {
@@ -3361,7 +3361,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         this.handleMyTrade(client, message, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // spot private
         //
@@ -3445,7 +3445,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         final String finalType = type;
         final Object finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Htx.this.iso8601(timestamp) );
@@ -3459,9 +3459,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -3520,7 +3520,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         final Object method3 = method2;
         return BaseExchange.supplyAsync(() -> {
             Object method = method3;
-            Object requestId = this.requestId();
+            String requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub", messageHash );
                 put( "id", requestId );
@@ -3553,7 +3553,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> market = market3;
             Object topic = topic3;
             Map<String, Object> parameters = parameters3;
-            Object requestId = this.requestId();
+            String requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "unsub", subMessageHash );
                 put( "id", requestId );
@@ -3597,7 +3597,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         return BaseExchange.supplyAsync(() -> {
             String type = type3;
             String subtype = subtype3;
-            Object requestId = this.requestId();
+            String requestId = this.requestId();
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "messageHash", messageHash );
@@ -3710,7 +3710,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                         put( "Signature", signature );
                     }};
                 }
-                Object requestId = this.requestId();
+                String requestId = this.requestId();
                 Map<String, Object> subscription = new HashMap<String, Object>() {{
                     put( "id", requestId );
                     put( "messageHash", messageHash );

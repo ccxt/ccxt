@@ -2043,7 +2043,7 @@ public class Bithumb extends BithumbApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -2089,7 +2089,7 @@ public class Bithumb extends BithumbApi
         return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -2190,9 +2190,9 @@ public class Bithumb extends BithumbApi
             ((Map<String, Object>)request).put("client_order_id", clientOrderId);
             parameters = (Map<String, Object>) (this.omit(parameters, "clientOrderId"));
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -4402,9 +4402,9 @@ public class Bithumb extends BithumbApi
         return finalNumberStr;
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object urlencodeWithArrayBrackets(Map<String, Object> query)

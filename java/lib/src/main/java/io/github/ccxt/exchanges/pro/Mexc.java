@@ -1485,7 +1485,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         this.handleMyTrade(client, message, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // public trade (protobuf)
@@ -1553,7 +1553,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         final String finalTradeId = tradeId;
         final Long finalTimestamp = timestamp;
         final Long finalIsMaker = isMaker;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalTradeId );
             put( "order", Mexc.this.safeString2(trade, "i", "orderId") );
@@ -1570,9 +1570,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 put( "cost", feeAmount );
                 put( "currency", Mexc.this.safeCurrencyCode((String) (feeCurrencyId)) );
             }} );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

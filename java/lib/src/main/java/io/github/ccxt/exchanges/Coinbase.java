@@ -7126,9 +7126,9 @@ public class Coinbase extends CoinbaseApi
         return this.createAuthToken(seconds, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : false);
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
@@ -7216,8 +7216,8 @@ public class Coinbase extends CoinbaseApi
                     authorizationString = ("Bearer " + token);
                 } else
                 {
-                    Object nonce = this.nonce();
-                    Long timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
+                    Long nonce = this.nonce();
+                    Long timestamp = this.parseToInt((((double) nonce) / ((double) 1000)));
                     String timestampString = String.valueOf(timestamp);
                     String auth = (((timestampString + method) + savedPath) + payload);
                     String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
