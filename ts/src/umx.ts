@@ -1404,20 +1404,15 @@ export default class umx extends Exchange {
         // handled here, told apart by the strike and side segments the option ids add. the base
         // market () hands this method a unified symbol, parseSettlement () a market id
         const parts = symbol.split ('-');
-        const isMarketId = (symbol.indexOf ('/') === -1);
+        // the check has to read "found" and not "not found": php's strpos answers false rather
+        // than -1 for a missing needle, so a transpiled "=== -1" is never true there
+        const isUnifiedSymbol = (symbol.indexOf ('/') > -1);
         let baseId: Str = undefined;
         let quoteId: Str = undefined;
         let expiry: Str = undefined;
         let strikePrice: Str = undefined;
         let optionSide: Str = undefined;
-        if (isMarketId) {
-            // ETH-USDT-23SEP26-4100-C and ETH-USDT-26JUN26, the expiry is spelled ddMMMyy
-            baseId = this.safeString (parts, 0);
-            quoteId = this.safeString (parts, 1);
-            expiry = this.convertMarketIdExpireDate (this.safeString (parts, 2));
-            strikePrice = this.safeString (parts, 3);
-            optionSide = this.safeString (parts, 4);
-        } else {
+        if (isUnifiedSymbol) {
             // ETH/USDT:USDT-260923-4100-C and ETH/USDT:USDT-260626, the expiry is already yymmdd
             const currencyPart = parts[0];
             const settled = currencyPart.split (':');
@@ -1428,6 +1423,13 @@ export default class umx extends Exchange {
             expiry = this.safeString (parts, 1);
             strikePrice = this.safeString (parts, 2);
             optionSide = this.safeString (parts, 3);
+        } else {
+            // ETH-USDT-23SEP26-4100-C and ETH-USDT-26JUN26, the expiry is spelled ddMMMyy
+            baseId = this.safeString (parts, 0);
+            quoteId = this.safeString (parts, 1);
+            expiry = this.convertMarketIdExpireDate (this.safeString (parts, 2));
+            strikePrice = this.safeString (parts, 3);
+            optionSide = this.safeString (parts, 4);
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
