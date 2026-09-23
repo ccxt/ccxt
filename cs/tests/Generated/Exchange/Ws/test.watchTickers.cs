@@ -19,10 +19,10 @@ public partial class testMainClass : BaseTest
         argParams ??= new Dictionary<string, object>();
         string method = "watchTickers";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
+        Int64 ends = (now + 15000);
         int maxIdleTime = 5000;
         bool idle = false;
-        while ((isLessThan(now, ends)) && !idle)
+        while ((now < ends) && !idle)
         {
             object response = new Dictionary<string, object>() {};
             bool success = true;

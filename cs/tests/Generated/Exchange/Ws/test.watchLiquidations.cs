@@ -28,8 +28,8 @@ public partial class testMainClass : BaseTest
         }
         object response = new List<object>() {};
         Int64 now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
-        object ends = (now + 10000);
-        while (isLessThan(now, ends))
+        Int64 ends = (now + 10000);
+        while (now < ends)
         {
             try
             {

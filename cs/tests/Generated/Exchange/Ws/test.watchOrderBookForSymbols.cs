@@ -16,9 +16,9 @@ public partial class testMainClass : BaseTest
         // symbol to be seen would hang forever whenever one of them stays idle.
         int maxIdleTime = 5000;
         Int64 currentTime = exchange.milliseconds();
-        object deadline = (currentTime + 15000);
+        Int64 deadline = (currentTime + 15000);
         bool idle = false;
-        while ((isLessThan(currentTime, deadline)) && !idle)
+        while ((currentTime < deadline) && !idle)
         {
             object response = null;
             bool succeeded = true;

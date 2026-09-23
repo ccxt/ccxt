@@ -24,14 +24,14 @@ public partial class testMainClass : BaseTest
         string? currencyType = exchange.safeString(entry, "type");
         if ((isNative == true))
         {
-            ((IDictionary<string,object>)format)["info"] = new Dictionary<string, object>() {};
+            format["info"] = new Dictionary<string, object>() {};
             // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-            ((IDictionary<string,object>)format)["withdraw"] = true; // withdraw enabled
-            ((IDictionary<string,object>)format)["deposit"] = true; // deposit enabled
-            ((IDictionary<string,object>)format)["precision"] = exchange.parseNumber("0.0001"); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
-            ((IDictionary<string,object>)format)["fee"] = exchange.parseNumber("0.001");
-            ((IDictionary<string,object>)format)["networks"] = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)format)["limits"] = new Dictionary<string, object>() {
+            format["withdraw"] = true; // withdraw enabled
+            format["deposit"] = true; // deposit enabled
+            format["precision"] = exchange.parseNumber("0.0001"); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
+            format["fee"] = exchange.parseNumber("0.001");
+            format["networks"] = new Dictionary<string, object>() {};
+            format["limits"] = new Dictionary<string, object>() {
                 { "withdraw", new Dictionary<string, object>() {
                     { "min", exchange.parseNumber("0.01") },
                     { "max", exchange.parseNumber("1000") },
@@ -41,20 +41,20 @@ public partial class testMainClass : BaseTest
                     { "max", exchange.parseNumber("1000") },
                 } },
             };
-            ((IDictionary<string,object>)format)["type"] = "crypto"; // crypto, fiat, leverage, other
+            format["type"] = "crypto"; // crypto, fiat, leverage, other
             testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "type", new List<object>() {"fiat", "crypto", "leveraged", "other", null}); // todo: remove undefined
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-            if ((currencyType != "crypto") && (inOp(skippedProperties, "depositForNonCrypto")))
+            if (currencyType != "crypto" && (inOp(skippedProperties, "depositForNonCrypto")))
             {
-                ((IList<object>)emptyAllowedFor).Add("deposit");
+                emptyAllowedFor.Add("deposit");
             }
-            if ((currencyType != "crypto") && (inOp(skippedProperties, "withdrawForNonCrypto")))
+            if (currencyType != "crypto" && (inOp(skippedProperties, "withdrawForNonCrypto")))
             {
-                ((IList<object>)emptyAllowedFor).Add("withdraw");
+                emptyAllowedFor.Add("withdraw");
             }
-            if ((currencyType == "leveraged") || (currencyType == "other"))
+            if (currencyType == "leveraged" || currencyType == "other")
             {
-                ((IList<object>)emptyAllowedFor).Add("precision");
+                emptyAllowedFor.Add("precision");
             }
         }
         //
@@ -77,7 +77,7 @@ public partial class testMainClass : BaseTest
             if (((string)message).IndexOf("\"id\" key", StringComparison.Ordinal) >= 0)
             {
                 // @ts-ignore
-                ((IDictionary<string,object>)format)["id"] = 123;
+                format["id"] = 123;
                 testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
             } else
             {

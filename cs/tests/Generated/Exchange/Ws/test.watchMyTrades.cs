@@ -12,8 +12,8 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchMyTrades";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
-        while (isLessThan(now, ends))
+        Int64 ends = (now + 15000);
+        while (now < ends)
         {
             bool success = true;
             object response = new List<object>() {};
