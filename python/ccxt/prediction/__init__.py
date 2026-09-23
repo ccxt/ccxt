@@ -65,6 +65,7 @@ from ccxt.prediction.myriad import myriad                                       
 from ccxt.prediction.opinion import opinion                                     # noqa: F401
 from ccxt.prediction.polymarket import polymarket                               # noqa: F401
 from ccxt.prediction.predictfun import predictfun                               # noqa: F401
+from ccxt.prediction.sxbet import sxbet                                         # noqa: F401
 
 exchanges = [
     'binance',
@@ -75,4 +76,5 @@ exchanges = [
     'opinion',
     'polymarket',
     'predictfun',
+    'sxbet',
 ]
