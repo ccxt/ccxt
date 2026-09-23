@@ -1235,7 +1235,7 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
 		var market any = this.SafeMarket(id)
-		var symbol any = GetValue(market, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 		var ticker any = tickers[id]
 		AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
 	}
@@ -1918,8 +1918,8 @@ func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) any {
 	var before *string = after
 	var amount any = "0.0"
 	var result any = this.ParseLedgerComment(comment)
-	var typeVar any = GetValue(result, "type")
-	var referenceId any = GetValue(result, "referenceId")
+	var typeVar *string = SafeStringPtr(GetValue(result, "type"))
+	var referenceId *string = SafeStringPtr(GetValue(result, "referenceId"))
 	var direction any = nil
 	var status any = nil
 	if !Precise.StringEquals(balance_delta, "0.0") {

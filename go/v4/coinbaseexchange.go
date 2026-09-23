@@ -1244,7 +1244,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 		var entry []any = SafeListTypedDefault(response, marketId, []any{})
 		var first []any = SafeListTypedDefault(entry, 0, []any{})
 		var market any = this.SafeMarket(marketId, nil, delimiter)
-		var symbol any = GetValue(market, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 		AddElementToObject(result, symbol, this.ParseTicker(first, market))
 	}
 
@@ -1390,7 +1390,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "size")
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        orderId,
@@ -1568,7 +1568,7 @@ func (this *Coinbaseexchange) fetchTradingFeesBody(ch chan any, optionalArgs ...
 	var taker *float64 = this.SafeNumber(response, "taker_fee_rate")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
-		var symbol any = GetValue(this.Symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -2797,7 +2797,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 		this.Options.Store("coinbaseAccounts", accounts) // cache it
 		this.Options.Store("coinbaseAccountsByCurrencyId", this.IndexBy(accounts, "currency"))
 	}
-	var currencyId any = currency["id"]
+	var currencyId *string = SafeStringPtr(currency["id"])
 	var account any = this.SafeDict(GetValue(this.Options, "coinbaseAccountsByCurrencyId"), currencyId)
 	if IsEqual(account, nil) {
 		panic(InvalidAddress(Add(Add(Add(Add(this.Id+" createDepositAddress() could not find currency code ", code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")))

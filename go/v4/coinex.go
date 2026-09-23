@@ -1613,7 +1613,7 @@ func (this *Coinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	}()
 	var marketId *string = this.SafeString(ticker, "market")
 	market = this.SafeMarket(marketId, market, nil, marketType)
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	// on inverse contracts 'value' is denominated in the settle currency, not
 	// the quote, so it is the quote volume only for spot and linear markets
 	var quoteVolume *string = func() *string {
@@ -2164,7 +2164,7 @@ func (this *Coinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var marketId *string = this.SafeString(entry, "market")
 		var market any = this.SafeMarket(marketId, nil, nil, typeVar)
-		var symbol any = GetValue(market, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 		AddElementToObject(result, symbol, this.ParseTradingFee(entry, market))
 	}
 
@@ -2910,7 +2910,7 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var swap any = market["swap"]
+	var swap *bool = SafeBoolPtr(market["swap"])
 	var clientOrderId *string = this.SafeString2(params, "client_id", "clientOrderId")
 	var triggerPrice *string = this.SafeString2(params, "stopPrice", "triggerPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
@@ -2954,7 +2954,7 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 		}
 		request["type"] = requestType
 	}
-	if swap == true {
+	if swap != nil && *swap == true {
 		request["market_type"] = "FUTURES"
 		if ((stopLossPrice != nil) && (stopLossPrice == nil || *stopLossPrice != "")) || ((takeProfitPrice != nil) && (takeProfitPrice == nil || *takeProfitPrice != "")) {
 			if (stopLossPrice != nil) && (stopLossPrice == nil || *stopLossPrice != "") {
@@ -3566,7 +3566,7 @@ func (this *Coinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var isTriggerOrder *bool = this.SafeBool2(params, "stop", "trigger")
-	var swap any = market["swap"]
+	var swap *bool = SafeBoolPtr(market["swap"])
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -3574,7 +3574,7 @@ func (this *Coinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	if swap == true {
+	if swap != nil && *swap == true {
 		request["market_type"] = "FUTURES"
 	} else {
 		if marginMode != nil {
@@ -3589,7 +3589,7 @@ func (this *Coinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
 		if isTriggerOrder != nil && *isTriggerOrder == true {
-			if swap == true {
+			if swap != nil && *swap == true {
 
 				response = (<-this.V2PrivatePostFuturesCancelStopOrderByClientId(this.Extend(request, params))).Raw
 				PanicOnError(response)
@@ -3599,7 +3599,7 @@ func (this *Coinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 				PanicOnError(response)
 			}
 		} else {
-			if swap == true {
+			if swap != nil && *swap == true {
 
 				response = (<-this.V2PrivatePostFuturesCancelOrderByClientId(this.Extend(request, params))).Raw
 				PanicOnError(response)
@@ -3612,7 +3612,7 @@ func (this *Coinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	} else {
 		if isTriggerOrder != nil && *isTriggerOrder == true {
 			request["stop_id"] = this.ParseToNumeric(id)
-			if swap == true {
+			if swap != nil && *swap == true {
 
 				response = (<-this.V2PrivatePostFuturesCancelStopOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)
@@ -3623,7 +3623,7 @@ func (this *Coinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 			}
 		} else {
 			request["order_id"] = this.ParseToNumeric(id)
-			if swap == true {
+			if swap != nil && *swap == true {
 
 				response = (<-this.V2PrivatePostFuturesCancelOrder(this.Extend(request, params))).Raw
 				PanicOnError(response)

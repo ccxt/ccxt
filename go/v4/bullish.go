@@ -1431,13 +1431,13 @@ func (this *Bullish) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeInteger(trade, "createdAtTimestamp")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "quantity")
 	var side *string = this.SafeStringLower(trade, "side")
 	var isTaker *bool = this.SafeBool(trade, "isTaker")
-	var currency any = GetValue(market, "quote")
+	var currency *string = SafeStringPtr(GetValue(market, "quote"))
 	var code *string = this.SafeCurrencyCode(currency)
 	var feeCost *float64 = this.SafeNumber(trade, "quoteFee")
 	var fee map[string]any = nil
@@ -3328,7 +3328,7 @@ func (this *Bullish) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	market = MapTyped(this.SafeMarket(this.SafeString(position, "symbol"), market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeInteger(position, "createdAtTimestamp")
 	var side *string = this.SafeString(position, "side")
 	return this.SafePosition(map[string]any{

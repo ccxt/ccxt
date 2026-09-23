@@ -3074,7 +3074,7 @@ func (this *Grvt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		request["base"] = []any{}
 		request["quote"] = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
-			var symbol any = GetValue(symbols, i)
+			var symbol *string = SafeStringPtr(GetValue(symbols, i))
 			var market map[string]any = MapTyped(this.Market(symbol))
 			if GetValue(market, "contract") != true {
 				panic(BadRequest(this.Id + " fetchPositions() supports contract markets only"))
@@ -4294,7 +4294,7 @@ func (this *Grvt) HandleErrors(code any, reason any, url any, method any, header
 		this.Options.Store("AuthAccountId", accountId)
 		var cookie *string = this.SafeString2(headers, "Set-Cookie", "set-cookie")
 		if cookie != nil {
-			var cookieValue any = GetValue(Split(cookie, ";"), 0)
+			var cookieValue *string = SafeStringPtr(GetValue(Split(cookie, ";"), 0))
 			this.Options.Store("AuthCookieValue", cookieValue)
 		}
 		if IsEqual(GetValue(this.Options, "AuthCookieValue"), nil) || IsEqual(GetValue(this.Options, "AuthAccountId"), nil) {

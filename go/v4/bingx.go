@@ -1519,11 +1519,11 @@ func (this *Bingx) fetchInverseSwapMarketsBody(ch chan any, params any) any {
 func (this *Bingx) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "symbol")
 	var symbolParts []string = Split(id, "-")
-	var baseId any = GetValue(symbolParts, 0)
-	var quoteId any = GetValue(symbolParts, 1)
+	var baseId *string = SafeStringPtr(GetValue(symbolParts, 0))
+	var quoteId *string = SafeStringPtr(GetValue(symbolParts, 1))
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var currency any = DerefScalar(this.SafeString(market, "currency"))
+	var currency *string = this.SafeString(market, "currency")
 	var checkIsInverse bool = false
 	var checkIsLinear bool = true
 	var inverseContractSize *float64 = this.SafeNumber(market, "minTickSize")
@@ -3214,7 +3214,7 @@ func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) any {
 		return "swap"
 	}()
 	market = MapTyped(this.SafeMarket(marketId, market, nil, typeVar))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var open *string = this.SafeString(ticker, "openPrice")
 	var high *string = this.SafeString(ticker, "highPrice")
 	var low *string = this.SafeString(ticker, "lowPrice")
@@ -5202,7 +5202,7 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	}
 	var parsedIds []any = []any{}
 	for i := 0; i < GetArrayLength(idsToParse); i++ {
-		var id any = GetValue(idsToParse, i)
+		var id *string = SafeStringPtr(GetValue(idsToParse, i))
 		var stringId string = ToString(id)
 		parsedIds = append(parsedIds, stringId)
 	}
@@ -6259,7 +6259,7 @@ func (this *Bingx) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	var tag *string = this.SafeString(depositAddress, "tag")
 	var currencyId *string = this.SafeString(depositAddress, "coin")
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
-	var code any = GetValue(currency, "code")
+	var code *string = SafeStringPtr(GetValue(currency, "code"))
 	var address any = DerefScalar(this.SafeString2(depositAddress, "addressWithPrefix", "address"))
 	var networkId *string = this.SafeString(depositAddress, "network")
 	var networkCode *string = this.NetworkIdToCode(networkId, code)
@@ -6999,8 +6999,13 @@ func (this *Bingx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	if networksLength != 0 {
 		for i := 0; i < networksLength; i++ {
-			var networkCode string = networkCodes[i]
-			var network map[string]any = MapTyped(GetValue(networks, networkCode))
+			var networkCode *string = SafeStringPtr(GetValue(networkCodes, i))
+			var network map[string]any = MapTyped(func() any {
+				if networkCode == nil {
+					return nil
+				}
+				return networks[*networkCode]
+			}())
 			AddElementToObject(result["networks"], networkCode, map[string]any{
 				"deposit": map[string]any{
 					"fee":        nil,

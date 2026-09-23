@@ -360,6 +360,10 @@ func SafeStringPtr(v any) *string {
 	return ccxt.SafeStringPtr(v)
 }
 
+func SafeBoolPtr(v any) *bool {
+	return ccxt.SafeBoolPtr(v)
+}
+
 func ListTyped(v any) []any {
 	return ccxt.ListTyped(v)
 }

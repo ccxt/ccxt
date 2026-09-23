@@ -3346,7 +3346,7 @@ func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
 	var marketId *string = this.SafeString(ticker, "instId")
 	market = MapTyped(this.SafeMarket(marketId, market, "-", marketType))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
 	var spot *bool = this.SafeBool(market, "spot", false)
@@ -3678,7 +3678,7 @@ func (this *Okx) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString(trade, "tradeId")
 	var marketId *string = this.SafeString(trade, "instId")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var price *string = this.SafeString2(trade, "fillPx", "px")
 	var amount *string = this.SafeString2(trade, "fillSz", "sz")
@@ -4525,8 +4525,8 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	if !shouldOmitSize {
 		AddElementToObject(request, "sz", this.AmountToPrecision(symbol, amount))
 	}
-	var spot any = market["spot"]
-	var contract any = market["contract"]
+	var spot *bool = SafeBoolPtr(market["spot"])
+	var contract *bool = SafeBoolPtr(market["contract"])
 	var triggerPrice any = this.SafeValueN(params, []any{"triggerPrice", "stopPrice", "triggerPx"})
 	var timeInForce *string = this.SafeString(params, "timeInForce", "GTC")
 	// const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -4555,7 +4555,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		marginMode = defaultMarginMode
 		margin = this.SafeBool(params, "margin", false)
 	}
-	if spot == true {
+	if spot != nil && *spot == true {
 		if IsEqual(margin, true) {
 			var defaultCurrency any = func() any {
 				if IsEqual(side, "buy") {
@@ -4573,7 +4573,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			return "cash"
 		}()
 		AddElementToObject(request, "tdMode", tradeMode)
-	} else if contract == true {
+	} else if contract != nil && *contract == true {
 		if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
 			var positionSide any = nil
 			var positionSideparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "positionSide")
@@ -4626,12 +4626,12 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	var marketIOC bool = (isMarketOrder && ioc) || (IsEqual(typeVar, "optimal_limit_ioc"))
 	var defaultTgtCcy *string = this.SafeString(this.Options, "tgtCcy", "base_ccy")
 	var tgtCcy *string = this.SafeString(params, "tgtCcy", defaultTgtCcy)
-	if (contract != true) && (!IsEqual(margin, true)) {
+	if (contract == nil || *contract != true) && (!IsEqual(margin, true)) {
 		AddElementToObject(request, "tgtCcy", tgtCcy)
 	}
 	if isMarketOrder || marketIOC {
 		AddElementToObject(request, "ordType", "market")
-		if (spot == true) && (IsEqual(side, "buy")) {
+		if (spot != nil && *spot == true) && (IsEqual(side, "buy")) {
 			// spot market buy: "sz" can refer either to base currency units or to quote currency units
 			// see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
 			if tgtCcy != nil && *tgtCcy == "quote_ccy" {
@@ -4664,7 +4664,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 				AddElementToObject(request, "sz", this.CostToPrecision(symbol, notional))
 			}
 		}
-		if marketIOC && (contract == true) {
+		if marketIOC && (contract != nil && *contract == true) {
 			AddElementToObject(request, "ordType", "optimal_limit_ioc")
 		}
 	} else {
@@ -7071,7 +7071,7 @@ func (this *Okx) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
 	}
 	var currencyId *string = this.SafeString(depositAddress, "ccy")
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
-	var code any = GetValue(currency, "code")
+	var code *string = SafeStringPtr(GetValue(currency, "code"))
 	var chain *string = this.SafeString(depositAddress, "chain")
 	var networks map[string]any = MapTyped(this.SafeDict(currency, "networks", map[string]any{}))
 	var networksById map[string]any = this.IndexBy(networks, "id")
@@ -8027,7 +8027,7 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var marketIds []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
-			var entry any = GetValue(symbols, i)
+			var entry *string = SafeStringPtr(GetValue(symbols, i))
 			var market map[string]any = MapTyped(this.Market(entry))
 			marketIds = append(marketIds, market["id"])
 		}
@@ -8205,7 +8205,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "instId")
 	market = this.SafeMarket(marketId, market, nil, "contract")
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var pos *string = this.SafeString(position, "pos") // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
 	var contractsAbs *string = Precise.StringAbs(pos)
 	var side *string = this.SafeString2(position, "posSide", "direction")

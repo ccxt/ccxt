@@ -964,7 +964,7 @@ func (this *Toobit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var parsed any = this.ParseCurrency(coin)
 		if !IsEqual(parsed, nil) {
-			var code any = GetValue(parsed, "code")
+			var code *string = SafeStringPtr(GetValue(parsed, "code"))
 			AddElementToObject(result, code, parsed)
 		}
 	}
@@ -1215,7 +1215,7 @@ func (this *Toobit) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(market, "baseAsset", "")
 	var quoteId *string = this.SafeString(market, "quoteAsset")
 	var baseParts []string = Split(baseId, "-")
-	var baseIdClean any = GetValue(baseParts, 0)
+	var baseIdClean *string = SafeStringPtr(GetValue(baseParts, 0))
 	var base *string = this.SafeCurrencyCode(baseIdClean)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var settleId *string = this.SafeString(market, "marginToken")
@@ -1512,7 +1512,7 @@ func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	market = MapTyped(this.SafeMarket(nil, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -2183,7 +2183,7 @@ func (this *Toobit) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
-	var id any = market["id"]
+	var id *string = SafeStringPtr(market["id"])
 	var request map[string]any = map[string]any{
 		"symbol": id,
 		"side":   ToUpper(side),

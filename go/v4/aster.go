@@ -4268,7 +4268,7 @@ func (this *Aster) modifyMarginHelperBody(ch chan any, symbol any, amount any, a
 		"symbol": market["id"],
 		"amount": amount,
 	}
-	var code any = market["quote"]
+	var code *string = SafeStringPtr(market["quote"])
 
 	response := (<-this.FapiPrivatePostV3PositionMargin(this.Extend(request, params))).Raw
 	PanicOnError(response)
@@ -5463,8 +5463,8 @@ func (this *Aster) HashMessage(binaryMessage any) any {
 func (this *Aster) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
-	var r any = signature["r"]
-	var s any = signature["s"]
+	var r *string = SafeStringPtr(signature["r"])
+	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }

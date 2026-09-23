@@ -1410,7 +1410,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 		var entry map[string]any = MapTyped(GetValue(data, i))
 		var marketId *string = this.SafeString(entry, "symbol")
 		var market any = this.SafeMarket(marketId)
-		var symbol any = GetValue(market, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 		if (symbols == nil) || this.InArray(symbol, symbols) {
 			var levels []any = SafeListTyped(entry, "riskLimits")
 			var tiers []any = []any{}
@@ -3424,7 +3424,7 @@ func (this *Btse) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var marketId *string = this.SafeString(feeInfo, "symbol")
 		var market map[string]any = MapTyped(this.SafeMarket(marketId))
-		var symbol any = market["symbol"]
+		var symbol *string = SafeStringPtr(market["symbol"])
 		var makerFee *float64 = this.SafeNumber(feeInfo, "makerFee")
 		var takerFee *float64 = this.SafeNumber(feeInfo, "takerFee")
 		AddElementToObject(result, symbol, map[string]any{

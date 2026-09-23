@@ -1119,7 +1119,7 @@ func (this *Coinsph) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var ids []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var market map[string]any = MapTyped(this.Market(GetValue(symbols, i)))
-			var id any = market["id"]
+			var id *string = SafeStringPtr(market["id"])
 			ids = append(ids, id)
 		}
 		request["symbols"] = ids
@@ -1621,7 +1621,7 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var id *string = this.SafeString2(trade, "id", "tradeId")
 	var orderId *string = this.SafeString(trade, "orderId")
 	var timestamp *int64 = this.SafeInteger(trade, "time")
@@ -2385,7 +2385,7 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 			}
 			return nil
 		}())
-		var symbol any = GetValue(fee, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(fee, "symbol"))
 		if symbol != nil {
 			AddElementToObject(result, symbol, fee)
 		}
@@ -2406,7 +2406,7 @@ func (this *Coinsph) ParseTradingFee(fee any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	return map[string]any{
 		"info":       fee,
 		"symbol":     symbol,

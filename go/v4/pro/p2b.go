@@ -510,7 +510,7 @@ func (this *P2b) HandleTicker(client any, message map[string]any) any {
 	} else {
 		ticker = this.ParseTicker(tickerData, market)
 	}
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	var messageHash any = ccxt.Add(ccxt.Add(messageHashStart, "::"), symbol)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -542,7 +542,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	var bids any = this.SafeList(data, "bids")
 	var marketId *string = this.SafeString(params, 2)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash any = ccxt.Add("orderbook::", market["symbol"])
 	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")

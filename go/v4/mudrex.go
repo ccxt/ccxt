@@ -554,7 +554,7 @@ func (this *Mudrex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			continue
 		}
 		var m any = this.SafeMarket(sym)
-		var symbol any = GetValue(m, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(m, "symbol"))
 		if (symbols != nil) && !this.InArray(symbol, symbols) {
 			continue
 		}
@@ -569,7 +569,7 @@ func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var ms *string = this.SafeString(ticker, "symbol")
 	market = MapTyped(this.SafeMarket(ms, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var pct *float64 = this.SafeNumber(ticker, "change_perc")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1136,7 +1136,7 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var status *string = this.ParseOrderStatus(this.SafeStringLower(order, "status"))
-	var sym any = GetValue(market, "symbol")
+	var sym *string = SafeStringPtr(GetValue(market, "symbol"))
 	return this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  oid,
@@ -1922,7 +1922,7 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var ms *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(ms, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var ts *int64 = this.Parse8601(this.SafeString(trade, "created_at"))
 	// exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
 	var side *string = this.SafeStringLower(trade, "order_type")

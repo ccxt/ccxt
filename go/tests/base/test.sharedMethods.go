@@ -434,13 +434,13 @@ func CheckPrecisionAccuracy(exchange ccxt.ICoreExchange, skippedProperties any, 
 			return
 		}
 		for i := 0; i < len(decimalNumbers); i++ {
-			var num any = func() any {
+			var num *string = SafeStringPtr(func() any {
 				if i >= 0 && i < len(decimalNumbers) {
 					return DerefScalar(decimalNumbers[i])
 				}
 				return nil
-			}()
-			var numStr any = num
+			}())
+			var numStr *string = num
 			AssertNonEqual(exchange, skippedProperties, method, entry, key, numStr)
 		}
 	} else {
@@ -519,12 +519,12 @@ func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderI
 	// iterate
 	var methods_singular []any = []any{"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"}
 	for i := 0; i < len(methods_singular); i++ {
-		var singularFetchName any = func() any {
+		var singularFetchName *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(methods_singular) {
 				return DerefScalar(methods_singular[i])
 			}
 			return nil
-		}()
+		}())
 		if (!IsEqual(GetValue(exchange.GetHas(), singularFetchName), nil)) && (!IsEqual(GetValue(exchange.GetHas(), singularFetchName), false)) {
 
 			currentOrder := (<-callDynamically(singularFetchName, originalId, symbol))
@@ -541,12 +541,12 @@ func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderI
 	if IsEqual(fetchedOrder, nil) {
 		var methods_plural []any = []any{"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"}
 		for i := 0; i < len(methods_plural); i++ {
-			var pluralFetchName any = func() any {
+			var pluralFetchName *string = SafeStringPtr(func() any {
 				if i >= 0 && i < len(methods_plural) {
 					return DerefScalar(methods_plural[i])
 				}
 				return nil
-			}()
+			}())
 			if (!IsEqual(GetValue(exchange.GetHas(), pluralFetchName), nil)) && (!IsEqual(GetValue(exchange.GetHas(), pluralFetchName), false)) {
 
 				orders := (<-callDynamically(pluralFetchName, symbol, sinceTime))

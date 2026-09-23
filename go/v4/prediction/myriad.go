@@ -644,7 +644,7 @@ func (this *Myriad) fetchRawQuestionsBySearchBody(ch chan any, queries any, opti
 	var seen map[string]any = map[string]any{}
 	var rawQuestions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(queries); i++ {
-		var q any = ccxt.GetValue(queries, i)
+		var q *string = ccxt.SafeStringPtr(ccxt.GetValue(queries, i))
 
 		response := (<-this.MyriadPublicGetQuestions(this.Extend(map[string]any{
 			"keyword": q,
@@ -1602,8 +1602,8 @@ func (this *Myriad) SignOrderbookTypedData(types any, message any, networkId any
 	var encoded any = this.EthEncodeStructuredData(domain, types, message)
 	var digest any = this.Hash(encoded, ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(digest, this.Remove0xPrefix(this.PrivateKey), ccxt.Secp256k1, nil)
-	var rRaw any = signature["r"]
-	var sRaw any = signature["s"]
+	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
+	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
 	var r string = ccxt.PadStart(rRaw, 64, "0")
 	var s string = ccxt.PadStart(sRaw, 64, "0")
 	var v any = this.Sum(27, signature["v"])
@@ -2261,7 +2261,7 @@ func (this *Myriad) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	var wrappers []any = []any{}
 	var networkId *string = this.SafeString(this.Options, "defaultNetworkId", "56")
 	for i := 0; i < idsLength; i++ {
-		var id any = ccxt.GetValue(ids, i)
+		var id *string = ccxt.SafeStringPtr(ccxt.GetValue(ids, i))
 		var fetched any = this.GetOrderResponseFromParams(id, paramsForLookup)
 		if ccxt.IsEqual(fetched, nil) {
 
@@ -4286,7 +4286,7 @@ func (this *Myriad) HandleMessage(client any, message any) {
 		var lines []string = ccxt.Split(message, "\n")
 		var linesLength int = len(lines)
 		for i := 0; i < linesLength; i++ {
-			var line string = lines[i]
+			var line *string = ccxt.SafeStringPtr(ccxt.GetValue(lines, i))
 			if ccxt.GetLength(line) > 0 {
 				var parsed any = ccxt.JsonParse(line)
 				this.HandleCentrifugoFrame(client, parsed)
@@ -4456,8 +4456,8 @@ func (this *Myriad) HandleOrderBook(client any, data any) {
 	var updatedSymbols []string = ccxt.ObjectKeys(updated)
 	var updatedLength int = len(updatedSymbols)
 	for k := 0; k < updatedLength; k++ {
-		var sym string = updatedSymbols[k]
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, sym), ccxt.Add("orderbook::", sym))
+		var sym *string = ccxt.SafeStringPtr(ccxt.GetValue(updatedSymbols, k))
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, sym), "orderbook::"+*sym)
 	}
 }
 

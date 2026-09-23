@@ -120,7 +120,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var channel *string = this.SafeString(message, "topic")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if symbol == nil {
 		return
 	}
@@ -204,7 +204,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -314,7 +314,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(trade, "symbol")
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		var marketId any = market["id"]
+		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		if marketId != nil {
 			ccxt.AddElementToObject(marketIds, marketId, true)
 		}
@@ -462,7 +462,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(order, "symbol")
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		var marketId any = market["id"]
+		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		if marketId != nil {
 			ccxt.AddElementToObject(marketIds, marketId, true)
 		}

@@ -2437,7 +2437,7 @@ func (this *Cryptocom) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderRequests []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
-		var id any = GetValue(ids, i)
+		var id *string = SafeStringPtr(GetValue(ids, i))
 		var order map[string]any = map[string]any{
 			"instrument_name": market["id"],
 			"order_id":        ToString(id),
@@ -4370,7 +4370,7 @@ func (this *Cryptocom) ParamsToString(object any, level any) any {
 		paramsKeys = this.Sort(objectKeys)
 	}
 	for i := 0; i < GetArrayLength(paramsKeys); i++ {
-		var key any = GetValue(paramsKeys, i)
+		var key *string = SafeStringPtr(GetValue(paramsKeys, i))
 		returnString = Add(returnString, key)
 		var value any = GetValue(object, key)
 		if IsEqual(value, "undefined") {
@@ -4557,17 +4557,17 @@ func (this *Cryptocom) ParseTradingFees(response map[string]any) any {
 	var result map[string]any = map[string]any{}
 	result["info"] = response
 	for i := 0; i < len(this.Symbols); i++ {
-		var symbol any = GetValue(this.Symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
-		var isSwap any = market["swap"]
+		var isSwap *bool = SafeBoolPtr(market["swap"])
 		var takerFeeKey string = func() string {
-			if isSwap == true {
+			if isSwap != nil && *isSwap == true {
 				return "effective_deriv_taker_rate_bps"
 			}
 			return "effective_spot_taker_rate_bps"
 		}()
 		var makerFeeKey string = func() string {
-			if isSwap == true {
+			if isSwap != nil && *isSwap == true {
 				return "effective_deriv_maker_rate_bps"
 			}
 			return "effective_spot_maker_rate_bps"

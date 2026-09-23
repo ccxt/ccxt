@@ -2841,7 +2841,7 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) any {
 	var id *string = this.SafeString(position, "positionId")
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var entryPrice *string = this.SafeString(position, "entryPrice")
 	var markPrice *string = this.SafeString(position, "markPrice")
 	var netCost *string = this.SafeString(position, "netCost")

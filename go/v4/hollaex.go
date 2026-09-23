@@ -853,7 +853,7 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) any {
 		var ticker any = GetValue(tickers, key)
 		var marketId *string = this.SafeString(ticker, "symbol", key)
 		var market any = this.SafeMarket(marketId, nil, "-")
-		var symbol any = GetValue(market, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 		AddElementToObject(result, symbol, this.Extend(this.ParseTicker(ticker, market), params))
 	}
 	return this.FilterByArrayTickers(result, "symbol", symbols)
@@ -889,7 +889,7 @@ func (this *Hollaex) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.Parse8601(this.SafeString2(ticker, "time", "timestamp"))
 	var close *string = this.SafeString(ticker, "close")
 	return this.SafeTicker(map[string]any{
@@ -996,7 +996,7 @@ func (this *Hollaex) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var datetime *string = this.SafeString(trade, "timestamp")
 	var timestamp *int64 = this.Parse8601(datetime)
 	var side *string = this.SafeString(trade, "side")
@@ -1087,7 +1087,7 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var takerFees map[string]any = SafeMapTyped(fees, "taker")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
-		var symbol any = GetValue(this.Symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var makerString *string = this.SafeString(makerFees, market["id"])
 		var takerString *string = this.SafeString(takerFees, market["id"])
@@ -2431,7 +2431,7 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		var keys []string = ObjectKeys(withdrawalFees)
 		var keysLength int = len(keys)
 		for i := 0; i < keysLength; i++ {
-			var key string = keys[i]
+			var key *string = SafeStringPtr(GetValue(keys, i))
 			var value map[string]any = MapTyped(GetValue(withdrawalFees, key))
 			var currencyId *string = this.SafeString(value, "symbol")
 			var currencyCode *string = this.SafeCurrencyCode(currencyId)

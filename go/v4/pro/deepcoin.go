@@ -1348,8 +1348,8 @@ func (this *Deepcoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
-			var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+			var symbolMessageHash string = messageHash + "::" + *symbol
 			messageHashes = append(messageHashes, symbolMessageHash)
 		}
 	} else {

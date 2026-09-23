@@ -1337,7 +1337,7 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		symbols = this.MarketSymbols(symbols)
 		var marketIds []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
-			var symbol any = GetValue(symbols, i)
+			var symbol *string = SafeStringPtr(GetValue(symbols, i))
 			var market map[string]any = this.Market(symbol)
 			if market["active"] == true {
 				marketIds = append(marketIds, market["id"])
@@ -1353,7 +1353,7 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
 		var market any = this.SafeMarket(id)
-		var symbol any = GetValue(market, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 		var ticker any = tickers[id]
 		AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
 	}
@@ -1900,7 +1900,7 @@ func (this *Kraken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var id any = market["id"]
+	var id *string = SafeStringPtr(market["id"])
 	var request map[string]any = map[string]any{
 		"pair": id,
 	}
@@ -4172,7 +4172,7 @@ func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	var address *string = this.SafeString(depositAddress, "address")
 	var tag *string = this.SafeString(depositAddress, "tag")
 	currency = MapTyped(this.SafeCurrency(nil, currency))
-	var code any = GetValue(currency, "code")
+	var code *string = SafeStringPtr(GetValue(currency, "code"))
 	this.CheckAddress(address)
 	return map[string]any{
 		"info":     depositAddress,

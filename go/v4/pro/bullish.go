@@ -322,7 +322,7 @@ func (this *Bullish) HandleTicker(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var parsed any = this.ParseTicker(data, market)
 	if updateType != nil && *updateType == "update" {
 		var ticker map[string]any = ccxt.SafeMapTyped(this.Tickers, symbol)
@@ -331,7 +331,7 @@ func (this *Bullish) HandleTicker(client any, message any) {
 		parsed = this.ParseTicker(merged, market)
 	}
 	ccxt.AddElementToObject(this.Tickers, symbol, parsed)
-	var messageHash any = ccxt.Add("ticker::", symbol)
+	var messageHash string = "ticker::" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
 }
 
@@ -891,14 +891,14 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash any = func() any {
+		var messageHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(messageHashes) {
 				return ccxt.DerefScalar(messageHashes[i])
 			}
 			return nil
-		}()
+		}())
 		var parts []string = ccxt.Split(messageHash, "::")
-		var symbolsString any = ccxt.GetValue(parts, 1)
+		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var symbolPositions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(symbolPositions) {

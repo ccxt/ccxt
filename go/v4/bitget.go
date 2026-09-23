@@ -3586,7 +3586,7 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 	}
 	var productType *string = this.SafeString2(params, "productType", "category", defaultProductType)
 	if (productType == nil) && (market != nil) {
-		var settle any = GetValue(market, "settle")
+		var settle *string = SafeStringPtr(GetValue(market, "settle"))
 		if GetValue(market, "spot") == true {
 			var marginMode any = nil
 			var marginModeparamsVariable []any = this.HandleMarginModeAndParams("handleProductTypeAndParams", params)
@@ -3597,15 +3597,15 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 			} else {
 				productType = SafeStringPtr("SPOT")
 			}
-		} else if IsEqual(settle, "USDT") {
+		} else if settle != nil && *settle == "USDT" {
 			productType = SafeStringPtr("USDT-FUTURES")
-		} else if IsEqual(settle, "USDC") {
+		} else if settle != nil && *settle == "USDC" {
 			productType = SafeStringPtr("USDC-FUTURES")
-		} else if IsEqual(settle, "SUSDT") {
+		} else if settle != nil && *settle == "SUSDT" {
 			productType = SafeStringPtr("SUSDT-FUTURES")
-		} else if IsEqual(settle, "SUSDC") {
+		} else if settle != nil && *settle == "SUSDC" {
 			productType = SafeStringPtr("SUSDC-FUTURES")
-		} else if (IsEqual(settle, "SBTC")) || (IsEqual(settle, "SETH")) || (IsEqual(settle, "SEOS")) {
+		} else if (settle != nil && *settle == "SBTC") || (settle != nil && *settle == "SETH") || (settle != nil && *settle == "SEOS") {
 			productType = SafeStringPtr("SCOIN-FUTURES")
 		} else {
 			productType = SafeStringPtr("COIN-FUTURES")
@@ -9058,7 +9058,7 @@ func (this *Bitget) cancelUtaOrdersBody(ch chan any, ids any, optionalArgs ...an
 	params = MapTyped(GetValue(productTypeparamsVariable, 1))
 	var requestList []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
-		var individualId any = GetValue(ids, i)
+		var individualId *string = SafeStringPtr(GetValue(ids, i))
 		var order map[string]any = map[string]any{
 			"orderId":  individualId,
 			"symbol":   market["id"],
@@ -9143,7 +9143,7 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var orderIdList []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
-		var individualId any = GetValue(ids, i)
+		var individualId *string = SafeStringPtr(GetValue(ids, i))
 		var orderId map[string]any = map[string]any{
 			"orderId": individualId,
 		}
@@ -11907,7 +11907,7 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, nil, "contract"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeIntegerN(position, []any{"cTime", "ctime", "createdTime"})
 	var marginMode *string = this.SafeString(position, "marginMode")
 	var collateral *string = nil

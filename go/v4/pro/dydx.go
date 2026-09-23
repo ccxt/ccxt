@@ -152,7 +152,7 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "id")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
 	var rawTrades any = this.SafeList(content, "trades", []any{})
 	var stored any = this.SafeValue(this.Trades, symbol)
@@ -166,7 +166,7 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 		var parsed any = ccxt.GetValue(parsedTrades, i)
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = ccxt.Add("trade"+":", symbol)
+	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Dydx) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -303,7 +303,7 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "id")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
@@ -315,7 +315,7 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(message, "message_id"))
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash string = "orderbook:" + *symbol
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -480,10 +480,10 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(interval)
 	var marketId *string = this.SafeString(part, 0)
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var content any = this.SafeDict(message, "contents")
 	var candles any = this.SafeList(content, "candles")
-	var messageHash any = ccxt.Add("ohlcv:", symbol)
+	var messageHash string = "ohlcv:" + *symbol
 	var ohlcv any = this.SafeDict(candles, 0, content)
 	var parsed any = this.ParseOHLCV(ohlcv, market)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))

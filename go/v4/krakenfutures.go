@@ -902,7 +902,7 @@ func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "lastTime"))
 	var open *string = this.SafeString(ticker, "open24h")
 	var last *string = this.SafeString(ticker, "last")
@@ -1017,7 +1017,7 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var uid *string = this.SafeString(market["info"], "feeScheduleUid")
 		var schedule any = this.SafeDict(schedulesByUid, uid)
@@ -4293,7 +4293,7 @@ func (this *Krakenfutures) ParseAccount(account any) any {
 		return GetValue(accountByType, account)
 	} else if (this.Markets != nil) && (InOp(this.Markets, account)) {
 		var market map[string]any = MapTyped(this.Market(account))
-		var marketId any = market["id"]
+		var marketId *string = SafeStringPtr(market["id"])
 		var splitId []string = Split(marketId, "_")
 		if GetValue(market, "inverse") == true {
 			return Add("fi_", this.SafeString(splitId, 1))

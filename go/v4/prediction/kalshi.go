@@ -655,8 +655,13 @@ func (this *Kalshi) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 	var tickers []any = []any{}
 	var seen map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(outcomeSymbols); i++ {
-		var outcomeSymbol any = ccxt.GetValue(outcomeSymbols, i)
-		if ccxt.GetIndexOf(outcomeSymbol, ":") >= 0 {
+		var outcomeSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeSymbols, i))
+		if func() int {
+			if outcomeSymbol == nil {
+				return -1
+			}
+			return strings.Index(*outcomeSymbol, ":")
+		}() >= 0 {
 			continue
 		}
 		// parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
@@ -867,12 +872,12 @@ func (this *Kalshi) ParseMarket(raw any) any {
 	var outcomes []any = []any{}
 	var resolvedOutcome any = nil
 	for oi := 0; oi < len(outcomeLabels); oi++ {
-		var label any = func() any {
+		var label *string = ccxt.SafeStringPtr(func() any {
 			if oi >= 0 && oi < len(outcomeLabels) {
 				return ccxt.DerefScalar(outcomeLabels[oi])
 			}
 			return nil
-		}()
+		}())
 		var outcomeHandle any = this.SlugToOutcomeSymbol(eventTicker, subtitleOrTicker, label)
 		var winnerRaw any = nil
 		var settleFractionRaw any = nil

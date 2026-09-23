@@ -5369,6 +5369,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoElementReadUnbox (goTranspiler);
     // string locals grown by `x += s` / `x = x + s`
     installCcxtGoStringConcatJoin (goTranspiler);
+    installCcxtGoScalarElementReads (goTranspiler);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -5686,6 +5687,99 @@ function installCcxtGoStringConcatJoin (goTranspiler) {
         return (goType === 'string') && ccxtGoStringConcatJoinIsSafe (this, scope, declaration, varName);
     };
     goTranspiler.__ccxtGoStringConcatJoinInstalled = true;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Scalar element reads: `var x *string = SafeStringPtr(GetValue(c, k))` / `*bool` + SafeBoolPtr.
+// Only when the checker types the local exactly string (or boolean), optionally |undefined|null.
+const CCXT_GO_SCALAR_ELEMENT_READERS = { '*string': 'SafeStringPtr', '*bool': 'SafeBoolPtr' };
+
+function ccxtGoScalarElementReadType (goTranspiler, initializer) {
+    const declaration = initializer?.parent;
+    if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || (declaration.initializer !== initializer)
+        || (declaration.name?.kind !== ts.SyntaxKind.Identifier)
+        || (declaration.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)) {
+        return undefined;
+    }
+    const read = ccxtGoElementReadInitializer (declaration);
+    if (read === undefined) {
+        return undefined;
+    }
+    const checker = (typeof goTranspiler.checkerOrUndefined === 'function') ? goTranspiler.checkerOrUndefined () : undefined;
+    if (checker === undefined) {
+        return undefined;
+    }
+    const kindOf = (type) => {
+        const parts = (type?.isUnion?. ()) ? type.types : [ type ];
+        let kind;
+        for (const t of parts) {
+            if ((t === undefined) || ((t.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) !== 0)) {
+                return undefined;
+            }
+            if ((t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0) {
+                continue;
+            }
+            const k = ((t.flags & ts.TypeFlags.StringLike) !== 0) ? '*string'
+                : (((t.flags & ts.TypeFlags.BooleanLike) !== 0) ? '*bool' : undefined);
+            if ((k === undefined) || ((kind !== undefined) && (kind !== k))) {
+                return undefined;
+            }
+            kind = k;
+        }
+        return kind;
+    };
+    const goType = kindOf (checker.getTypeAtLocation (declaration.name));
+    if ((goType === undefined) || (kindOf (checker.getTypeAtLocation (read)) !== goType)) {
+        return undefined;
+    }
+    // a string receiver indexes characters; ws structs are read by reflect
+    for (let node = read; node?.kind === ts.SyntaxKind.ElementAccessExpression; node = node.expression) {
+        const containerType = checker.getTypeAtLocation (node.expression);
+        const parts = (containerType?.isUnion?. ()) ? containerType.types : [ containerType ];
+        if (parts.some ((t) => ((t?.flags ?? 0) & (ts.TypeFlags.StringLike | ts.TypeFlags.Any)) !== 0)
+            || ccxtGoElementReadIsObject (checker, containerType)) {
+            return undefined;
+        }
+    }
+    return goType;
+}
+
+function installCcxtGoScalarElementReads (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoScalarElementReadsInstalled
+        || (typeof goTranspiler.goTypeOfInitializer !== 'function') || (typeof goTranspiler.printVariableDeclarationList !== 'function')) {
+        return;
+    }
+    const inner = goTranspiler.goTypeOfInitializer;
+    const cache = new Map ();
+    const own = (printer, initializer) => {
+        if (!cache.has (initializer)) {
+            cache.set (initializer, ccxtGoScalarElementReadType (printer, initializer));
+        }
+        return cache.get (initializer);
+    };
+    goTranspiler.goTypeOfInitializer = function (initializer, printedValue) {
+        const known = inner.call (this, initializer, printedValue);
+        return (known !== undefined) ? known : own (this, initializer);
+    };
+    const innerPrint = goTranspiler.printVariableDeclarationList;
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = innerPrint.call (this, node, identation);
+        const declaration = node?.declarations?.[0];
+        const initializer = declaration?.initializer;
+        if ((typeof printed !== 'string') || (initializer === undefined) || (node.declarations.length !== 1)) {
+            return printed;
+        }
+        const goType = own (this, initializer);
+        if ((goType === undefined) || (inner.call (this, initializer, this.printNode (initializer, 0)) !== undefined)) {
+            return printed;
+        }
+        const head = this.getIden (identation) + 'var ' + this.printNode (declaration.name, 0) + ' ' + goType + ' = ';
+        if (!printed.startsWith (head)) {
+            return printed;
+        }
+        return head + CCXT_GO_SCALAR_ELEMENT_READERS[goType] + '(' + printed.substring (head.length) + ')';
+    };
+    goTranspiler.__ccxtGoScalarElementReadsInstalled = true;
 }
 
 // ---------------------------------------------------------------------------------------------

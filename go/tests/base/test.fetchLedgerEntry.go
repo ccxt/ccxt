@@ -21,7 +21,7 @@ func testFetchLedgerEntryBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 	AssertNonEmtpyArray(exchange, skippedProperties, method, items, code)
 	if length > 0 {
 		var firstItem map[string]any = MapTyped(GetValue(items, 0))
-		var id any = firstItem["id"]
+		var id *string = SafeStringPtr(firstItem["id"])
 		if id != nil {
 
 			item := (<-exchange.FetchLedgerEntryAsync(id))

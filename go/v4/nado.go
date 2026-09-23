@@ -3894,8 +3894,8 @@ func (this *Nado) SignHash(hash any, privateKey any) any {
 		panic(ArgumentsRequired(this.Id + " signHash() requires privateKey"))
 	}
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
-	var r any = signature["r"]
-	var s any = signature["s"]
+	var r *string = SafeStringPtr(signature["r"])
+	var s *string = SafeStringPtr(signature["s"])
 	var v string = strings.ToLower(this.IntToBase16(this.Sum(27, signature["v"])))
 	return Add(Add(Add("0x", this.PadHex(r, 64)), this.PadHex(s, 64)), v)
 }

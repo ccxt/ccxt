@@ -204,7 +204,7 @@ func (this *Mexc) HandleTicker(client any, message any) {
 	var marketId *string = this.SafeString2(message, "s", "symbol")
 	var timestamp *int64 = this.SafeInteger2(message, "t", "sendTime")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var ticker any = nil
 	if ccxt.GetValue(market, "spot") == true {
 		ticker = this.ParseWsTicker(rawTicker, market)
@@ -216,7 +216,7 @@ func (this *Mexc) HandleTicker(client any, message any) {
 		return
 	}
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash string = "ticker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 
@@ -380,7 +380,7 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 		} else {
 			ticker = this.ParseTicker(entry)
 		}
-		var symbol any = ccxt.GetValue(ticker, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
@@ -1228,8 +1228,8 @@ func (this *Mexc) HandleTrades(client any, message any) {
 	//
 	var marketId *string = this.SafeString2(message, "s", "symbol")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var messageHash string = "trades:" + *symbol
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1357,7 +1357,7 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	var futuresMarketId *string = this.SafeString(data, "symbol")
 	var marketId *string = this.SafeString2(message, "s", "symbol", futuresMarketId)
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var trade any = nil
 	if ccxt.GetValue(market, "spot") == true {
 		trade = this.ParseWsTrade(data, market)
@@ -1374,7 +1374,7 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	}
 	trades.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
+	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)
 }
 func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -1613,7 +1613,7 @@ func (this *Mexc) HandleOrder(client any, message any) {
 	var futuresMarketId *string = this.SafeString(data, "symbol")
 	var marketId *string = this.SafeString2(message, "s", "symbol", futuresMarketId)
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var parsed any = nil
 	if ccxt.GetValue(market, "spot") == true {
 		parsed = this.ParseWsOrder(data, market)
@@ -1634,7 +1634,7 @@ func (this *Mexc) HandleOrder(client any, message any) {
 	}
 	orders.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
+	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)
 }
 func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) any {
@@ -1981,7 +1981,7 @@ func (this *Mexc) HandleFundingRate(client any, message map[string]any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var fundingRate any = this.ParseFundingRate(data)
-	var symbol any = ccxt.GetValue(fundingRate, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 	if symbol != nil {
 		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 	}
@@ -2298,10 +2298,15 @@ func (this *Mexc) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 }
 func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
-		var messageHash any = ccxt.GetValue(messageHashes, i)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, i))
 		var subMessageHash string = ccxt.Replace(messageHash, "unsubscribe:", "")
 		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-		if ccxt.GetIndexOf(messageHash, "ticker") >= 0 {
+		if func() int {
+			if messageHash == nil {
+				return -1
+			}
+			return strings.Index(*messageHash, "ticker")
+		}() >= 0 {
 			var symbol any = ccxt.Replace(messageHash, "unsubscribe:ticker:", "")
 			if ccxt.GetIndexOf(symbol, "unsubscribe") >= 0 {
 				// unWatchTickers
@@ -2312,12 +2317,22 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 			} else if ccxt.InOp(this.Tickers, symbol) {
 				ccxt.Remove(this.Tickers, symbol)
 			}
-		} else if ccxt.GetIndexOf(messageHash, "bidask") >= 0 {
+		} else if func() int {
+			if messageHash == nil {
+				return -1
+			}
+			return strings.Index(*messageHash, "bidask")
+		}() >= 0 {
 			var symbol any = ccxt.Replace(messageHash, "unsubscribe:bidask:", "")
 			if ccxt.InOp(this.Bidsasks, symbol) {
 				ccxt.Remove(this.Bidsasks, symbol)
 			}
-		} else if ccxt.GetIndexOf(messageHash, "candles") >= 0 {
+		} else if func() int {
+			if messageHash == nil {
+				return -1
+			}
+			return strings.Index(*messageHash, "candles")
+		}() >= 0 {
 			var splitHashes []string = ccxt.Split(messageHash, ":")
 			var symbol any = ccxt.DerefScalar(this.SafeString(splitHashes, 2))
 			var splitHashesLength int = len(splitHashes) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
@@ -2327,17 +2342,32 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 			if (!ccxt.IsEqual(symbol, nil)) && (ccxt.InOp(this.Ohlcvs, symbol)) {
 				ccxt.Remove(this.Ohlcvs, symbol)
 			}
-		} else if ccxt.GetIndexOf(messageHash, "orderbook") >= 0 {
+		} else if func() int {
+			if messageHash == nil {
+				return -1
+			}
+			return strings.Index(*messageHash, "orderbook")
+		}() >= 0 {
 			var symbol any = ccxt.Replace(messageHash, "unsubscribe:orderbook:", "")
 			if ccxt.InOp(this.Orderbooks, symbol) {
 				ccxt.Remove(this.Orderbooks, symbol)
 			}
-		} else if ccxt.GetIndexOf(messageHash, "trades") >= 0 {
+		} else if func() int {
+			if messageHash == nil {
+				return -1
+			}
+			return strings.Index(*messageHash, "trades")
+		}() >= 0 {
 			var symbol any = ccxt.Replace(messageHash, "unsubscribe:trades:", "")
 			if ccxt.InOp(this.Trades, symbol) {
 				ccxt.Remove(this.Trades, symbol)
 			}
-		} else if ccxt.GetIndexOf(messageHash, "fundingRate") >= 0 {
+		} else if func() int {
+			if messageHash == nil {
+				return -1
+			}
+			return strings.Index(*messageHash, "fundingRate")
+		}() >= 0 {
 			var symbol any = ccxt.Replace(messageHash, "unsubscribe:fundingRate:", "")
 			if ccxt.InOp(this.FundingRates, symbol) {
 				ccxt.Remove(this.FundingRates, symbol)

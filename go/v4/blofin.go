@@ -1005,7 +1005,7 @@ func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
 	var marketId *string = this.SafeString(ticker, "instId")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
 	var spot *bool = this.SafeBool(market, "spot", false)
@@ -1198,7 +1198,7 @@ func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString(trade, "tradeId")
 	var marketId *string = this.SafeString(trade, "instId")
 	market = this.SafeMarket(marketId, market, "-")
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var price *string = this.SafeString2(trade, "price", "fillPrice")
 	var amount *string = this.SafeString2(trade, "size", "fillSize")
@@ -3316,7 +3316,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "instId")
 	market = this.SafeMarket(marketId, market)
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var pos *string = this.SafeString(position, "positions")
 	var contractsAbs *string = Precise.StringAbs(pos)
 	var side *string = this.SafeString(position, "positionSide")
@@ -3447,7 +3447,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	var symbolsList any = symbols
 	var instIds any = ""
 	for i := 0; i < GetArrayLength(symbolsList); i++ {
-		var entry any = GetValue(symbolsList, i)
+		var entry *string = SafeStringPtr(GetValue(symbolsList, i))
 		var entryMarket map[string]any = MapTyped(this.Market(entry))
 		if i > 0 {
 			instIds = Add(Add(instIds, ","), entryMarket["id"])

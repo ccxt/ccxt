@@ -1261,7 +1261,7 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var price *string = this.SafeString2(trade, "executed_price", "executedPrice")
 	var amount *string = this.SafeString2(trade, "executed_quantity", "executedQuantity")
 	var order_id *string = this.SafeString2(trade, "order_id", "orderId")
@@ -1442,7 +1442,7 @@ func (this *Woo) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -2662,7 +2662,7 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId any = this.OmitZero(this.SafeString2(order, "clientOrderId", "clientAlgoOrderId")) // Somehow, this always returns 0 for limit order
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "quantity") // This is base amount
 	var cost *string = this.SafeString(order, "amount")     // This is quote amount

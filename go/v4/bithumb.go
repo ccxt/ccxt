@@ -1289,7 +1289,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if symbols != nil {
 			var requiredQuotes map[string]any = map[string]any{}
 			for i := 0; i < GetArrayLength(symbols); i++ {
-				var symbol any = GetValue(symbols, i)
+				var symbol *string = SafeStringPtr(GetValue(symbols, i))
 				var market map[string]any = this.Market(symbol)
 				var quoteId *string = this.SafeString(market, "quoteId")
 				if (quoteId != nil) && (func() bool {
@@ -1687,12 +1687,12 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
 		var parts []string = Split(transactionDatetime, " ")
 		var numParts int = len(parts)
 		if numParts > 1 {
-			var transactionDate any = GetValue(parts, 0)
+			var transactionDate *string = SafeStringPtr(GetValue(parts, 0))
 			var transactionTime any = GetValue(parts, 1)
 			if GetLength(transactionTime) < 8 {
 				transactionTime = Add("0", transactionTime)
 			}
-			timestamp = this.Parse8601(Add(Add(transactionDate, " "), transactionTime))
+			timestamp = DerefScalar(this.Parse8601(Add(*transactionDate+" ", transactionTime)))
 		} else {
 			timestamp = this.SafeIntegerProduct(trade, "transaction_date", 0.001)
 		}

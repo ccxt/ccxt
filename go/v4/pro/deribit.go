@@ -417,7 +417,7 @@ func (this *Deribit) HandleBidAsk(client any, message map[string]any) {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var ticker any = this.ParseWsBidAsk(data)
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 	ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 	var messageHash *string = this.SafeString(params, "channel")
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -669,7 +669,7 @@ func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
 		var trade any = ccxt.GetValue(parsed, i)
 		cachedTrades.(ccxt.Appender).Append(trade)
-		var symbol any = ccxt.GetValue(trade, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 		ccxt.AddElementToObject(marketIds, symbol, true)
 	}
 	client.(ccxt.ClientInterface).Resolve(cachedTrades, channel)
@@ -1112,7 +1112,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 2)
 	var rawTimeframe *string = this.SafeString(parts, 3)
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var timeframes any = this.SafeDict(wsOptions, "timeframes", map[string]any{})
 	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
@@ -1128,7 +1128,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	stored.(ccxt.Appender).Append(parsed)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe, stored)
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("chart.trades|", symbol), "|"), rawTimeframe)
+	var messageHash any = ccxt.Add("chart.trades|"+*symbol+"|", rawTimeframe)
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 func (this *Deribit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {

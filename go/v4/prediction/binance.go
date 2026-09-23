@@ -1555,7 +1555,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var requestedOutcomeSymbols map[string]any = map[string]any{}
 	if outcomes != nil {
 		for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
-			var requested any = ccxt.GetValue(outcomes, i)
+			var requested *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomes, i))
 			var requestedOutcomeObj any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)
 			ccxt.AddElementToObject(requestedOutcomeSymbols, requestedOutcome, true)

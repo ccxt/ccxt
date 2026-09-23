@@ -1408,7 +1408,7 @@ func (this *Hitbtc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(keys); i++ {
 		var marketId string = GetValue(keys, i).(string)
 		var market any = this.SafeMarket(marketId)
-		var symbol any = GetValue(market, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 		var entry map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		AddElementToObject(result, symbol, this.ParseTicker(entry, market))
 	}
@@ -1670,7 +1670,7 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(GetValue(trade, "timestamp"))
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var taker *bool = this.SafeBool(trade, "taker")
@@ -2198,7 +2198,7 @@ func (this *Hitbtc) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var fee any = this.ParseTradingFee(GetValue(response, i))
-		var symbol any = GetValue(fee, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(fee, "symbol"))
 		if symbol != nil {
 			AddElementToObject(result, symbol, fee)
 		}
@@ -3257,7 +3257,7 @@ func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var postOnly any = this.SafeValue(order, "post_only")
 	var timeInForce *string = this.SafeString(order, "time_in_force")
 	var rawTrades any = this.SafeValue(order, "trades")
@@ -3612,7 +3612,7 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		}
 		var rawFundingRate any = this.SafeValue(response, marketId)
 		var marketInner map[string]any = MapTyped(this.Market(marketId))
-		var symbol any = marketInner["symbol"]
+		var symbol *string = SafeStringPtr(marketInner["symbol"])
 		var fundingRate any = this.ParseFundingRate(rawFundingRate, marketInner)
 		AddElementToObject(fundingRates, symbol, fundingRate)
 	}
@@ -3988,7 +3988,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,

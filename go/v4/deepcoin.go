@@ -1043,7 +1043,7 @@ func (this *Deepcoin) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp any = this.SafeIntegerOmitZero(ticker, "ts")
 	var marketId *string = this.SafeString(ticker, "instId")
 	market = this.SafeMarket(marketId, market, "-")
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
 	var quoteVolume any = DerefScalar(this.SafeString(ticker, "volCcy24h"))
@@ -1517,7 +1517,7 @@ func (this *Deepcoin) fetchDepositAddressesBody(ch chan any, optionalArgs ...any
 	if length != 1 {
 		panic(NotSupported(this.Id + " fetchDepositAddresses requires a list with one currency code"))
 	}
-	var code any = GetValue(codes, 0)
+	var code *string = SafeStringPtr(GetValue(codes, 0))
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency_id": currency["id"],

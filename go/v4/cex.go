@@ -1074,8 +1074,14 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 	}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
-		if !(InOp(result, symbol)) {
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+		if !(func() bool {
+			if symbol == nil {
+				return false
+			}
+			_, ok := result[*symbol]
+			return ok
+		}()) {
 			var market any = this.Market(symbol)
 			AddElementToObject(result, symbol, this.ParseTradingFee(response, market))
 		}
@@ -1536,7 +1542,7 @@ func (this *Cex) ParseOrder(order any, optionalArgs ...any) any {
 		marketId = *currency1 + "-" + *currency2
 	}
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var fee map[string]any = map[string]any{}
 	var feeAmount *float64 = this.SafeNumber(order, "feeAmount")

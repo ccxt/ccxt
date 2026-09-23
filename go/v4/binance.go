@@ -4729,7 +4729,7 @@ func (this *Binance) ParseCurrenciesCustom(responseCurrencies any, marginablesBy
 		if IsEqual(parsed, nil) {
 			panic(ExchangeError(this.Id + " parseCurrenciesCustom() could not resolve parsed"))
 		}
-		var code any = GetValue(parsed, "code")
+		var code *string = SafeStringPtr(GetValue(parsed, "code"))
 		if IsEqual(parsed, nil) {
 			panic(ExchangeError(this.Id + " parseCurrenciesCustom() could not resolve parsed"))
 		}
@@ -6970,7 +6970,7 @@ func (this *Binance) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":    limit,
 	}
-	var marketId any = market["id"]
+	var marketId *string = SafeStringPtr(market["id"])
 	if marketId == nil {
 		panic(ExchangeError(this.Id + " fetchOHLCV() missing marketId"))
 	}
@@ -7309,7 +7309,7 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) any {
 		return "contract"
 	}()
 	market = this.SafeMarket(marketId, market, nil, marketType)
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var side any = nil
 	var buyerMaker *bool = this.SafeBool2(trade, "m", "isBuyerMaker")
 	var takerOrMaker any = nil
@@ -11796,8 +11796,8 @@ func (this *Binance) ParseDustTrade(trade any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(trade, "fromAsset")
 	var tradedCurrency *string = this.SafeCurrencyCode(currencyId)
 	var bnb map[string]any = MapTyped(this.Currency("BNB"))
-	var earnedCurrency any = bnb["code"]
-	var applicantSymbol any = Add(Add(earnedCurrency, "/"), tradedCurrency)
+	var earnedCurrency *string = SafeStringPtr(bnb["code"])
+	var applicantSymbol any = Add(*earnedCurrency+"/", tradedCurrency)
 	var tradedCurrencyIsQuote bool = false
 	if (this.Markets != nil) && (InOp(this.Markets, applicantSymbol)) {
 		tradedCurrencyIsQuote = true
@@ -13136,7 +13136,7 @@ func (this *Binance) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var typeVar any = market["type"]
+	var typeVar *string = SafeStringPtr(market["type"])
 	var subType any = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchTradingFee", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
@@ -13333,7 +13333,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 				}
 				return nil
 			}())
-			var symbol any = GetValue(fee, "symbol")
+			var symbol *string = SafeStringPtr(GetValue(fee, "symbol"))
 			if symbol != nil {
 				AddElementToObject(result, symbol, fee)
 			}
@@ -14766,7 +14766,7 @@ func (this *Binance) ParseOptionPosition(position any, optionalArgs ...any) any 
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, nil, "swap"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "quantity")
 	if side == nil || *side != "long" {

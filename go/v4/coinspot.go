@@ -850,7 +850,7 @@ func (this *Coinspot) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var id string = GetValue(ids, i).(string)
 		var market any = this.SafeMarket(id)
 		if GetValue(market, "spot") == true {
-			var symbol any = GetValue(market, "symbol")
+			var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 			var ticker any = prices[id]
 			AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
 		}

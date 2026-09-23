@@ -621,7 +621,7 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var id *string = this.SafeString(trade, "id")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "quantity")
@@ -953,7 +953,7 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -1644,8 +1644,8 @@ func (this *Hibachi) SignMessage(message any, privateKey any) any {
 		// For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
 		var hash any = this.Hash(message, sha256, "hex")
 		var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
-		var r any = signature["r"]
-		var s any = signature["s"]
+		var r *string = SafeStringPtr(signature["r"])
+		var s *string = SafeStringPtr(signature["s"])
 		var v string = this.IntToBase16(signature["v"])
 		return PadStart(r, 64, "0") + PadStart(s, 64, "0") + PadStart(v, 2, "0")
 	}
@@ -2220,7 +2220,7 @@ func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var side *string = this.SafeStringLower(position, "direction")
 	var quantity *string = this.SafeString(position, "quantity")
 	var unrealizedFunding *string = this.SafeString(position, "unrealizedFundingPnl", "0")

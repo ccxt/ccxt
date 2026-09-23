@@ -977,15 +977,15 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		types = this.SafeList(this.Options, "fetchMarkets", defaultTypes)
 	}
 	for i := 0; i < GetArrayLength(types); i++ {
-		var marketType any = GetValue(types, i)
-		if IsEqual(marketType, "spot") {
+		var marketType *string = SafeStringPtr(GetValue(types, i))
+		if marketType != nil && *marketType == "spot" {
 			promisesRaw = append(promisesRaw, this.SpotV1PublicGetExchangeInfo(params))
-		} else if IsEqual(marketType, "linear") {
+		} else if marketType != nil && *marketType == "linear" {
 			promisesRaw = append(promisesRaw, this.FapiV1PublicGetContracts(params))
-		} else if IsEqual(marketType, "inverse") {
+		} else if marketType != nil && *marketType == "inverse" {
 			promisesRaw = append(promisesRaw, this.DapiV1PublicGetContracts(params))
 		} else {
-			panic(ExchangeError(Add(Add(this.Id+" fetchMarkets() this.options fetchMarkets \"", marketType), "\" is not a supported market type")))
+			panic(ExchangeError(this.Id + " fetchMarkets() this.options fetchMarkets \"" + *marketType + "\" is not a supported market type"))
 		}
 	}
 

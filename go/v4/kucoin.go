@@ -3402,7 +3402,7 @@ func (this *Kucoin) ParseSpotOrUtaTicker(ticker any, optionalArgs ...any) any {
 	last = this.SafeString(ticker, "price", last)
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var percentage *string = this.SafeString(ticker, "changeRate")
 	if percentage != nil {
 		percentage = Precise.StringMul(percentage, "100")
@@ -4523,7 +4523,7 @@ func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code any, optio
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
-	var currencyId any = currency["id"]
+	var currencyId *string = SafeStringPtr(currency["id"])
 	var request map[string]any = map[string]any{
 		"currency": currencyId,
 	}
@@ -4541,7 +4541,7 @@ func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code any, optio
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 	var address *string = this.SafeString(data, "address")
-	if !IsEqual(currencyId, "NIM") {
+	if currencyId == nil || *currencyId != "NIM" {
 		// contains spaces
 		this.CheckAddress(address)
 	}
@@ -5520,8 +5520,8 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
-	var isSpot any = market["spot"]
-	var isContract any = market["contract"]
+	var isSpot *bool = SafeBoolPtr(market["spot"])
+	var isContract *bool = SafeBoolPtr(market["contract"])
 	var accountMode any = "unified"
 	var accountModeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "accountMode", accountMode)
 	accountMode = GetValue(accountModeparamsVariable, 0)
@@ -5550,7 +5550,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	var cost *string = this.SafeString(params, "cost")
 	if cost != nil {
 		params = this.Omit(params, "cost")
-		if (isSpot == true) && isMarketOrder {
+		if (isSpot != nil && *isSpot == true) && isMarketOrder {
 			request["sizeUnit"] = "QUOTECCY"
 			request["size"] = this.MarketOrderAmountToPrecision(symbol, cost)
 		} else {
@@ -5558,7 +5558,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 		}
 	} else {
 		var sizeUnit any = "BASECCY"
-		if isContract == true {
+		if isContract != nil && *isContract == true {
 			var sizeUnitparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "sizeUnit", "UNIT")
 			sizeUnit = GetValue(sizeUnitparamsVariable, 0)
 			params = GetValue(sizeUnitparamsVariable, 1)
@@ -5581,7 +5581,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	if postOnly == true {
 		request["postOnly"] = true
 	}
-	if isContract == true {
+	if isContract != nil && *isContract == true {
 		if !isUnified {
 			if marginMode != nil {
 				request["marginMode"] = ToUpper(marginMode)
@@ -5643,7 +5643,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 		}()
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	} else if hasStopLoss || hasTakeProfit {
-		if isContract != true {
+		if isContract == nil || *isContract != true {
 			panic(NotSupported(this.Id + " createOrder() stopLoss and takeProfit parameters are only supported for contract orders"))
 		}
 		if hasStopLoss {
@@ -5667,7 +5667,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 				return "DOWN"
 			}()
 			request["triggerPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
-			if isContract == true {
+			if isContract != nil && *isContract == true {
 				var stopLossPriceType *string = this.SafeString2(params, "stopLossPriceType", "triggerPriceType", "mark")
 				request["triggerPriceType"] = this.SafeString(triggerPriceTypes, stopLossPriceType, stopLossPriceType)
 			}
@@ -5679,7 +5679,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 				return "UP"
 			}()
 			request["triggerPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
-			if isContract == true {
+			if isContract != nil && *isContract == true {
 				var takeProfitPriceType *string = this.SafeString2(params, "takeProfitPriceType", "triggerPriceType", "mark")
 				request["triggerPriceType"] = this.SafeString(triggerPriceTypes, takeProfitPriceType, takeProfitPriceType)
 			}
@@ -6746,9 +6746,9 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var isContract any = market["contract"]
+	var isContract *bool = SafeBoolPtr(market["contract"])
 	var tradeType string = func() string {
-		if isContract == true {
+		if isContract != nil && *isContract == true {
 			return "FUTURES"
 		}
 		return "SPOT"
@@ -7966,7 +7966,7 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var orderId *string = this.SafeString2(order, "id", "orderId")
 	var typeVar *string = this.SafeString(order, "type")
 	var timestamp *int64 = this.SafeInteger(order, "createdAt")
@@ -8281,7 +8281,7 @@ func (this *Kucoin) ParseUtaOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeIntegerProduct2(order, "orderTime", "ts", 0.000001)
 	var lastUpdateTimestamp *int64 = this.SafeIntegerProduct(order, "updatedTime", 0.000001)
 	var rawTimeInForce *string = this.SafeString(order, "timeInForce")
@@ -13565,7 +13565,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		})
 	}
 	for i := 0; i < GetArrayLength(ids); i++ {
-		var orderId any = GetValue(ids, i)
+		var orderId *string = SafeStringPtr(GetValue(ids, i))
 		if uta == true {
 			ordersRequests = append(ordersRequests, map[string]any{
 				"orderId": orderId,
