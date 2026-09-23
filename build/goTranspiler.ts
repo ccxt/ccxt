@@ -4893,7 +4893,7 @@ ${caseStatements.join('\n')}
                     // Only match lines that start with type or func
                     if (!(
                         /^\s*func\s+/.test(line) ||
-                        /^\s*type\s+\w+\s+(?:struct\s*\{|interface\s*\{|func\s*\()/.test(line)
+                        /^\s*type\s+\w+(?:\[[^\]]*\])?\s+(?:struct\s*\{|interface\s*\{|func\s*\()/.test(line)
                     )) continue;
 
                     const trimmed = line.trim();
@@ -4904,7 +4904,8 @@ ${caseStatements.join('\n')}
                     const parts = trimmed.split(/\s+/);
                     if (parts.length < 2) continue;
 
-                    let name = parts[1].split("(")[0]; // keep only before `(`
+                    // keep only the identifier: `Name(` and generic `Name[T any](` both end at the bracket
+                    let name = parts[1].split(/[(\[]/)[0];
                     if (name.trim() !== "") results.add(name);
                 }
             }
