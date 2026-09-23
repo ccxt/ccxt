@@ -2715,7 +2715,7 @@ fetches all available currencies on an exchange
 <a name="fetchDeposit" id="fetchdeposit"></a>
 
 ## fetchDeposit
-fetch information on a deposit
+fetch data on a currency deposit via the deposit id, looks back 30 days for uta accounts and 90 days otherwise
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
@@ -2724,12 +2724,12 @@ fetch information on a deposit
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | deposit id |
-| code | <code>string</code> | Yes | unified currency code |
+| code | <code>string</code> | No | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.txid | <code>string</code> | No | the transaction id for the deposit |
-| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 ##### Supported exchanges
+* [bitget](/exchanges/bitget.md#fetchdeposit)
 * [bithumb](/exchanges/bithumb.md#fetchdeposit)
 * [bitso](/exchanges/bitso.md#fetchdeposit)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchdeposit)
@@ -6718,7 +6718,7 @@ fetch the historical volatility of an option market based on an underlying asset
 <a name="fetchWithdrawal" id="fetchwithdrawal"></a>
 
 ## fetchWithdrawal
-fetch data on a currency withdrawal via the withdrawal id
+fetch data on a currency withdrawal via the withdrawal id, looks back 30 days for uta accounts and 90 days otherwise
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
@@ -6727,12 +6727,12 @@ fetch data on a currency withdrawal via the withdrawal id
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | withdrawal id |
-| code | <code>string</code> | No | the currency code |
+| code | <code>string</code> | No | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.txid | <code>string</code> | No | the transaction id for the withdrawal |
-| params.generation | <code>int</code> | No | *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2 |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 ##### Supported exchanges
+* [bitget](/exchanges/bitget.md#fetchwithdrawal)
 * [bithumb](/exchanges/bithumb.md#fetchwithdrawal)
 * [bitopro](/exchanges/bitopro.md#fetchwithdrawal)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchwithdrawal)
