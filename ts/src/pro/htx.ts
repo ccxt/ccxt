@@ -478,7 +478,10 @@ export default class htx extends htxRest {
         }
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         let method: any = this.handleOrderBookSubscription;
-        const paramsExtended: Dict = (market['spot'] !== true) ? this.extend (params, { 'data_type': 'incremental' }) : params;
+        let paramsExtended: Dict = params;
+        if (market['spot'] !== true) {
+            paramsExtended = this.extend (params, { 'data_type': 'incremental' });
+        }
         if (market['spot'] !== true) {
             method = undefined;
         }

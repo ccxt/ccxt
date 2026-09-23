@@ -441,7 +441,8 @@ export default class nado extends Exchange {
         const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder) {
             // the final omit drops triggerDirection from the request
-            const [ triggerDirection ] = this.handleTriggerDirectionAndParams (paramsRecvWindow);
+            const triggerDirectionAndParams = this.handleTriggerDirectionAndParams (paramsRecvWindow);
+            const triggerDirection: Str = triggerDirectionAndParams[0];
             const directionSuffix = (triggerDirection === 'ascending') ? 'above' : 'below';
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};

@@ -1501,9 +1501,11 @@ export default class xt extends Exchange {
             const duration = this.parseTimeframe (timeframe) * 1000;
             request['startTime'] = Math.ceil (since / duration) * duration;
         }
+        let limitResolved: Int = limit;
         if (limit !== undefined) {
             const maxLimit = (market['spot'] === true) ? 1000 : 1500; // spot : derivatives max limit
-            request['limit'] = Math.min (limit, maxLimit);
+            limitResolved = Math.min (limit, maxLimit);
+            request['limit'] = limitResolved;
         } else {
             request['limit'] = 1000;
         }
@@ -1562,7 +1564,7 @@ export default class xt extends Exchange {
         //     }
         //
         const ohlcvs = this.safeList (response, 'result', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limitResolved);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {

@@ -1766,7 +1766,12 @@ export default class btse extends Exchange {
         if ((clientOrderId === undefined) && (id === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires an id argument or a clientOrderId parameter');
         }
-        const orderIdParams: Dict = (clientOrderId === undefined) ? { 'orderID': id } : { 'clOrderID': clientOrderId };
+        let orderIdParams: Dict = {};
+        if (clientOrderId === undefined) {
+            orderIdParams = { 'orderID': id };
+        } else {
+            orderIdParams = { 'clOrderID': clientOrderId };
+        }
         return await this.fetchMyTrades (symbol, since, limit, this.extend (params, orderIdParams));
     }
 

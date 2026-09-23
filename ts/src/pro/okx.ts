@@ -126,17 +126,20 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsRequested: Strings = (symbols === undefined) ? this.symbols : symbols;
+        let symbolsRequested: Strings = symbols;
+        if (symbols === undefined) {
+            symbolsRequested = this.symbols;
+        }
         const symbolsNormalized: Strings = this.marketSymbols (symbolsRequested);
         const url = this.getUrl (channel, access);
         const messageHashes: List = [];
         const args: List = [];
         if (symbolsNormalized === undefined) {
-            throw new ArgumentsRequired (this.id + ' subscribeMultiple() symbolsNormalized is required');
+            throw new ArgumentsRequired (this.id + ' subscribeMultiple() symbols is required');
         }
         for (let i = 0; i < symbolsNormalized.length; i++) {
             if (symbolsNormalized === undefined) {
-                throw new ArgumentsRequired (this.id + ' subscribeMultiple() symbolsNormalized is required');
+                throw new ArgumentsRequired (this.id + ' subscribeMultiple() symbols is required');
             }
             const marketId = this.marketId (symbolsNormalized[i]);
             const arg: Dict = {
@@ -145,7 +148,7 @@ export default class okx extends okxRest {
             };
             args.push (this.extend (arg, params));
             if (symbolsNormalized === undefined) {
-                throw new ArgumentsRequired (this.id + ' subscribeMultiple() symbolsNormalized is required');
+                throw new ArgumentsRequired (this.id + ' subscribeMultiple() symbols is required');
             }
             messageHashes.push (channel + '::' + symbolsNormalized[i]);
         }

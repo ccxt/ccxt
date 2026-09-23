@@ -2229,7 +2229,10 @@ export default class alpaca extends Exchange {
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api[0]]);
-        const headersValue: NullableDict = (headers !== undefined) ? headers : {};
+        let headersValue: NullableDict = {};
+        if (headers !== undefined) {
+            headersValue = headers;
+        }
         if (api[1] === 'private') {
             this.checkRequiredCredentials ();
             headersValue['APCA-API-KEY-ID'] = this.apiKey;

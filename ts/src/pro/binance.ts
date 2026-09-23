@@ -2141,12 +2141,10 @@ export default class binance extends binanceRest {
         const [ stock, paramsStock ] = this.handleOptionAndParams (params, 'watchTickers', 'stock', false);
         let symbolsNormalized: Strings = symbols;
         if (stock) {
-            symbolsNormalized = this.marketSymbols (symbols, undefined, false, false, true);
-        }
-        if (stock) {
             if (symbols === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchTickers() with stock stream requires symbols');
             }
+            symbolsNormalized = this.marketSymbols (symbols, undefined, false, false, true);
             const stockResult = await this.watchStockMarketStream ([ 'price' ], [ 'stock:price' ], paramsStock);
             if (this.newUpdates) {
                 return stockResult;
@@ -3654,10 +3652,11 @@ export default class binance extends binanceRest {
     }
 
     getMarketType (method: any, market: any, params: Dict = {}) {
-        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams (method, market, params);
+        let type: Str = undefined;
+        let paramsMarketType: Dict = {};
+        [ type, paramsMarketType ] = this.handleMarketTypeAndParams (method, market, params);
         const subTypeAndParams = this.handleSubTypeAndParams (method, market, paramsMarketType);
         const subType: Str = subTypeAndParams[0];
-        let type: Str = marketType;
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {

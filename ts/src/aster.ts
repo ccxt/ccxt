@@ -1949,7 +1949,10 @@ export default class aster extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = (symbols !== undefined) ? this.marketSymbols (symbols) : symbols;
+        let symbolsNormalized: Strings = symbols;
+        if (symbols !== undefined) {
+            symbolsNormalized = this.marketSymbols (symbols);
+        }
         const response = await this.fapiPublicGetV3FundingInfo (params);
         //
         //     [

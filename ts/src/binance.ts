@@ -12002,22 +12002,19 @@ export default class binance extends Exchange {
         await this.loadLeverageBrackets (false, params);
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
-        let paramsOmitted: Dict = this.omit (params, 'type');
-        let subType: SubType = undefined;
-        [ subType, paramsOmitted ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, paramsOmitted, 'linear');
-        let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, paramsOmitted ] = this.handleOptionAndParams2 (paramsOmitted, 'fetchAccountPositions', 'papi', 'portfolioMargin', false);
+        const paramsOmitted: Dict = this.omit (params, 'type');
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, paramsOmitted, 'linear');
+        const [ isPortfolioMargin, paramsPapi ] = this.handleOptionAndParams2 (paramsSubType, 'fetchAccountPositions', 'papi', 'portfolioMargin', false);
         let response: NullableDict = undefined;
         if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
-                response = await this.papiV2GetUmAccount (paramsOmitted);
+                response = await this.papiV2GetUmAccount (paramsPapi);
             } else {
-                let useV2: Bool = undefined;
-                [ useV2, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'fetchAccountPositions', 'useV2', false);
+                const [ useV2, paramsUseV2 ] = this.handleOptionAndParams (paramsPapi, 'fetchAccountPositions', 'useV2', false);
                 if (!useV2) {
-                    response = await this.fapiPrivateV3GetAccount (paramsOmitted);
+                    response = await this.fapiPrivateV3GetAccount (paramsUseV2);
                 } else {
-                    response = await this.fapiPrivateV2GetAccount (paramsOmitted);
+                    response = await this.fapiPrivateV2GetAccount (paramsUseV2);
                 }
                 //
                 //    {
@@ -12088,15 +12085,14 @@ export default class binance extends Exchange {
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
-                response = await this.papiGetCmAccount (paramsOmitted);
+                response = await this.papiGetCmAccount (paramsPapi);
             } else {
-                response = await this.dapiPrivateGetAccount (paramsOmitted);
+                response = await this.dapiPrivateGetAccount (paramsPapi);
             }
         } else {
             throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
         }
-        let filterClosed: Bool = undefined;
-        [ filterClosed, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'fetchAccountPositions', 'filterClosed', false);
+        const [ filterClosed ] = this.handleOptionAndParams (paramsPapi, 'fetchAccountPositions', 'filterClosed', false);
         const result = this.parseAccountPositions (response, filterClosed);
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
@@ -14689,7 +14685,10 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = (symbols !== undefined) ? this.marketSymbols (symbols) : symbols;
+        let symbolsNormalized: Strings = symbols;
+        if (symbols !== undefined) {
+            symbolsNormalized = this.marketSymbols (symbols);
+        }
         let market: Market = undefined;
         if (symbolsNormalized !== undefined) {
             market = this.market (symbolsNormalized[0]);
@@ -15440,7 +15439,10 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = (symbols !== undefined) ? this.marketSymbols (symbols) : symbols;
+        let symbolsNormalized: Strings = symbols;
+        if (symbols !== undefined) {
+            symbolsNormalized = this.marketSymbols (symbols);
+        }
         let market: Market = undefined;
         if (symbolsNormalized !== undefined) {
             market = this.market (symbolsNormalized[0]);

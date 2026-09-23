@@ -1452,7 +1452,10 @@ export default class htx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsValue: Strings = (symbols === undefined) ? this.symbols : symbols;
+        let symbolsValue: Strings = symbols;
+        if (symbols === undefined) {
+            symbolsValue = this.symbols;
+        }
         if (symbolsValue === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }

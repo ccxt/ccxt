@@ -1258,7 +1258,10 @@ export class BaseExchange {
             // in node-js we need to set header to *
             requestHeaders = this.extend ({ 'Origin': this.origin }, requestHeaders);
         }
-        const requestUrl = (proxyUrl !== undefined) ? (proxyUrl + this.urlEncoderForProxyUrl (url)) : url;
+        let requestUrl = url;
+        if (proxyUrl !== undefined) {
+            requestUrl = proxyUrl + this.urlEncoderForProxyUrl (url);
+        }
         // proxy agents
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (requestUrl, method, requestHeaders, body);
         let anyProxySet: Str = undefined;
@@ -4733,7 +4736,10 @@ export class BaseExchange {
     safeOrder (order: Dict, market: Market = undefined): Order {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
-        const orderDict: Dict = (order === undefined) ? {} : order;
+        let orderDict: Dict = order;
+        if (order === undefined) {
+            orderDict = {};
+        }
         let amount = this.omitZero (this.safeString (orderDict, 'amount'));
         let remaining = this.safeString (orderDict, 'remaining');
         let filled = this.safeString (orderDict, 'filled');
@@ -6011,9 +6017,8 @@ export class BaseExchange {
     }
 
     parseOrderBook (orderbook: object | undefined, symbol: Str, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): OrderBook {
-        const orderbookDict: object = (orderbook === undefined) ? {} : orderbook;
-        const bids = this.parseOrderBookBidsAsks (this.safeValue (orderbookDict, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseOrderBookBidsAsks (this.safeValue (orderbookDict, asksKey, []), priceKey, amountKey, countOrIdKey);
+        const bids = this.parseOrderBookBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy (bids, 0, true),

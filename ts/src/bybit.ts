@@ -4544,7 +4544,12 @@ export default class bybit extends Exchange {
                 query = this.omit (query, 'reduceOnly');
             }
             // a reduce-only order closes the position on the opposite side
-            const isBuyPosition = (reduceOnly === true) ? (side === 'sell') : (side === 'buy');
+            let isBuyPosition = false;
+            if (reduceOnly === true) {
+                isBuyPosition = side === 'sell';
+            } else {
+                isBuyPosition = side === 'buy';
+            }
             request['positionIdx'] = (isBuyPosition) ? 1 : 2;
         }
         query = this.omit (query, [ 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged' ]);

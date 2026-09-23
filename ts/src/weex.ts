@@ -1781,7 +1781,12 @@ export default class weex extends Exchange {
         const realizedPnl = this.safeString (trade, 'realizedPnl');
         const tradeMarketType = (realizedPnl !== undefined) ? 'swap' : 'spot';
         const marketResolved: Market = (market === undefined) ? this.safeMarket (tradeMarketId, undefined, undefined, tradeMarketType) : market;
-        const isSpot: Bool = (market === undefined) ? (tradeMarketType === 'spot') : market['spot'];
+        let isSpot: Bool = undefined;
+        if (market === undefined) {
+            isSpot = tradeMarketType === 'spot';
+        } else {
+            isSpot = market['spot'];
+        }
         let fee: FeeString = undefined;
         const commission = this.safeString (trade, 'commission');
         if (commission !== undefined) {

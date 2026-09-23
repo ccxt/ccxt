@@ -333,7 +333,10 @@ export default class coinbase extends coinbaseRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsResolved: Strings = (symbols === undefined) ? this.symbols : symbols;
+        let symbolsResolved: Strings = symbols;
+        if (symbols === undefined) {
+            symbolsResolved = this.symbols;
+        }
         const name = 'ticker_batch';
         const ticker = await this.subscribeMultiple (name, false, symbolsResolved, params);
         if (this.newUpdates) {
@@ -358,7 +361,10 @@ export default class coinbase extends coinbaseRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsResolved: Strings = (symbols === undefined) ? this.symbols : symbols;
+        let symbolsResolved: Strings = symbols;
+        if (symbols === undefined) {
+            symbolsResolved = this.symbols;
+        }
         return await this.unSubscribeMultiple ('ticker', 'ticker_batch', false, symbolsResolved);
     }
 

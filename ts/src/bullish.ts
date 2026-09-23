@@ -1092,7 +1092,10 @@ export default class bullish extends Exchange {
             await this.loadMarkets ();
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        const paramsExtended: Dict = (clientOrderId === undefined) ? this.extend ({ 'orderId': id }, params) : params;
+        let paramsExtended: Dict = params;
+        if (clientOrderId === undefined) {
+            paramsExtended = this.extend ({ 'orderId': id }, params);
+        }
         return await this.fetchMyTrades (symbol, since, limit, paramsExtended);
     }
 
@@ -1592,7 +1595,10 @@ export default class bullish extends Exchange {
         }
         if ((since !== undefined) || (until !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
-            const sinceResolved: Int = (since === undefined) ? (until as number) - timeDelta : since;
+            let sinceResolved: Int = since;
+            if (since === undefined) {
+                sinceResolved = (until as number) - timeDelta;
+            }
             if ((since !== undefined) && (until === undefined)) {
                 until = this.sum (since, timeDelta);
                 const now = this.milliseconds ();

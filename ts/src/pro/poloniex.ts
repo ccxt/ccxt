@@ -241,12 +241,10 @@ export default class poloniex extends poloniexRest {
         const isMarketBuy = (uppercaseType === 'MARKET') && (uppercaseSide === 'BUY');
         let paramsOmitted: Dict = params;
         if (isMarketBuy) {
-            paramsOmitted = this.omit (params, [ 'createMarketBuyOrderRequiresPrice', 'cost' ]);
-        }
-        if (isMarketBuy) {
             let quoteAmount: Str = undefined;
             const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeNumber (paramsRequiresPrice, 'cost');
+            paramsOmitted = this.omit (paramsRequiresPrice, 'cost');
             if (cost !== undefined) {
                 quoteAmount = this.costToPrecision (symbol, cost);
             } else if (createMarketBuyOrderRequiresPrice) {

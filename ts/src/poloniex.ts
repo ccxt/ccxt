@@ -1140,7 +1140,10 @@ export default class poloniex extends Exchange {
         await this.loadMarkets ();
         let market: Market = undefined;
         const request: Dict = {};
-        const symbolsNormalized: Strings = (symbols !== undefined) ? this.marketSymbols (symbols, undefined, true, true, false) : symbols;
+        let symbolsNormalized: Strings = symbols;
+        if (symbols !== undefined) {
+            symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, false);
+        }
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 0) {

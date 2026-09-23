@@ -41,7 +41,10 @@ export default class upbit extends upbitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsRequested: Strings = (symbols === undefined) ? this.symbols : symbols;
+        let symbolsRequested: Strings = symbols;
+        if (symbols === undefined) {
+            symbolsRequested = this.symbols;
+        }
         const symbolsMarket: Strings = this.marketSymbols (symbolsRequested);
         const symbolsNormalized: string[] = (symbolsMarket === undefined) ? [] : symbolsMarket;
         const marketIds = this.marketIds (symbolsNormalized);
@@ -376,7 +379,10 @@ export default class upbit extends upbitRest {
             const marketIds = this.marketIds (symbols);
             request['codes'] = marketIds;
         }
-        const messageHashResolved = (symbolResolved !== undefined) ? (messageHash + ':' + symbolResolved) : messageHash;
+        let messageHashResolved = messageHash;
+        if (symbolResolved !== undefined) {
+            messageHashResolved = messageHash + ':' + symbolResolved;
+        }
         let url = this.implodeParams (this.urls['api']['ws'], {
             'hostname': this.hostname,
         });

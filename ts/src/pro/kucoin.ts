@@ -1036,8 +1036,8 @@ export default class kucoin extends kucoinRest {
         const isContractMarket = ((topic as string).indexOf ('contractMarket') >= 0);
         let baseVolumeIndex = 5;
         if (isContractMarket) {
-            baseVolumeIndex = 6;
-        } // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
+            baseVolumeIndex = 6; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
+        }
         const parsed = [
             this.safeTimestamp (candles, 0),
             this.safeNumber (candles, 1),

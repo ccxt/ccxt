@@ -3107,7 +3107,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const rawTransactions = this.safeList (response, 'data', []);
-        return this.parseTransactions (rawTransactions, undefined, since, limit);
+        return this.parseTransactions (rawTransactions, undefined, sinceResolved, limit);
     }
 
     /**
@@ -3306,7 +3306,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const rawTransactions = this.safeList (response, 'data', []);
-        return this.parseTransactions (rawTransactions, currency, since, limit);
+        return this.parseTransactions (rawTransactions, currency, sinceResolved, limit);
     }
 
     /**
@@ -4738,9 +4738,9 @@ export default class bitget extends Exchange {
         const recentEndpointDaysMap = this.safeDict (this.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {});
         const recentEndpointAvailableDays = this.safeInteger (recentEndpointDaysMap, timeframe);
         const recentEndpointBoundaryTs = now - ((recentEndpointAvailableDays as number) - 1) * msInDay;
-        const limitCapped = Math.min (limit as number, maxLimitForRecentEndpoint);
         let limitResolved: Int = defaultLimit;
         if (limitDefined) {
+            const limitCapped = Math.min (limit as number, maxLimitForRecentEndpoint);
             limitResolved = Math.min (limitCapped, maxLimitForThisTimeframe as number);
         }
         let limitMultipliedDuration = limitResolved * duration;
@@ -6002,7 +6002,7 @@ export default class bitget extends Exchange {
                     quantity = this.costToPrecision (symbol, cost);
                 } else if (createMarketBuyOrderRequiresPrice) {
                     if (price === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options["createOrder"] or paramsMarketType to false and pass the cost to spend in the amount argument');
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options["createOrder"] or params to false and pass the cost to spend in the amount argument');
                     } else {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
@@ -10020,7 +10020,7 @@ export default class bitget extends Exchange {
             marginModeValue = 'crossed';
         }
         if ((marginModeValue !== 'isolated') && (marginModeValue !== 'crossed')) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() marginModeValue must be either isolated or crossed (cross)');
+            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be either isolated or crossed (cross)');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();

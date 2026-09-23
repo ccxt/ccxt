@@ -6493,8 +6493,8 @@ export default class gate extends Exchange {
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
         let type = marketType;
         if ((marketType === undefined) || (marketType === 'spot')) {
-            type = 'swap';
-        } // default to swap
+            type = 'swap'; // default to swap
+        }
         // prepareRequest leaves request empty and params untouched for options
         const [ request, query ] = this.prepareRequest (undefined, type, paramsMarketType);
         if (type === 'option') {

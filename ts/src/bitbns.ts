@@ -1300,7 +1300,10 @@ export default class bitbns extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();
         const queryLength = Object.keys (query).length;
-        const postBody = (queryLength > 0) ? this.json (query) : '{}';
+        let postBody = '{}';
+        if (queryLength > 0) {
+            postBody = this.json (query);
+        }
         const requestBody: Str = (method === 'POST') ? postBody : body;
         if (method === 'GET') {
             if (queryLength > 0) {

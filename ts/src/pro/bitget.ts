@@ -1627,8 +1627,8 @@ export default class bitget extends bitgetRest {
         }
         let instId: Str = 'default';
         if (type === 'spot' || type === 'margin') {
-            instId = marketId;
-        } // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+            instId = marketId; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        }
         let channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('watchOrders', paramsInstType);
         if (marginMode !== undefined) {

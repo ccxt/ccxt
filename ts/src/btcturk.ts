@@ -726,8 +726,8 @@ export default class btcturk extends Exchange {
         }
         let limitDefaulted = limit;
         if ((since === undefined) && (limit === undefined)) {
-            limitDefaulted = 100;
-        } // default value
+            limitDefaulted = 100; // default value
+        }
         const limitResolved = (limitDefaulted !== undefined) ? Math.min (limitDefaulted, 11000) : undefined; // max 11000 candles diapason can be covered
         if (limitResolved !== undefined) {
             if (timeframe === '1y') { // difficult with leap years

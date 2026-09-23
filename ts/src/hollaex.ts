@@ -1920,7 +1920,10 @@ export default class hollaex extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const addressWithTag = (tagWithdrawTag !== undefined) ? address + ':' + tagWithdrawTag : address;
+        let addressWithTag = address;
+        if (tagWithdrawTag !== undefined) {
+            addressWithTag = address + ':' + tagWithdrawTag;
+        }
         const network = this.safeString (paramsWithdrawTag, 'network');
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');

@@ -2653,6 +2653,7 @@ export default class mexc extends Exchange {
         }
         const ordersRequests: Dict[] = [];
         let symbol: Str = undefined;
+        let paramsLoop: Dict = params;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -2672,7 +2673,8 @@ export default class mexc extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const [ marginMode ] = this.handleMarginModeAndParams ('createOrder', params);
+            let marginMode: Str = undefined;
+            [ marginMode, paramsLoop ] = this.handleMarginModeAndParams ('createOrder', paramsLoop);
             const orderRequest = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, orderParams);
             ordersRequests.push (orderRequest);
         }

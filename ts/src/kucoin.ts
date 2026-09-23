@@ -11722,7 +11722,10 @@ export default class kucoin extends Exchange {
         }
         const query = this.omit (paramsOmitted, this.extractParams (path));
         let endpart = '';
-        const headersBase: NullableDict = (headers !== undefined) ? headers : {};
+        let headersBase: NullableDict = {};
+        if (headers !== undefined) {
+            headersBase = headers;
+        }
         let bodyJson: Str = body;
         let url = this.urls['api'][api];
         const tradeType = this.safeString (query, 'tradeType');

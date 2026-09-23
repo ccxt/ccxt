@@ -3911,7 +3911,7 @@ export default class okx extends Exchange {
                     });
                 } else {
                     request.push ({
-                        'ordId': ids[i],
+                        'ordId': orderIds[i],
                         'instId': market['id'],
                     });
                 }

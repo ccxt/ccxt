@@ -1018,16 +1018,15 @@ export default class krakenfutures extends Exchange {
         let rawTrades: Dict[] = [];
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
-            // handleUntilOption writes the until value into request in place
-            const paramsUntil = this.handleUntilOption ('before', request, paramsMethod)[1];
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('before', request, paramsMethod);
             if (since !== undefined) {
-                request['since'] = since;
-                request['sort'] = 'asc';
+                requestUntil['since'] = since;
+                requestUntil['sort'] = 'asc';
             }
             if (limit !== undefined) {
-                request['count'] = limit;
+                requestUntil['count'] = limit;
             }
-            const response = await this.historyGetMarketSymbolExecutions (this.extend (request, paramsUntil));
+            const response = await this.historyGetMarketSymbolExecutions (this.extend (requestUntil, paramsUntil));
             //
             //    {
             //        "elements": [
@@ -1090,9 +1089,8 @@ export default class krakenfutures extends Exchange {
                 rawTrades.push (rawTrade);
             }
         } else {
-            // handleUntilOption writes the until value into request in place
-            const paramsUntil = this.handleUntilOption ('lastTime', request, paramsMethod)[1];
-            const response = await this.publicGetHistory (this.extend (request, paramsUntil));
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('lastTime', request, paramsMethod);
+            const response = await this.publicGetHistory (this.extend (requestUntil, paramsUntil));
             //
             //    {
             //        "result": "success",
