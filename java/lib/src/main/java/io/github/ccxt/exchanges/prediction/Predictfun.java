@@ -4137,7 +4137,7 @@ final Object finalSubHash = subHash;
      * @description the wallet topic, which carries the jwt inside the topic string itself
      * @returns {string} the topic to subscribe to
      */
-    public CompletableFuture<Object> walletEventsTopic()
+    public CompletableFuture<String> walletEventsTopic()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4150,7 +4150,7 @@ final Object finalSubHash = subHash;
             // rewrites such identifiers into self.jwt, which lands as a broken assignment in python
             Object walletToken = (this.authenticate()).join();
             return ("predictWalletEvents/" + walletToken);
-        });
+        }).thenApply(res -> (String) res);
 
     }
 
@@ -4168,7 +4168,7 @@ final Object finalSubHash = subHash;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object topic = (this.walletEventsTopic()).join();
+            String topic = (this.walletEventsTopic()).join();
             Object requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
@@ -4261,7 +4261,7 @@ final Object finalSubHash = subHash;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object topic = (this.walletEventsTopic()).join();
+            String topic = (this.walletEventsTopic()).join();
             Object requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );

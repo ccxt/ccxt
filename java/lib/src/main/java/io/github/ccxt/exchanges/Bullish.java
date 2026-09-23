@@ -3509,7 +3509,7 @@ public class Bullish extends BullishApi
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3558,7 +3558,7 @@ public class Bullish extends BullishApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -4222,7 +4222,7 @@ public class Bullish extends BullishApi
         return this.signIn(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
-    public CompletableFuture<Object> handleToken(Map<String, Object> parameters)
+    public CompletableFuture<String> handleToken(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4237,10 +4237,10 @@ public class Bullish extends BullishApi
             {
                 return this.token;
             }
-        });
+        }).thenApply(res -> (String) res);
 
     }
-    public CompletableFuture<Object> handleToken(Object... optionalArgs)
+    public CompletableFuture<String> handleToken(Object... optionalArgs)
     {
         return this.handleToken(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }

@@ -1295,11 +1295,11 @@ public class Limitless extends LimitlessApi
         //
         // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
         Object raw = ticker;
-        Object book = null;
+        Map<String, Object> book = null;
         if (ticker.containsKey("market"))
         {
             raw = this.safeDict(ticker, "market", new HashMap<String, Object>() {{}});
-            book = this.safeDict(ticker, "book");
+            book = (Map<String, Object>) this.safeDict(ticker, "book");
         }
         String rawLabel = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "label", this.safeString(((Map<String, Object>)market).get("info"), "outcomeLabel", "yes")) : "yes";
         Boolean isYes = !java.util.Objects.equals(rawLabel.toLowerCase(), "no");

@@ -1468,16 +1468,16 @@ public class Modetrade extends ModetradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.v1PublicGetPublicFundingRates(parameters)).join();
             //
             // {
@@ -1513,7 +1513,7 @@ public class Modetrade extends ModetradeApi
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3886,7 +3886,7 @@ public class Modetrade extends ModetradeApi
         return this.fetchDepositsWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> getWithdrawNonce(Map<String, Object> parameters)
+    public CompletableFuture<Double> getWithdrawNonce(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3903,10 +3903,10 @@ public class Modetrade extends ModetradeApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeNumber(data, "withdraw_nonce");
-        });
+        }).thenApply(res -> (res instanceof Number n) ? n.doubleValue() : null);
 
     }
-    public CompletableFuture<Object> getWithdrawNonce(Object... optionalArgs)
+    public CompletableFuture<Double> getWithdrawNonce(Object... optionalArgs)
     {
         return this.getWithdrawNonce(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -3972,7 +3972,7 @@ public class Modetrade extends ModetradeApi
             {
                 throw new BadRequest((this.id + " withdraw() require chainId parameter")) ;
             }
-            Object withdrawNonce = (this.getWithdrawNonce(parameters)).join();
+            Double withdrawNonce = (this.getWithdrawNonce(parameters)).join();
             Object nonce = this.nonce();
             final String finalChainId = chainId;
             Map<String, Object> domain = new HashMap<String, Object>() {{
@@ -4348,7 +4348,7 @@ public class Modetrade extends ModetradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4413,7 +4413,7 @@ public class Modetrade extends ModetradeApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object nonce()

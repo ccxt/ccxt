@@ -615,7 +615,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchBidsAsks(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -635,7 +635,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
      */
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
     {
-        return this.watchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleBidsAsksForMultidata(Client client, Object rawBidAskChanges, Object timestamp, Object nonce)
@@ -708,13 +708,13 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         client.resolve(bidsAsksDict, messageHash);
     }
 
-    public CompletableFuture<Object> helperForWatchMultipleConstruct(String itemHashName2, Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> helperForWatchMultipleConstruct(String itemHashName2, List<String> symbols2, Map<String, Object> parameters)
     {
         final String itemHashName3 = itemHashName2;
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             String itemHashName = itemHashName3;
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -723,7 +723,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             {
                 throw new NotSupported((this.id + " watchMultiple requires at least one symbol")) ;
             }
-            symbols = this.marketSymbols(symbols, null, false, true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false, true, true));
             Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             if ((!java.util.Objects.equals(((Map<String, Object>)firstMarket).get("spot"), true)) && (!java.util.Objects.equals(((Map<String, Object>)firstMarket).get("linear"), true)))
             {
@@ -757,7 +757,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
     }
     public CompletableFuture<Object> helperForWatchMultipleConstruct(String itemHashName, Object... optionalArgs)
     {
-        return this.helperForWatchMultipleConstruct(itemHashName, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.helperForWatchMultipleConstruct(itemHashName, Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrderBookForMultidata(Client client, Object rawOrderBookChanges, Object timestamp, Object nonce)

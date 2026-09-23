@@ -617,7 +617,7 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
-    public CompletableFuture<Object> preLoadLighterLibrary(Map<String, Object> parameters2)
+    public CompletableFuture<Boolean> preLoadLighterLibrary(Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -645,7 +645,7 @@ public class Lighter extends LighterApi
             signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex)).join();
             (this.handleBuilderFeeApproval(accountIndex, apiKeyIndex)).join();
             return (!java.util.Objects.equals(signer, null));
-        });
+        }).thenApply(res -> (Boolean) res);
 
     }
     /**
@@ -655,7 +655,7 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
-    public CompletableFuture<Object> preLoadLighterLibrary(Object... optionalArgs)
+    public CompletableFuture<Boolean> preLoadLighterLibrary(Object... optionalArgs)
     {
         return this.preLoadLighterLibrary(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -764,7 +764,7 @@ public class Lighter extends LighterApi
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "createSubAccount", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
@@ -927,7 +927,7 @@ public class Lighter extends LighterApi
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new HashMap<String, Object>() {{
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "skipNonce", false );
             }}))).join();
             Long expiry = (this.milliseconds() + (365L * 864000L));
@@ -978,7 +978,7 @@ public class Lighter extends LighterApi
             var privateKeypublicKeyVariable = this.lighterGenerateApiKey(signerNotLoad);
             var privateKey = ((List<Object>) privateKeypublicKeyVariable).get(0);
             var publicKey = ((List<Object>) privateKeypublicKeyVariable).get(1);
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new HashMap<String, Object>() {{
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "skipNonce", false );
             }}))).join();
             final Object finalApiKeyIndex = apiKeyIndex;
@@ -1226,7 +1226,7 @@ public class Lighter extends LighterApi
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> fetchNonce(Object accountIndex2, Object apiKeyIndex2, Map<String, Object> parameters2)
+    public CompletableFuture<Long> fetchNonce(Object accountIndex2, Object apiKeyIndex2, Map<String, Object> parameters2)
     {
         final Object accountIndex3 = accountIndex2;
         final Object apiKeyIndex3 = apiKeyIndex2;
@@ -1264,10 +1264,10 @@ public class Lighter extends LighterApi
                 put( "api_key_index", finalApiKeyIndex );
             }})).join();
             return this.safeInteger(response, "nonce");
-        });
+        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
-    public CompletableFuture<Object> fetchNonce(Object accountIndex, Object apiKeyIndex, Object... optionalArgs)
+    public CompletableFuture<Long> fetchNonce(Object accountIndex, Object apiKeyIndex, Object... optionalArgs)
     {
         return this.fetchNonce(accountIndex, apiKeyIndex, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -1471,7 +1471,7 @@ public class Lighter extends LighterApi
             {
                 amountStr = this.amountToPrecision(symbol, amount);
             }
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalAmountStr = amountStr;
             final Object finalTriggerPriceStr = triggerPriceStr;
             final Object finalApiKeyIndex = apiKeyIndex;
@@ -2190,16 +2190,16 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.publicGetOrderBookDetails(parameters)).join();
             List<Object> spotTickers = (List<Object>) this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> swapTickers = (List<Object>) this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
@@ -2219,7 +2219,7 @@ public class Lighter extends LighterApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -2412,7 +2412,7 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2460,7 +2460,7 @@ public class Lighter extends LighterApi
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2643,7 +2643,7 @@ public class Lighter extends LighterApi
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -2740,7 +2740,7 @@ public class Lighter extends LighterApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -3442,7 +3442,7 @@ public class Lighter extends LighterApi
             Object toRouteType = (((java.util.Objects.equals(toAccount, "perp")))) ? 0 : 1;
             String memo = this.safeString(parameters, "memo", "0x000000000000000000000000000000");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("memo")));
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalToAccountIndex = toAccountIndex;
             final Object finalAmount = amount;
             final Object finalApiKeyIndex = apiKeyIndex;
@@ -3970,7 +3970,7 @@ public class Lighter extends LighterApi
             }
             Long routeType = this.safeInteger(parameters, "routeType", 0); // 0: perp, 1: spot
             parameters = (Map<String, Object>) this.omit(parameters, "routeType");
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalAmount = amount;
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
@@ -4333,7 +4333,7 @@ public class Lighter extends LighterApi
         return this.setMarginMode(marginMode, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> modifyLeverageAndMarginMode(Object leverage, Object marginMode2, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Map<String, Object>> modifyLeverageAndMarginMode(Object leverage, Object marginMode2, String symbol2, Map<String, Object> parameters2)
     {
         final Object marginMode3 = marginMode2;
         final String symbol3 = symbol2;
@@ -4366,7 +4366,7 @@ public class Lighter extends LighterApi
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalMarginMode = marginMode;
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
@@ -4386,10 +4386,10 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             return (this.publicPostSendTx(request)).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> modifyLeverageAndMarginMode(Object leverage, Object marginMode, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> modifyLeverageAndMarginMode(Object leverage, Object marginMode, Object... optionalArgs)
     {
         return this.modifyLeverageAndMarginMode(leverage, marginMode, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -4425,7 +4425,7 @@ public class Lighter extends LighterApi
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
@@ -4521,7 +4521,7 @@ public class Lighter extends LighterApi
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
@@ -4617,7 +4617,7 @@ public class Lighter extends LighterApi
             Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
@@ -4769,7 +4769,7 @@ public class Lighter extends LighterApi
             Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Long finalDirection = direction;
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;

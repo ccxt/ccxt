@@ -1345,16 +1345,16 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", "ALL" );
             }};
@@ -1396,7 +1396,7 @@ public class Paradex extends ParadexApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1531,16 +1531,16 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             // the endpoint takes one market id, and ALL answers for every product on
             // the venue: a single symbol is asked for by name, which is 544 bytes
             // against 1.6 MB
@@ -1574,7 +1574,7 @@ public class Paradex extends ParadexApi
      */
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
-        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2088,7 +2088,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public CompletableFuture<Object> prepareParadexDomain(Object l12)
+    public CompletableFuture<Map<String, Object>> prepareParadexDomain(Object l12)
     {
         final Object l13 = l12;
         return BaseExchange.supplyAsync(() -> {
@@ -2109,10 +2109,10 @@ public class Paradex extends ParadexApi
                 put( "version", 1 );
             }};
             return domain;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> prepareParadexDomain(Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> prepareParadexDomain(Object... optionalArgs)
     {
         return this.prepareParadexDomain(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
     }
@@ -2129,7 +2129,7 @@ public class Paradex extends ParadexApi
             }
             this.checkRequiredCredentials();
             Object systemConfig = (this.getSystemConfig()).join();
-            Object domain = (this.prepareParadexDomain(true)).join();
+            Map<String, Object> domain = (this.prepareParadexDomain(true)).join();
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Constant", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "action" );
@@ -2157,7 +2157,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "action", "Onboarding" );
             }};
-            Object domain = (this.prepareParadexDomain()).join();
+            Map<String, Object> domain = (this.prepareParadexDomain()).join();
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Constant", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "action" );
@@ -2209,7 +2209,7 @@ public class Paradex extends ParadexApi
                 put( "timestamp", finalNow );
                 put( "expiration", expires );
             }};
-            Object domain = (this.prepareParadexDomain()).join();
+            Map<String, Object> domain = (this.prepareParadexDomain()).join();
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Request", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "method" );
@@ -2563,7 +2563,7 @@ public class Paradex extends ParadexApi
                     put( "Order", orderFields );
                 }};
             }
-            Object domain = (this.prepareParadexDomain()).join();
+            Map<String, Object> domain = (this.prepareParadexDomain()).join();
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, Helpers.GetValue(account, "address"));
             Object signature = this.starknetSign(msg, Helpers.GetValue(account, "privateKey"));
             ((Map<String, Object>)request).put("signature", signature);
@@ -3589,17 +3589,17 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             (this.authenticateRest()).join();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.privateGetPositions()).join();
             //
             //     {
@@ -3642,7 +3642,7 @@ public class Paradex extends ParadexApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -4583,16 +4583,16 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    public CompletableFuture<Object> fetchAllGreeks(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchAllGreeks(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", "ALL" );
             }};
@@ -4647,7 +4647,7 @@ public class Paradex extends ParadexApi
      */
     public CompletableFuture<Object> fetchAllGreeks(Object... optionalArgs)
     {
-        return this.fetchAllGreeks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchAllGreeks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseGreeks(Map<String, Object> greeks, Map<String, Object> market)

@@ -4214,14 +4214,14 @@ final Object finalClobTokenId = clobTokenId;
      * @param {int} [Helpers.GetValue(params, "nonce")] the nonce used to derive the credentials, defaults to 0
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public CompletableFuture<Object> deriveApiKey(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> deriveApiKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.clobPrivateGetAuthDeriveApiKey(parameters)).join();
             return this.setApiCredentials((Map<String, Object>) (response));
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -4233,7 +4233,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {int} [Helpers.GetValue(params, "nonce")] the nonce used to derive the credentials, defaults to 0
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public CompletableFuture<Object> deriveApiKey(Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> deriveApiKey(Object... optionalArgs)
     {
         return this.deriveApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -4247,14 +4247,14 @@ final Object finalClobTokenId = clobTokenId;
      * @param {int} [Helpers.GetValue(params, "nonce")] the nonce used to create the credentials, defaults to 0
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public CompletableFuture<Object> createApiKey(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createApiKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.clobPrivatePostAuthApiKey(parameters)).join();
             return this.setApiCredentials((Map<String, Object>) (response));
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -4266,7 +4266,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {int} [Helpers.GetValue(params, "nonce")] the nonce used to create the credentials, defaults to 0
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public CompletableFuture<Object> createApiKey(Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> createApiKey(Object... optionalArgs)
     {
         return this.createApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -4279,7 +4279,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public CompletableFuture<Object> createOrDeriveApiKey(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createOrDeriveApiKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4297,7 +4297,7 @@ final Object finalClobTokenId = clobTokenId;
                 throw new ExchangeError((this.id + " createOrDeriveApiKey() returned no credentials")) ;
             }
             return creds;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -4308,7 +4308,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public CompletableFuture<Object> createOrDeriveApiKey(Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> createOrDeriveApiKey(Object... optionalArgs)
     {
         return this.createOrDeriveApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }

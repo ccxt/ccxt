@@ -963,7 +963,7 @@ public class Myriad extends MyriadApi
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    public CompletableFuture<Object> fetchTradeQuote(String outcome, String side, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTradeQuote(String outcome, String side, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1012,7 +1012,7 @@ public class Myriad extends MyriadApi
             return this.parseTradeQuote((Map<String, Object>) (this.extend(response, new HashMap<String, Object>() {{
                 put( "action", finalSideStr );
             }})), ((Object)outcomeObj));
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -1027,7 +1027,7 @@ public class Myriad extends MyriadApi
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    public CompletableFuture<Object> fetchTradeQuote(String outcome, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> fetchTradeQuote(String outcome, String side, Object amount, Object... optionalArgs)
     {
         return this.fetchTradeQuote(outcome, side, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -1595,7 +1595,7 @@ public class Myriad extends MyriadApi
             String gasLimit = this.safeString(parameters, "gasLimit", "0xaae60");
             Object sideStr = sideLower;
             Object quoteParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt")));
-            Object quote = this.safeDict(parameters, "quote");
+            Map<String, Object> quote = (Map<String, Object>) this.safeDict(parameters, "quote");
             if (java.util.Objects.equals(quote, null))
             {
                 quote = (this.fetchTradeQuote((String) (outcome), (String) (sideStr), amount, quoteParams)).join();

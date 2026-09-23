@@ -907,7 +907,7 @@ public class Alpaca extends AlpacaApi
                 put( "loc", loc );
             }};
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
-            Object symbolTrades = null;
+            List<Object> symbolTrades = null;
             if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocTrades"))
             {
                 if (!java.util.Objects.equals(since, null))
@@ -936,7 +936,7 @@ public class Alpaca extends AlpacaApi
                 //    }
                 //
                 Map<String, Object> trades = (Map<String, Object>) this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
-                symbolTrades = this.safeList(trades, marketId, new ArrayList<Object>(Arrays.asList()));
+                symbolTrades = (List<Object>) this.safeList(trades, marketId, new ArrayList<Object>(Arrays.asList()));
             } else if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocLatestTrades"))
             {
                 Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters))).join();
@@ -1124,7 +1124,7 @@ public class Alpaca extends AlpacaApi
                 put( "loc", loc );
             }};
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
-            Object ohlcvs = null;
+            List<Object> ohlcvs = null;
             if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocBars"))
             {
                 if (!java.util.Objects.equals(limit, null))
@@ -1173,7 +1173,7 @@ public class Alpaca extends AlpacaApi
                 //     }
                 //
                 Object bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
-                ohlcvs = this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
+                ohlcvs = (List<Object>) this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
                 if (Boolean.TRUE.equals(paginate))
                 {
                     // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
@@ -1194,7 +1194,7 @@ public class Alpaca extends AlpacaApi
                         {
                             break;
                         }
-                        ohlcvs = this.arrayConcat(ohlcvs, page);
+                        ohlcvs = (List<Object>) this.arrayConcat(ohlcvs, page);
                         pageToken = this.safeString(response, "next_page_token");
                     }
                 }
@@ -1324,12 +1324,12 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1339,9 +1339,9 @@ public class Alpaca extends AlpacaApi
             {
                 // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
                 Object allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
-                symbols = allSymbols;
+                symbols = Helpers.toStringListArg(allSymbols);
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             String loc = this.safeString(parameters, "loc", "us");
             Object ids = this.marketIds(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1455,7 +1455,7 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public String generateClientOrderId(Map<String, Object> parameters)

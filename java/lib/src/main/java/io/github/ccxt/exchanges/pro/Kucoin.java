@@ -147,7 +147,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return this.negotiate(privateChannel, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> negotiateHelper(Object privateChannel, String connectId2, Map<String, Object> parameters)
+    public CompletableFuture<String> negotiateHelper(Object privateChannel, String connectId2, Map<String, Object> parameters)
     {
         final String connectId3 = connectId2;
         return BaseExchange.supplyAsync(() -> {
@@ -190,10 +190,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 ((Map<String,Object>)((Map<String, Object>)this.options).get("urls")).remove((String)connectId);
             }
             return null;
-        });
+        }).thenApply(res -> (String) res);
 
     }
-    public CompletableFuture<Object> negotiateHelper(Object privateChannel, String connectId, Object... optionalArgs)
+    public CompletableFuture<String> negotiateHelper(Object privateChannel, String connectId, Object... optionalArgs)
     {
         return this.negotiateHelper(privateChannel, connectId, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -629,18 +629,18 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, true, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true));
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters);
@@ -720,7 +720,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Object> subscribePublicMultipleUta(Object messageHashes, String channel2, Object symbols, Map<String, Object> parameters, Object subscription2)
@@ -767,16 +767,16 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return this.subscribePublicMultipleUta(messageHashes, channel, symbols, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
     }
 
-    public CompletableFuture<Object> watchUtaTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchUtaTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, false, true);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false, true));
             String messageHash = "uta:ticker";
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
@@ -797,7 +797,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     }
     public CompletableFuture<Object> watchUtaTickers(Object... optionalArgs)
     {
-        return this.watchUtaTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchUtaTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -1035,16 +1035,16 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchBidsAsks(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, false, true, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false, true, false));
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("contract"), true));
             Object channelName = "/spotMarket/level1:";
@@ -1075,19 +1075,19 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
     {
-        return this.watchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> watchMultiHelper(Object methodName, Object channelName, Object isFuturesChannel, Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMultiHelper(Object methodName, Object channelName, Object isFuturesChannel, List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null, false, true, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false, true, false));
             Integer length = ((List<?>)(List<String>)(symbols)).size();
             if (Helpers.isGreaterThan(length, 100))
             {
@@ -1118,7 +1118,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     }
     public CompletableFuture<Object> watchMultiHelper(Object methodName, Object channelName, Object isFuturesChannel, Object... optionalArgs)
     {
-        return this.watchMultiHelper(methodName, channelName, isFuturesChannel, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchMultiHelper(methodName, channelName, isFuturesChannel, Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleBidAsk(Client client, Map<String, Object> message)
@@ -3809,12 +3809,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols2, Long since, Long limit, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3827,7 +3827,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String tradeType = ((Helpers.isTrue(uta))) ? "UNIFIED" : "TRADE";
             String messageHash = "positions";
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             if (java.util.Objects.equals(symbols, null))
             {
                 ((List<Object>)messageHashes).add(messageHash);
@@ -3877,7 +3877,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      */
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
-        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.watchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object getCurrentPosition(Object symbol)

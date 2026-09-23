@@ -1784,7 +1784,7 @@ public class Bitteam extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1852,7 +1852,7 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2547,7 +2547,7 @@ public class Bitteam extends BitteamApi
         }
         // the exchange returns the side of the taker
         String side = this.safeString2(trade, "side", "type");
-        Object feeInfo = null;
+        Map<String, Object> feeInfo = null;
         String order = null;
         if (java.util.Objects.equals(takerOrMaker, "maker"))
         {
@@ -2559,11 +2559,11 @@ public class Bitteam extends BitteamApi
                 side = "sell";
             }
             order = this.safeString(trade, "makerOrderId");
-            feeInfo = this.safeDict(trade, "feeMaker", new HashMap<String, Object>() {{}});
+            feeInfo = (Map<String, Object>) this.safeDict(trade, "feeMaker", new HashMap<String, Object>() {{}});
         } else if (java.util.Objects.equals(takerOrMaker, "taker"))
         {
             order = this.safeString(trade, "takerOrderId");
-            feeInfo = this.safeDict(trade, "feeTaker", new HashMap<String, Object>() {{}});
+            feeInfo = (Map<String, Object>) this.safeDict(trade, "feeTaker", new HashMap<String, Object>() {{}});
         }
         String feeCurrencyId = this.safeString(feeInfo, "symbol");
         String feeCost = this.safeString(feeInfo, "amount");

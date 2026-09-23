@@ -429,7 +429,7 @@ public class Upbit extends UpbitApi
         }});
     }
 
-    public CompletableFuture<Object> fetchCurrency(String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrency(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -442,15 +442,15 @@ public class Upbit extends UpbitApi
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             return (this.fetchCurrencyById(((Map<String, Object>)currency).get("id"), parameters)).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> fetchCurrency(String code, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> fetchCurrency(String code, Object... optionalArgs)
     {
         return this.fetchCurrency(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> fetchCurrencyById(Object id, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencyById(Object id, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -550,10 +550,10 @@ public class Upbit extends UpbitApi
                     }} );
                 }} );
             }};
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> fetchCurrencyById(Object id, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> fetchCurrencyById(Object id, Object... optionalArgs)
     {
         return this.fetchCurrencyById(id, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -887,12 +887,12 @@ public class Upbit extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
-    public CompletableFuture<OrderBooks> fetchOrderBooks(Object symbols2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<OrderBooks> fetchOrderBooks(List<String> symbols2, Long limit2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -982,7 +982,7 @@ public class Upbit extends UpbitApi
      */
     public CompletableFuture<OrderBooks> fetchOrderBooks(Object... optionalArgs)
     {
-        return this.fetchOrderBooks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+        return this.fetchOrderBooks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1098,16 +1098,16 @@ public class Upbit extends UpbitApi
      * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Object tickers = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(symbols, null))
             {
@@ -1200,7 +1200,7 @@ public class Upbit extends UpbitApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object idsQueryStrings(Object ids, Object maxQueryLength)

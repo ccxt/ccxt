@@ -808,7 +808,7 @@ final Object finalOi = oi;
      * @see https://docs.sx.bet/api-reference/get-metadata-obv3
      * @returns {object} the cached obv3 metadata data object
      */
-    public CompletableFuture<Object> loadSxObv3Metadata()
+    public CompletableFuture<Map<String, Object>> loadSxObv3Metadata()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -822,7 +822,7 @@ final Object finalOi = oi;
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.options, "sxObv3Metadata", data);
             return data;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -885,7 +885,7 @@ final Object finalOi = oi;
      * @param {string} tokenAddress the token contract address
      * @returns {string} the token's on-chain name
      */
-    public CompletableFuture<Object> fetchErc20Name(String rpcUrl, Object tokenAddress)
+    public CompletableFuture<String> fetchErc20Name(String rpcUrl, Object tokenAddress)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -902,7 +902,7 @@ final Object finalOi = oi;
             Object dataEnd = this.sum(128, Helpers.multiply(length, 2));
             String dataHex = Helpers.slice(hex, 128, dataEnd);
             return this.decode(this.base16ToBinary(dataHex));
-        });
+        }).thenApply(res -> (String) res);
 
     }
 
@@ -937,14 +937,14 @@ final Object finalOi = oi;
      * @see https://docs.sx.bet/api-reference/get-user-proxy
      * @returns {object} the raw proxy data ({obv3ProxyWalletAddress, deployed, multisigSafeAddress})
      */
-    public CompletableFuture<Object> fetchSxbetProxy()
+    public CompletableFuture<Map<String, Object>> fetchSxbetProxy()
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             Object response = (this.sxbetPrivateGetUserProxy()).join();
             return this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -973,7 +973,7 @@ final Object finalOi = oi;
             {
                 throw new ArgumentsRequired((this.id + " approve() requires params.amount - the USDC amount to move into the proxy wallet")) ;
             }
-            Object proxy = (this.fetchSxbetProxy()).join();
+            Map<String, Object> proxy = (this.fetchSxbetProxy()).join();
             Boolean deployed = (Boolean) this.safeBool(proxy, "deployed", false);
             if (!java.util.Objects.equals(deployed, true))
             {
@@ -982,14 +982,14 @@ final Object finalOi = oi;
                 for (var i = 0; i < 30; i++)
                 {
                     (this.sleep(2000)).join();
-                    Object state = (this.fetchSxbetProxy()).join();
+                    Map<String, Object> state = (this.fetchSxbetProxy()).join();
                     if (Boolean.TRUE.equals(this.safeBool(state, "deployed", false)))
                     {
                         break;
                     }
                 }
             }
-            Object obv3 = (this.loadSxObv3Metadata()).join();
+            Map<String, Object> obv3 = (this.loadSxObv3Metadata()).join();
             Map<String, Object> activeAsset = (Map<String, Object>) this.safeDict(obv3, "activeAsset", new HashMap<String, Object>() {{}});
             Long chainId = this.safeInteger(obv3, "chainId");
             String usdcAddress = this.safeString(activeAsset, "baseToken");
@@ -1024,7 +1024,7 @@ final Object finalOi = oi;
     }}, "latest")))).join();
             Object nonceHex = this.hexToRlpBytes((String) (nonceResult));
             String nonce = (((java.util.Objects.equals(nonceHex, "")))) ? "0" : this.numberToString(this.hexToInt(nonceHex));
-            Object tokenName = (this.fetchErc20Name((String) (rpcUrl), tokenAddress)).join();
+            String tokenName = (this.fetchErc20Name((String) (rpcUrl), tokenAddress)).join();
             Long defaultDeadlineSeconds = this.safeInteger(this.options, "approveDeadlineSeconds", 7200);
             Long deadline = this.safeInteger(parameters, "deadline", this.sum(this.seconds(), defaultDeadlineSeconds));
             String value = this.decimalToPrecision(Precise.stringMul(this.numberToString(amount), "1000000"), ROUND, 0, DECIMAL_PLACES);
@@ -1163,7 +1163,7 @@ final Object finalOi = oi;
             Object isMakerBettingOutcomeOne = ((Boolean.TRUE.equals(isBuy))) ? isOutcomeOne : !Boolean.TRUE.equals(isOutcomeOne);
             String priceStr = this.numberToString(price);
             String probability = ((Boolean.TRUE.equals(isBuy))) ? priceStr : Precise.stringSub("1", priceStr);
-            Object obv3 = (this.loadSxObv3Metadata()).join();
+            Map<String, Object> obv3 = (this.loadSxObv3Metadata()).join();
             Map<String, Object> domain = (Map<String, Object>) this.safeDict(obv3, "domain", new HashMap<String, Object>() {{}});
             Map<String, Object> activeAsset = (Map<String, Object>) this.safeDict(obv3, "activeAsset", new HashMap<String, Object>() {{}});
             String baseToken = this.safeString(activeAsset, "baseToken");
@@ -2103,7 +2103,7 @@ final Object finalI = i;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object obv3 = (this.loadSxObv3Metadata()).join();
+            Map<String, Object> obv3 = (this.loadSxObv3Metadata()).join();
             Map<String, Object> activeAsset = (Map<String, Object>) this.safeDict(obv3, "activeAsset", new HashMap<String, Object>() {{}});
             String usdcAddress = this.safeStringLower(activeAsset, "baseToken", "");
             Object response = (this.sxbetPrivateGetUserBalanceV3(parameters)).join();
@@ -2455,7 +2455,7 @@ final Object finalI = i;
      * @param {string} marketHash the market hash
      * @returns {object} the raw snapshot data
      */
-    public CompletableFuture<Object> fetchSxbetBookSnapshot(String marketHash)
+    public CompletableFuture<Map<String, Object>> fetchSxbetBookSnapshot(String marketHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2465,7 +2465,7 @@ final Object finalI = i;
             }};
             Object response = (this.sxbetPublicGetOrderbookV3Snapshot(request)).join();
             return this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -2488,7 +2488,7 @@ final Object finalI = i;
             String marketHash = this.safeString(Helpers.GetValue(outcomeObj, "info"), "marketHash");
             // the book snapshot is public and carries the same top of book - the batched best-odds
             // route needs an apiKey, so it only pays off for the multi-market path
-            Object snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
+            Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
             Map<String, Object> raw = this.parseSxbetSnapshotBestOdds((Map<String, Object>) (snapshot));
             return this.parsePredictionTicker((Map<String, Object>) (raw), ((Object)outcomeObj));
         }).thenApply(PredictionTicker::new);
@@ -2617,7 +2617,7 @@ final Object finalI = i;
                 for (var i = 0; Helpers.isLessThan(i, hashesLength); i++)
                 {
                     Object marketHash = (hashesOrder == null || i < 0 || i >= hashesOrder.size() ? null : hashesOrder.get(i));
-                    Object snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
+                    Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
                     ((Map<String, Object>)rowsByHash).put((String)marketHash, this.parseSxbetSnapshotBestOdds((Map<String, Object>) (snapshot)));
                 }
                 return this.parseSxbetTickersByHash(outcomesList, (Map<String, Object>) (rowsByHash));
@@ -2949,7 +2949,7 @@ final Object finalI = i;
      * @see https://docs.sx.bet/developers/realtime-initialization
      * @returns {string} the JWT connection token
      */
-    public CompletableFuture<Object> fetchSxbetRealtimeToken()
+    public CompletableFuture<String> fetchSxbetRealtimeToken()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2961,7 +2961,7 @@ final Object finalI = i;
             Object response = (this.sxbetPrivateGetUserRealtimeTokenV3ApiKey()).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeString2(data, "token", "realtimeToken", this.safeString(response, "token"));
-        });
+        }).thenApply(res -> (String) res);
 
     }
 
@@ -2978,7 +2978,7 @@ final Object finalI = i;
             if (java.util.Objects.equals(connectSent, null))
             {
                 Helpers.addElementToObject(this.options, "wsConnected", false);
-                Object token = (this.fetchSxbetRealtimeToken()).join();
+                String token = (this.fetchSxbetRealtimeToken()).join();
                 Object requestId = this.requestId((String) (url));
                 this.registerSxbetWsRequest(requestId, "centrifugoConnected", "connect");
                 Map<String, Object> connectMsg = new HashMap<String, Object>() {{
@@ -3197,7 +3197,7 @@ final Object finalI = i;
                     Helpers.addElementToObject(this.options, "wsWatchedBooks", this.createSafeDictionary());
                 }
                 Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("wsWatchedBooks")), sym, marketHash);
-                Object snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
+                Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
                 this.applySxbetWsSnapshot((Map<String, Object>) (snapshot));
                 if (java.util.Objects.equals(this.safeValue(this.orderbooks, sym), null))
                 {
@@ -3360,7 +3360,7 @@ final Object finalI = i;
                 // hydrate from the REST snapshot so the first call does not hang until the
                 // market's next top-of-book change - the channel is global, so the seed must fire
                 // for every newly watched market, not only on a fresh subscription
-                Object snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
+                Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
                 Map<String, Object> raw = this.parseSxbetSnapshotBestOdds((Map<String, Object>) (snapshot));
                 Object ticker = this.parsePredictionTicker((Map<String, Object>) (raw), ((Object)outcomeObj));
                 Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));

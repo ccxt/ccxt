@@ -1044,13 +1044,13 @@ public class Extended extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             (this.loadMarkets()).join();
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -1110,7 +1110,7 @@ public class Extended extends ExtendedApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -3268,11 +3268,11 @@ public class Extended extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             (this.loadMarkets()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
@@ -3327,7 +3327,7 @@ public class Extended extends ExtendedApi
      */
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3465,6 +3465,10 @@ public class Extended extends ExtendedApi
     public CompletableFuture<List<Position>> fetchPositionsHistory(Object... optionalArgs)
     {
         return this.fetchPositionsHistory(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
+    public CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return this.fetchPositionsHistory((Object) (symbols), since, limit, parameters);
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -3710,7 +3714,7 @@ public class Extended extends ExtendedApi
         return this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> createExtendedOrderRequest(String symbol, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Map<String, Object>> createExtendedOrderRequest(String symbol, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final String type3 = type2;
         final String side3 = side2;
@@ -3967,10 +3971,10 @@ public class Extended extends ExtendedApi
                 put( "price", priceString );
                 put( "amount", amountString );
             }};
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> createExtendedOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> createExtendedOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createExtendedOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -4012,7 +4016,7 @@ public class Extended extends ExtendedApi
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials();
-            Object extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
+            Map<String, Object> extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             Map<String, Object> request = (Map<String, Object>) this.safeDict(extendedOrderRequest, "request", new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.v1PrivatePostUserOrder(request)).join();
             //
@@ -4154,7 +4158,7 @@ public class Extended extends ExtendedApi
                 put( "cancelId", finalCancelId );
                 put( "expiryEpochMillis", finalExpiryEpochMillis );
             }});
-            Object extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, requestParams)).join();
+            Map<String, Object> extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, requestParams)).join();
             Map<String, Object> request = (Map<String, Object>) this.safeDict(extendedOrderRequest, "request", new HashMap<String, Object>() {{}});
             Map<String, Object> editResponse = (this.v1PrivatePostUserOrder(request)).join();
             //
@@ -4478,7 +4482,7 @@ public class Extended extends ExtendedApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             Map<String, Object> response = null;
-            Object order = null;
+            Map<String, Object> order = null;
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -4489,7 +4493,7 @@ public class Extended extends ExtendedApi
                 }};
                 response = (this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, parameters))).join();
                 List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                order = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                order = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             } else
             {
                 if (java.util.Objects.equals(id, null))
@@ -4501,7 +4505,7 @@ public class Extended extends ExtendedApi
                     put( "id", finalId );
                 }};
                 response = (this.v1PrivateGetUserOrdersId(this.extend(request, parameters))).join();
-                order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
