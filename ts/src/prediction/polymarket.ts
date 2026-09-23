@@ -2058,13 +2058,14 @@ export default class polymarket extends Exchange {
         if (orderTypeStr === undefined) {
             orderTypeStr = isMarket ? 'FOK' : 'GTC';
         }
-        if (price === undefined) {
+        let priceResolved: Num = price;
+        if (priceResolved === undefined) {
             if (!isMarket) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price for limit orders');
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
-            price = this.safeNumber (outcomeObj, 'price');
-            if (price === undefined) {
+            priceResolved = this.safeNumber (outcomeObj, 'price');
+            if (priceResolved === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() could not determine a price from the outcome, pass an explicit price');
             }
         }
@@ -2088,7 +2089,7 @@ export default class polymarket extends Exchange {
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         const cost = this.safeNumber (params, 'cost');
         const rest = this.omit (params, [ 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost', 'builder', 'builderCode' ]);
-        const amounts = this.polymarketOrderRawAmounts (sideStr, amount, price, tickSize, cost);
+        const amounts = this.polymarketOrderRawAmounts (sideStr, amount, priceResolved, tickSize, cost);
         const makerAmount = this.safeString (amounts, 'makerAmount');
         const takerAmount = this.safeString (amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
@@ -2168,7 +2169,7 @@ export default class polymarket extends Exchange {
         // them and return a fully-populated order instead of undefined side/price/amount
         const requestEcho: Dict = {
             'side': sideStr,
-            'price': price,
+            'price': priceResolved,
             'asset_id': tokenId,
             'time_in_force': orderTypeStr,
             'postOnly': postOnly,
@@ -2705,6 +2706,7 @@ export default class polymarket extends Exchange {
         if (!isArrayBody) {
             query = this.omit (params, this.extractParams (path));
         }
+        let bodyValue: any = body;
         if (method === 'GET') {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -2721,16 +2723,16 @@ export default class polymarket extends Exchange {
                 url += '?' + querystring;
             }
         } else if (isArrayBody) {
-            body = this.json (params);
+            bodyValue = this.json (params);
         } else {
             const queryKeys = Object.keys (query);
             const queryKeysLength = queryKeys.length;
             if (queryKeysLength > 0) {
-                body = this.json (query);
+                bodyValue = this.json (query);
             }
         }
         const headerDefaults = (headers !== undefined) ? headers : {};
-        headers = this.extend ({
+        let headersValue: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, headerDefaults);
@@ -2751,7 +2753,7 @@ export default class polymarket extends Exchange {
                 const timestamp = this.seconds ().toString ();
                 const nonce = this.safeInteger (params, 'nonce', 0);
                 const l1signature = this.signClobAuth (address, timestamp, nonce);
-                headers = this.extend (headers, {
+                headersValue = this.extend (headersValue, {
                     'POLY_ADDRESS': address,
                     'POLY_SIGNATURE': l1signature,
                     'POLY_TIMESTAMP': timestamp,
@@ -2771,8 +2773,8 @@ export default class polymarket extends Exchange {
                 // @polymarket/clob-client — query params are sent separately, not signed
                 const requestPath = '/' + this.implodeParams (path, params);
                 let auth = timestamp + method + requestPath;
-                if (body !== undefined) {
-                    auth = auth + body;
+                if (bodyValue !== undefined) {
+                    auth = auth + bodyValue;
                 }
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
@@ -2785,7 +2787,7 @@ export default class polymarket extends Exchange {
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = signature.replaceAll ('+', '-');
                 signature = signature.replaceAll ('/', '_');
-                headers = this.extend (headers, {
+                headersValue = this.extend (headersValue, {
                     'POLY_ADDRESS': address,
                     'POLY_API_KEY': apiKey,
                     'POLY_PASSPHRASE': passphrase,
@@ -2794,7 +2796,7 @@ export default class polymarket extends Exchange {
                 });
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
 
     hashMessage (message: any): string {
@@ -3117,8 +3119,8 @@ export default class polymarket extends Exchange {
     override async watchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
-        outcome = this.safeString (outcomeObj, 'outcome');
-        const messageHash = 'orderbook::' + outcome;
+        const outcomeValue: Str = this.safeString (outcomeObj, 'outcome');
+        const messageHash = 'orderbook::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         const url = this.urls['api']['ws'];
@@ -3139,8 +3141,8 @@ export default class polymarket extends Exchange {
     override async watchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
-        outcome = this.safeString (outcomeObj, 'outcome');
-        const messageHash = 'trades::' + outcome;
+        const outcomeValue: Str = this.safeString (outcomeObj, 'outcome');
+        const messageHash = 'trades::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         const url = this.urls['api']['ws'];
@@ -3159,17 +3161,17 @@ export default class polymarket extends Exchange {
     override async watchTicker (outcome: Str, params: Dict = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
-        outcome = this.safeString (outcomeObj, 'outcome');
-        const messageHash = 'ticker::' + outcome;
+        const outcomeValue: Str = this.safeString (outcomeObj, 'outcome');
+        const messageHash = 'ticker::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
-        if (outcome === undefined) {
+        if (outcomeValue === undefined) {
             throw new ExchangeError (this.id + ' watchTicker() missing outcome');
         }
-        if (!(outcome in this.orderbooks)) {
+        if (!(outcomeValue in this.orderbooks)) {
             const seededBook = this.orderBook ({});
-            if (outcome !== undefined) {
-                this.orderbooks[outcome] = seededBook;
+            if (outcomeValue !== undefined) {
+                this.orderbooks[outcomeValue] = seededBook;
             }
         }
         const url = this.urls['api']['ws'];
@@ -3205,9 +3207,9 @@ export default class polymarket extends Exchange {
         } else {
             mid = bestAsk;
         }
-        const market = this.safeOutcome (outcome);
+        const market = this.safeOutcome (outcomeValue);
         return this.safePredictionTicker ({
-            'outcome': outcome,
+            'outcome': outcomeValue,
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
@@ -3247,16 +3249,18 @@ export default class polymarket extends Exchange {
     override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
         let messageHash = 'orders';
-        if (outcome !== undefined) {
-            const outcomeObj = await this.loadOutcome (outcome);
-            outcome = this.safeString (outcomeObj, 'outcome');
-            messageHash = 'orders::' + outcome;
+        let outcomeResolved: Str = outcome;
+        if (outcomeResolved !== undefined) {
+            const outcomeObj = await this.loadOutcome (outcomeResolved);
+            outcomeResolved = this.safeString (outcomeObj, 'outcome');
+            messageHash = 'orders::' + outcomeResolved;
         }
         const orders = await this.subscribeUserChannel (messageHash, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (outcome, limit);
+            limitResolved = orders.getLimit (outcomeResolved, limitResolved);
         }
-        return this.filterByOutcomeSinceLimit (orders, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit (orders, outcomeResolved, since, limitResolved, true);
     }
 
     /**
@@ -3273,16 +3277,18 @@ export default class polymarket extends Exchange {
     override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         await this.loadApiCredentials ();
         let messageHash = 'myTrades';
-        if (outcome !== undefined) {
-            const outcomeObj = await this.loadOutcome (outcome);
-            outcome = this.safeString (outcomeObj, 'outcome');
-            messageHash = 'myTrades::' + outcome;
+        let outcomeResolved: Str = outcome;
+        if (outcomeResolved !== undefined) {
+            const outcomeObj = await this.loadOutcome (outcomeResolved);
+            outcomeResolved = this.safeString (outcomeObj, 'outcome');
+            messageHash = 'myTrades::' + outcomeResolved;
         }
         const trades = await this.subscribeUserChannel (messageHash, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (outcome, limit);
+            limitResolved = trades.getLimit (outcomeResolved, limitResolved);
         }
-        return this.filterByOutcomeSinceLimit (trades, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit (trades, outcomeResolved, since, limitResolved, true);
     }
 
     async subscribeUserChannel (messageHash: string, params: Dict = {}) {
