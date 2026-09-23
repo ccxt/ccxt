@@ -102,7 +102,7 @@ export default class umx extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1s': '1s',
@@ -2419,7 +2419,8 @@ export default class umx extends Exchange {
         //
         const isDeposit = ('depositId' in transaction);
         const transactionType = (isDeposit) ? 'deposit' : 'withdrawal';
-        const timestamp = this.safeInteger (transaction, 'createTime');
+        // the withdraw acknowledgement carries the application time as timestamp instead
+        const timestamp = this.safeInteger2 (transaction, 'createTime', 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const networkId = this.safeString (transaction, 'chainType');
@@ -2535,6 +2536,78 @@ export default class umx extends Exchange {
             'address': address,
             'tag': tag,
         } as DepositAddress;
+    }
+
+    /**
+     * @method
+     * @name umx#withdraw
+     * @description make a withdrawal to an address the venue has already verified, unverified addresses are rejected
+     * @see https://www.umx.com/docs/coin-apis/funding-account/withdrawal/withdrawal-application
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to, it has to be on the account's verified withdrawal address list
+     * @param {string} [tag] the address memo where the chain requires one
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.network unified network code, the venue requires one and sends it as its chainType
+     * @param {string} [params.clientWithdrawalId] a client supplied id for the withdrawal, unique among the ones being processed
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a "network" parameter');
+        }
+        const networkId = this.networkCodeToId (networkCode);
+        const amountString = this.currencyToPrecision (code, amount);
+        // the body timestamp is the application time the venue deduplicates requests by
+        const timestamp = this.numberToString (this.milliseconds ());
+        const request: Dict = {
+            'currency': currency['id'],
+            'chainType': networkId,
+            'address': address,
+            'amount': amountString,
+            'timestamp': timestamp,
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        const response = await this.privatePostV1AssetWithdrawal (this.extend (request, params));
+        //
+        // the sample is the venue's own docs example, the account ids are masked. live withdraw
+        // calls are forbidden by the hard safety rules, so the shape was never verified live,
+        // and the docs contradict themselves on it, the parameter table promises an array while
+        // the example answers a single object, which is why both shapes are accepted below
+        //
+        //     {
+        //         "code": "0",
+        //         "data": {
+        //             "accountName": "1000000000000000000",
+        //             "address": "0xC7EBBBdc93293F61eF13053ED6B29F9247b9686c",
+        //             "amount": "123.89",
+        //             "chainType": "eth",
+        //             "cid": "100000000000002",
+        //             "currency": "USDT",
+        //             "pid": "1000000000000000000",
+        //             "timestamp": "1755586041673",
+        //             "uid": "100000000000001",
+        //             "withdrawFee": "6.888323303707866",
+        //             "withdrawalId": "1957695861084831746"
+        //         },
+        //         "msg": "Success",
+        //         "ts": "1755586041673"
+        //     }
+        //
+        let data = this.safeDict (response, 'data');
+        if (data === undefined) {
+            const rows = this.safeList (response, 'data', []);
+            data = this.safeDict (rows, 0, {});
+        }
+        return this.parseTransaction (data, currency);
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
