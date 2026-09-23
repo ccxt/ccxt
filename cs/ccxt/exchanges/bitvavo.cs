@@ -1231,7 +1231,7 @@ public partial class bitvavo : Exchange
         parameters = requestparametersVariable[1];
         if ((limit != null))
         {
-            request["limit"] = limit; // default 1440, max 1440
+            request["limit"] = mathMin(limit, 1440); // default 1440, max 1440
         }
         return this.extend(request, parameters);
     }

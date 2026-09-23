@@ -264,10 +264,17 @@ public partial class extended : ccxt.extended
         //         "seq": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", data },
-        };
+        ((IDictionary<string,object>)this.balance)["info"] = data;
         IDictionary<string, object> balance = this.safeDict(data, "balance");
         if ((balance != null))
         {
@@ -278,7 +285,7 @@ public partial class extended : ccxt.extended
                 Dictionary<string, object> account = this.account();
                 account["free"] = this.safeString(balance, "availableForWithdrawal");
                 account["total"] = this.safeString(balance, "balance");
-                result[(string)code] = account;
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
             }
         }
         List<object> spotBalances = this.safeList(data, "spotBalances", new List<object>() {});
@@ -292,13 +299,13 @@ public partial class extended : ccxt.extended
                 Dictionary<string, object> account = this.account();
                 account["free"] = this.safeString(spotBalance, "availableToWithdraw");
                 account["total"] = this.safeString(spotBalance, "balance");
-                result[(string)code] = account;
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
             }
         }
         Int64? timestamp = this.safeInteger(message, "ts");
-        result["timestamp"] = timestamp;
-        result["datetime"] = this.iso8601(timestamp);
-        this.balance = this.safeBalance(this.deepExtend(this.balance, result));
+        ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
+        ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, "balance");
     }
 

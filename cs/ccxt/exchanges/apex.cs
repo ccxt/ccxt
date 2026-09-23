@@ -911,7 +911,7 @@ public partial class apex : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -925,8 +925,9 @@ public partial class apex : Exchange
         };
         if ((limitVar == null))
         {
-            limitVar = ((Int64?)200); // default is 200 when requested with `since`
+            limitVar = 200; // default is 200 when requested with `since`
         }
+        limitVar = mathMin(limitVar, 200); // fix maxcap
         request["limit"] = limitVar; // max 200, default 200
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters, 0.001);
         request = (Dictionary<string, object>)requestparametersVariable[0];

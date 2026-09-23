@@ -817,11 +817,11 @@ public partial class zaif : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["since"] = this.parseToInt((since / 1000));
+            request["since"] = this.parseToInt((since / 1000));
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["count"] = mathMin(limit, 1000);
+            request["count"] = mathMin(limit, 1000);
         }
         Dictionary<string, object> response = await this.privatePostTradeHistory(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});

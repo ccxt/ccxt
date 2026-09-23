@@ -4961,9 +4961,9 @@ public partial class okx : Exchange
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
-        object trigger = this.safeValue2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool? trailing = this.safeBool(parameters, "trailing", false);
-        bool isTrigger = ((trigger != null)) && (!isEqual(trigger, false));
+        bool isTrigger = ((trigger == true));
         if (isTrigger || ((trailing == true)))
         {
             List<object> orderInner = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
@@ -5026,7 +5026,6 @@ public partial class okx : Exchange
      */
     public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
-        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
         {
@@ -5043,9 +5042,9 @@ public partial class okx : Exchange
         string? method = this.safeString(parameters, "method", defaultMethod);
         object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
         object algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
-        object trigger = this.safeValue2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool? trailing = this.safeBool(parameters, "trailing", false);
-        bool isTrigger = ((trigger != null)) && (!isEqual(trigger, false));
+        bool isTrigger = ((trigger == true));
         if (isTrigger || ((trailing == true)))
         {
             method = "privatePostTradeCancelAlgos";
@@ -5065,7 +5064,7 @@ public partial class okx : Exchange
             }
             for (int i = 0; i < getArrayLength(ids); i++)
             {
-                if (((trailing == true)) || ((trigger != null)))
+                if (((trailing == true)) || isTrigger)
                 {
                     request.Add(new Dictionary<string, object>() {
                         { "algoId", getValue(ids, i) },
@@ -5083,7 +5082,7 @@ public partial class okx : Exchange
         {
             for (int i = 0; i < getArrayLength(clientOrderIds); i++)
             {
-                if (((trailing == true)) || ((trigger != null)))
+                if (((trailing == true)) || isTrigger)
                 {
                     request.Add(new Dictionary<string, object>() {
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
@@ -5626,8 +5625,8 @@ public partial class okx : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOrder", new Dictionary<string, object>() {});
         string? defaultMethod = this.safeString(options, "method", "privateGetTradeOrder");
         string? method = this.safeString(parameters, "method", defaultMethod);
-        object trigger = this.safeValue2(parameters, "stop", "trigger");
-        bool isTrigger = ((trigger != null)) && (!isEqual(trigger, false));
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool isTrigger = ((trigger == true));
         if (isTrigger)
         {
             method = "privateGetTradeOrderAlgo";
@@ -5807,9 +5806,9 @@ public partial class okx : Exchange
         string? defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersPending");
         string? method = this.safeString(parameters, "method", defaultMethod);
         string? ordType = this.safeString(parameters, "ordType");
-        object trigger = this.safeValue2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool? trailing = this.safeBool(parameters, "trailing", false);
-        bool isTrigger = ((trigger != null)) && (!isEqual(trigger, false));
+        bool isTrigger = ((trigger == true));
         if (((trailing == true)) || isTrigger || (((ordType != null)) && (((ordType != null) && algoOrderTypes.ContainsKey(ordType)))))
         {
             method = "privateGetTradeOrdersAlgoPending";
@@ -5817,7 +5816,7 @@ public partial class okx : Exchange
         if ((trailing == true))
         {
             request["ordType"] = "move_order_stop";
-        } else if (((trigger != null)) && ((ordType == null)))
+        } else if (isTrigger && ((ordType == null)))
         {
             request["ordType"] = "trigger";
         }
@@ -5976,9 +5975,9 @@ public partial class okx : Exchange
         string? defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
         string? method = this.safeString(parameters, "method", defaultMethod);
         string? ordType = this.safeString(parameters, "ordType");
-        object trigger = this.safeValue2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool? trailing = this.safeBool(parameters, "trailing", false);
-        bool isTrigger = ((trigger != null)) && (!isEqual(trigger, false));
+        bool isTrigger = ((trigger == true));
         if ((trailing == true))
         {
             method = "privateGetTradeOrdersAlgoHistory";
