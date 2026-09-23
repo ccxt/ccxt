@@ -461,7 +461,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         //    [
         //        1128060969, // id
