@@ -1459,7 +1459,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
-            Object data = new HashMap<String, Object>() {{}};
+            Map<String, Object> data = new HashMap<String, Object>() {{}};
             if (Helpers.isEqual(generation, 2))
             {
                 ((Map<String, Object>)request).put("markets", this.getGen2MarketId((Map<String, Object>) (market)));
@@ -1496,7 +1496,7 @@ public class Bithumb extends BithumbApi
                 //         },
                 //     ]
                 //
-                data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             } else
             {
                 ((Map<String, Object>)request).put("baseId", ((Map<String, Object>)market).get("baseId"));
@@ -1521,7 +1521,7 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     }
                 //
-                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseTicker(data, market);
         }).thenApply(Ticker::new);

@@ -1129,10 +1129,10 @@ public class Weex extends WeexApi
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j);
             String networkId = this.safeString(chain, "network");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
@@ -4490,7 +4490,7 @@ public class Weex extends WeexApi
         }
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("transactTime", "time", "createTime")));
         String rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
-        Object triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
+        String triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
         String rawType = this.safeStringUpper2(order, "type", "orderType");
         Boolean isReduceOnly = (Boolean) this.safeBool(order, "reduceOnly");
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price

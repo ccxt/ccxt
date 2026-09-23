@@ -3348,7 +3348,7 @@ public class Bullish extends BullishApi
                     {
                         Map<String, Object> entry = (Map<String, Object>) this.safeDict(safeResponse, i, new HashMap<String, Object>() {{}});
                         String networkId = this.safeString(entry, "network");
-                        Object networkCode = this.networkIdToCode(networkId, code);
+                        String networkCode = this.networkIdToCode(networkId, code);
                         if (java.util.Objects.equals(network, networkCode))
                         {
                             data = entry;

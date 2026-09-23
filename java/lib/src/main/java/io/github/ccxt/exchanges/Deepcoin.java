@@ -1573,9 +1573,9 @@ public class Deepcoin extends DeepcoinApi
         String currencyId = this.safeString(transaction, "coin");
         String code = this.safeCurrencyCode(currencyId, currency);
         Double amount = this.safeNumber(transaction, "amount");
-        Object timestamp = this.safeTimestamp(transaction, "createTime");
+        Long timestamp = this.safeTimestamp(transaction, "createTime");
         String networkId = this.safeString(transaction, "chainName");
-        Object network = this.networkIdToCode(networkId, code);
+        String network = this.networkIdToCode(networkId, code);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3530,7 +3530,7 @@ public class Deepcoin extends DeepcoinApi
         //
         String marketId = this.safeString(order, "instId");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object timestamp = this.safeInteger(order, "cTime");
+        Long timestamp = this.safeInteger(order, "cTime");
         Object timestampString = this.safeString(order, "cTime", "");
         if (((String)timestampString).length() < 13)
         {
@@ -3554,7 +3554,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "currency", Deepcoin.this.safeCurrencyCode((String) (finalFeeCurrencyId)) );
             }};
         }
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final Map<String, Object> finalMarket = market;
         final Object finalOrderType = orderType;
         final String finalAverage = average;
@@ -4186,7 +4186,7 @@ public class Deepcoin extends DeepcoinApi
         //         "ratePeriodSec": 0
         //     }
         //
-        Object timestamp = this.safeTimestamp(info, "CreateTime");
+        Long timestamp = this.safeTimestamp(info, "CreateTime");
         String instrumentID = this.safeString2(info, "instrumentID", "instrumentId");
         market = (Map<String, Object>) (this.safeMarket(instrumentID, market, null, "swap"));
         final Map<String, Object> finalMarket = market;

@@ -1205,7 +1205,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (stored, channel);
     }
 
-    override findTimeframe (timeframe: any, timeframes: any = undefined) {
+    override findTimeframe (timeframe: any, timeframes: any = undefined): Str {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
         }

@@ -2284,7 +2284,7 @@ public class Paradex extends ParadexApi
         //
         Long timestamp = this.safeInteger(order, "created_at");
         String orderId = this.safeString(order, "id");
-        Object clientOrderId = this.omitZero(this.safeString(order, "client_id"));
+        String clientOrderId = this.omitZero(this.safeString(order, "client_id"));
         String marketId = this.safeString(order, "market");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
@@ -2304,9 +2304,9 @@ public class Paradex extends ParadexApi
             }
         }
         String side = this.safeStringLower(order, "side");
-        Object average = this.omitZero(this.safeString(order, "avg_fill_price"));
-        Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
-        Object triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
+        String average = this.omitZero(this.safeString(order, "avg_fill_price"));
+        String remaining = this.omitZero(this.safeString(order, "remaining_size"));
+        String triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
         Long lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         List<Object> flags = (List<Object>) this.safeList(order, "flags");
         Object reduceOnly = null;

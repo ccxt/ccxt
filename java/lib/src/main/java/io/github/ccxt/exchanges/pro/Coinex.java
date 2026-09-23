@@ -733,11 +733,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         String marketId = this.safeString(trade, "market");
         market = (Map<String, Object>) (this.safeMarket(marketId, market, null, defaultType));
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
-        Object feeCost = this.omitZero(this.safeString(trade, "fee"));
+        String feeCost = this.omitZero(this.safeString(trade, "fee"));
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(trade, "fee_ccy", ((Map<String, Object>)market).get("quote"));
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", Coinex.this.safeCurrencyCode((String) (feeCurrencyId)) );
                 put( "cost", finalFeeCost );
@@ -1560,11 +1560,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         String defaultType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         market = (Map<String, Object>) (this.safeMarket(marketId, market, null, defaultType));
         Map<String, Object> fee = null;
-        Object feeCost = this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee"));
+        String feeCost = this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee"));
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(order, "fee_ccy", ((Map<String, Object>)market).get("quote"));
-            final Object finalFeeCost = feeCost;
+            final String finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", Coinex.this.safeCurrencyCode((String) (feeCurrencyId)) );
                 put( "cost", finalFeeCost );

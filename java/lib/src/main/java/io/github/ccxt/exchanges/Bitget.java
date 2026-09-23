@@ -14324,7 +14324,7 @@ final Object finalMinNotional = minNotional;
             Object chain = (chains == null || i < 0 || i >= chains.size() ? null : chains.get(i));
             String networkId = this.safeString(chain, "chain");
             String currencyCode = this.safeString(currency, "code");
-            Object networkCode = this.networkIdToCode(networkId, currencyCode);
+            String networkCode = this.networkIdToCode(networkId, currencyCode);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
@@ -15105,7 +15105,7 @@ final Object finalMinNotional = minNotional;
             }};
             Object uta = null;
             Map<String, Object> response = null;
-            Object result = new HashMap<String, Object>() {{}};
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchCrossBorrowRate", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
@@ -15124,7 +15124,7 @@ final Object finalMinNotional = minNotional;
                 //         }
                 //     }
                 //
-                result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             } else
             {
                 response = (this.privateMarginGetV2MarginCrossedInterestRateAndLimit(this.extend(request, parameters))).join();
@@ -15155,7 +15155,7 @@ final Object finalMinNotional = minNotional;
                 //     }
                 //
                 List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             }
             Long timestamp = this.safeInteger(response, "requestTime");
             ((Map<String, Object>)result).put("timestamp", timestamp);

@@ -1172,7 +1172,7 @@ public class Alpaca extends AlpacaApi
                 //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
                 //     }
                 //
-                Object bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
+                Map<String, Object> bars = (Map<String, Object>) this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
                 ohlcvs = (List<Object>) this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
                 if (Boolean.TRUE.equals(paginate))
                 {
@@ -1187,7 +1187,7 @@ public class Alpaca extends AlpacaApi
                         }
                         ((Map<String, Object>)request).put("page_token", pageToken);
                         response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
-                        bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
+                        bars = (Map<String, Object>) this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
                         List<Object> page = (List<Object>) this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
                         Integer pageLength = ((List<?>)page).size();
                         if (java.util.Objects.equals(pageLength, 0))
@@ -1217,7 +1217,7 @@ public class Alpaca extends AlpacaApi
                 //        }
                 //     }
                 //
-                Object bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
+                Map<String, Object> bars = (Map<String, Object>) this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
                 Map<String, Object> bar = (Map<String, Object>) this.safeDict(bars, marketId, new HashMap<String, Object>() {{}});
                 ohlcvs = new ArrayList<Object>(Arrays.asList(bar));
             } else

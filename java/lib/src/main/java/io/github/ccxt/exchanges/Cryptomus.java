@@ -563,10 +563,10 @@ public class Cryptomus extends CryptomusApi
                 code = this.safeCurrencyCode(id);
             }
             String networkId = this.safeString(networkEntry, "network_code");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -742,7 +742,7 @@ public class Cryptomus extends CryptomusApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object timestamp = this.safeTimestamp(data, "timestamp");
+            Long timestamp = this.safeTimestamp(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         }).thenApply(OrderBook::new);
 
@@ -840,7 +840,7 @@ public class Cryptomus extends CryptomusApi
         //         "type": "sell"
         //     }
         //
-        Object timestamp = this.safeTimestamp(trade, "timestamp");
+        Long timestamp = this.safeTimestamp(trade, "timestamp");
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Cryptomus.this.safeString(trade, "trade_id") );
             put( "timestamp", timestamp );

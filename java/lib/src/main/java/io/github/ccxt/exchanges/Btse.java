@@ -896,16 +896,16 @@ public class Btse extends BtseApi
                 type = "swap";
             }
         }
-        Object fees = this.safeDict(this.fees, "contract", new HashMap<String, Object>() {{}});
+        Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, "contract", new HashMap<String, Object>() {{}});
         if (Boolean.TRUE.equals(isSpot))
         {
-            fees = this.safeDict(this.fees, "spot", new HashMap<String, Object>() {{}});
+            fees = (Map<String, Object>) this.safeDict(this.fees, "spot", new HashMap<String, Object>() {{}});
         }
         final String finalSymbol = symbol;
         final String finalBase = base;
         final String finalType = type;
         final Boolean finalIsSwap = isSwap;
-        final Object finalFees = fees;
+        final Map<String, Object> finalFees = fees;
         final String finalContractSize = contractSize;
         final Long finalExpiry = expiry;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -1691,11 +1691,11 @@ public class Btse extends BtseApi
             //     }
             //
             // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             if (java.util.Objects.equals(data, null))
             {
                 List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                data = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
@@ -1735,7 +1735,7 @@ public class Btse extends BtseApi
                 baseVolume = Precise.stringMul(baseVolume, contractSizeString);
             }
         }
-        Object timestamp = this.safeTimestamp(ticker, "closeTime");
+        Long timestamp = this.safeTimestamp(ticker, "closeTime");
         final Map<String, Object> finalMarket = market;
         final String finalBaseVolume = baseVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -1792,11 +1792,11 @@ public class Btse extends BtseApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters))).join();
-            Object interest = this.safeDict(response, "data");
+            Map<String, Object> interest = (Map<String, Object>) this.safeDict(response, "data");
             if (java.util.Objects.equals(interest, null))
             {
                 List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                interest = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
+                interest = (Map<String, Object>) this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseOpenInterest(interest, market);
         }).thenApply(OpenInterest::new);
@@ -1869,7 +1869,7 @@ public class Btse extends BtseApi
         //
         String marketId = this.safeString(interest, "symbol");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object timestamp = this.safeTimestamp(interest, "closeTime");
+        Long timestamp = this.safeTimestamp(interest, "closeTime");
         final Map<String, Object> finalMarket = market;
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -1909,11 +1909,11 @@ public class Btse extends BtseApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             if (java.util.Objects.equals(data, null))
             {
                 List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                data = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
+                data = (Map<String, Object>) this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
@@ -2012,7 +2012,7 @@ public class Btse extends BtseApi
         //
         String marketId = this.safeString(contract, "symbol");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object timestamp = this.safeTimestamp(contract, "closeTime");
+        Long timestamp = this.safeTimestamp(contract, "closeTime");
         // dated futures carry a zero nextFundingTime as funding only applies to
         // perpetuals, observed live, the zero means no next funding and is omitted
         Object nextFundingTimestamp = this.safeIntegerOmitZero(contract, "nextFundingTime");

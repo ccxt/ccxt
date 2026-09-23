@@ -2562,7 +2562,7 @@ public class Gate extends GateApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode((String) (settleId));
-        Object expiry = this.safeTimestamp(market, "expire_time");
+        Long expiry = this.safeTimestamp(market, "expire_time");
         String symbol = "";
         String marketType = "swap";
         if (!java.util.Objects.equals(date, null))
@@ -2707,7 +2707,7 @@ public class Gate extends GateApi
                     String base = this.safeCurrencyCode(baseId);
                     String quote = this.safeCurrencyCode(quoteId);
                     String symbol = ((base + "/") + quote);
-                    Object expiry = this.safeTimestamp(market, "expiration_time");
+                    Long expiry = this.safeTimestamp(market, "expiration_time");
                     String strike = this.safeString(market, "strike_price");
                     Boolean isCall = (Boolean) this.safeBool(market, "is_call");
                     String optionLetter = (((java.util.Objects.equals(isCall, true)))) ? "C" : "P";
@@ -2719,14 +2719,14 @@ public class Gate extends GateApi
                     String maxMultiplier = Precise.stringAdd("1", priceDeviate);
                     String minPrice = Precise.stringMul(minMultiplier, markPrice);
                     String maxPrice = Precise.stringMul(maxMultiplier, markPrice);
-                    Object createdTs = this.safeTimestamp(market, "create_time");
-                    if (Helpers.isEqual(createdTs, 0))
+                    Long createdTs = this.safeTimestamp(market, "create_time");
+                    if ((createdTs != null && createdTs == 0))
                     {
                         createdTs = null;
                     }
     final String finalSymbol = symbol;
                     final String finalBase = base;
-                    final Object finalCreatedTs = createdTs;
+                    final Long finalCreatedTs = createdTs;
                                     ((List<Object>)result).add(new HashMap<String, Object>() {{
                         put( "id", id );
                         put( "symbol", finalSymbol );
@@ -3075,10 +3075,10 @@ public class Gate extends GateApi
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "name");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
@@ -3350,7 +3350,7 @@ public class Gate extends GateApi
         Double indexPrice = this.safeNumber(contract, "index_price");
         Double interestRate = this.safeNumber(contract, "interest_rate");
         Double fundingRate = this.safeNumber(contract, "funding_rate");
-        Object fundingTime = this.safeTimestamp(contract, "funding_next_apply");
+        Long fundingTime = this.safeTimestamp(contract, "funding_next_apply");
         Double fundingRateIndicative = this.safeNumber(contract, "funding_rate_indicative");
         String fundingInterval = Precise.stringMul("1000", this.safeString(contract, "funding_interval"));
         return new HashMap<String, Object>() {{
@@ -3778,7 +3778,7 @@ public class Gate extends GateApi
                     for (var j = 0; j < ((List<?>)networkIds).size(); j++)
                     {
                         Object networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
-                        Object networkCode = this.networkIdToCode(networkId, code);
+                        String networkCode = this.networkIdToCode(networkId, code);
                         if (!java.util.Objects.equals(networkCode, null))
                         {
                             ((Map<String, Object>)withdrawFees).put((String)networkCode, this.parseNumber((withdrawFixOnChains == null || networkId == null ? null : withdrawFixOnChains.get(networkId))));
@@ -3908,7 +3908,7 @@ public class Gate extends GateApi
                 Object chainKey = (chainKeys == null || i < 0 || i >= chainKeys.size() ? null : chainKeys.get(i));
                 String currencyId = this.safeString(fee, "currency");
                 String code = this.safeCurrencyCode(currencyId, currency);
-                Object networkCode = this.networkIdToCode(chainKey, code);
+                String networkCode = this.networkIdToCode(chainKey, code);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
                     final Map<String, Object> finalWithdrawFixOnChains = withdrawFixOnChains;
@@ -4048,7 +4048,7 @@ public class Gate extends GateApi
         //        "type": "fund"
         //    }
         //
-        Object timestamp = this.safeTimestamp(info, "time");
+        Long timestamp = this.safeTimestamp(info, "time");
         String marketId = this.safeString(info, "text");
         market = (Map<String, Object>) (this.safeMarket(marketId, market, "_", "swap"));
         final Map<String, Object> finalMarket = market;
@@ -5107,7 +5107,7 @@ public class Gate extends GateApi
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
-                Object timestamp = this.safeTimestamp(entry, "t");
+                Long timestamp = this.safeTimestamp(entry, "t");
     final String finalSymbol = symbol;
                             ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
@@ -5743,8 +5743,8 @@ public class Gate extends GateApi
         String side = this.safeString2(trade, "side", "type", contractSide);
         String orderId = this.safeString(trade, "order_id");
         String feeAmount = this.safeString(trade, "fee");
-        Object gtFee = this.omitZero(this.safeString(trade, "gt_fee"));
-        Object pointFee = this.omitZero(this.safeString(trade, "point_fee"));
+        String gtFee = this.omitZero(this.safeString(trade, "gt_fee"));
+        String pointFee = this.omitZero(this.safeString(trade, "point_fee"));
         List<Object> fees = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(feeAmount, null))
         {
@@ -5763,7 +5763,7 @@ final String finalFeeAmount = feeAmount;
         }
         if (!java.util.Objects.equals(gtFee, null))
         {
-final Object finalGtFee = gtFee;
+final String finalGtFee = gtFee;
                         ((List<Object>)fees).add(new HashMap<String, Object>() {{
                 put( "cost", finalGtFee );
                 put( "currency", "GT" );
@@ -5771,7 +5771,7 @@ final Object finalGtFee = gtFee;
         }
         if (!java.util.Objects.equals(pointFee, null))
         {
-final Object finalPointFee = pointFee;
+final String finalPointFee = pointFee;
                         ((List<Object>)fees).add(new HashMap<String, Object>() {{
                 put( "cost", finalPointFee );
                 put( "currency", "GATEPOINT" );
@@ -6156,7 +6156,7 @@ final Object finalPointFee = pointFee;
         String status = this.parseTransactionStatus(rawStatus);
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "memo");
-        Object timestamp = this.safeTimestamp(transaction, "timestamp");
+        Long timestamp = this.safeTimestamp(transaction, "timestamp");
         final String finalId = id;
         final String finalAmountString = amountString;
         final String finalType = type;
@@ -8819,10 +8819,10 @@ final Object finalRebate = rebate;
         }
         // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
         String marginBalance = this.safeString(position, "margin");
-        Object initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
+        String initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
-        Object maintenanceMarginString = this.omitZero(this.safeString(position, "maintenance_margin"));
+        String maintenanceMarginString = this.omitZero(this.safeString(position, "maintenance_margin"));
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -8832,13 +8832,13 @@ final Object finalRebate = rebate;
         {
             collateral = Precise.stringAdd(marginBalance, unrealisedPnl);
         }
-        Object timestamp = this.safeTimestamp2(position, "open_time", "first_open_time");
-        if (Helpers.isEqual(timestamp, 0))
+        Long timestamp = this.safeTimestamp2(position, "open_time", "first_open_time");
+        if ((timestamp != null && timestamp == 0))
         {
             timestamp = null;
         }
         final Map<String, Object> finalMarket = market;
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalUnrealisedPnl = unrealisedPnl;
         final String finalCollateral = collateral;
         final String finalMarginMode = marginMode;
@@ -9749,14 +9749,14 @@ final Object finalI = i;
         //     }
         //
         String marginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
-        Object timestamp = this.safeInteger(info, "create_time");
+        Long timestamp = this.safeInteger(info, "create_time");
         if (java.util.Objects.equals(marginMode, "isolated"))
         {
             timestamp = this.safeTimestamp(info, "create_time");
         }
         String currencyId = this.safeString(info, "currency");
         String marketId = this.safeString(info, "currency_pair");
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         return new HashMap<String, Object>() {{
             put( "id", Gate.this.safeString(info, "id") );
             put( "currency", Gate.this.safeCurrencyCode(currencyId, currency) );
@@ -10303,7 +10303,7 @@ final Object finalI = i;
         //        "lsr_taker": "9.3765153315902"
         //    }
         //
-        Object timestamp = this.safeTimestamp(interest, "time");
+        Long timestamp = this.safeTimestamp(interest, "time");
         return new HashMap<String, Object>() {{
             put( "symbol", Gate.this.safeString(market, "symbol") );
             put( "openInterestAmount", Gate.this.safeNumber(interest, "open_interest") );
@@ -10576,7 +10576,7 @@ final Object finalI = i;
         //         "fee": "0.03079386"
         //     }
         //
-        Object timestamp = this.safeTimestamp(settlement, "time");
+        Long timestamp = this.safeTimestamp(settlement, "time");
         String marketId = this.safeString(settlement, "contract");
         return new HashMap<String, Object>() {{
             put( "info", settlement );
@@ -11290,7 +11290,7 @@ final Object finalI = i;
         //     }
         //
         String marketId = this.safeString(liquidation, "contract");
-        Object timestamp = this.safeTimestamp(liquidation, "time");
+        Long timestamp = this.safeTimestamp(liquidation, "time");
         String size = this.safeString2(liquidation, "size", "settle_size");
         String left = this.safeString(liquidation, "left", "0");
         String contractsString = Precise.stringAbs(Precise.stringSub(size, left));
@@ -11873,7 +11873,7 @@ final Object finalI = i;
         //
         String marketId = this.safeString(chain, "name");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object timestamp = this.safeTimestamp(chain, "create_time");
+        Long timestamp = this.safeTimestamp(chain, "create_time");
         final Map<String, Object> finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", chain );

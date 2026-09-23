@@ -2670,7 +2670,7 @@ public class Kraken extends KrakenApi
             // delisted market ids go here
             market = (Map<String, Object>) (this.getDelistedMarketById(marketId));
         }
-        Object timestamp = this.safeTimestamp(order, "opentm");
+        Long timestamp = this.safeTimestamp(order, "opentm");
         amount = this.safeString(order, "vol", amount);
         String filled = this.safeString(order, "vol_exec");
         Map<String, Object> fee = null;
@@ -4034,7 +4034,7 @@ final String finalId = id;
         //
         String id = this.safeString(transaction, "refid");
         String txid = this.safeString(transaction, "txid");
-        Object timestamp = this.safeTimestamp(transaction, "time");
+        Long timestamp = this.safeTimestamp(transaction, "time");
         String currencyId = this.safeString(transaction, "asset");
         String code = this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(transaction, "info");

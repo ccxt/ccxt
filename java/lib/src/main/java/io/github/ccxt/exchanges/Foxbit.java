@@ -471,14 +471,14 @@ public class Foxbit extends FoxbitApi
         {
             Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             String networkId = this.safeString(network, "code");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             Map<String, Object> networkWithdrawInfo = (Map<String, Object>) this.safeDict(network, "withdraw_info");
             Map<String, Object> networkDepositInfo = (Map<String, Object>) this.safeDict(network, "deposit_info");
             Boolean isWithdrawEnabled = java.util.Objects.equals(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
             Boolean isDepositEnabled = java.util.Objects.equals(this.safeString(networkDepositInfo, "status"), "ENABLED");
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)parsedNetworks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", rawCurrency );
     put( "id", networkId );
@@ -2678,7 +2678,7 @@ public class Foxbit extends FoxbitApi
         Map<String, Object> network = (Map<String, Object>) this.safeDict(depositAddress, "network");
         String networkId = this.safeString(network, "code");
         String currencyCode = this.safeCurrencyCode((String) (null), currency);
-        Object unifiedNetwork = this.networkIdToCode(networkId, currencyCode);
+        String unifiedNetwork = this.networkIdToCode(networkId, currencyCode);
         return new HashMap<String, Object>() {{
             put( "address", Foxbit.this.safeString(depositAddress, "address") );
             put( "tag", Foxbit.this.safeString(depositAddress, "tag") );

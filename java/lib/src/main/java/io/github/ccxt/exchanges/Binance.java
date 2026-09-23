@@ -5021,7 +5021,7 @@ public class Binance extends BinanceApi
         {
             Object networkItem = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             String network = this.safeString(networkItem, "network");
-            Object networkCode = this.networkIdToCode(network, code);
+            String networkCode = this.networkIdToCode(network, code);
             isETF = (java.util.Objects.equals(network, "ETF")); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
             // const name = this.safeString (networkItem, 'name');
             Double withdrawFee = this.safeNumber(networkItem, "withdrawFee");
@@ -5040,7 +5040,7 @@ public class Binance extends BinanceApi
             // if (isDefault) {
             //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
             // }
-            Object withdrawPrecision = this.omitZero(this.safeString2(networkItem, "withdrawIntegerMultiple", "withdrawInternalMin"));
+            String withdrawPrecision = this.omitZero(this.safeString2(networkItem, "withdrawIntegerMultiple", "withdrawInternalMin"));
             // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
             if (java.util.Objects.equals(withdrawPrecision, null) && (java.util.Objects.equals(isFiat, true)))
             {
@@ -5049,8 +5049,8 @@ public class Binance extends BinanceApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final String finalNetwork = network;
-                final Object finalNetworkCode = networkCode;
-                final Object finalWithdrawPrecision = withdrawPrecision;
+                final String finalNetworkCode = networkCode;
+                final String finalWithdrawPrecision = withdrawPrecision;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", networkItem );
     put( "id", finalNetwork );
@@ -13150,7 +13150,7 @@ public class Binance extends BinanceApi
             intern = ((((internalInteger == null || internalInteger != 0)))) ? true : false;
         }
         String networkId = this.safeString(transaction, "network");
-        Object network = this.networkIdToCode(networkId, code);
+        String network = this.networkIdToCode(networkId, code);
         final String finalTxid = txid;
         final Long finalTimestamp = timestamp;
         final String finalTag = tag;
@@ -13986,7 +13986,7 @@ public class Binance extends BinanceApi
         {
             Object networkEntry = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             String networkId = this.safeString(networkEntry, "network");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             Double withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             Boolean isDefault = (Boolean) this.safeBool(networkEntry, "isDefault");
             if (java.util.Objects.equals(isDefault, true))
@@ -15015,7 +15015,7 @@ public class Binance extends BinanceApi
         String marketId = this.safeString(position, "symbol");
         market = (Map<String, Object>) (this.safeMarket(marketId, market, null, "contract"));
         String symbol = this.safeString(market, "symbol");
-        Object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
+        String leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         Object leverage = (((!java.util.Objects.equals(leverageString, null)))) ? Helpers.parseInt(leverageString) : null;
         String initialMarginString = this.safeString(position, "initialMargin");
         Double initialMargin = this.parseNumber(initialMarginString);
@@ -15172,7 +15172,7 @@ public class Binance extends BinanceApi
         final Long finalTimestamp = timestamp;
         final String finalInitialMarginPercentageString = initialMarginPercentageString;
         final Double finalEntryPrice = entryPrice;
-        final Object finalLeverageString = leverageString;
+        final String finalLeverageString = leverageString;
         final Double finalMarginRatio = marginRatio;
         final Double finalLiquidationPrice = liquidationPrice;
         final String finalMarginMode = marginMode;
@@ -15319,7 +15319,7 @@ public class Binance extends BinanceApi
         Double contracts = this.parseNumber(contractsAbs);
         String unrealizedPnlString = this.safeString(position, "unRealizedProfit");
         Double unrealizedPnl = this.parseNumber(unrealizedPnlString);
-        Object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
+        String liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         Double liquidationPrice = this.parseNumber(liquidationPriceString);
         Object collateralString = null;
         String marginMode = this.safeString(position, "marginType");
@@ -15414,7 +15414,7 @@ public class Binance extends BinanceApi
         Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
         String initialMarginString = null;
         String initialMarginPercentageString = null;
-        Object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
+        String leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         if (!java.util.Objects.equals(leverageString, null))
         {
             Object leverage = Helpers.parseInt(leverageString);
@@ -15441,7 +15441,7 @@ public class Binance extends BinanceApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
-        final Object finalLeverageString = leverageString;
+        final String finalLeverageString = leverageString;
         final Long finalTimestamp = timestamp;
         final String finalInitialMarginString = initialMarginString;
         final String finalInitialMarginPercentageString = initialMarginPercentageString;

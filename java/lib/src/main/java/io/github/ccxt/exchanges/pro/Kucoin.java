@@ -3681,7 +3681,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String code = this.safeCurrencyCode((String) (currencyId));
         Map<String, Object> account = (Map<String, Object>) this.account();
         String used = this.safeString2(data, "hold", "holdBalance");
-        Object isolatedPosMargin = this.omitZero(this.safeString(data, "isolatedPosMargin"));
+        String isolatedPosMargin = this.omitZero(this.safeString(data, "isolatedPosMargin"));
         if (!java.util.Objects.equals(isolatedPosMargin, null))
         {
             used = Precise.stringAdd(used, isolatedPosMargin);

@@ -762,10 +762,10 @@ public class Digifinex extends DigifinexApi
         {
             Object networkEntry = (networkEntries == null || j < 0 || j >= ((List<?>)networkEntries).size() ? null : ((List<?>)networkEntries).get(j));
             String networkId = this.safeString2(networkEntry, "chain", "currency");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -1653,10 +1653,10 @@ public class Digifinex extends DigifinexApi
         String marketId = this.safeStringUpper2(ticker, "symbol", "instrument_id");
         String symbol = this.safeSymbol(marketId, market, null, marketType);
         market = (Map<String, Object>) (this.safeMarket(marketId, market, null, marketType));
-        Object timestamp = this.safeTimestamp(ticker, "date");
+        Long timestamp = this.safeTimestamp(ticker, "date");
         if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
         {
-            timestamp = this.safeInteger(ticker, "timestamp");
+            timestamp = (Long) this.safeInteger(ticker, "timestamp");
         }
         String last = this.safeString(ticker, "last");
         String percentage = this.safeString2(ticker, "change", "price_change_percent");
@@ -1665,7 +1665,7 @@ public class Digifinex extends DigifinexApi
             // swap endpoints return a raw ratio, spot already returns a percent
             percentage = Precise.stringMul(percentage, "100");
         }
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalPercentage = percentage;
         final Double finalIndexPrice = indexPrice;
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -1765,13 +1765,13 @@ public class Digifinex extends DigifinexApi
         {
             market = (Map<String, Object>) (this.safeMarket(marketId));
         }
-        Object timestamp = this.safeTimestamp2(trade, "date", "timestamp");
+        Long timestamp = this.safeTimestamp2(trade, "date", "timestamp");
         String side = this.safeString2(trade, "type", "side");
         String type = null;
         String takerOrMaker = null;
         if (java.util.Objects.equals(((Map<String, Object>)market).get("type"), "swap"))
         {
-            timestamp = this.safeInteger(trade, "trade_time");
+            timestamp = (Long) this.safeInteger(trade, "trade_time");
             String orderType = this.safeString(trade, "order_type");
             String tradeRole = this.safeString(trade, "match_role");
             String direction = this.safeString(trade, "direction");
@@ -1839,7 +1839,7 @@ public class Digifinex extends DigifinexApi
                 put( "currency", finalFeeCurrencyCode );
             }};
         }
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalType = type;
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
@@ -3638,12 +3638,12 @@ public class Digifinex extends DigifinexApi
         currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
         Double amount = this.safeNumber2(item, "num", "change");
         Double after = this.safeNumber(item, "balance");
-        Object timestamp = this.safeTimestamp(item, "time");
+        Long timestamp = this.safeTimestamp(item, "time");
         if (java.util.Objects.equals(timestamp, null))
         {
-            timestamp = this.safeInteger(item, "timestamp");
+            timestamp = (Long) this.safeInteger(item, "timestamp");
         }
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", null );
@@ -5818,7 +5818,7 @@ final Object finalI = i;
                 }};
                 if (!java.util.Objects.equals(networkId, null))
                 {
-                    Object networkCode = this.networkIdToCode(networkId, code);
+                    String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new HashMap<String, Object>() {{

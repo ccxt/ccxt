@@ -811,7 +811,7 @@ public class Bitmex extends BitmexApi
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "asset");
-            Object network = this.networkIdToCode(networkId, code);
+            String network = this.networkIdToCode(networkId, code);
             String withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
             Double withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
             Boolean isDepositEnabled = (Boolean) this.safeBool(chain, "depositEnabled", false);
@@ -827,7 +827,7 @@ public class Bitmex extends BitmexApi
             }
             if (!java.util.Objects.equals(network, null))
             {
-                final Object finalNetwork = network;
+                final String finalNetwork = network;
                 final Boolean finalIsDepositEnabled = isDepositEnabled;
                 final Boolean finalIsWithdrawEnabled = isWithdrawEnabled;
                 ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
@@ -4303,7 +4303,7 @@ public class Bitmex extends BitmexApi
                 Object network = (networks == null || i < 0 || i >= networks.size() ? null : networks.get(i));
                 String networkId = this.safeString(network, "asset");
                 String currencyCode = this.safeString(currency, "code");
-                Object networkCode = this.networkIdToCode(networkId, currencyCode);
+                String networkCode = this.networkIdToCode(networkId, currencyCode);
                 String withdrawalFeeId = this.safeString(network, "withdrawalFee");
                 Double withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeId, precision));
                 if (!java.util.Objects.equals(networkCode, null))

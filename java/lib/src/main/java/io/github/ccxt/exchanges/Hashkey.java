@@ -1260,7 +1260,7 @@ public class Hashkey extends HashkeyApi
         Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filters, "PRICE_FILTER", new HashMap<String, Object>() {{}});
         Map<String, Object> amountFilter = (Map<String, Object>) this.safeDict(filters, "LOT_SIZE", new HashMap<String, Object>() {{}});
         Map<String, Object> costFilter = (Map<String, Object>) this.safeDict(filters, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
-        Object minCostString = this.omitZero(this.safeString(costFilter, "min_notional"));
+        String minCostString = this.omitZero(this.safeString(costFilter, "min_notional"));
         String contractSizeString = this.safeString(market, "contractMultiplier");
         String amountPrecisionString = this.safeString(amountFilter, "stepSize");
         String amountMinLimitString = this.safeString(amountFilter, "minQty");
@@ -4642,7 +4642,7 @@ public class Hashkey extends HashkeyApi
         type = ((List<Object>) typetimeInForcepostOnlyVariable).get(0);
         timeInForce = ((List<Object>) typetimeInForcepostOnlyVariable).get(1);
         postOnly = ((List<Object>) typetimeInForcepostOnlyVariable).get(2);
-        Object average = this.omitZero(this.safeString(order, "avgPrice"));
+        String average = this.omitZero(this.safeString(order, "avgPrice"));
         if (java.util.Objects.equals(price, null))
         {
             price = average;

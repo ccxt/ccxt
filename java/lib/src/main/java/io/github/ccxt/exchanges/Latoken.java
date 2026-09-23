@@ -2499,7 +2499,7 @@ public class Latoken extends LatokenApi
         //         "fee": 0
         //     }
         //
-        Object timestamp = this.safeTimestamp(transfer, "timestamp");
+        Long timestamp = this.safeTimestamp(transfer, "timestamp");
         String currencyId = this.safeString(transfer, "currency");
         String status = this.safeString(transfer, "status");
         return new HashMap<String, Object>() {{
