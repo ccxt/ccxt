@@ -16,15 +16,15 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * The wrapper generator emits one truncation overload per arity from
  * required-only up to (but not including) the full signature. Each truncation
- * delegates to the full method, filling missing trailing args with nulls or
- * the param's declared default value. This test pins the contract by
+ * delegates to the full method, filling missing trailing args with the TS
+ * default: the declared default value, {} for params, else null. This test pins the contract by
  * intercepting the full method on a subclass and observing what each
  * truncation actually forwards.
  *
  * Okx.fetchTrades(String symbol, Long since, Long limit, Map params) is
  * a 1-required + 3-optional shape: three sync truncations — (symbol),
- * (symbol, since), (symbol, since, limit) — reach the typed async core
- * through its Object... front; the full arity is the core itself.
+ * (symbol, since), (symbol, since, limit) — call the typed async core at
+ * full arity; the full arity is the core itself.
  */
 class TruncationOverloadTest {
 
@@ -52,7 +52,7 @@ class TruncationOverloadTest {
         assertEquals("BTC/USD:USDC", args[0]);
         assertNull(args[1], "since must default to null");
         assertNull(args[2], "limit must default to null");
-        assertNull(args[3], "params must default to null");
+        assertEquals(Map.of(), args[3], "params must default to {}");
     }
 
     @Test
@@ -63,7 +63,7 @@ class TruncationOverloadTest {
         assertEquals("ETH/USD:USDC", args[0]);
         assertEquals(1234567890L, args[1]);
         assertNull(args[2]);
-        assertNull(args[3]);
+        assertEquals(Map.of(), args[3]);
     }
 
     @Test
@@ -74,7 +74,7 @@ class TruncationOverloadTest {
         assertEquals("BTC/USD:USDC", args[0]);
         assertEquals(1L, args[1]);
         assertEquals(50L, args[2]);
-        assertNull(args[3]);
+        assertEquals(Map.of(), args[3]);
     }
 
     @Test
