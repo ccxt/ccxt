@@ -4303,6 +4303,39 @@ function wsCacheFieldElementReadType (node) {
     return (ok && writes > 0) ? WS_CACHE_FIELD_CAST : undefined;
 }
 
+// `this.positions[type]` declaration: the box is the set of cache constructors the file's element
+// writers store (wsCacheCtorSetType), so an ArrayCacheByTimestamp-only file names that class; the
+// read is `object` (GetValue), so csharpLocalTypeOf adds the cast back.
+function wsCacheFieldElementBoxType (node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression || !thisMemberPropertyAccess (node.expression, node.expression?.name?.escapedText)) {
+        return undefined;
+    }
+    const member = node.expression.name.escapedText;
+    if (!WS_CACHE_FIELD_READ_TYPES.includes (member) || !wsCacheElementSourceOk (node)) {
+        return undefined;
+    }
+    const source = node.getSourceFile?.();
+    if (source === undefined) {
+        return undefined;
+    }
+    const ctors = new Set ();
+    let ok = true;
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)
+                && n.left?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberPropertyAccess (n.left.expression, member)) {
+            const constructor = arrayCacheConstructorName (n.right);
+            if (constructor === undefined) {
+                ok = false; // a dict literal / unknown element write: not a proven cache member
+            } else {
+                ctors.add (constructor);
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (source, visit);
+    return (ok && ctors.size > 0) ? wsCacheCtorSetType (ctors) : undefined;
+}
+
 // the box of an expression a `future.resolve (VALUE)` / `client.resolve (VALUE, hash)` hands back
 function resolveValueBox (csharp, value) {
     if (value === undefined) {
@@ -9297,9 +9330,9 @@ function localValueBoxType (csharp, identifier, context) {
 }
 
 // the declaration this rule rewrites: `object <name> = <+ chain>` whose every leaf is a
-// string box, behind the `(string)` cast. Fence (roster U20): the local is named `symbol`,
-// or one leaf is a market-row read — the family the unit owns; the other `+` chains belong
-// to the string-left rule of csharpTypeOfValue / the sibling units.
+// The fence is the chain shape alone: two or more leaves, each a proven string-or-null box
+// (addChainLeafBoxType); a nullable `object` leftmost leaf takes the nullable spelling, and
+// csharpLocalIsSafeToRetype re-checks every later read and write.
 function addChainStringBoxType (csharp, declaration, context) {
     const initializer = declaration.initializer;
     if (initializer?.kind !== ts.SyntaxKind.BinaryExpression || initializer.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
@@ -9318,7 +9351,6 @@ function addChainStringBoxType (csharp, declaration, context) {
     if (leaves.length < 2) {
         return undefined;
     }
-    let hasMarketRowLeaf = false;
     let leftmost;
     for (let i = 0; i < leaves.length; i++) {
         const box = addChainLeafBoxType (csharp, leaves[i], context);
@@ -9328,12 +9360,6 @@ function addChainStringBoxType (csharp, declaration, context) {
         if (i === 0) {
             leftmost = box;
         }
-        if (leaves[i]?.kind === ts.SyntaxKind.ElementAccessExpression && marketRowStringReadType (csharp, leaves[i]) === 'string') {
-            hasMarketRowLeaf = true;
-        }
-    }
-    if (declaration.name?.escapedText !== 'symbol' && !hasMarketRowLeaf) {
-        return undefined;
     }
     return { type: (leftmost === 'string?') ? 'string?' : 'string', cast: 'string' };
 }
@@ -10529,6 +10555,10 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
         const elementType = (integerBox === undefined) ? elementAccessElementType (csharp, declaration.initializer, ctx) : undefined;
+        // `const key = keys[i]` over a receiver whose PRINTED declaration head is a scalar list
+        // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
+        // null, so the declaration names it behind the exact cast back
+        const typedListElement = (elementType === undefined) ? typedListElementReadType (csharp, declaration.initializer) : undefined;
         // `this.handleOption (method, key, <literal>)` / `this.safeValue (this.options, key,
         // <literal>)` whose option key's writer census is the default literal's own kind
         const optionsDefaultType = optionsLiteralDefaultCastType (declaration.initializer);
@@ -10539,6 +10569,10 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // (see CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES): getValue's own C# type is `object`, so the
         // proven element box is named behind the exact cast back
         const wsCacheElement = (elementType === undefined) ? (wsCacheElementReadType (declaration.initializer) ?? wsOhlcvsBucketReadType (declaration.initializer) ?? wsCacheBucketReadType (csharp, declaration.initializer)) : undefined;
+        // `this.positions[type]` — a ws cache member element read the file's own writers prove
+        // (wsCacheFieldElementBoxType): getValue's C# type is `object`, so the proven box is named
+        // behind the exact cast back, exactly like the sibling wsCacheElement family
+        const wsCacheFieldElement = (elementType === undefined) ? wsCacheFieldElementBoxType (declaration.initializer) : undefined;
         // the ws order book subscriber core (`const orderbook = await this.watch (...)` +
         // `return orderbook.limit ()`): the resolve proof is wsOrderBookWatchType above
         const wsOrderBookType = wsOrderBookWatchType (declaration);
@@ -10558,9 +10592,21 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         } else if (elementType !== undefined) {
             csharpType = (elementType === 'string') ? 'string?' : elementType;
             cast = elementType;
+        } else if (typedListElement !== undefined) {
+            // the string arm keeps the nullable spelling with the identity `(string)` cast of
+            // elementAccessElementType's own arm (getValue answers null off the end of the list); the
+            // numeric / bool arms cast to the nullable box the same way
+            csharpType = (typedListElement === 'string') ? 'string?' : (typedListElement + '?');
+            cast = (typedListElement === 'string') ? 'string' : (typedListElement + '?');
         } else if (wsCacheElement !== undefined) {
             csharpType = wsCacheElement;
             cast = wsCacheElement;
+        } else if (wsCacheFieldElement !== undefined) {
+            // `const cache = this.positions[type]`: every element write of that cache member in the
+            // file stores an ArrayCache-family constructor, so the box is that cache (or null) and
+            // the cast names it — see wsCacheFieldElementBoxType
+            csharpType = wsCacheFieldElement;
+            cast = wsCacheFieldElement;
         } else if (mathBox !== undefined) {
             csharpType = mathBox.type;
             cast = mathBox.cast;
@@ -12485,6 +12531,36 @@ function elementAccessListReceiverType (csharp, node) {
     return type;
 }
 
+// `const key = keys[i]` over a receiver whose printed declaration is a scalar list: GetValue
+// bounds-checks and answers that scalar or null, so the element is nameable behind the exact cast.
+// The receiver type is the emitted line's (csharpPrintedLocalType), never the classifier's view.
+const CSHARP_SCALAR_LIST_ELEMENT_TYPES = {
+    'List<string>': 'string', 'IList<string>': 'string', 'List<string?>': 'string', 'IList<string?>': 'string',
+    'List<Int64>': 'Int64', 'IList<Int64>': 'Int64', 'List<Int64?>': 'Int64', 'IList<Int64?>': 'Int64',
+    'List<double>': 'double', 'IList<double>': 'double', 'List<double?>': 'double', 'IList<double?>': 'double',
+    'List<bool>': 'bool', 'IList<bool>': 'bool', 'List<bool?>': 'bool', 'IList<bool?>': 'bool',
+};
+
+// the scalar element type of `recv[i]` over a receiver whose printed declaration is a scalar list, or
+// undefined. Read-only: it answers the declaration dispatch, the printed read is unchanged.
+function typedListElementReadType (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return undefined;
+    }
+    const receiver = node.expression;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || node.argumentExpression === undefined) {
+        return undefined;
+    }
+    if (!wsCacheElementSourceOk (node) || typeof csharp.csharpPrintedLocalType !== 'function') {
+        return undefined;
+    }
+    const printed = csharp.csharpPrintedLocalType (receiver);
+    if (printed === undefined) {
+        return undefined;
+    }
+    return Object.prototype.hasOwnProperty.call (CSHARP_SCALAR_LIST_ELEMENT_TYPES, printed) ? CSHARP_SCALAR_LIST_ELEMENT_TYPES[printed] : undefined;
+}
+
 // install before the printer prints a body (idempotent); every consumer asks the same
 // question so one installer can serve them all
 function installCsharpElementAccessCastSkips (csharp) {
@@ -12558,6 +12634,9 @@ function installCsharpListIndexReads (csharp) {
         }
         return { receiver: receiverType, index: 'int' };
     };
+    // the PRINTED declaration type of a local read, for the declaration-dispatch families that must
+    // ask what the emitted line carries instead of re-deriving this wrapper's own guards
+    csharp.csharpPrintedLocalType = (node) => printedLocalType (csharp, printedDeclarationTypes, node);
     csharp._listIndexReadsPatched = true;
 }
 

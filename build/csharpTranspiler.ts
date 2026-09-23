@@ -1631,6 +1631,10 @@ const CORE_ARG_SHADOW_CALLEE_ONLY_POSITIONS: Record<string, number[]> = {
 const CORE_ARG_SHADOW_OWNED_SOURCES = [ 'symbol', 'timeframe', 'since', 'currency', 'tag' ];
 
 const CORE_ARG_SHADOW_MARKET_ROW_READ_RE = /^(?:this\.)?(?:GetValue|getValue)\s*\(\s*([A-Za-z_]\w*)\s*,\s*"([^"]+)"\s*\)$/;
+// The printer's null-safe `(market.ContainsKey("symbol") ? market["symbol"] : null)` read of the
+// same key off the same proven row (backreference): a string-or-null box, identity `(string)` cast.
+const CORE_ARG_SHADOW_MARKET_ROW_COND_RE = /^\(([A-Za-z_]\w*)\.ContainsKey\("([^"]+)"\)\s*\?\s*\1\[\s*"([^"]+)"\s*\]\s*:\s*null\)$/;
+
 const CORE_ARG_SHADOW_MARKET_ROW_BIND_RE = /^\s*(?:I?Dictionary<string, object>\s+)?([A-Za-z_]\w*)\s*=\s*(?:this\.)?(?:market|safeMarket|safeMarketStructure)\s*\(/;
 const CORE_ARG_SHADOW_ELEMENT0_READ_RE = /^([A-Za-z_]\w*)\[\s*0\s*\]$/;
 // Tuple helpers whose element 0 is a string-or-null box at every call site in cs/**. Each is
@@ -3376,6 +3380,13 @@ class NewTranspiler {
         if (newRules && (/\+\s*$/.test (pre) || /^\s*\+/.test (postl))) {
             return 'read';
         }
+        // The same native `+` concat with the printer's parenthesised operand, `... + (alias)` / `(alias) + ...`.
+        if (newRules
+            && (/\+\s*\(\s*$/.test (pre) && /^\)/.test (postl)
+                || /\($/.test (pre) && /^\)\s*\+/.test (postl))) {
+            return 'read';
+        }
+
         if (postl.charAt (0) === ',' || postl.charAt (0) === ')') {
             const callee = this.coreArgShadowCallee (line, at);
             if (callee !== null && this.coreArgShadowCalleeAllows (callee[0], line, at, callee[1], newRules)) {
@@ -3441,6 +3452,12 @@ class NewTranspiler {
         if (row !== null && MARKET_ROW_STRING_KEYS.indexOf (row[2]) !== -1 && marketRows.indexOf (row[1]) !== -1) {
             return 'string';
         }
+        // The same read behind the printer's `ContainsKey` guard: both key literals from the table, same row local.
+        const guarded = CORE_ARG_SHADOW_MARKET_ROW_COND_RE.exec (rhs);
+        if (guarded !== null && guarded[2] === guarded[3] && MARKET_ROW_STRING_KEYS.indexOf (guarded[2]) !== -1 && marketRows.indexOf (guarded[1]) !== -1) {
+            return 'string';
+        }
+
         const element = CORE_ARG_SHADOW_ELEMENT0_READ_RE.exec (rhs);
         if (element !== null && holders.indexOf (element[1]) !== -1) {
             return 'string';
