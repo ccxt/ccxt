@@ -386,25 +386,25 @@ export default class binance extends binanceRest {
         const subscriptionHashes: string[] = [];
         const messageHashes: string[] = [];
         let streamHash = 'liquidations';
-        symbols = this.marketSymbols (symbols, undefined, true, true);
-        if (this.isEmpty (symbols)) {
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, true, true);
+        if (this.isEmpty (symbolsNormalized)) {
             subscriptionHashes.push ('!' + 'forceOrder@arr');
             messageHashes.push ('liquidations');
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const market = this.market (symbols[i]);
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const market = this.market (symbolsNormalized[i]);
                 subscriptionHashes.push (market['lowercaseId'] + '@forceOrder');
-                messageHashes.push ('liquidations::' + symbols[i]);
+                messageHashes.push ('liquidations::' + symbolsNormalized[i]);
             }
-            streamHash += '::' + symbols.join (',');
+            streamHash += '::' + symbolsNormalized.join (',');
         }
         let firstMarket: Market = undefined;
-        if (!this.isEmpty (symbols)) {
-            firstMarket = this.getMarketFromSymbols (symbols);
+        if (!this.isEmpty (symbolsNormalized)) {
+            firstMarket = this.getMarketFromSymbols (symbolsNormalized);
         }
         const resolvedAuth = this.resolveAuthType ('watchLiquidationsForSymbols', firstMarket, params);
         const type = resolvedAuth[0];
-        params = resolvedAuth[2];
+        const paramsValue: Dict = resolvedAuth[2];
         // the spot check runs on the RESOLVED type: a spot default combined
         // with a linear or inverse defaultSubType means the caller wants the
         // matching derivatives stream, so the rewrite is allowed to route it
@@ -426,11 +426,11 @@ export default class binance extends binanceRest {
         const subscribe: Dict = {
             'id': requestId,
         };
-        const newLiquidations = await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscribe);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, this.extend (request, paramsValue), subscriptionHashes, subscribe);
         if (this.newUpdates) {
             return newLiquidations;
         }
-        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbolsNormalized, since, limit, true);
     }
 
     handleLiquidation (client: Client, message: Dict) {
@@ -564,13 +564,13 @@ export default class binance extends binanceRest {
         //    }
         //
         const marketId = this.safeString (liquidation, 's');
-        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger (liquidation, 'T');
         return this.safeLiquidation ({
             'info': liquidation,
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (marketId, marketResolved),
             'contracts': this.safeNumber (liquidation, 'l'),
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'price': this.safeNumber (liquidation, 'ap'),
             'side': this.safeStringLower (liquidation, 'S'),
             'baseValue': undefined,
@@ -612,23 +612,21 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const market = this.getMarketFromSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols (symbolsNormalized);
         const messageHashes = [ 'myLiquidations' ];
-        if (!this.isEmpty (symbols)) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (!this.isEmpty (symbolsNormalized)) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push ('myLiquidations::' + symbol);
             }
         }
-        let type: Str = undefined;
-        let subType: Str = undefined;
-        [ type, subType, params ] = this.resolveAuthType ('watchMyLiquidationsForSymbols', market, params);
+        const [ type, subType, paramsValue ] = this.resolveAuthType ('watchMyLiquidationsForSymbols', market, params);
         // hand the resolved type forward: the helper already omitted type and
         // subType from params, so a bare authenticate would re-derive from
         // options.defaultType and seed a different bucket than the listenKey
         // read below indexes - the derive-first shape watchBalance uses
-        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
+        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, paramsValue));
         const listenKey = this.options[type]['listenKey'];
         const url = this.getPrivateWsUrl (type, listenKey);
         const message = undefined;
@@ -636,7 +634,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             return newLiquidations;
         }
-        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit);
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbolsNormalized, since, limit);
     }
 
     handleMyLiquidation (client: Client, message: any) {
@@ -749,8 +747,8 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const firstMarket = this.market (symbols[0]);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
+        const firstMarket = this.market (symbolsNormalized[0]);
         let type = firstMarket['type'];
         if (firstMarket['option'] === true) {
             type = 'option';
@@ -759,12 +757,12 @@ export default class binance extends binanceRest {
         }
         let name = 'depth';
         let streamHash = 'multipleOrderbook';
-        if (symbols !== undefined) {
-            const symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 200) {
                 throw new BadRequest (this.id + ' watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times');
             }
-            streamHash += '::' + symbols.join (',');
+            streamHash += '::' + symbolsNormalized.join (',');
         }
         let watchOrderBookRate: Str = undefined;
         [ watchOrderBookRate, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100');
@@ -776,8 +774,8 @@ export default class binance extends binanceRest {
         }
         const subParams: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             messageHashes.push ('orderbook::' + symbol);
             const subscriptionHash = market['lowercaseId'] + '@' + name;
@@ -798,7 +796,7 @@ export default class binance extends binanceRest {
         const subscription: Dict = {
             'id': requestId.toString (),
             'name': name,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'method': this.handleOrderBookSubscription,
             'limit': limit,
             'type': type,
@@ -826,8 +824,8 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const firstMarket = this.market (symbols[0]);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
+        const firstMarket = this.market (symbolsNormalized[0]);
         let type = firstMarket['type'];
         if (firstMarket['option'] === true) {
             type = 'option';
@@ -836,15 +834,15 @@ export default class binance extends binanceRest {
         }
         const name = 'depth';
         let streamHash = 'multipleOrderbook';
-        if (symbols !== undefined) {
-            streamHash += '::' + symbols.join (',');
+        if (symbolsNormalized !== undefined) {
+            streamHash += '::' + symbolsNormalized.join (',');
         }
         const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
         const subParams: string[] = [];
         const subMessageHashes: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             subMessageHashes.push ('orderbook::' + symbol);
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
@@ -864,7 +862,7 @@ export default class binance extends binanceRest {
         const subscription: Dict = {
             'unsubscribe': true,
             'id': requestId.toString (),
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
             'topic': 'orderbook',
@@ -919,14 +917,13 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderBookWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrderBookWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
-        params = this.omit (params, 'test');
+        const paramsOmitted: Dict = this.omit (paramsReturnRateLimits, 'test');
         const message: Dict = {
             'id': messageHash,
             'method': 'depth',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsOmitted)),
         };
         const subscription: Dict = {
             'method': this.handleFetchOrderBook,
@@ -1235,19 +1232,18 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         let streamHash = 'multipleTrades';
-        if (symbols !== undefined) {
-            const symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 200) {
                 throw new BadRequest (this.id + ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times');
             }
-            streamHash += '::' + symbols.join (',');
+            streamHash += '::' + symbolsNormalized.join (',');
         }
-        let name: Str = undefined;
-        [ name, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
-        params = this.omit (params, 'callerMethodName');
-        const firstMarket = this.market (symbols[0]);
+        const [ name, paramsName ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
+        const paramsOmitted: Dict = this.omit (paramsName, 'callerMethodName');
+        const firstMarket = this.market (symbolsNormalized[0]);
         let type = firstMarket['type'];
         const isOption = firstMarket['option'];
         if (isOption === true) {
@@ -1261,8 +1257,8 @@ export default class binance extends binanceRest {
             // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
             // handleTrade filters to the correct symbol via the 's' field
             const seenUnderlyings: Dict = {};
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 messageHashes.push ('trade::' + symbol);
                 const baseIdLower = this.safeStringLower (market, 'baseId', '');
@@ -1274,15 +1270,15 @@ export default class binance extends binanceRest {
                 }
             }
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 messageHashes.push ('trade::' + symbol);
                 const rawHash = market['lowercaseId'] + '@' + name;
                 subParams.push (rawHash);
             }
         }
-        const query = this.omit (params, 'type');
+        const query = this.omit (paramsOmitted, 'type');
         const subParamsLength = subParams.length;
         const url = this.getWsUrl (type, this.getFutureWsCategory (name)) + '/' + this.stream (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
@@ -1320,19 +1316,18 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         let streamHash = 'multipleTrades';
-        if (symbols !== undefined) {
-            const symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 200) {
                 throw new BadRequest (this.id + ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times');
             }
-            streamHash += '::' + symbols.join (',');
+            streamHash += '::' + symbolsNormalized.join (',');
         }
-        let name: Str = undefined;
-        [ name, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
-        params = this.omit (params, 'callerMethodName');
-        const firstMarket = this.market (symbols[0]);
+        const [ name, paramsName ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
+        const paramsOmitted = this.omit (paramsName, 'callerMethodName');
+        const firstMarket = this.market (symbolsNormalized[0]);
         let type = firstMarket['type'];
         const isOption = firstMarket['option'];
         if (isOption === true) {
@@ -1347,8 +1342,8 @@ export default class binance extends binanceRest {
             // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
             // handleTrade filters to the correct symbol via the 's' field
             const seenUnderlyings: Dict = {};
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 subMessageHashes.push ('trade::' + symbol);
                 messageHashes.push ('unsubscribe:trade:' + symbol);
@@ -1361,8 +1356,8 @@ export default class binance extends binanceRest {
                 }
             }
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 subMessageHashes.push ('trade::' + symbol);
                 messageHashes.push ('unsubscribe:trade:' + symbol);
@@ -1370,7 +1365,7 @@ export default class binance extends binanceRest {
                 subParams.push (rawHash);
             }
         }
-        const query = this.omit (params, 'type');
+        const query = this.omit (paramsOmitted, 'type');
         const subParamsLength = subParams.length;
         const url = this.getWsUrl (type, this.getFutureWsCategory (name)) + '/' + this.stream (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
@@ -1384,7 +1379,7 @@ export default class binance extends binanceRest {
             'id': requestId.toString (),
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'topic': 'trades',
         };
         return await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscription);
@@ -1635,18 +1630,17 @@ export default class binance extends binanceRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        let stock = this.safeBool (market, 'stock', false);
-        [ stock, params ] = this.handleOptionAndParams (params, 'watchOHLCV', 'stock');
+        const symbolValue: string = market['symbol'];
+        const [ stock, paramsStock ] = this.handleOptionAndParams (params, 'watchOHLCV', 'stock');
         if (stock === true) {
             if ((timeframe !== '5m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
                 throw new BadRequest (this.id + ' watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes');
             }
-            params['stock'] = true;
+            paramsStock['stock'] = true;
         }
-        params['callerMethodName'] = 'watchOHLCV';
-        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
-        return result[symbol][timeframe];
+        paramsStock['callerMethodName'] = 'watchOHLCV';
+        const result = await this.watchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], since, limit, paramsStock);
+        return result[symbolValue][timeframe];
     }
 
     /**
@@ -1669,8 +1663,7 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let stock = false;
-        [ stock, params ] = this.handleOptionAndParams (params, 'watchOHLCVForSymbols', 'stock', false);
+        const [ stock, paramsStock ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'watchOHLCVForSymbols', 'stock', false);
         if (stock) {
             const stockStreams: string[] = [];
             const stockMessageHashes: string[] = [];
@@ -1688,7 +1681,7 @@ export default class binance extends binanceRest {
                 stockStreams.push (stockTickerString + '@kline_' + stockInterval);
                 stockMessageHashes.push ('ohlcv::' + stockMarket['symbol'] + '::' + stockTimeframeString);
             }
-            const stockRes = await this.watchStockMarketStream (stockStreams, stockMessageHashes, params);
+            const stockRes = await this.watchStockMarketStream (stockStreams, stockMessageHashes, paramsStock);
             const [ stockSymbol, stockTimeframe, stockCandles ] = stockRes;
             if (this.newUpdates) {
                 limit = stockCandles.getLimit (stockSymbol, limit);
@@ -1696,8 +1689,7 @@ export default class binance extends binanceRest {
             const stockFiltered = this.filterBySinceLimit (stockCandles, since, limit, 0, true);
             return this.createOHLCVObject (stockSymbol, stockTimeframe, stockFiltered);
         }
-        let klineType: Str = undefined;
-        [ klineType, params ] = this.handleParamString2 (params, 'channel', 'name', 'kline');
+        const [ klineType, paramsChannel ]: [ Str, Dict ] = this.handleParamString2 (paramsStock, 'channel', 'name', 'kline');
         const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
         const marketSymbols = this.marketSymbols (symbols, undefined, false, false, true);
         const firstMarket = this.market (marketSymbols[0]);
@@ -1711,8 +1703,7 @@ export default class binance extends binanceRest {
             wsUrlType = type;
         }
         const isSpot = (type === 'spot');
-        let timezone: Str = undefined;
-        [ timezone, params ] = this.handleParamString (params, 'timezone');
+        const [ timezone, paramsTimezone ]: [ Str, Dict ] = this.handleParamString (paramsChannel, 'timezone');
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq (timezone, '8'));
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
@@ -1746,8 +1737,8 @@ export default class binance extends binanceRest {
         const subscribe: Dict = {
             'id': requestId,
         };
-        params = this.omit (params, 'callerMethodName');
-        const res = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscribe);
+        const paramsOmitted: Dict = this.omit (paramsTimezone, 'callerMethodName');
+        const res = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes, subscribe);
         const [ symbol, timeframe, candles ] = res;
         if (this.newUpdates) {
             limit = candles.getLimit (symbol, limit);
@@ -1772,8 +1763,7 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let klineType: Str = undefined;
-        [ klineType, params ] = this.handleParamString2 (params, 'channel', 'name', 'kline');
+        const [ klineType, paramsChannel ]: [ Str, Dict ] = this.handleParamString2 (params, 'channel', 'name', 'kline');
         const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
         const marketSymbols = this.marketSymbols (symbols, undefined, false, false, true);
         const firstMarket = this.market (marketSymbols[0]);
@@ -1787,8 +1777,7 @@ export default class binance extends binanceRest {
             wsUrlType = type;
         }
         const isSpot = (type === 'spot');
-        let timezone: Str = undefined;
-        [ timezone, params ] = this.handleParamString (params, 'timezone');
+        const [ timezone, paramsTimezone ]: [ Str, Dict ] = this.handleParamString (paramsChannel, 'timezone');
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq (timezone, '8'));
         const rawHashes: string[] = [];
         const subMessageHashes: string[] = [];
@@ -1830,8 +1819,8 @@ export default class binance extends binanceRest {
             'messageHashes': messageHashes,
             'topic': 'ohlcv',
         };
-        params = this.omit (params, 'callerMethodName');
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscribe);
+        const paramsOmitted = this.omit (paramsTimezone, 'callerMethodName');
+        return await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes, subscribe);
     }
 
     /**
@@ -1852,9 +1841,9 @@ export default class binance extends binanceRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         params['callerMethodName'] = 'watchOHLCV';
-        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+        return await this.unWatchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], params);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -1955,16 +1944,14 @@ export default class binance extends binanceRest {
         const subscription: Dict = {
             'method': this.handleTickerWs,
         };
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchTickerWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTickerWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
-        params = this.omit (params, 'test');
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchTickerWs', 'method', 'ticker.book');
+        const paramsOmitted: Dict = this.omit (paramsReturnRateLimits, 'test');
+        const [ method, paramsMethod ]: [ Str, Dict ] = this.handleOptionAndParams (paramsOmitted, 'fetchTickerWs', 'method', 'ticker.book');
         const message: Dict = {
             'id': messageHash,
             'method': method,
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsMethod)),
         };
         const ticker = await this.watch (url, messageHash, message, messageHash, subscription);
         return ticker as Ticker;
@@ -1998,15 +1985,14 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOHLCVWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCVWs', 'returnRateLimits', false);
         const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
             'interval': this.timeframes[timeframe],
         };
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
+        const until = this.safeInteger (paramsReturnRateLimits, 'until');
+        const paramsOmitted: Dict = this.omit (paramsReturnRateLimits, 'until');
         if (since !== undefined) {
             payload['startTime'] = since;
         }
@@ -2019,7 +2005,7 @@ export default class binance extends binanceRest {
         const message: Dict = {
             'id': messageHash,
             'method': 'klines',
-            'params': this.extend (payload, params),
+            'params': this.extend (payload, paramsOmitted),
         };
         const subscription: Dict = {
             'method': this.handleFetchOHLCV,
@@ -2087,9 +2073,9 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const tickers = await this.watchTickers ([ symbol ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
-        return tickers[symbol];
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbolValue ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
+        return tickers[symbolValue];
     }
 
     /**
@@ -2106,9 +2092,9 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const tickers = await this.watchMarkPrices ([ symbol ], this.extend (params, { 'callerMethodName': 'watchMarkPrice' }));
-        return tickers[symbol];
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.watchMarkPrices ([ symbolValue ], this.extend (params, { 'callerMethodName': 'watchMarkPrice' }));
+        return tickers[symbolValue];
     }
 
     /**
@@ -2122,12 +2108,11 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        let channelName: Str = undefined;
         // for now watchmarkPrice uses the same messageHash as watchTicker
         // so it's impossible to watch both at the same time
         // refactor this to use different messageHashes
-        [ channelName, params ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'name', 'markPrice');
-        const newTickers = await this.watchMultiTickerHelper ('watchMarkPrices', channelName, symbols, params);
+        const [ channelName, paramsName ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'name', 'markPrice');
+        const newTickers = await this.watchMultiTickerHelper ('watchMarkPrices', channelName, symbols, paramsName);
         if (this.newUpdates) {
             return newTickers;
         }
@@ -2151,25 +2136,23 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        let stock = false;
-        [ stock, params ] = this.handleOptionAndParams (params, 'watchTickers', 'stock', false);
+        const [ stock, paramsStock ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'watchTickers', 'stock', false);
         if (stock) {
             if (symbols === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchTickers() with stock stream requires symbols');
             }
             symbols = this.marketSymbols (symbols, undefined, false, false, true);
-            const stockResult = await this.watchStockMarketStream ([ 'price' ], [ 'stock:price' ], params);
+            const stockResult = await this.watchStockMarketStream ([ 'price' ], [ 'stock:price' ], paramsStock);
             if (this.newUpdates) {
                 return stockResult;
             }
             return this.filterByArray (this.tickers, 'symbol', symbols);
         }
-        let channelName: Str = undefined;
-        [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'miniTicker');
+        const [ channelName, paramsName ]: [ Str, Dict ] = this.handleOptionAndParams (paramsStock, 'watchTickers', 'name', 'miniTicker');
         if (channelName === 'bookTicker') {
             throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
-        const newTickers = await this.watchMultiTickerHelper ('watchTickers', channelName, symbols, params);
+        const newTickers = await this.watchMultiTickerHelper ('watchTickers', channelName, symbols, paramsName);
         if (this.newUpdates) {
             return newTickers;
         }
@@ -2191,12 +2174,11 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
-        let channelName: Str = undefined;
-        [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
+        const [ channelName, paramsName ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
         if (channelName === 'bookTicker') {
             throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
-        return await this.watchMultiTickerHelper ('unWatchTickers', channelName, symbols, params, true);
+        return await this.watchMultiTickerHelper ('unWatchTickers', channelName, symbols, paramsName, true);
     }
 
     /**
@@ -2209,12 +2191,11 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
-        let channelName: Str = undefined;
-        [ channelName, params ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'name', 'markPrice');
+        const [ channelName, paramsName ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'name', 'markPrice');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        return await this.watchMultiTickerHelper ('unWatchMarkPrices', channelName, symbols, params, true);
+        return await this.watchMultiTickerHelper ('unWatchMarkPrices', channelName, symbols, paramsName, true);
     }
 
     /**
@@ -2279,8 +2260,7 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let stock = false;
-        [ stock, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'stock', false);
+        const [ stock, paramsStock ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'stock', false);
         if (stock) {
             if (symbols === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchBidsAsks() with stock stream requires symbols');
@@ -2293,14 +2273,14 @@ export default class binance extends binanceRest {
                 stockStreams.push (stockTicker + '@quote');
                 stockMessageHashes.push ('stock:quote:' + symbols[i]);
             }
-            const stockResult = await this.watchStockMarketStream (stockStreams, stockMessageHashes, params);
+            const stockResult = await this.watchStockMarketStream (stockStreams, stockMessageHashes, paramsStock);
             if (this.newUpdates) {
                 return stockResult;
             }
             return this.filterByArray (this.bidsasks, 'symbol', symbols);
         }
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
-        const result = await this.watchMultiTickerHelper ('watchBidsAsks', 'bookTicker', symbols, params);
+        const result = await this.watchMultiTickerHelper ('watchBidsAsks', 'bookTicker', symbols, paramsStock);
         if (this.newUpdates) {
             return result;
         }
@@ -2311,21 +2291,19 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, false, true);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, false, true);
         const isBidAsk = (channelName === 'bookTicker');
         const isMarkPrice = (channelName === 'markPrice');
         const use1sFreq = this.safeBool (params, 'use1sFreq', true);
         let firstMarket: Market = undefined;
-        let marketType: Str = undefined;
-        const symbolsDefined = (symbols !== undefined);
-        if (symbols !== undefined) {
-            firstMarket = this.market (symbols[0]);
+        const symbolsDefined = (symbolsNormalized !== undefined);
+        if (symbolsNormalized !== undefined) {
+            firstMarket = this.market (symbolsNormalized[0]);
         }
         const userDefaultType = this.safeString (this.options, 'defaultType');
         const defaultMarket = (isMarkPrice && userDefaultType !== 'option') ? 'swap' : undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params, defaultMarket);
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams (methodName, firstMarket, params, defaultMarket);
+        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams (methodName, firstMarket, paramsMarketType);
         // use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
         const isOptionMarkPrice = (isMarkPrice && marketType === 'option');
         let rawMarketType: Str = undefined;
@@ -2363,10 +2341,10 @@ export default class binance extends binanceRest {
         } else {
             unifiedPrefix = 'ticker';
         }
-        if (symbols !== undefined) {
+        if (symbolsNormalized !== undefined) {
             const seenUnderlyings: Dict = {};
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 messageHashes.push (unifiedPrefix + ':' + channelName + '@' + symbol);
                 if (isUnsubscribe) {
@@ -2402,13 +2380,13 @@ export default class binance extends binanceRest {
             }
         } else {
             if (marketType === 'option') {
-                const underlying = this.safeStringLower (params, 'underlying');
+                const underlying = this.safeStringLower (paramsSubType, 'underlying');
                 if (underlying === undefined) {
                     throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires either symbols or params["underlying"] for eOptions');
                 }
                 if (isOptionTicker) {
                     // eOptions tickers are per underlying+expiry: <underlying>@optionTicker@<YYMMDD>
-                    const expirationDate = this.safeString (params, 'expirationDate');
+                    const expirationDate = this.safeString (paramsSubType, 'expirationDate');
                     if (expirationDate === undefined) {
                         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires params["expirationDate"] (e.g. "260227") for eOptions tickers when no symbols are provided');
                     }
@@ -2437,8 +2415,8 @@ export default class binance extends binanceRest {
             }
         }
         let streamHash = channelName;
-        if (symbols !== undefined) {
-            streamHash = channelName + '::' + symbols.join (',');
+        if (symbolsNormalized !== undefined) {
+            streamHash = channelName + '::' + symbolsNormalized.join (',');
         }
         const url = this.getWsUrl (rawMarketType, this.getFutureWsCategory (channelName)) + '/' + this.stream (rawMarketType, streamHash);
         const requestId = this.requestId (url);
@@ -2457,7 +2435,7 @@ export default class binance extends binanceRest {
                 'id': requestId.toString (),
                 'subMessageHashes': messageHashes,
                 'messageHashes': unsubscribeMessageHashes,
-                'symbols': symbols,
+                'symbols': symbolsNormalized,
                 'topic': 'ticker',
             };
             hashes = unsubscribeMessageHashes;
@@ -2468,7 +2446,7 @@ export default class binance extends binanceRest {
         if (isOptionMarkPrice && !isUnsubscribe) {
             waitHashes = [ unifiedPrefix + 's:' + channelName ];
         }
-        const result = await this.watchMultiple (url, waitHashes, this.deepExtend (request, params), hashes, subscription);
+        const result = await this.watchMultiple (url, waitHashes, this.deepExtend (request, paramsSubType), hashes, subscription);
         if (isUnsubscribe) {
             return result;
         }
@@ -3270,17 +3248,15 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchBalanceWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchBalanceWs', 'returnRateLimits', false);
         const payload: Dict = {
             'returnRateLimits': returnRateLimits,
         };
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchBalanceWs', 'method', 'account.status');
+        const [ method, paramsMethod ]: [ Str, Dict ] = this.handleOptionAndParams (paramsReturnRateLimits, 'fetchBalanceWs', 'method', 'account.status');
         const message: Dict = {
             'id': messageHash,
             'method': method,
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsMethod)),
         };
         const subscription: Dict = {
             'method': (method === 'account.status') ? this.handleAccountStatusWs : this.handleBalanceWs,
@@ -3389,16 +3365,16 @@ export default class binance extends binanceRest {
         }
         const payload: Dict = {};
         let market: Market = undefined;
-        symbols = this.marketSymbols (symbols, 'swap', true, true, true);
-        if (symbols !== undefined) {
-            const symbolsLength = symbols.length;
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, 'swap', true, true, true);
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                market = this.market (symbols[0]);
+                market = this.market (symbolsNormalized[0]);
                 payload['symbol'] = market['id'];
             }
         }
         let type = this.getMarketType ('fetchPositionsWs', market, params);
-        if (symbols === undefined && (type === 'spot')) {
+        if (symbolsNormalized === undefined && (type === 'spot')) {
             // when symbols aren't provide
             // we shouldn't rely on the defaultType
             type = 'future';
@@ -3409,21 +3385,19 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchPositionsWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchPositionsWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchPositionsWs', 'method', 'account.position');
+        const [ method, paramsMethod ]: [ Str, Dict ] = this.handleOptionAndParams (paramsReturnRateLimits, 'fetchPositionsWs', 'method', 'account.position');
         const message: Dict = {
             'id': messageHash,
             'method': method,
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsMethod)),
         };
         const subscription: Dict = {
             'method': this.handlePositionsWs,
         };
         const result = await this.watch (url, messageHash, message, messageHash, subscription);
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
     }
 
     handlePositionsWs (client: Client, message: Dict) {
@@ -3486,12 +3460,9 @@ export default class binance extends binanceRest {
         // re-derives from its own method scope, so without this a method-scoped
         // options.watchBalance.type seeds one bucket while the read below
         // indexes another - the same derive-first shape watchOrders uses
-        let type: Str = undefined;
-        let subType: Str = undefined;
-        [ type, subType, params ] = this.resolveAuthType ('watchBalance', undefined, params);
-        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
-        let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchBalance', 'papi', 'portfolioMargin', false);
+        const [ type, subType, paramsValue ] = this.resolveAuthType ('watchBalance', undefined, params);
+        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, paramsValue));
+        const [ isPortfolioMargin ]: [ Bool, Dict ] = this.handleOptionAndParams2 (paramsValue, 'watchBalance', 'papi', 'portfolioMargin', false);
         let url = '';
         let urlType = type;
         if (type === 'spot' || type === 'margin') {
@@ -3723,30 +3694,29 @@ export default class binance extends binanceRest {
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
-        params = this.omit (params, 'sor', 'SOR');
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        const trailingDelta = this.safeString (params, 'trailingDelta');
-        const trailingPercent = this.safeStringN (params, [ 'trailingPercent', 'callbackRate', 'trailingDelta' ]);
+        const paramsOmitted: Dict = this.omit (params, 'sor', 'SOR');
+        const triggerPrice = this.safeString2 (paramsOmitted, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString (paramsOmitted, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString (paramsOmitted, 'takeProfitPrice');
+        const trailingDelta = this.safeString (paramsOmitted, 'trailingDelta');
+        const trailingPercent = this.safeStringN (paramsOmitted, [ 'trailingPercent', 'callbackRate', 'trailingDelta' ]);
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
         const isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
-        const payload = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'returnRateLimits', false);
+        const payload = this.createOrderRequest (symbol, type, side, amount, price, paramsOmitted);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsOmitted, 'createOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
-        const test = this.safeBool (params, 'test', false);
-        params = this.omit (params, 'test');
+        const test = this.safeBool (paramsReturnRateLimits, 'test', false);
+        const paramsOmitted2: Dict = this.omit (paramsReturnRateLimits, 'test');
         if ((market['linear'] === true) && (market['swap'] === true) && isConditional) {
             payload['algoType'] = 'CONDITIONAL';
         }
         const message: Dict = {
             'id': messageHash,
             'method': 'order.place',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsOmitted2)),
         };
         if (test === true) {
             if (sor === true) {
@@ -3897,13 +3867,12 @@ export default class binance extends binanceRest {
         } else {
             payload = this.editContractOrderRequest (id, symbol, type, side, amount, price, params);
         }
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'editOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
         const message: Dict = {
             'id': messageHash,
             'method': (isSwap) ? 'order.modify' : 'order.cancelReplace',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsReturnRateLimits)),
         };
         const subscription: Dict = {
             'method': this.handleEditOrderWs,
@@ -4049,14 +4018,13 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'cancelOrderWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'cancelOrderWs', 'returnRateLimits', false);
         const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
-        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
-        const clientOrderId = this.safeStringN (params, [ 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ]);
+        const isConditional = this.safeBoolN (paramsReturnRateLimits, [ 'stop', 'trigger', 'conditional' ]);
+        const clientOrderId = this.safeStringN (paramsReturnRateLimits, [ 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ]);
         const shouldUseAlgoOrder = (market['linear'] === true) && (market['swap'] === true) && (isConditional === true);
         if (clientOrderId !== undefined) {
             if (shouldUseAlgoOrder === true) {
@@ -4071,11 +4039,11 @@ export default class binance extends binanceRest {
                 payload['orderId'] = this.numberToString (id);
             }
         }
-        params = this.omit (params, [ 'origClientOrderId', 'clientOrderId', 'stop', 'trigger', 'conditional' ]);
+        const paramsOmitted: Dict = this.omit (paramsReturnRateLimits, [ 'origClientOrderId', 'clientOrderId', 'stop', 'trigger', 'conditional' ]);
         const message: Dict = {
             'id': messageHash,
             'method': 'order.cancel',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsOmitted)),
         };
         if (shouldUseAlgoOrder === true) {
             message['method'] = 'algoOrder.cancel';
@@ -4110,8 +4078,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'cancelAllOrdersWs', 'returnRateLimits', false);
         const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
@@ -4119,7 +4086,7 @@ export default class binance extends binanceRest {
         const message: Dict = {
             'id': messageHash,
             'method': 'openOrders.cancelAll',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsReturnRateLimits)),
         };
         const subscription: Dict = {
             'method': this.handleOrdersWs,
@@ -4154,13 +4121,12 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
         const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
-        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (paramsReturnRateLimits, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             payload['origClientOrderId'] = clientOrderId;
         } else {
@@ -4169,7 +4135,7 @@ export default class binance extends binanceRest {
         const message: Dict = {
             'id': messageHash,
             'method': 'order.status',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsReturnRateLimits)),
         };
         const subscription: Dict = {
             'method': this.handleOrderWs,
@@ -4207,8 +4173,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrdersWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrdersWs', 'returnRateLimits', false);
         const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
@@ -4216,7 +4181,7 @@ export default class binance extends binanceRest {
         const message: Dict = {
             'id': messageHash,
             'method': 'allOrders',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsReturnRateLimits)),
         };
         const subscription: Dict = {
             'method': this.handleOrdersWs,
@@ -4271,8 +4236,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOpenOrdersWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOpenOrdersWs', 'returnRateLimits', false);
         const payload: Dict = {
             'returnRateLimits': returnRateLimits,
         };
@@ -4282,7 +4246,7 @@ export default class binance extends binanceRest {
         const message: Dict = {
             'id': messageHash,
             'method': 'openOrders.status',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsReturnRateLimits)),
         };
         const subscription: Dict = {
             'method': this.handleOrdersWs,
@@ -4313,12 +4277,11 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let stock = false;
-        [ stock, params ] = this.handleOptionAndParams (params, 'watchOrders', 'stock', false);
+        const [ stock, paramsStock ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'watchOrders', 'stock', false);
         if (stock) {
             // literal on top: a stray type in the caller params must not override
             // the forced stock, the removed authenticateStock ignored it entirely
-            await this.authenticate (this.extend (params, { 'type': 'stock' }));
+            await this.authenticate (this.extend (paramsStock, { 'type': 'stock' }));
             const stockOptions = this.safeDict (this.options, 'stock', {});
             const stockListenKey = this.safeString (stockOptions, 'listenKey');
             if (stockListenKey === undefined) {
@@ -4336,7 +4299,7 @@ export default class binance extends binanceRest {
                 'params': [ stockStreamName ],
                 'id': stockRequestId,
             };
-            const stockQuery = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]);
+            const stockQuery = this.omit (paramsStock, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]);
             const stockSubscribe: Dict = {
                 'id': stockRequestId,
             };
@@ -4353,19 +4316,15 @@ export default class binance extends binanceRest {
             symbol = market['symbol'];
             messageHash += ':' + symbol;
         }
-        let type: Str = undefined;
-        let subType: Str = undefined;
-        [ type, subType, params ] = this.resolveAuthType ('watchOrders', market, params);
-        params = this.extend (params, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
-        await this.authenticate (params);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('watchOrders', params);
+        const [ type, subType, paramsValue ] = this.resolveAuthType ('watchOrders', market, paramsStock);
+        const paramsExtended: Dict = this.extend (paramsValue, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
+        await this.authenticate (paramsExtended);
+        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('watchOrders', paramsExtended);
         let urlType = type;
         if ((type === 'margin') || ((type === 'spot') && (marginMode !== undefined))) {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
-        let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
+        const [ isPortfolioMargin ]: [ Bool, Dict ] = this.handleOptionAndParams2 (paramsMarginMode, 'watchOrders', 'papi', 'portfolioMargin', false);
         let url = '';
         if (type === 'spot' || type === 'margin') {
             // route orders to ws-api user data stream
@@ -4954,13 +4913,13 @@ export default class binance extends binanceRest {
         }
         let market: Market = undefined;
         let messageHash = '';
-        symbols = this.marketSymbols (symbols);
-        if (!this.isEmpty (symbols)) {
-            market = this.getMarketFromSymbols (symbols);
-            if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if (!this.isEmpty (symbolsNormalized)) {
+            market = this.getMarketFromSymbols (symbolsNormalized);
+            if (symbolsNormalized === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
             }
-            messageHash = '::' + symbols.join (',');
+            messageHash = '::' + symbolsNormalized.join (',');
         }
         let type: Str = undefined;
         let subType: Str = undefined;
@@ -4995,19 +4954,19 @@ export default class binance extends binanceRest {
         const url = this.getPrivateWsUrl (urlType, this.options[type]['listenKey']);
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
-        this.setPositionsCache (client, type, symbols, isPortfolioMargin);
+        this.setPositionsCache (client, type, symbolsNormalized, isPortfolioMargin);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.safeValue (this.positions, type);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const newPositions = await this.watch (url, messageHash, undefined, type);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (cache, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client, type: any, symbols: Strings = undefined, isPortfolioMargin: boolean = false) {
@@ -5254,8 +5213,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchMyTradesWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTradesWs', 'returnRateLimits', false);
         const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
@@ -5266,14 +5224,14 @@ export default class binance extends binanceRest {
         if (limit !== undefined) {
             payload['limit'] = limit;
         }
-        const fromId = this.safeInteger (params, 'fromId');
+        const fromId = this.safeInteger (paramsReturnRateLimits, 'fromId');
         if (fromId !== undefined && since !== undefined) {
             throw new BadRequest (this.id + ' fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
         }
         const message: Dict = {
             'id': messageHash,
             'method': 'myTrades',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, paramsReturnRateLimits)),
         };
         const subscription: Dict = {
             'method': this.handleTradesWs,
@@ -5308,8 +5266,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        let returnRateLimits = false;
-        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchTradesWs', 'returnRateLimits', false);
+        const [ returnRateLimits, paramsReturnRateLimits ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTradesWs', 'returnRateLimits', false);
         const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
@@ -5320,7 +5277,7 @@ export default class binance extends binanceRest {
         const message: Dict = {
             'id': messageHash,
             'method': 'trades.historical',
-            'params': this.extend (payload, params),
+            'params': this.extend (payload, paramsReturnRateLimits),
         };
         const subscription: Dict = {
             'method': this.handleTradesWs,
