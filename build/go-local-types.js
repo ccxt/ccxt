@@ -5385,6 +5385,11 @@ const CCXT_GO_PRODUCER_DECLARATIONS = {
     'this.ParseMarketLeverageTiers': 'list',
     'this.ParseOHLCVs': 'list',
     'this.ParseTrade': 'map',
+    'this.ParseOrder': 'map',
+    'this.ParseTicker': 'map',
+    'this.ParseWsOrder': 'map',
+    'this.ParseWsTicker': 'map',
+    'this.Omit': 'map',
     'this.ParseTransaction': 'map',
     'this.ParseWsOHLCVs': 'list',
     'this.PolymarketOrderRawAmounts': 'map',
@@ -5489,10 +5494,41 @@ function ccxtGoProducerDeclarationType (goTranspiler, declaration, family) {
         || (typeof goTranspiler.goSafeListUseReadsTheList !== 'function')) {
         return undefined; // older printer without the container read scans: nothing to extend
     }
-    const readsTheValue = dictLike
-        ? (n) => goTranspiler.goSafeDictUseReadsTheMap (n)
-        : (n) => goTranspiler.goSafeListUseReadsTheList (n);
+    const neverAbsent = dictLike && ((CCXT_GO_PRODUCER_NEVER_ABSENT.indexOf (goName) >= 0)
+        || ((goName === 'Omit') && ccxtGoProducerArgIsMap (goTranspiler, initializer.arguments[0])));
+    const readsTheValue = neverAbsent
+        ? (n) => !ccxtGoProducerUseRebinds (n)
+        : (dictLike
+            ? (n) => goTranspiler.goSafeDictUseReadsTheMap (n)
+            : (n) => goTranspiler.goSafeListUseReadsTheList (n));
     return goTranspiler.goDeclaredLocalTypeIfSafe (declaration, goType, readsTheValue);
+}
+
+// every ts return path of these (all overrides) yields a Dict, so the local is never a nil map:
+// handing it out, returning it or writing into it keeps the boxed value's meaning
+const CCXT_GO_PRODUCER_NEVER_ABSENT = [ 'ParseOrder', 'ParseTrade', 'ParseTicker', 'ParsePosition', 'ParseTransaction', 'ParseWsOrder', 'ParseWsTicker', 'ParseWsTrade' ];
+
+// Omit rebuilds a map argument into a fresh map (OmitMap/OmitN), even a nil typed one
+function ccxtGoProducerArgIsMap (goTranspiler, arg) {
+    if (arg === undefined) {
+        return false;
+    }
+    if (arg.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+        return true;
+    }
+    if ((arg.kind === ts.SyntaxKind.Identifier) && (typeof goTranspiler.goDeclaredTypeOfIdentifier === 'function')) {
+        return goTranspiler.goDeclaredTypeOfIdentifier (arg) === CCXT_GO_PRODUCER_DICT_TYPE;
+    }
+    return false;
+}
+
+function ccxtGoProducerUseRebinds (n) {
+    const parent = n.parent;
+    if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n) && isAssignmentOperator (parent.operatorToken.kind)) {
+        return true;
+    }
+    return (parent?.kind === ts.SyntaxKind.PostfixUnaryExpression) || (parent?.kind === ts.SyntaxKind.PrefixUnaryExpression)
+        || (parent?.kind === ts.SyntaxKind.DeleteExpression);
 }
 
 // the initializer a typed producer local is declared with: the same call, its boxed result
