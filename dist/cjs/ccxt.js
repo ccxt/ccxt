@@ -200,6 +200,7 @@ var myriad = require('./src/prediction/myriad.js');
 var opinion = require('./src/prediction/opinion.js');
 var polymarket = require('./src/prediction/polymarket.js');
 var predictfun = require('./src/prediction/predictfun.js');
+var sxbet = require('./src/prediction/sxbet.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
@@ -402,6 +403,7 @@ const prediction = {
     'opinion': opinion["default"],
     'polymarket': polymarket["default"],
     'predictfun': predictfun["default"],
+    'sxbet': sxbet["default"],
 };
 prediction.exchanges = Object.keys(prediction);
 // the namespace's `Exchange` alias must be the prediction base, not the crypto Exchange —

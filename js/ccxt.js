@@ -233,6 +233,7 @@ import myriadPrediction from './src/prediction/myriad.js';
 import opinionPrediction from './src/prediction/opinion.js';
 import polymarketPrediction from './src/prediction/polymarket.js';
 import predictfunPrediction from './src/prediction/predictfun.js';
+import sxbetPrediction from './src/prediction/sxbet.js';
 const exchanges = {
     'alpaca': alpaca,
     'apex': apex,
@@ -431,6 +432,7 @@ const prediction = {
     'opinion': opinionPrediction,
     'polymarket': polymarketPrediction,
     'predictfun': predictfunPrediction,
+    'sxbet': sxbetPrediction,
 };
 prediction.exchanges = Object.keys(prediction);
 // the namespace's `Exchange` alias must be the prediction base, not the crypto Exchange —

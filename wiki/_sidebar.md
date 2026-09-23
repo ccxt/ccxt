@@ -116,3 +116,4 @@
 	- [opinion](exchanges/prediction/opinion.md)
 	- [polymarket](exchanges/prediction/polymarket.md)
 	- [predictfun](exchanges/prediction/predictfun.md)
+	- [sxbet](exchanges/prediction/sxbet.md)
